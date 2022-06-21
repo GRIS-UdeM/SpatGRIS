@@ -58,6 +58,8 @@ class GrisLookAndFeel : public juce::LookAndFeel_V3
     juce::Colour mOffColor;
     juce::Colour mGreenColor;
     juce::Colour mRedColor;
+    juce::Colour mSourceColor;
+    juce::Colour mSubColor;
 
 public:
     //==============================================================================
@@ -98,6 +100,8 @@ public:
     [[nodiscard]] juce::Colour getOffColour() const { return this->mOffColor; }
     [[nodiscard]] juce::Colour getGreenColour() const { return this->mGreenColor; }
     [[nodiscard]] juce::Colour getRedColour() const { return this->mRedColor; }
+    [[nodiscard]] juce::Colour getSourceColor() const { return this->mSourceColor; }
+    [[nodiscard]] juce::Colour getSubColor() const { return this->mSubColor; }
 
     void drawComboBox(juce::Graphics & g,
                       int width,

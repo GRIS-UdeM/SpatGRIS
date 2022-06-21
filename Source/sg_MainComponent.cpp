@@ -2533,6 +2533,14 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
         source.value->zenithSpan = 0.0f;
         setSourceDirectOut(sourceIndex, tl::nullopt);
 
+        if (speaker.value->isDirectOutOnly) {
+            source.value->colour = mLookAndFeel.getSubColor();
+            mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSubColor());
+        } else {
+            source.value->colour = mLookAndFeel.getSourceColor();
+            mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSourceColor());
+        }
+
         spatAlgorithm.updateSpatData(source.key, *source.value);
         ++i;
     }

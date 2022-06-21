@@ -41,6 +41,9 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->mGreenColor = juce::Colour::fromRGB(56, 156, 56);
     this->mRedColor = juce::Colour::fromRGB(220, 48, 35);
 
+    this->mSourceColor = juce::Colour::fromRGB(3, 9, 255);
+    this->mSubColor = juce::Colour::fromRGB(109, 1, 1);
+
     this->setColour(juce::PopupMenu::highlightedBackgroundColourId, this->mOnColor);
     this->setColour(juce::TextEditor::backgroundColourId, this->mEditBgcolor);
     this->setColour(juce::TextEditor::highlightColourId, this->mHlBgcolor);
