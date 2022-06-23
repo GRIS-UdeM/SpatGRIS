@@ -44,7 +44,11 @@ void LbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceD
 
     if (sourceData.position) {
         lbap(sourceData, spatData.gains, mField);
-        spatData.lbapSourceDistance = sourceData.position->getCartesian().discardZ().getDistanceFromOrigin();
+        //spatData.lbapSourceDistance = sourceData.position->getCartesian().discardZ().getDistanceFromOrigin();
+        spatData.lbapSourceDistance
+            = std::sqrt(sourceData.position->getCartesian().x * sourceData.position->getCartesian().x
+                        + sourceData.position->getCartesian().y * sourceData.position->getCartesian().y
+                        + sourceData.position->getCartesian().z * sourceData.position->getCartesian().z);
     } else {
         spatData.gains = SpeakersSpatGains{};
     }
@@ -138,6 +142,7 @@ void LbapSpatAlgorithm::process(AudioConfig const & config,
                 for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
                     currentGain = (currentGain - targetGain) * gainFactor + targetGain;
                     outputSamples[sampleIndex] += inputSamples[sampleIndex] * currentGain;
+                    //DBG("speaker " << speaker.key.get() << " gain = " << inputSamples[sampleIndex] * currentGain);
                 }
             }
         }

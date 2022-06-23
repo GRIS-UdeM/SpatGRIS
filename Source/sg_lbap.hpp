@@ -40,7 +40,9 @@ namespace gris
 struct SpeakerData;
 
 static auto constexpr LBAP_MATRIX_SIZE = 64;
-using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
+// using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
+using matrix_t
+    = std::array<std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
 
 struct LbapSpeaker {
     Position position{};
@@ -48,21 +50,26 @@ struct LbapSpeaker {
 };
 
 //==============================================================================
-using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
+// using matrix_t
+//    = std::array<std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
+// using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
 
-//==============================================================================
-struct LbapLayer {
-    int id;                                 /**< Layer id. */
-    float height;                           /**< Elevation of the layer in the range 0 .. 1. */
-    float gainExponent;                     /**< Speaker gain exponent for 4+ speakers. */
-    std::vector<matrix_t> amplitudeMatrix;  /**< Arrays of amplitude values [spk][x][y]. */
-    std::vector<Position> speakerPositions; /**< Array of speakers. */
-};
+////==============================================================================
+// struct LbapLayer {
+//    int id;                                 /**< Layer id. */
+//    float height;                           /**< Elevation of the layer in the range 0 .. 1. */
+//    float gainExponent;                     /**< Speaker gain exponent for 4+ speakers. */
+//    std::vector<matrix_t> amplitudeMatrix;  /**< Arrays of amplitude values [spk][x][y]. */
+//    std::vector<Position> speakerPositions; /**< Array of speakers. */
+//};
 
 //==============================================================================
 struct LbapField {
     std::vector<output_patch_t> outputOrder; /**< Physical output order. */
-    std::vector<LbapLayer> layers;           /**< Array of layers. */
+    // std::vector<LbapLayer> layers;           /**< Array of layers. */
+    float gainExponent;                     /**< Speaker gain exponent for 4+ speakers. */
+    std::vector<matrix_t> amplitudeMatrix;  /**< Arrays of amplitude values [spk][x][y][z]. */
+    std::vector<Position> speakerPositions; /**< Array of speakers. */
     //==============================================================================
     [[nodiscard]] size_t getNumSpeakers() const;
     void reset();
