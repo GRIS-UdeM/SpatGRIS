@@ -82,11 +82,40 @@ void ThumbnailComp::paint(juce::Graphics & g)
         }
     } else {
         g.setFont(mLookAndFeel.getFont());
+
+        auto localBounds{ getLocalBounds().reduced(10) };
+        auto textRect{ localBounds.removeFromTop(120) };
+
+        auto sourcesRect{ localBounds.removeFromTop(20) };
+        juce::Rectangle<int> colorSourcesRect;
+        colorSourcesRect.setBounds(sourcesRect.getTopLeft().getX(), sourcesRect.getTopLeft().getY() + 3, 10, 10);
+        g.setColour(mLookAndFeel.getSourceColor());
+        g.fillRect(colorSourcesRect);
+
+        auto subsRect{ localBounds.removeFromTop(20) };
+        juce::Rectangle<int> colorSubsRect;
+        colorSubsRect.setBounds(subsRect.getTopLeft().getX(), subsRect.getTopLeft().getY() + 3, 10, 10);
+        g.setColour(mLookAndFeel.getSubColor());
+        g.fillRect(colorSubsRect);
+
+        g.setColour(mLookAndFeel.getLightColour());
+
         juce::String text;
+        juce::String sources;
+        juce::String subs;
         text << "No audio file loaded.\n";
         text << "Open the folder containing the audio files and the speaker setup used to record them.\n";
-        text << "Click in the audio thumbnails to position the playhead.\n";
-        g.drawFittedText(text, getLocalBounds().reduced(10), juce::Justification::centredLeft, 2);
+        text << "Click in the audio thumbnails to position the playhead.\n\n";
+        text << "NOTE on  direct outputs :\n";
+        text << "The player will try to assign direct outputs to the currently loaded speaker setup direct outputs. "
+             << "Please adjust this configuration to fit your needs.\n";
+        g.drawFittedText(text, textRect, juce::Justification::topLeft, 2);
+
+        sources << "    Color of spatialized sources\n";
+        g.drawFittedText(sources, sourcesRect, juce::Justification::topLeft, 2);
+
+        subs << "    Color of direct outputs\n";
+        g.drawFittedText(subs, subsRect, juce::Justification::topLeft, 2);
     }
 }
 
@@ -465,7 +494,7 @@ PlayerWindow::PlayerWindow(MainContentComponent & mainContentComponent, GrisLook
 
     setResizable(true, true);
     setResizeLimits(600,
-                    160,
+                    260,
                     juce::Desktop::getInstance().getDisplays().getTotalBounds(true).getWidth(),
                     juce::Desktop::getInstance().getDisplays().getTotalBounds(true).getHeight());
     setUsingNativeTitleBar(true);
