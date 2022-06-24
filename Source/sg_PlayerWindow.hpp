@@ -65,6 +65,7 @@ public:
     void setTimeCode(double const timeInSec);
     void playAudio();
     void stopAudio();
+    void loadPlayer();
 
 private:
     //==============================================================================
@@ -142,6 +143,8 @@ public:
     //==============================================================================
     void closeButtonPressed() override;
     bool keyPressed(const juce::KeyPress & k) override;
+    //==============================================================================
+    void reloadPlayer();
 
 private:
     //==============================================================================

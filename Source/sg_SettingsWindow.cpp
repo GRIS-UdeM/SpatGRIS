@@ -300,7 +300,7 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
     fillComboBoxes();
 
     auto * currentAudioDevice{ audioDeviceManager.getCurrentAudioDevice() };
-    AudioManager::getInstance().reloadPlayer(currentAudioDevice->getCurrentBufferSizeSamples(),
+    AudioManager::getInstance().reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
                                              currentAudioDevice->getCurrentSampleRate());
 }
 

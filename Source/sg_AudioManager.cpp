@@ -348,7 +348,7 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
     }
 
     mPlayerThread.startThread();
-    reloadPlayer(currentAudioDevice->getCurrentBufferSizeSamples(), currentAudioDevice->getCurrentSampleRate());
+    reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(), currentAudioDevice->getCurrentSampleRate());
     return true;
 }
 
@@ -412,7 +412,7 @@ void AudioManager::setPosition(double const newPos)
 }
 
 //==============================================================================
-void AudioManager::reloadPlayer(int currentBufferSize, double currentSampleRate)
+void AudioManager::reloadPlayerAudioFiles(int currentBufferSize, double currentSampleRate)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

@@ -247,18 +247,7 @@ void PlayerComponent::handleOpenWavFilesAndSpeakerSetup()
 
     if (validateWavFilesAndSpeakerSetup(chosen)) {
         if (AudioManager::getInstance().prepareAudioPlayer(chosen)) {
-            mMainContentComponent.handlePlayerSourcesPositions(mPlayerSpeakerSetup);
-            mThumbnails->addThumbnails(mPlayerSpeakerSetup->speakers.size());
-
-            mPlayButton.setEnabled(true);
-            mStopButton.setEnabled(true);
-
-            // register listener (only the first AudioTransportSource)
-            auto & transportSources{ AudioManager::getInstance().getTransportSources() };
-            transportSources[0]->addChangeListener(this);
-
-            mThumbnails->updateCursorPosition();
-            setTimeCode(0.0);
+            loadPlayer();
         } else {
             displayError("Audio files do not have the same length.");
         }
@@ -358,6 +347,23 @@ void PlayerComponent::stopAudio()
     // juce::ScopedReadLock const lock{ mLock };
     auto & audioManager{ AudioManager::getInstance() };
     audioManager.stopPlaying();
+}
+
+//==============================================================================
+void PlayerComponent::loadPlayer()
+{
+    mMainContentComponent.handlePlayerSourcesPositions(mPlayerSpeakerSetup);
+    mThumbnails->addThumbnails(mPlayerSpeakerSetup->speakers.size());
+
+    mPlayButton.setEnabled(true);
+    mStopButton.setEnabled(true);
+
+    // register listener (only the first AudioTransportSource)
+    auto & transportSources{ AudioManager::getInstance().getTransportSources() };
+    transportSources[0]->addChangeListener(this);
+
+    mThumbnails->updateCursorPosition();
+    setTimeCode(0.0);
 }
 
 //==============================================================================
@@ -490,6 +496,17 @@ bool PlayerWindow::keyPressed(const juce::KeyPress & k)
         }
     }
     return false;
+}
+
+//==============================================================================
+void PlayerWindow::reloadPlayer()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mPlayerComponent.loadPlayer();
+    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+    AudioManager::getInstance().reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
+                                                       currentAudioDevice->getCurrentSampleRate());
 }
 
 } // namespace gris

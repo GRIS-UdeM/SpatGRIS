@@ -2162,6 +2162,10 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
     setTitles();
     mIsLoadingSpeakerSetupOrProjectFile = false;
 
+    if (mPlayerWindow != nullptr) {
+        mPlayerWindow->reloadPlayer();
+    }
+
     return true;
 }
 
