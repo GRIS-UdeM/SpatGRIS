@@ -348,7 +348,8 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
     }
 
     mPlayerThread.startThread();
-    reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(), currentAudioDevice->getCurrentSampleRate());
+    reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
+                           currentAudioDevice->getCurrentSampleRate());
     return true;
 }
 
