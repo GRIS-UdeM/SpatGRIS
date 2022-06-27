@@ -39,7 +39,7 @@ While we do not support a specific routing solution on Linux, there are a lot of
 
 #### 1. Install dependencies
 
-Download and extract [Juce 6.1.5](https://github.com/juce-framework/JUCE/releases/tag/6.1.5)
+Download and extract [Juce 7.0.0](https://github.com/juce-framework/JUCE/releases/tag/7.0.0)
 
 ##### Additional dependencies on Linux :
 
