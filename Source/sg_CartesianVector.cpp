@@ -39,11 +39,12 @@ CartesianVector::CartesianVector(PolarVector const & polarVector) noexcept
 
     // This is quite dangerous because any trigonometry done outside of this class might get things wrong.
 
-    auto const inverseElevation{ HALF_PI - polarVector.elevation };
+    auto const diffElev = HALF_PI.get() - polarVector.elevation.get();
+    auto const inverseElevation{ diffElev == 0.0f ? 0.0000001f : diffElev };
 
-    x = polarVector.length * std::sin(inverseElevation.get()) * std::cos(polarVector.azimuth.get());
-    y = polarVector.length * std::sin(inverseElevation.get()) * std::sin(polarVector.azimuth.get());
-    z = polarVector.length * std::cos(inverseElevation.get());
+    x = polarVector.length * std::sin(inverseElevation) * std::cos(polarVector.azimuth.get());
+    y = polarVector.length * std::sin(inverseElevation) * std::sin(polarVector.azimuth.get());
+    z = polarVector.length * std::cos(inverseElevation);
 }
 
 //==============================================================================
