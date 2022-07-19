@@ -313,6 +313,7 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
 
     static constexpr auto CAM_SLOW_DOWN = 250.0f;
     static constexpr radians_t NEARLY_90_DEG{ degrees_t{ 89.99f } };
+    static constexpr radians_t NO_ELEVATION{ radians_t{ 0.0f } };
 
     juce::ScopedLock const lock{ mLock };
     if (e.mods.isLeftButtonDown()) {
@@ -321,9 +322,8 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
         auto const azimuth{ mData.coldData.panCameraOrigin.azimuth - radians_t{ delta.x / CAM_SLOW_DOWN } };
         auto const elevation{ std::clamp(mData.coldData.panCameraOrigin.elevation
                                              + radians_t{ delta.y / CAM_SLOW_DOWN },
-                                         -NEARLY_90_DEG,
+                                         NO_ELEVATION,
                                          NEARLY_90_DEG) };
-
         mData.coldData.cameraPosition
             = mData.coldData.cameraPosition.getPolar().withBalancedAzimuth(azimuth).withClippedElevation(elevation);
     }
