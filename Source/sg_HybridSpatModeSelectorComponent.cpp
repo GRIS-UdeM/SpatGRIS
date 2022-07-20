@@ -49,6 +49,8 @@ void HybridSpatModeSelectorComponent::setSpatMode(SpatMode const spatMode)
             return true;
         case SpatMode::hybrid:
             break;
+        case SpatMode::invalid:
+            return false;
         }
         jassertfalse;
         return true;

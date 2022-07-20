@@ -204,6 +204,7 @@ void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) 
     static auto constexpr filter_spat_mode = [](SpatMode const spatMode) -> tl::optional<SpatMode> {
         switch (spatMode) {
         case SpatMode::hybrid:
+        case SpatMode::invalid:
             return tl::nullopt;
         case SpatMode::lbap:
         case SpatMode::vbap:
