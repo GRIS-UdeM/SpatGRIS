@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Developer: Olivier Belanger & Samuel Béland
+# Developers: Gaël Lane Lépine, Olivier Belanger, Samuel Béland
 
 #==============================================================================
 export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkg-path> --pass <dev-id-password>"
@@ -86,6 +86,7 @@ appSignature="Developer ID Application: Gael Lane Lepine (62PMMWH49Z)"
 
 export notarizeUser="glanelepine@gmail.com"
 export identifier="ca.umontreal.musique.gris.spatgris.installer"
+export teamId="62PMMWH49Z"
 export PACKAGE_NAME="SpatGRIS_v$VERSION.pkg"
 export DMG_DIR="SpatGRIS_v$VERSION"
 export DMG_NAME="SpatGRIS_v$VERSION.dmg"
@@ -141,6 +142,9 @@ function build_package() {
 }
 
 #==============================================================================
+
+
+#==============================================================================
 function build_dmg() {
 	echo "assembling DMG..."
 	mkdir -p "$DMG_DIR" || exit 1
@@ -167,37 +171,35 @@ function send_for_notarisation() {
 	#zip -r "$ZIP_FILE" "$PACKAGE_NAME"
 
 	echo "Sending to notarization authority..."
-	xcrun altool --notarize-app --primary-bundle-id "$identifier" -u "$notarizeUser" -p "$PASS" --file "$DMG_NAME"
+	xcrun notarytool submit --apple-id "$notarizeUser" --password "$PASS" --team-id $teamId "$DMG_NAME"
 	#rm "$ZIP_FILE"
 }
 
 #==============================================================================
 function get_last_request_uuid() {
-	history=`xcrun altool --notarization-history 0 -u "$notarizeUser" -p "$PASS"`
-	echo "$history" | head -n 6 | tail -n 1 | cut -d' ' -f 4
+	checkHistory=`xcrun notarytool history --apple-id "$notarizeUser" --password "$PASS" --team-id $teamId`
+	echo "$checkHistory" | head -n 5 | tail -n 1 | cut -d' ' -f 6
 }
 
 #==============================================================================
 function wait_for_notarization() {
 	echo "Checking for notarization success..."
 	echo "waiting a bit..."
-	sleep 30
-	WAITING=" in progress"
-	SUCCESS=" success"
+	sleep 10
+	WAITING=" In Progress"
+	SUCCESS=" Accepted"
 	uuid=`get_last_request_uuid`
-	status="$WAITING"
-	while [[ "$status" == "$WAITING" ]];do
+	checkStatus="$WAITING"
+	while [[ "$checkStatus" == "$WAITING" ]];do
 		sleep 10
-		history=`xcrun altool --notarization-info "$uuid" -u "$notarizeUser" -p "$PASS"`
-		status=`echo "$history" | grep Status | head -n 1 | cut -d: -f 2`
-		echo "Status is \"$status\""
+		checkHistory=`xcrun notarytool info "$uuid" --apple-id "$notarizeUser" --password "$PASS" --team-id $teamId`
+		checkStatus=`echo "$checkHistory" | grep status | head -n 1 | cut -d: -f 2`
+		echo "Status is \"$checkStatus\""
 	done
-	if [[ "$status" != "$SUCCESS" ]];then
+	if [[ "$checkStatus" != "$SUCCESS" ]];then
 		echo -e "Error : notarization was refused, see the report:\n"
-		xcrun altool \
-			--notarization-info "$uuid" \
-			-u "$notarizeUser" \
-			-p "$PASS"
+		xcrun notarytool info "$uuid" --apple-id "$notarizeUser" --password "$PASS" --team-id $teamId
+		xcrun notarytool log "$uuid" --apple-id "$notarizeUser" --password "$PASS" --team-id $teamId
 		exit 1
 	fi
 }
