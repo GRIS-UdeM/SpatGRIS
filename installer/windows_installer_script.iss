@@ -6,7 +6,7 @@
 #define ManualName "SpatGRIS_3.1.10_Manual.pdf"
 #define RootDir ".."
 
-#define BuildDir RootDir + "\Builds\VisualStudio2019\x64\Release\App"
+#define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
 #define ControlGrisVersionLong GetVersionNumbersString(ControlGrisDir + "\ControlGris.vst3")
 #define ResourcesDir RootDir + "\Resources"
 
