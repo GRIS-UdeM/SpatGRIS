@@ -88,13 +88,13 @@ void ThumbnailComp::paint(juce::Graphics & g)
 
         auto sourcesRect{ localBounds.removeFromTop(20) };
         juce::Rectangle<int> colorSourcesRect;
-        colorSourcesRect.setBounds(sourcesRect.getTopLeft().getX(), sourcesRect.getTopLeft().getY() + 3, 10, 10);
+        colorSourcesRect.setBounds(sourcesRect.getTopLeft().getX(), sourcesRect.getTopLeft().getY(), 10, 10);
         g.setColour(mLookAndFeel.getSourceColor());
         g.fillRect(colorSourcesRect);
 
         auto subsRect{ localBounds.removeFromTop(20) };
         juce::Rectangle<int> colorSubsRect;
-        colorSubsRect.setBounds(subsRect.getTopLeft().getX(), subsRect.getTopLeft().getY() + 3, 10, 10);
+        colorSubsRect.setBounds(subsRect.getTopLeft().getX(), subsRect.getTopLeft().getY(), 10, 10);
         g.setColour(mLookAndFeel.getSubColor());
         g.fillRect(colorSubsRect);
 
