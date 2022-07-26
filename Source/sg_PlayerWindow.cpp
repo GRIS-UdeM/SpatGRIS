@@ -352,7 +352,7 @@ bool PlayerComponent::validateWavFilesAndSpeakerSetup(juce::File const & folder)
     //    }
     //}
 
-    for (auto const elem : speakerList) {
+    for (auto const & elem : speakerList) {
         if (!audioFileList.contains(elem)) {
             displayError("Audio file list does not match Speaker Setup data.\nMissing audio file #" + elem + ".");
             return false;
