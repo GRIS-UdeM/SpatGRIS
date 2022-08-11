@@ -239,6 +239,12 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 }
 
 //==============================================================================
+EditSpeakersWindow::~EditSpeakersWindow()
+{
+    mSpeakersTableListBox.setModel(nullptr);
+}
+
+//==============================================================================
 void EditSpeakersWindow::initComp()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
