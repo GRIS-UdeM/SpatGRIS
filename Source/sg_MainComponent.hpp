@@ -139,6 +139,7 @@ class MainContentComponent final
     //==============================================================================
     // State
     SpatGrisData mData{};
+    tl::optional<SpeakerSetup> mCurrentSpeakerSetupBeforeEditing{};
 
 public:
     //==============================================================================
@@ -232,6 +233,7 @@ public:
     void closeOscMonitorWindow() { mOscMonitorWindow.reset(); }
     void closePrepareToRecordWindow() { mPrepareToRecordWindow.reset(); }
     void closeAddRemoveSourcesWindow() { mAddRemoveSourcesWindow.reset(); }
+
     //==============================================================================
     void prepareAndStartRecording(juce::File const & fileOrDirectory, RecordingOptions const & recordingOptions);
     //==============================================================================
@@ -296,6 +298,7 @@ private:
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
     [[nodiscard]] bool makeSureSpeakerSetupIsSavedToDisk() noexcept;
     void setTitles() const;
+    void snapshotOfCurrentSpeakerSetupBeforeEditing();
 
     void timerCallback() override;
     void paint(juce::Graphics & g) override;

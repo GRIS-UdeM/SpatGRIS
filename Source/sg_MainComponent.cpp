@@ -462,7 +462,34 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mEditSpeakersWindow.reset();
+    auto const speakerSetupKeepChanges = [&]() {
+        auto const result{ juce::AlertWindow::showYesNoCancelBox(
+            juce::MessageBoxIconType::QuestionIcon,
+            "Modified Speaker Setup",
+            "The Speaker Setup has been modified. Do you want to keep your changes ?",
+            "Yes",
+            "No",
+            "Cancel",
+            nullptr,
+            nullptr) };
+
+        // 0 = Cancel, 1 = Yes, 2 = No
+        if (result == 0) {
+            return;
+        } else if (result == 2) {
+            mData.speakerSetup = std::move(*mCurrentSpeakerSetupBeforeEditing);
+        }
+        mCurrentSpeakerSetupBeforeEditing.reset();
+        refreshSpeakers();
+        mEditSpeakersWindow.reset();
+    };
+
+    if (mCurrentSpeakerSetupBeforeEditing == mData.speakerSetup) {
+        mEditSpeakersWindow.reset();
+        return;
+    }
+
+    speakerSetupKeepChanges();
 }
 
 //==============================================================================
@@ -483,6 +510,8 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     juce::ScopedReadLock const lock{ mLock };
 
     if (mEditSpeakersWindow == nullptr) {
+        snapshotOfCurrentSpeakerSetupBeforeEditing();
+
         auto const windowName = juce::String{ "Speakers Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
                                 + juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension();
@@ -2193,6 +2222,27 @@ void MainContentComponent::setTitles() const
 }
 
 //==============================================================================
+void MainContentComponent::snapshotOfCurrentSpeakerSetupBeforeEditing()
+{
+    // TODO : Creating a temp file is not the best way to take a speaker setup snapshot.
+
+    juce::File fileSpeakerSetup;
+    auto const tempFile{ fileSpeakerSetup.createTempFile("SG_currentSpeakerSetup") };
+    auto const content{ mData.speakerSetup.toXml() };
+    [[maybe_unused]] auto const success{ content->writeTo(tempFile) };
+    jassert(success);
+
+    auto currentSpeakerSetup{ extractSpeakerSetup(tempFile) };
+    jassert(currentSpeakerSetup);
+
+    mCurrentSpeakerSetupBeforeEditing = std::move(*currentSpeakerSetup);
+
+    // delete the temp file
+    [[maybe_unused]] auto fileDeleted{ tempFile.deleteFile() };
+    jassert(fileDeleted);
+}
+
+//==============================================================================
 void MainContentComponent::reassignSourcesPositions()
 {
     for (auto const & source : mData.project.sources) {
@@ -2310,6 +2360,10 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
     jassert(success);
     if (success) {
         mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
+    }
+
+    if (mEditSpeakersWindow != nullptr) {
+        snapshotOfCurrentSpeakerSetupBeforeEditing();
     }
 
     setTitles();
