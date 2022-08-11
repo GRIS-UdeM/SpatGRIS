@@ -2543,7 +2543,7 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
         // export speaker setup
         if (recordingOptions.shouldSaveSpeakerSetup) {
             juce::File const & lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
-            auto const file{ fileOrDirectory.getParentDirectory().getFullPathName() + "\\"
+            auto const file{ fileOrDirectory.getParentDirectory().getFullPathName() + juce::File::getSeparatorString()
                              + lastSpeakerSetup.getFileName() };
             auto const content{ mData.speakerSetup.toXml() };
             auto const success{ content->writeTo(file) };
