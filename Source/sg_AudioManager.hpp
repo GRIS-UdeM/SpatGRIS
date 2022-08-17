@@ -94,6 +94,7 @@ private:
     juce::Array<juce::File> mAudioFiles; // for audio thumbnails
     juce::OwnedArray<juce::AudioFormatReaderSource> mReaderSources;
     juce::OwnedArray<juce::AudioTransportSource> mTransportSources{};
+    juce::OwnedArray<source_index_t> mTransportSourcesIndexes{};
     juce::TimeSliceThread mPlayerThread{ "SpatGRIS player thread" };
     juce::AudioFormat * mAudioFormat{};
     bool mFormatsRegistered{};

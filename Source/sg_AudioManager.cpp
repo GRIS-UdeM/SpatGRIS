@@ -109,7 +109,7 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     if (isPlaying()) {
         auto const numInputChannelsToCopy{ mTransportSources.size() };
         for (int i{}; i < numInputChannelsToCopy; ++i) {
-            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
+            source_index_t const sourceIndex{ mTransportSourcesIndexes[i]->get() };
             auto & buffer{ mInputBuffer[sourceIndex] };
             juce::AudioSourceChannelInfo const info{ buffer };
             mTransportSources.getUnchecked(i)->getNextAudioBlock(info);
@@ -304,12 +304,14 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
     mAudioFiles.clear();
     mTransportSources.clear(true);
     mReaderSources.clear(true);
+    mTransportSourcesIndexes.clear(true);
 
     // load audio files and sort them
     auto files = folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.wav;*.aif;*.aiff");
     FileSorter sorter;
     files.sort(sorter);
     mAudioFiles = files; // for audio thumbnails
+
     for (const auto & filenameThatWasFound : files) {
         jassert(filenameThatWasFound.existsAsFile());
 
@@ -334,12 +336,20 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
         auto transportSource = std::make_unique<juce::AudioTransportSource>();
         transportSource->setSource(mReaderSources.getLast(), 32768, &mPlayerThread, reader->sampleRate);
 
+        // get channel of audio file
+        auto channel{ filenameThatWasFound.getFileNameWithoutExtension()
+                          .fromLastOccurrenceOf(juce::String("-"), false, true)
+                          .getIntValue() };
+        source_index_t sourceIndex{ channel };
+
         mTransportSources.add(transportSource.release());
+        mTransportSourcesIndexes.add(new source_index_t(sourceIndex));
     }
 
     // check all audio files are the same length
     for (auto transportSource : mTransportSources) {
         if (transportSource->getTotalLength() != mTransportSources[0]->getTotalLength()) {
+            mTransportSourcesIndexes.clear(true);
             mTransportSources.clear(true);
             mReaderSources.clear(true);
             mAudioFiles.clear();

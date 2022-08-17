@@ -2546,7 +2546,7 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
             auto const file{ fileOrDirectory.getParentDirectory().getFullPathName() + juce::File::getSeparatorString()
                              + lastSpeakerSetup.getFileName() };
             auto const content{ mData.speakerSetup.toXml() };
-            auto const success{ content->writeTo(file) };
+            [[maybe_unused]] auto const success{ content->writeTo(file) };
             jassert(success);
         }
 
@@ -2577,59 +2577,83 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
         return;
     }
 
-    auto const numberOfSources = std::clamp(playerSpeakerSetup->speakers.size(), 1, MAX_NUM_SOURCES);
+    int numberOfSources{};
+    for (int i{}; i < playerSpeakerSetup->speakers.size(); ++i) {
+        numberOfSources = juce::jmax(playerSpeakerSetup->ordering[i].get(), numberOfSources);
+    }
+
     numSourcesChanged(numberOfSources);
+
+    std::vector<bool> usedSources(numberOfSources);
+    std::fill(usedSources.begin(), usedSources.end(), false);
+    std::vector<bool> subSources(numberOfSources);
+    std::fill(subSources.begin(), subSources.end(), false);
 
     auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
 
-    int i{};
-    for (auto speaker : playerSpeakerSetup->speakers) {
-        source_index_t const sourceIndex{ i + source_index_t::OFFSET };
+    for (int i = 0; i < playerSpeakerSetup->speakers.size(); ++i) {
+        const output_patch_t outIndex{ i + output_patch_t::OFFSET };
+    }
+
+    for (auto & speaker : playerSpeakerSetup->speakers) {
+        source_index_t const sourceIndex{ speaker.key.get() };
         auto source = mData.project.sources.getNode(sourceIndex);
         source.value->position = speaker.value->position;
         source.value->azimuthSpan = 0.0f;
         source.value->zenithSpan = 0.0f;
+        usedSources[sourceIndex.get() - source_index_t::OFFSET] = true;
 
         // manage source color
         if (speaker.value->isDirectOutOnly) {
-            source.value->colour = mLookAndFeel.getSubColor();
-            mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSubColor());
-        } else {
-            source.value->colour = mLookAndFeel.getSourceColor();
-            mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSourceColor());
+            subSources[speaker.key.get() - source_index_t::OFFSET] = true;
         }
+        source.value->colour = mLookAndFeel.getSourceColor();
+        mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSourceColor());
+
         // reset source output
         setSourceDirectOut(sourceIndex, tl::nullopt);
+        setSourceState(sourceIndex, SliceState::normal);
 
         spatAlgorithm.updateSpatData(source.key, *source.value);
+    }
+
+    // set color of unused sources, mute them and remove direct out
+    int i{};
+    for (auto & source : mData.project.sources) {
+        if (!usedSources[i]) {
+            source.value->colour = mLookAndFeel.getInactiveColor();
+            mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getInactiveColor());
+
+            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
+            setSourceState(sourceIndex, SliceState::muted);
+            setSourceDirectOut(sourceIndex, tl::nullopt);
+        }
+        ++i;
+    }
+
+    // set color of subs
+    i = 0;
+    for (auto & source : mData.project.sources) {
+        if (subSources[i]) {
+            source.value->colour = mLookAndFeel.getSubColor();
+            mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSubColor());
+        }
         ++i;
     }
 
     // manage direct outputs speakers
     juce::Array<source_index_t> playerDirectOutSpeakers{};
     juce::Array<output_patch_t> speakerSetupDirectOutSpeakers{};
-    i = 0;
-    for (auto playerSpeaker : playerSpeakerSetup->speakers) {
+    for (auto & playerSpeaker : playerSpeakerSetup->speakers) {
         if (playerSpeaker.value->isDirectOutOnly) {
-            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
+            source_index_t const sourceIndex{ playerSpeaker.key.get() };
             playerDirectOutSpeakers.add(sourceIndex);
         }
-        ++i;
     }
-    for (auto speaker : mData.speakerSetup.speakers) {
+    for (auto & speaker : mData.speakerSetup.speakers) {
         if (speaker.value->isDirectOutOnly) {
             speakerSetupDirectOutSpeakers.add(speaker.key);
         }
-    }
-
-    // mute all direct outs
-    i = 0;
-    for (auto speaker : playerSpeakerSetup->speakers) {
-        if (speaker.value->isDirectOutOnly) {
-            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
-            setSourceState(sourceIndex, SliceState::muted);
-        }
-        ++i;
     }
 
     if (playerDirectOutSpeakers.size() > 0 && speakerSetupDirectOutSpeakers.size() > 0) {
