@@ -222,10 +222,11 @@ public:
     //==============================================================================
     // Commands.
     void handleShowPreferences();
+    void closeSpeakersConfigurationWindow();
+    void saveEditedSpeakerSetup();
 
     //==============================================================================
     // Close windows
-    void closeSpeakersConfigurationWindow();
     void closePropertiesWindow() { mPropertiesWindow.reset(); }
     void closeFlatViewWindow() { mFlatViewWindow.reset(); }
     void closeAboutWindow() { mAboutWindow.reset(); }
@@ -298,7 +299,6 @@ private:
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
     [[nodiscard]] bool makeSureSpeakerSetupIsSavedToDisk() noexcept;
     void setTitles() const;
-    void snapshotOfCurrentSpeakerSetupBeforeEditing();
 
     void timerCallback() override;
     void paint(juce::Graphics & g) override;

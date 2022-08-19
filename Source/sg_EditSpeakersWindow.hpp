@@ -69,7 +69,7 @@ private:
     Box mListSpeakerBox;
 
     juce::TextButton mAddSpeakerButton;
-    juce::TextButton mComputeSpeakerSetupButton;
+    juce::TextButton mSaveSpeakerSetupButton;
 
     juce::Label mNumOfSpeakersLabel;
     juce::TextEditor mNumOfSpeakersTextEditor;
@@ -89,7 +89,7 @@ private:
 
     int mNumRows{};
     tl::optional<int> mDragStartY{};
-    bool mShouldRefreshSpeakers{};
+    bool mShouldComputeSpeakers{};
     juce::SparseSet<int> mLastSelectedRows{};
     //==============================================================================
     friend EditableTextCustomComponent;
@@ -118,6 +118,7 @@ private:
     bool isMouseOverDragHandle(juce::MouseEvent const & event);
     SpeakerData const & getSpeakerData(int rowNum) const;
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
+    void computeSpeakers();
     //==============================================================================
     // VIRTUALS
     [[nodiscard]] int getNumRows() override { return this->mNumRows; }
@@ -137,6 +138,7 @@ private:
                                                       Component * existingComponentToUpdate) override;
     void mouseDown(juce::MouseEvent const & event) override;
     void mouseDrag(juce::MouseEvent const & event) override;
+    void mouseUp(juce::MouseEvent const & event) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };

@@ -106,6 +106,7 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
 void EditableTextCustomComponent::textWasEdited()
 {
     mOwner.setText(mColumnId, mRow, getText());
+    mOwner.computeSpeakers();
 }
 
 //==============================================================================
