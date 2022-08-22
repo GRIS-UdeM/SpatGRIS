@@ -757,20 +757,22 @@ void EditSpeakersWindow::setText(int const columnNumber,
     auto const isEditable = [&](int const col, SpeakerData const & speaker) {
         switch (col) {
         case Cols::OUTPUT_PATCH:
-        case Cols::AZIMUTH:
-        case Cols::ELEVATION:
         case Cols::GAIN:
         case Cols::HIGHPASS:
+            return true;
+        case Cols::AZIMUTH:
+        case Cols::ELEVATION:
+            return spatMode == SpatMode::vbap || spatMode == SpatMode::hybrid;
         case Cols::X:
         case Cols::Y:
         case Cols::Z:
-            return true;
+            return spatMode == SpatMode::lbap;
         case Cols::DRAG_HANDLE:
         case Cols::DIRECT_TOGGLE:
         case Cols::DELETE_BUTTON:
             return false;
         case Cols::DISTANCE:
-            return spatMode == SpatMode::lbap || speaker.isDirectOutOnly;
+            return (spatMode == SpatMode::vbap || spatMode == SpatMode::hybrid) && speaker.isDirectOutOnly;
         default:
             jassertfalse;
         }
@@ -1107,15 +1109,23 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     auto const getEditionType = [=]() -> EditionType {
         switch (columnId) {
         case Cols::DISTANCE:
-            if (spatMode == SpatMode::lbap || speaker.isDirectOutOnly) {
+            if ((spatMode == SpatMode::vbap || spatMode == SpatMode::hybrid) && speaker.isDirectOutOnly) {
                 return EditionType::valueDraggable;
             }
             return EditionType::notEditable;
         case Cols::X:
         case Cols::Y:
         case Cols::Z:
+            if (spatMode == SpatMode::lbap) {
+                return EditionType::valueDraggable;
+            }
+            return EditionType::notEditable;
         case Cols::AZIMUTH:
         case Cols::ELEVATION:
+            if (spatMode == SpatMode::vbap || spatMode == SpatMode::hybrid) {
+                return EditionType::valueDraggable;
+            }
+            return EditionType::notEditable;
         case Cols::GAIN:
         case Cols::HIGHPASS:
             return EditionType::valueDraggable;
@@ -1158,6 +1168,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     textLabel->setRowAndColumn(rowNumber, columnId);
     textLabel->setMouseCursor(GET_MOUSE_CURSOR(editionType));
     textLabel->setEditable(editionType == EditionType::editable || editionType == EditionType::valueDraggable);
+    textLabel->setColor(editionType != EditionType::notEditable);
 
     return textLabel;
 }

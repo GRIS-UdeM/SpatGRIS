@@ -43,6 +43,7 @@ public:
     SG_DELETE_COPY_AND_MOVE(EditableTextCustomComponent)
     //==============================================================================
     void setRowAndColumn(int newRow, int newColumn);
+    void setColor(bool isEditable);
     //==============================================================================
     // VIRTUALS
     void mouseDown(const juce::MouseEvent & event) override;

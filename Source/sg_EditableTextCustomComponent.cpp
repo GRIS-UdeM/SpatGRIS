@@ -121,4 +121,14 @@ void EditableTextCustomComponent::setRowAndColumn(const int newRow, const int ne
     setText(mOwner.getText(mColumnId, mRow), juce::dontSendNotification);
 }
 
+//==============================================================================
+void EditableTextCustomComponent::setColor(bool isEditable)
+{
+    if (!isEditable) {
+        setColour(textColourId, juce::Colours::darkgrey);
+        return;
+    }
+    setColour(textColourId, juce::Colours::black);
+}
+
 } // namespace gris
