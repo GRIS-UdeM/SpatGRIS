@@ -520,7 +520,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
                                    * narrow<float>(i)
                                - mOffsetAngleTextEditor.getText().getFloatValue() + 90.0f };
             azimuth = azimuth.centered();
-            degrees_t const zenith{ mZenithTextEditor.getText().getFloatValue() < 90.0 + (360.0 - 270.0) / 2
+            degrees_t const zenith{ mZenithTextEditor.getText().getFloatValue() < 90.0f + (360.0f - 270.0f) / 2
                                         ? std::clamp(mZenithTextEditor.getText().getFloatValue(), 0.0f, 90.0f)
                                         : std::clamp(mZenithTextEditor.getText().getFloatValue(), 270.0f, 360.0f) };
             auto const radius{ mRadiusTextEditor.getText().getFloatValue() };
@@ -588,7 +588,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
         mNumOfSpeakersTextEditor.setText(juce::String{ value }, false);
         mShouldComputeSpeakers = true;
     } else if (&textEditor == &mZenithTextEditor) {
-        auto const value{ mZenithTextEditor.getText().getFloatValue() < 90.0 + (360.0 - 270.0) / 2
+        auto const value{ mZenithTextEditor.getText().getFloatValue() < 90.0f + (360.0f - 270.0f) / 2
                               ? std::clamp(mZenithTextEditor.getText().getFloatValue(), 0.0f, 90.0f)
                               : std::clamp(mZenithTextEditor.getText().getFloatValue(), 270.0f, 360.0f) };
         mZenithTextEditor.setText(juce::String{ value, 1 }, false);
