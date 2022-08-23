@@ -11,7 +11,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
       - name: download JUCE
-        run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-linux.zip --output JUCE.zip
+        run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.2/juce-7.0.2-linux.zip --output JUCE.zip
       - name: unpack JUCE
         run: unzip JUCE.zip
       - name: install dependencies
