@@ -83,6 +83,7 @@ public:
 private:
     //==============================================================================
     void fillComboBoxes();
+    bool isSelectedAudioDeviceActive();
     //==============================================================================
     JUCE_LEAK_DETECTOR(SettingsComponent)
 public:

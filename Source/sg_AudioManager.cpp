@@ -427,6 +427,10 @@ void AudioManager::reloadPlayerAudioFiles(int currentBufferSize, double currentS
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    if (mTransportSources.size() == 0) {
+        return;
+    }
+
     for (auto transportSource : mTransportSources) {
         transportSource->prepareToPlay(currentBufferSize, currentSampleRate);
         transportSource->setPosition(0.0);

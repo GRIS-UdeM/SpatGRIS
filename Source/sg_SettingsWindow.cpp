@@ -147,7 +147,9 @@ void SettingsWindow::closeButtonPressed()
 void SettingsComponent::buttonClicked(juce::Button * button)
 {
     if (button == &mSaveSettingsButton) {
-        mMainContentComponent.closePropertiesWindow();
+        if (isSelectedAudioDeviceActive()) {
+            mMainContentComponent.closePropertiesWindow();
+        }
     }
 }
 
@@ -260,6 +262,23 @@ void SettingsComponent::fillComboBoxes()
 }
 
 //==============================================================================
+bool SettingsComponent::isSelectedAudioDeviceActive()
+{
+    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+
+    if (currentAudioDevice == nullptr) {
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                               "Error opening audio device.",
+                                               "Please select an active audio device.",
+                                               "OK",
+                                               this,
+                                               nullptr);
+        return false;
+    }
+    return true;
+}
+
+//==============================================================================
 void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 {
     auto & audioDeviceManager{ AudioManager::getInstance().getAudioDeviceManager() };
@@ -299,9 +318,11 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
     }
     fillComboBoxes();
 
-    auto * currentAudioDevice{ audioDeviceManager.getCurrentAudioDevice() };
-    AudioManager::getInstance().reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
-                                                       currentAudioDevice->getCurrentSampleRate());
+    if (isSelectedAudioDeviceActive()) {
+        auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+        AudioManager::getInstance().reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
+                                                           currentAudioDevice->getCurrentSampleRate());
+    }
 }
 
 //==============================================================================
