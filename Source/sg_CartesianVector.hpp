@@ -183,7 +183,7 @@ constexpr CartesianVector CartesianVector::clampedToFarField() const noexcept
 {
     return CartesianVector{ std::clamp(x, -LBAP_EXTENDED_RADIUS, LBAP_EXTENDED_RADIUS),
                             std::clamp(y, -LBAP_EXTENDED_RADIUS, LBAP_EXTENDED_RADIUS),
-                            std::clamp(z, -1.0f, 1.0f) };
+                            std::clamp(z, -LBAP_EXTENDED_RADIUS, LBAP_EXTENDED_RADIUS) };
 }
 
 //==============================================================================
