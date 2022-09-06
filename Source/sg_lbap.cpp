@@ -1,14 +1,14 @@
 /**
- *  Layer-Based Amplitude Panning framework.
+ * Matrix-Based Amplitude Panning framework.
  *
- * LBAP (Layer-Based Amplitude Panning) is a framework written in C
- * to do 2-D or 3-D sound spatialization. It uses a pre-computed
- * gain matrices to perform the spatialization of the sources very
+ * MBAP (Matrix-Based Amplitude Panning) is a framework
+ * to do 3-D sound spatialization. It uses a pre-computed
+ * gain matrix to perform the spatialization of the sources very
  * efficiently.
  *
- * author : Olivier Belanger, 2018
+ * author : Gaël Lane Lépine, 2022
+ * based on lbap from Olivier Belanger
  *
- * Modified by Samuel Béland, 2021
  */
 
 /*
@@ -39,24 +39,6 @@
 namespace gris
 {
 //==============================================================================
-/* Bilinear interpolation to retrieve the value at position (x, y) in a 2D matrix. */
-// static float bilinearInterpolation(matrix_t const & matrix, float const x, float const y)
-//{
-//    jassert(x >= 0.0f && y >= 0.0f);
-//    auto const xi = static_cast<std::size_t>(x);
-//    auto const yi = static_cast<std::size_t>(y);
-//    auto const xf = narrow<float>(x) - narrow<float>(xi);
-//    auto const yf = narrow<float>(y) - narrow<float>(yi);
-//    auto const v1 = matrix[xi][yi];
-//    auto const v2 = matrix[xi + 1][yi];
-//    auto const v3 = matrix[xi][yi + 1];
-//    auto const v4 = matrix[xi + 1][yi + 1];
-//    auto const xv1 = v1 + (v2 - v1) * xf;
-//    auto const xv2 = v3 + (v4 - v3) * xf;
-//    return xv1 + (xv2 - xv1) * yf;
-//}
-
-//==============================================================================
 /* Trilinear interpolation to retrieve the value at position (x, y, z) in a 3D matrix. */
 static float trilinearInterpolation(matrix_t const & matrix, float const x, float const y, float const z)
 {
@@ -70,19 +52,17 @@ static float trilinearInterpolation(matrix_t const & matrix, float const x, floa
     auto const v1 = matrix[xi][yi][zi];
     auto const v2 = matrix[xi + 1][yi][zi];
     auto const v3 = matrix[xi][yi + 1][zi];
-    auto const v4 = matrix[xi][yi][zi + 1];
-    auto const v5 = matrix[xi + 1][yi + 1][zi];
+    auto const v4 = matrix[xi + 1][yi + 1][zi];
+    auto const v5 = matrix[xi][yi][zi + 1];
     auto const v6 = matrix[xi + 1][yi][zi + 1];
     auto const v7 = matrix[xi][yi + 1][zi + 1];
     auto const v8 = matrix[xi + 1][yi + 1][zi + 1];
+
     // from
     // https://www.scratchapixel.com/code.php?id=56&origin=/lessons/mathematics-physics-for-computer-graphics/interpolation
     return (1 - xf) * (1 - yf) * (1 - zf) * v1 + xf * (1 - yf) * (1 - zf) * v2 + (1 - xf) * yf * (1 - zf) * v3
            + xf * yf * (1 - zf) * v4 + (1 - xf) * (1 - yf) * zf * v5 + xf * (1 - yf) * zf * v6 + (1 - xf) * yf * zf * v7
            + xf * yf * zf * v8;
-    /*auto const xv1 = v1 + (v2 - v1) * xf;
-    auto const xv2 = v3 + (v4 - v3) * xf;
-    return xv1 + (xv2 - xv1) * yf;*/
 }
 
 //==============================================================================
@@ -98,30 +78,13 @@ static std::vector<Position> lbapPositionsFromSpeakers(LbapSpeaker const * speak
     return positions;
 }
 
-////==============================================================================
-///* Initialize a newly created layer for `num` speakers. */
-// static LbapLayer initLayers(int const layerId, float const height, std::vector<Position> speakers)
-//{
-//    LbapLayer layer{};
-//
-//    layer.id = layerId;
-//    layer.height = height;
-//    layer.gainExponent = std::max(narrow<float>(speakers.size()) / 4.0f, 1.0f);
-//    layer.amplitudeMatrix.reserve(speakers.size());
-//    static constexpr matrix_t EMPTY_MATRIX{};
-//    std::fill_n(std::back_inserter(layer.amplitudeMatrix), speakers.size(), EMPTY_MATRIX);
-//    layer.speakerPositions = std::move(speakers);
-//
-//    return layer;
-//}
-
 //==============================================================================
-/* Initialize a newly created layer for `num` speakers. */
+/* Initialize a newly created field for `num` speakers. */
 static LbapField initField(std::vector<Position> speakers)
 {
     LbapField field{};
 
-    field.gainExponent = std::max(narrow<float>(speakers.size()) / 4.0f, 1.0f);
+    field.fieldExponent = 8.0f;
     field.amplitudeMatrix.reserve(speakers.size());
     static constexpr matrix_t EMPTY_MATRIX{};
     std::fill_n(std::back_inserter(field.amplitudeMatrix), speakers.size(), EMPTY_MATRIX);
@@ -131,7 +94,7 @@ static LbapField initField(std::vector<Position> speakers)
 }
 
 //==============================================================================
-/* Pre-compute the matrices of amplitude for the layer's speakers. */
+/* Pre-compute the 3 dimensional matrix of amplitude for the speakers. */
 static void computeMatrix(LbapField & field)
 {
     static auto constexpr H_SIZE = LBAP_MATRIX_SIZE / 2;
@@ -140,8 +103,6 @@ static void computeMatrix(LbapField & field)
         auto const px = field.speakerPositions[i].getCartesian().x * H_SIZE + H_SIZE;
         auto const py = field.speakerPositions[i].getCartesian().y * H_SIZE + H_SIZE;
         auto const pz = field.speakerPositions[i].getCartesian().z * H_SIZE + H_SIZE;
-        DBG("x = " << field.speakerPositions[i].getCartesian().x << ", y = " << field.speakerPositions[i].getCartesian().y << ", z = "
-                   << field.speakerPositions[i].getCartesian().z << ", px = " << px << ", py = " << py << ", pz = " << pz);
 
         for (size_t x{}; x < LBAP_MATRIX_SIZE; ++x) {
             for (size_t y{}; y < LBAP_MATRIX_SIZE; ++y) {
@@ -150,7 +111,6 @@ static void computeMatrix(LbapField & field)
                                           + std::pow(narrow<float>(z) - pz, 2.0f));
                     dist = std::pow(std::pow(10.0f, 1.0f / 20), dist);          // root-power ratio
                     field.amplitudeMatrix[i][x][y][z] = 1.0f / std::sqrt(dist); // inverse square law
-                    // DBG("amplitude = " << field.amplitudeMatrix[i][x][y][z]);
                 }
                 field.amplitudeMatrix[i][x][y][LBAP_MATRIX_SIZE] = field.amplitudeMatrix[i][x][y][0];
             }
@@ -159,15 +119,6 @@ static void computeMatrix(LbapField & field)
         field.amplitudeMatrix[i][LBAP_MATRIX_SIZE] = field.amplitudeMatrix[i][0];
     }
 }
-
-////==============================================================================
-///* Create a new layer, based on a lbap_pos array, and add it the to field.*/
-// static LbapLayer createLayer(LbapField const & field, float const height, std::vector<Position> speakers)
-//{
-//    auto result{ initLayers(narrow<int>(field.layers.size()), height, std::move(speakers)) };
-//    computeMatrix(result);
-//    return result;
-//}
 
 //==============================================================================
 /* Create the field */
@@ -178,56 +129,20 @@ static LbapField createField(std::vector<Position> speakers)
     return result;
 }
 
-////==============================================================================
-///* Compute the gain of each layer's speakers, for the given position, and store
-// * the result in the `gains` array.
-// */
-// static void computeGains(LbapLayer const & layer, SourceData const & source, float * gains)
-//{
-//    static constexpr auto H_SIZE = LBAP_MATRIX_SIZE / 2.0f;
-//    static constexpr auto SIZE_MINUS_ONE = LBAP_MATRIX_SIZE - 1.0f;
-//
-//    jassert(source.position);
-//
-//    auto const exponent = layer.gainExponent * (1.0f - source.azimuthSpan) * 2.0f;
-//    auto x = source.position->getCartesian().x * (H_SIZE - 1.0f) + H_SIZE;
-//    auto y = source.position->getCartesian().y * (H_SIZE - 1.0f) + H_SIZE;
-//    x = std::clamp(x, 0.0f, SIZE_MINUS_ONE);
-//    y = std::clamp(y, 0.0f, SIZE_MINUS_ONE);
-//
-//    jassert(layer.speakerPositions.size() == layer.amplitudeMatrix.size());
-//    std::transform(
-//        layer.amplitudeMatrix.cbegin(),
-//        layer.amplitudeMatrix.cend(),
-//        gains,
-//        [x, y, exponent](matrix_t const & matrix) { return std::pow(bilinearInterpolation(matrix, x, y), exponent);
-//        });
-//    auto const sum{ std::reduce(gains, gains + layer.speakerPositions.size(), 0.0f, std::plus()) };
-//
-//    if (sum > 0.0f) {
-//        // (pow(2.0, (1.0 - rad))) for energy spreading when moving toward the center.
-//        auto const flatRadius{ source.position->getCartesian().discardZ().getDistanceFromOrigin() };
-//        auto const comp = flatRadius < 1.0f ? std::pow(2.0f, 1.0f - flatRadius) : 1.0f;
-//        // normalization (1.0 / sum) and compensation
-//        auto const norm = 1.0f / sum * comp;
-//        std::transform(gains, gains + layer.speakerPositions.size(), gains, [norm](float & gain) {
-//            return gain * norm;
-//        });
-//    }
-//}
-
 //==============================================================================
-/* Compute the gain of field of speakers, for the given position, and store
- * the result in the `gains` array.
- */
+/* Compute the gain of field of speakers, for the given position, and store the result in the `gains` array.*/
 static void computeGains(LbapField const & field, SourceData const & source, float * gains)
 {
     static constexpr auto H_SIZE = LBAP_MATRIX_SIZE / 2.0f;
     static constexpr auto SIZE_MINUS_ONE = LBAP_MATRIX_SIZE - 1.0f;
 
+    auto constexpr EXPONENT_MIN_IN{ 0.0f };
+    auto constexpr EXPONENT_MAX_IN{ 1.0f };
+    auto constexpr EXPONENT_MIN_OUT{ 4.0f }; // 8.0f ?
+    auto constexpr EXPONENT_MAX_OUT{ 8.0f }; // 16.0f ?
+
     jassert(source.position);
 
-    auto const exponent = field.gainExponent * (1.0f - source.azimuthSpan) * 2.0f;
     auto x = source.position->getCartesian().x * (H_SIZE - 1.0f) + H_SIZE;
     auto y = source.position->getCartesian().y * (H_SIZE - 1.0f) + H_SIZE;
     auto z = source.position->getCartesian().z * (H_SIZE - 1.0f) + H_SIZE;
@@ -235,52 +150,79 @@ static void computeGains(LbapField const & field, SourceData const & source, flo
     y = std::clamp(y, 0.0f, SIZE_MINUS_ONE);
     z = std::clamp(z, 0.0f, SIZE_MINUS_ONE);
 
+    auto const sourceAzimuthSpan{ source.azimuthSpan };
+    auto const sourceElevationSpan{ source.zenithSpan };
+    auto const sumAziElevSpans{ 1.0f - sourceAzimuthSpan + 1.0f - sourceElevationSpan };
+
+    float distFromSource{};
+    float distXYPlane{};
+    float distZ{};
+
     jassert(field.speakerPositions.size() == field.amplitudeMatrix.size());
-    std::transform(field.amplitudeMatrix.cbegin(),
-                   field.amplitudeMatrix.cend(),
-                   gains,
-                   [x, y, z, exponent](matrix_t const & matrix) {
-                       return std::pow(trilinearInterpolation(matrix, x, y, z), exponent);
-                   });
+
+    for (int i{}; i < field.speakerPositions.size(); ++i) {
+        distFromSource = std::sqrt(
+            std::pow(field.speakerPositions[i].getCartesian().x - source.position->getCartesian().x, 2.0f)
+            + std::pow(field.speakerPositions[i].getCartesian().y - source.position->getCartesian().y, 2.0f)
+            + std::pow(field.speakerPositions[i].getCartesian().z - source.position->getCartesian().z, 2.0f));
+
+        distXYPlane = std::sqrt(
+            std::pow(field.speakerPositions[i].getCartesian().x - source.position->getCartesian().x, 2.0f)
+            + std::pow(field.speakerPositions[i].getCartesian().y - source.position->getCartesian().y, 2.0f));
+
+        distZ = std::abs(field.speakerPositions[i].getCartesian().z - source.position->getCartesian().z);
+
+        auto const gain{ trilinearInterpolation(field.amplitudeMatrix[i], x, y, z) };
+
+        auto const gainNoElevSpan{ std::pow(gain, field.fieldExponent) };
+        auto const gainFullElevSpan{ std::pow(std::pow(gain, distXYPlane), field.fieldExponent) };
+
+        auto const gainNoAzimuthSpan{ std::pow(gain, field.fieldExponent) };
+        auto const gainFullAzimuthSpan{ std::pow(std::pow(gain, distZ), field.fieldExponent) };
+
+        auto const azimuthElevationGain{ std::pow(gain, field.fieldExponent * sumAziElevSpans * distFromSource) };
+
+        auto const finalElevSpanExponent{ ((sourceElevationSpan - EXPONENT_MIN_IN)
+                                           * (EXPONENT_MAX_OUT - EXPONENT_MIN_OUT)
+                                           / (EXPONENT_MAX_IN - EXPONENT_MIN_IN))
+                                          + EXPONENT_MIN_OUT };
+        auto const finalAzimuthSpanExponent{ ((sourceAzimuthSpan - EXPONENT_MIN_IN)
+                                              * (EXPONENT_MAX_OUT - EXPONENT_MIN_OUT)
+                                              / (EXPONENT_MAX_IN - EXPONENT_MIN_IN))
+                                             + EXPONENT_MIN_OUT };
+
+        const float finalElevationGain{ (gainFullElevSpan - gainNoElevSpan)
+                                            * std::powf(sourceElevationSpan, finalElevSpanExponent * distFromSource)
+                                        + gainNoElevSpan };
+
+        const float finalAzimuthGain{ (gainFullAzimuthSpan - gainNoAzimuthSpan)
+                                          * std::powf(sourceAzimuthSpan, finalAzimuthSpanExponent * distFromSource)
+                                      + gainNoAzimuthSpan };
+
+        gains[i] = sumAziElevSpans * finalAzimuthGain + sumAziElevSpans * finalElevationGain + azimuthElevationGain;
+    }
+
     auto const sum{ std::reduce(gains, gains + field.speakerPositions.size(), 0.0f, std::plus()) };
 
-    //DBG("sum = " << sum);
     if (sum > 0.0f) {
         // (pow(2.0, (1.0 - rad))) for energy spreading when moving toward the center.
-        // auto const flatRadius{ source.position->getCartesian().discardZ().getDistanceFromOrigin() };
-        auto const radius{ std::sqrt(source.position->getCartesian().x * source.position->getCartesian().x
-                                     + source.position->getCartesian().y * source.position->getCartesian().y
-                                     + source.position->getCartesian().z * source.position->getCartesian().z) };
+        auto const radius{ std::sqrt(std::pow(source.position->getCartesian().x, 2.0f)
+                                     + std::pow(source.position->getCartesian().y, 2.0f)
+                                     + std::pow(source.position->getCartesian().z, 2.0f)) };
         auto const comp = radius < 1.0f ? std::pow(2.0f, 1.0f - radius) : 1.0f;
         // normalization (1.0 / sum) and compensation
         auto const norm = 1.0f / sum * comp;
-        DBG("radius = " << radius);
         std::transform(gains, gains + field.speakerPositions.size(), gains, [norm](float & gain) {
             return gain * norm;
         });
     }
 }
 
-////==============================================================================
-// size_t LbapField::getNumSpeakers() const
-//{
-//    return std::accumulate(layers.cbegin(), layers.cend(), size_t{}, [](size_t const sum, LbapLayer const & layer) {
-//        return sum + layer.speakerPositions.size();
-//    });
-//}
-
 //==============================================================================
 size_t LbapField::getNumSpeakers() const
 {
     return speakerPositions.size();
 }
-
-////==============================================================================
-// void LbapField::reset()
-//{
-//    outputOrder.clear();
-//    layers.clear();
-//}
 
 //==============================================================================
 void LbapField::reset()
@@ -294,7 +236,6 @@ LbapField lbapInit(SpeakersData const & speakers)
 {
     std::vector<Position> tempSpeakerPositions;
     tempSpeakerPositions.reserve(narrow<std::size_t>(speakers.size()));
-    // auto field = createField(speakerPositions);
 
     std::vector<LbapSpeaker> lbapSpeakers{};
     lbapSpeakers.reserve(narrow<std::size_t>(speakers.size()));
@@ -308,51 +249,6 @@ LbapField lbapInit(SpeakersData const & speakers)
         lbapSpeakers.push_back(newSpeaker);
     }
 
-    // std::sort(lbapSpeakers.begin(), lbapSpeakers.end(), [](LbapSpeaker const & a, LbapSpeaker const & b) -> bool {
-    //    return a.position.getCartesian().z < b.position.getCartesian().z;
-    //});
-
-    // LbapField field{};
-
-    // std::transform(lbapSpeakers.cbegin(),
-    //               lbapSpeakers.cend(),
-    //               std::back_inserter(field.outputOrder),
-    //               [](LbapSpeaker const & speaker) { return speaker.outputPatch; });
-
-    // size_t count{};
-    // while (count < lbapSpeakers.size())
-    //{
-    //    auto const start{ count };
-    //    // auto const height{ lbapSpeakers[count++].position.getCartesian().z };
-    //    ////static constexpr auto TOLERANCE{ 0.055f };
-    //    ////static constexpr auto TOLERANCE{ 0.079f };
-    //    // static constexpr auto TOLERANCE{ 0.12f };
-    //    // DBG("calculing for tolerance comparison : " << std::abs(height -
-    //    // lbapSpeakers[count].position.getCartesian().z)
-    //    //                                            << ", height : " << height << ", z position : "
-    //    //                                            << lbapSpeakers[count].position.getCartesian().z);
-    //    // while (count < lbapSpeakers.size()
-    //    //       && std::abs(height - lbapSpeakers[count].position.getCartesian().z) < TOLERANCE) {
-    //    //    ++count;
-    //    //}
-    //    while (count < lbapSpeakers.size()) {
-    //        ++count;
-    //    }
-    //    auto const howMany{ count - start };
-    //    auto const spk{ lbapPositionsFromSpeakers(&lbapSpeakers[start], howMany) };
-
-    //    //auto const heightSum{ std::accumulate(
-    //    //    spk.cbegin(),
-    //    //    spk.cend(),
-    //    //    0.0f,
-    //    //    [](float const total, Position const & position) { return total + position.getCartesian().z; }) };
-
-    //    //auto const mean{ heightSum / narrow<float>(howMany) };
-    //    //field.layers.emplace_back(createLayer(field, mean, spk));
-    //    for (auto speaker : spk) {
-    //        tempSpeakerPositions.emplace_back(speaker);
-    //    }
-    //}
     auto const spk{ lbapPositionsFromSpeakers(&lbapSpeakers[0], lbapSpeakers.size()) };
     for (auto speaker : spk) {
         tempSpeakerPositions.emplace_back(speaker);
@@ -372,63 +268,10 @@ LbapField lbapInit(SpeakersData const & speakers)
 void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const & field)
 {
     jassert(source.position);
-    // auto const & position{ *source.position };
-    // DBG("number of layers : " << field.layers.size());
 
-    // auto const * firstLayer{ &field.layers.front() };
-    // auto const * secondLayer{ &field.layers.back() };
-    // for (auto const & layer : field.layers) {
-    //    if (layer.height >= position.getCartesian().z) {
-    //        secondLayer = &layer;
-    //        break;
-    //    }
-    //    firstLayer = &layer;
-    //}
-
-    // auto const getRatio = [&]() {
-    //    if (firstLayer == secondLayer) {
-    //        return 0.0f;
-    //    }
-
-    //    jassert(secondLayer->height - firstLayer->height != 0.0f);
-    //    return (position.getCartesian().z - firstLayer->height) / (secondLayer->height - firstLayer->height);
-    //};
-
-    // auto const ratio{ getRatio() };
-
-    auto const elevationSpan{ source.zenithSpan == 0.0f ? 0.0f : std::pow(source.zenithSpan, 4.0f) * 6.0f };
-
-    // size_t c{};
-    float gain{};
     std::array<float, MAX_NUM_SPEAKERS> tempGains{};
-    // for (int i{}; i < narrow<int>(field.layers.size()); ++i) {
-    //    if (i < firstLayer->id) {
-    //        gain = elevationSpan / narrow<float>((firstLayer->id - i) * 2);
-    //    } else if (i == firstLayer->id) {
-    //        gain = 1.0f - ratio + elevationSpan;
-    //    } else if (i == secondLayer->id && firstLayer->id == secondLayer->id) {
-    //        gain = elevationSpan;
-    //    } else if (i == secondLayer->id && firstLayer->id != secondLayer->id) {
-    //        gain = ratio + elevationSpan;
-    //    } else {
-    //        gain = elevationSpan / narrow<float>((i - secondLayer->id) * 2);
-    //    }
-    //    auto const i_size{ narrow<std::size_t>(i) };
-    //    gain = std::min(gain, 1.0f);
-    //    computeGains(field, source, tempGains.data() + c);
-    //    std::transform(tempGains.cbegin() + c,
-    //                   tempGains.cbegin() + c + field.layers[i_size].speakerPositions.size(),
-    //                   tempGains.begin() + c,
-    //                   [gain](float const x) { return x * gain; });
-    //    c += field.layers[i_size].speakerPositions.size();
-    //}
 
-    gain = gain + elevationSpan;
-    gain = std::min(gain, 1.0f);
     computeGains(field, source, tempGains.data());
-    std::transform(tempGains.cbegin(), tempGains.cbegin(), tempGains.begin(), [gain](float const x) {
-        return x * gain;
-    });
 
     for (size_t i{}; i < field.getNumSpeakers(); ++i) {
         auto const & outputPatch{ field.outputOrder[i] };

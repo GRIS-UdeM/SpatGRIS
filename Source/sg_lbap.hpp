@@ -18,16 +18,16 @@
 */
 
 /**
- *  Layer-Based Amplitude Panning framework.
+ * Matrix-Based Amplitude Panning framework.
  *
- * LBAP (Layer-Based Amplitude Panning) is a framework written in C
- * to do 2-D or 3-D sound spatialization. It uses a pre-computed
- * gain matrices to perform the spatialization of the sources very
+ * MBAP (Matrix-Based Amplitude Panning) is a framework
+ * to do 3-D sound spatialization. It uses a pre-computed
+ * gain matrix to perform the spatialization of the sources very
  * efficiently.
  *
- * Original author : Olivier Belanger, 2018
+ * author : Gaël Lane Lépine, 2022
+ * based on lbap from Olivier Belanger
  *
- * Modified by Samuel Béland, 2021
  */
 
 #pragma once
@@ -40,7 +40,6 @@ namespace gris
 struct SpeakerData;
 
 static auto constexpr LBAP_MATRIX_SIZE = 64;
-// using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
 using matrix_t
     = std::array<std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
 
@@ -50,43 +49,25 @@ struct LbapSpeaker {
 };
 
 //==============================================================================
-// using matrix_t
-//    = std::array<std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
-// using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
-
-////==============================================================================
-// struct LbapLayer {
-//    int id;                                 /**< Layer id. */
-//    float height;                           /**< Elevation of the layer in the range 0 .. 1. */
-//    float gainExponent;                     /**< Speaker gain exponent for 4+ speakers. */
-//    std::vector<matrix_t> amplitudeMatrix;  /**< Arrays of amplitude values [spk][x][y]. */
-//    std::vector<Position> speakerPositions; /**< Array of speakers. */
-//};
-
-//==============================================================================
 struct LbapField {
     std::vector<output_patch_t> outputOrder; /**< Physical output order. */
-    // std::vector<LbapLayer> layers;           /**< Array of layers. */
-    float gainExponent;                     /**< Speaker gain exponent for 4+ speakers. */
-    std::vector<matrix_t> amplitudeMatrix;  /**< Arrays of amplitude values [spk][x][y][z]. */
-    std::vector<Position> speakerPositions; /**< Array of speakers. */
+    float fieldExponent;                     /**< Speaker gain exponent speakers. */
+    std::vector<matrix_t> amplitudeMatrix;   /**< Arrays of amplitude values [spk][x][y][z]. */
+    std::vector<Position> speakerPositions;  /**< Array of speakers. */
     //==============================================================================
     [[nodiscard]] size_t getNumSpeakers() const;
     void reset();
 };
 
-/** \brief Creates the field's layers according to the position of speakers.
- *
- * This function creates the field's layer according to the position of
- * speakers given as `speakers` argument. The argument `num` is the number of
- * speakers passed to the function.
+/**
+ * Creates the amplitude field according to the position of speakers.
  */
 LbapField lbapInit(SpeakersData const & speakers);
 
 /** \brief Calculates the gain of the outputs for a source's position.
  *
  * This function uses the position `pos` to retrieve the gain for every
- * output from the field's layers and fill the array of float `gains`.
+ * output from the field and fill the array of float `gains`.
  * The user must provide the array of float and is responsible of its
  * memory. This array can be passed to the audio processing function
  * to control the gain of the signal outputs.
