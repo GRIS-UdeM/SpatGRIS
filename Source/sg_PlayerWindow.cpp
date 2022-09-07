@@ -84,7 +84,7 @@ void ThumbnailComp::paint(juce::Graphics & g)
         g.setFont(mLookAndFeel.getFont());
 
         auto localBounds{ getLocalBounds().reduced(10) };
-        auto textRect{ localBounds.removeFromTop(140) };
+        auto textRect{ localBounds.removeFromTop(160) };
 
         auto sourcesRect{ localBounds.removeFromTop(20) };
         juce::Rectangle<int> colorSourcesRect;
@@ -116,7 +116,8 @@ void ThumbnailComp::paint(juce::Graphics & g)
         text << "NOTES :\n";
         text << "The player will try to assign direct outputs to the currently loaded speaker setup direct outputs. "
              << "Please adjust this configuration to fit your needs.\n"
-             << "Source number will match file number. If there is a gap in numbering, sources will be muted.\n";
+             << "Source numbers will correspond to audio file numbers. If there is a gap in numbering, unused sources "
+                "will be muted.\n";
         g.drawFittedText(text, textRect, juce::Justification::topLeft, 2);
 
         sources << "    Color of spatialized sources\n";
@@ -505,7 +506,7 @@ PlayerWindow::PlayerWindow(MainContentComponent & mainContentComponent, GrisLook
 
     setResizable(true, true);
     setResizeLimits(600,
-                    310,
+                    330,
                     juce::Desktop::getInstance().getDisplays().getTotalBounds(true).getWidth(),
                     juce::Desktop::getInstance().getDisplays().getTotalBounds(true).getHeight());
     setUsingNativeTitleBar(true);
