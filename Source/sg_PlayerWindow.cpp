@@ -114,8 +114,11 @@ void ThumbnailComp::paint(juce::Graphics & g)
         text << "Open the folder containing the audio files and the speaker setup used to record them.\n";
         text << "Click in the audio thumbnails to position the playhead.\n\n";
         text << "NOTES :\n";
-        text << "The player will try to assign direct outputs to the currently loaded speaker setup direct outputs. "
-             << "Please adjust this configuration to fit your needs.\n"
+        text << "If a project file for the player has already been generated (with the save player project button), it "
+                "will be loaded automatically. "
+                "Otherwise the player will try to assign direct outputs to the currently loaded speaker setup direct "
+                "outputs. "
+                "Please adjust this configuration to fit your needs.\n"
              << "Source numbers will correspond to audio file numbers. If there is a gap in numbering, unused sources "
                 "will be muted.\n";
         g.drawFittedText(text, textRect, juce::Justification::topLeft, 2);
