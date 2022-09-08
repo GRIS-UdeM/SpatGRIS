@@ -192,11 +192,11 @@ static void computeGains(LbapField const & field, SourceData const & source, flo
                                              + EXPONENT_MIN_OUT };
 
         const float finalElevationGain{ (gainFullElevSpan - gainNoElevSpan)
-                                            * std::powf(sourceElevationSpan, finalElevSpanExponent * distFromSource)
+                                            * std::pow(sourceElevationSpan, finalElevSpanExponent * distFromSource)
                                         + gainNoElevSpan };
 
         const float finalAzimuthGain{ (gainFullAzimuthSpan - gainNoAzimuthSpan)
-                                          * std::powf(sourceAzimuthSpan, finalAzimuthSpanExponent * distFromSource)
+                                          * std::pow(sourceAzimuthSpan, finalAzimuthSpanExponent * distFromSource)
                                       + gainNoAzimuthSpan };
 
         gains[i] = sumAziElevSpans * finalAzimuthGain + sumAziElevSpans * finalElevationGain + azimuthElevationGain;
