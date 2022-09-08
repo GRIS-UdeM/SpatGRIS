@@ -241,6 +241,8 @@ public:
     // Player
     [[nodiscard]] static tl::optional<SpeakerSetup> playerExtractSpeakerSetup(juce::File const & file);
     void handlePlayerSourcesPositions(tl::optional<SpeakerSetup> & playerSpeakerSetup);
+    void handleNewProjectForPlayer();
+    bool savePlayerProject(juce::File & playerFilesFolder);
 
 private:
     //==============================================================================

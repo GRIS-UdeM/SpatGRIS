@@ -36,6 +36,7 @@ class PlayerComponent final
     : public juce::Component
     , private juce::TextButton::Listener
     , private juce::ChangeListener
+    , private juce::Timer
 {
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
@@ -43,12 +44,15 @@ class PlayerComponent final
     juce::ReadWriteLock mLock{};
 
     juce::TextButton mLoadWavFilesAndSpeakerSetupButton{};
+    juce::TextButton mSavePlayerProjectButton{};
     juce::TextButton mPlayButton{};
     juce::TextButton mStopButton{};
     juce::Label mTimeCodeLabel{};
 
     std::unique_ptr<ThumbnailComp> mThumbnails;
     tl::optional<SpeakerSetup> mPlayerSpeakerSetup;
+    juce::File mPlayerFilesFolder{};
+    int mBlinkNTimes{ 5 };
 
 public:
     //==============================================================================
@@ -74,6 +78,7 @@ private:
     //==============================================================================
     void paint(juce::Graphics & g) override;
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
+    void timerCallback() override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(PlayerComponent)
 }; // class PlayerComponent

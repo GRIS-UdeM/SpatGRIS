@@ -359,11 +359,17 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
 
     mIsLoadingSpeakerSetupOrProjectFile = true;
 
+    auto const currentSpatMode{ mData.project.spatMode };
+
     mData.project = std::move(*projectData);
     mData.appData.lastProject = file.getFullPathName();
 
     if (mData.project.spatMode == SpatMode::invalid) {
         mData.project.spatMode = mData.speakerSetup.spatMode;
+    }
+
+    if (mPlayerWindow != nullptr) {
+        mData.project.spatMode = currentSpatMode;
     }
 
     [[maybe_unused]] auto const success{ setSpatMode(mData.project.spatMode) };
@@ -609,6 +615,8 @@ void MainContentComponent::handleShowPlayerWindow()
     mPlayerWindow = std::make_unique<PlayerWindow>(*this, mLookAndFeel);
     mData.appData.playerExists = true;
     refreshAudioProcessor();
+
+    [[maybe_unused]] auto success{ makeSureProjectIsSavedToDisk() };
 }
 
 //==============================================================================
@@ -2668,6 +2676,55 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
     }
 
     refreshAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::handleNewProjectForPlayer()
+{
+    [[maybe_unused]] auto const success{ loadProject(DEFAULT_PROJECT_FILE, true) };
+}
+
+//==============================================================================
+bool MainContentComponent::savePlayerProject(juce::File & playerFilesFolder)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto const playerProjectFile{ playerFilesFolder.getFullPathName() + juce::File::getSeparatorString()
+                                  + "player_project.xml" };
+    const juce::File file{ playerProjectFile };
+    bool shouldOverwriteProjectFile{ true };
+
+    if (file.exists()) {
+        auto const result{ juce::AlertWindow::showOkCancelBox(
+            juce::MessageBoxIconType::WarningIcon,
+            "File exists",
+            "The Player Project file already exists. Would you like to overwrite it ?",
+            "Overwrite",
+            "Cancel",
+            nullptr,
+            nullptr) };
+
+        // 0 = Cancel, 1 = Overwrite
+        if (result == 0) {
+            shouldOverwriteProjectFile = false;
+        }
+    }
+
+    if (shouldOverwriteProjectFile) {
+        auto const content{ mData.project.toXml() };
+        auto const success{ content->writeTo(playerProjectFile) };
+        jassert(success);
+
+        if (success) {
+            mData.appData.lastProject = playerProjectFile;
+        }
+
+        setTitles();
+
+        return true;
+    }
+    return false;
 }
 
 //==============================================================================

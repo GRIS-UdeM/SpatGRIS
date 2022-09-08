@@ -217,17 +217,22 @@ PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, Gr
     , mLookAndFeel(lookAndFeel)
 {
     mLoadWavFilesAndSpeakerSetupButton.setButtonText("Load audio files and Speaker setup folder");
+    mSavePlayerProjectButton.setButtonText("Save Player Project");
     mPlayButton.setButtonText("Play");
     mStopButton.setButtonText("Stop");
     mLoadWavFilesAndSpeakerSetupButton.setToggleState(true, juce::NotificationType::dontSendNotification);
+    mSavePlayerProjectButton.setToggleState(true, juce::NotificationType::dontSendNotification);
     mPlayButton.setToggleState(true, juce::NotificationType::dontSendNotification);
     mStopButton.setToggleState(true, juce::NotificationType::dontSendNotification);
+    mSavePlayerProjectButton.setEnabled(false);
     mPlayButton.setEnabled(false);
     mStopButton.setEnabled(false);
     mLoadWavFilesAndSpeakerSetupButton.addListener(this);
+    mSavePlayerProjectButton.addListener(this);
     mPlayButton.addListener(this);
     mStopButton.addListener(this);
     addAndMakeVisible(mLoadWavFilesAndSpeakerSetupButton);
+    addAndMakeVisible(mSavePlayerProjectButton);
     addAndMakeVisible(mPlayButton);
     addAndMakeVisible(mStopButton);
 
@@ -254,6 +259,7 @@ PlayerComponent::~PlayerComponent()
         stopAudio();
     }
     mLoadWavFilesAndSpeakerSetupButton.removeListener(this);
+    mSavePlayerProjectButton.removeListener(this);
     mPlayButton.removeListener(this);
     mStopButton.removeListener(this);
 
@@ -289,6 +295,7 @@ void PlayerComponent::handleOpenWavFilesAndSpeakerSetup()
     if (validateWavFilesAndSpeakerSetup(chosen)) {
         if (AudioManager::getInstance().prepareAudioPlayer(chosen)) {
             loadPlayer();
+            mPlayerFilesFolder = chosen;
         } else {
             displayError("Audio files do not have the same length.");
         }
@@ -393,9 +400,11 @@ void PlayerComponent::stopAudio()
 //==============================================================================
 void PlayerComponent::loadPlayer()
 {
+    mMainContentComponent.handleNewProjectForPlayer();
     mMainContentComponent.handlePlayerSourcesPositions(mPlayerSpeakerSetup);
     mThumbnails->addThumbnails(mPlayerSpeakerSetup->speakers.size());
 
+    mSavePlayerProjectButton.setEnabled(true);
     mPlayButton.setEnabled(true);
     mStopButton.setEnabled(true);
 
@@ -426,6 +435,22 @@ void PlayerComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 }
 
 //==============================================================================
+void PlayerComponent::timerCallback()
+{
+    if (mBlinkNTimes > 0) {
+        if (mBlinkNTimes-- % 2 == 0) {
+            mSavePlayerProjectButton.setButtonText("");
+        } else {
+            mSavePlayerProjectButton.setButtonText("File saved !");
+        }
+    } else {
+        stopTimer();
+        mBlinkNTimes = 5;
+        mSavePlayerProjectButton.setButtonText("Save Player Project");
+    }
+}
+
+//==============================================================================
 void PlayerComponent::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -433,6 +458,11 @@ void PlayerComponent::buttonClicked(juce::Button * button)
     if (button == &mLoadWavFilesAndSpeakerSetupButton) {
         handleOpenWavFilesAndSpeakerSetup();
         mThumbnails->setSources();
+    } else if (button == &mSavePlayerProjectButton) {
+        auto playerProjectSaved{ mMainContentComponent.savePlayerProject(mPlayerFilesFolder) };
+        if (playerProjectSaved) {
+            startTimer(400);
+        }
     } else if (button == &mPlayButton) {
         playAudio();
     } else if (button == &mStopButton) {
@@ -451,6 +481,7 @@ void PlayerComponent::resized()
 
     mThumbnails->setBounds(r);
     mLoadWavFilesAndSpeakerSetupButton.setBounds(controls.removeFromLeft(controls.getWidth() / 3));
+    mSavePlayerProjectButton.setBounds(controls.removeFromLeft(controls.getWidth() / 4));
     mTimeCodeLabel.setBounds(controls.removeFromLeft(controls.getWidth() / 2).reduced(1));
     mStopButton.setBounds(controls.removeFromRight(controls.getWidth() / 2));
     mPlayButton.setBounds(controls);
