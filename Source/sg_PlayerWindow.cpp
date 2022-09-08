@@ -294,8 +294,8 @@ void PlayerComponent::handleOpenWavFilesAndSpeakerSetup()
 
     if (validateWavFilesAndSpeakerSetup(chosen)) {
         if (AudioManager::getInstance().prepareAudioPlayer(chosen)) {
-            loadPlayer();
             mPlayerFilesFolder = chosen;
+            loadPlayer();
         } else {
             displayError("Audio files do not have the same length.");
         }
@@ -401,7 +401,7 @@ void PlayerComponent::stopAudio()
 void PlayerComponent::loadPlayer()
 {
     mMainContentComponent.handleNewProjectForPlayer();
-    mMainContentComponent.handlePlayerSourcesPositions(mPlayerSpeakerSetup);
+    mMainContentComponent.handlePlayerSourcesPositions(mPlayerSpeakerSetup, mPlayerFilesFolder);
     mThumbnails->addThumbnails(mPlayerSpeakerSetup->speakers.size());
 
     mSavePlayerProjectButton.setEnabled(true);
