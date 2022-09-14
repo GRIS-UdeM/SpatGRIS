@@ -390,6 +390,7 @@ struct SpeakerSetup {
     SpeakersData speakers{};
     SpeakersOrdering ordering{};
     SpatMode spatMode{};
+    float diffusion{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<SpeakerSetup> fromXml(juce::XmlElement const & xml);
@@ -403,6 +404,7 @@ struct SpeakerSetup {
         static juce::String const MAIN_TAG;
         static juce::String const VERSION;
         static juce::String const SPAT_MODE;
+        static juce::String const DIFFUSION;
     };
 };
 

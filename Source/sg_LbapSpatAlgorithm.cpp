@@ -26,9 +26,21 @@
 namespace gris
 {
 //==============================================================================
-LbapSpatAlgorithm::LbapSpatAlgorithm(SpeakersData const & speakers) : mField(lbapInit(speakers))
+LbapSpatAlgorithm::LbapSpatAlgorithm(SpeakerSetup const & speakerSetup) : mField(lbapInit(speakerSetup.speakers))
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto constexpr DIFFUSION_IN_MIN{ 1.0f };
+    auto constexpr DIFFUSION_IN_MAX{ 0.0f };
+    auto constexpr DIFFUSION_OUT_MIN{ 1.0f };
+    auto constexpr DIFFUSION_OUT_MAX{ 8.0f };
+    auto const valDiff{ speakerSetup.diffusion };
+
+    auto const newDiffusion{ ((valDiff - DIFFUSION_IN_MIN) * (DIFFUSION_OUT_MAX - DIFFUSION_OUT_MIN)
+                              / (DIFFUSION_IN_MAX - DIFFUSION_IN_MIN))
+                             + DIFFUSION_OUT_MIN };
+
+    mField.fieldExponent = newDiffusion;
 }
 
 //==============================================================================
@@ -169,7 +181,7 @@ std::unique_ptr<AbstractSpatAlgorithm> LbapSpatAlgorithm::make(SpeakerSetup cons
         return std::make_unique<DummySpatAlgorithm>(Error::notEnoughCubeSpeakers);
     }
 
-    return std::make_unique<LbapSpatAlgorithm>(speakerSetup.speakers);
+    return std::make_unique<LbapSpatAlgorithm>(speakerSetup);
 }
 
 } // namespace gris

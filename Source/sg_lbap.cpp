@@ -84,7 +84,6 @@ static LbapField initField(std::vector<Position> speakers)
 {
     LbapField field{};
 
-    field.fieldExponent = 8.0f;
     field.amplitudeMatrix.reserve(speakers.size());
     static constexpr matrix_t EMPTY_MATRIX{};
     std::fill_n(std::back_inserter(field.amplitudeMatrix), speakers.size(), EMPTY_MATRIX);

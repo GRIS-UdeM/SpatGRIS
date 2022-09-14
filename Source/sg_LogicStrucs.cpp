@@ -88,6 +88,7 @@ juce::String const AppData::XmlTags::CAMERA = "CAMERA";
 juce::String const SpeakerSetup::XmlTags::MAIN_TAG = "SPEAKER_SETUP";
 juce::String const SpeakerSetup::XmlTags::VERSION = "VERSION";
 juce::String const SpeakerSetup::XmlTags::SPAT_MODE = "SPAT_MODE";
+juce::String const SpeakerSetup::XmlTags::DIFFUSION = "DIFFUSION";
 
 //==============================================================================
 juce::String sliceStateToString(SliceState const state)
@@ -739,6 +740,7 @@ std::unique_ptr<juce::XmlElement> SpeakerSetup::toXml() const
 
     result->setAttribute(XmlTags::VERSION, SPAT_GRIS_VERSION.toString());
     result->setAttribute(XmlTags::SPAT_MODE, spatModeToString(spatMode));
+    result->setAttribute(XmlTags::DIFFUSION, diffusion);
 
     jassert(ordering.size() == speakers.size());
     for (auto const outputPatch : ordering) {
@@ -752,6 +754,7 @@ std::unique_ptr<juce::XmlElement> SpeakerSetup::toXml() const
 tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
 {
     auto const spatMode{ stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE)) };
+    auto const diffusion{ tl::optional<float>(xml.getStringAttribute(XmlTags::DIFFUSION).getFloatValue()) };
 
     if (xml.getTagName() != XmlTags::MAIN_TAG || !spatMode) {
         return readLegacySpeakerSetup(xml);
@@ -759,6 +762,7 @@ tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
 
     tl::optional<SpeakerSetup> result{ SpeakerSetup{} };
     result->spatMode = *spatMode;
+    result->diffusion = *diffusion;
 
     for (auto const * speaker : xml.getChildIterator()) {
         auto const tagName{ speaker->getTagName() };

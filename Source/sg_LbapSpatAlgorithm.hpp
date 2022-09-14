@@ -52,7 +52,7 @@ public:
     ~LbapSpatAlgorithm() override = default;
     SG_DELETE_COPY_AND_MOVE(LbapSpatAlgorithm)
     //==============================================================================
-    explicit LbapSpatAlgorithm(SpeakersData const & speakers);
+    explicit LbapSpatAlgorithm(SpeakerSetup const & speakerSetup);
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,

@@ -23,9 +23,9 @@
 namespace gris
 {
 //==============================================================================
-HybridSpatAlgorithm::HybridSpatAlgorithm(SpeakersData const & speakersData)
-    : mVbap(std::make_unique<VbapSpatAlgorithm>(speakersData))
-    , mLbap(std::make_unique<LbapSpatAlgorithm>(speakersData))
+HybridSpatAlgorithm::HybridSpatAlgorithm(SpeakerSetup const & speakerSetup)
+    : mVbap(std::make_unique<VbapSpatAlgorithm>(speakerSetup.speakers))
+    , mLbap(std::make_unique<LbapSpatAlgorithm>(speakerSetup))
 {
 }
 
@@ -91,7 +91,7 @@ std::unique_ptr<AbstractSpatAlgorithm> HybridSpatAlgorithm::make(SpeakerSetup co
     if (speakerSetup.numOfSpatializedSpeakers() < 3) {
         return std::make_unique<DummySpatAlgorithm>(Error::notEnoughDomeSpeakers);
     }
-    return std::make_unique<HybridSpatAlgorithm>(speakerSetup.speakers);
+    return std::make_unique<HybridSpatAlgorithm>(speakerSetup);
 }
 
 } // namespace gris
