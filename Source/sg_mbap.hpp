@@ -39,17 +39,17 @@ namespace gris
 {
 struct SpeakerData;
 
-static auto constexpr LBAP_MATRIX_SIZE = 64;
+static auto constexpr MBAP_MATRIX_SIZE = 64;
 using matrix_t
-    = std::array<std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
+    = std::array<std::array<std::array<float, MBAP_MATRIX_SIZE + 1>, MBAP_MATRIX_SIZE + 1>, MBAP_MATRIX_SIZE + 1>;
 
-struct LbapSpeaker {
+struct MbapSpeaker {
     Position position{};
     output_patch_t outputPatch{};
 };
 
 //==============================================================================
-struct LbapField {
+struct MbapField {
     std::vector<output_patch_t> outputOrder; /**< Physical output order. */
     float fieldExponent;                     /**< Speaker gain exponent speakers. */
     std::vector<matrix_t> amplitudeMatrix;   /**< Arrays of amplitude values [spk][x][y][z]. */
@@ -62,7 +62,7 @@ struct LbapField {
 /**
  * Creates the amplitude field according to the position of speakers.
  */
-LbapField lbapInit(SpeakersData const & speakers);
+MbapField mbapInit(SpeakersData const & speakers);
 
 /** \brief Calculates the gain of the outputs for a source's position.
  *
@@ -72,6 +72,6 @@ LbapField lbapInit(SpeakersData const & speakers);
  * memory. This array can be passed to the audio processing function
  * to control the gain of the signal outputs.
  */
-void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const & field);
+void mbap(SourceData const & source, SpeakersSpatGains & gains, MbapField const & field);
 
 } // namespace gris

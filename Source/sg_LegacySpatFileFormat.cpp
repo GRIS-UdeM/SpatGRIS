@@ -32,7 +32,7 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
     }
 
     auto const spatMode{ static_cast<SpatMode>(xml.getIntAttribute("SpatMode")) };
-    if (spatMode != SpatMode::lbap && spatMode != SpatMode::vbap) {
+    if (spatMode != SpatMode::mbap && spatMode != SpatMode::vbap) {
         jassertfalse;
         return tl::nullopt;
     }
@@ -61,7 +61,7 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
                         degrees_t{ static_cast<float>(spk->getDoubleAttribute("Zenith", 0.0)) }.centered()
                     };
                     auto const length{ static_cast<float>(spk->getDoubleAttribute("Radius", 1.0)) };
-                    auto const position{ spatMode == SpatMode::lbap
+                    auto const position{ spatMode == SpatMode::mbap
                                              ? LegacyLbapPosition{ azimuth, zenith, length }.toPosition()
                                              : Position{ PolarVector{ azimuth, zenith, length } } };
 
@@ -124,7 +124,7 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
 
     auto const getCorrectedSpatMode = [&]() {
         if (!result.isDomeLike()) {
-            return SpatMode::lbap;
+            return SpatMode::mbap;
         }
         return spatMode;
     };

@@ -31,8 +31,8 @@
       <GROUP id="{D059D036-0ECD-ACF5-4465-BDC1A866C55E}" name="Audio">
         <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
           <GROUP id="{F536EC3E-463E-F7C1-C73E-F95B29576CC6}" name="implementations">
-            <FILE id="jD7XJF" name="sg_lbap.cpp" compile="1" resource="0" file="Source/sg_lbap.cpp"/>
-            <FILE id="TjPFps" name="sg_lbap.hpp" compile="0" resource="0" file="Source/sg_lbap.hpp"/>
+            <FILE id="jD7XJF" name="sg_mbap.cpp" compile="1" resource="0" file="Source/sg_mbap.cpp"/>
+            <FILE id="TjPFps" name="sg_mbap.hpp" compile="0" resource="0" file="Source/sg_mbap.hpp"/>
             <FILE id="ZA3ukj" name="sg_vbap.cpp" compile="1" resource="0" file="Source/sg_vbap.cpp"/>
             <FILE id="QvxuHw" name="sg_vbap.hpp" compile="0" resource="0" file="Source/sg_vbap.hpp"/>
           </GROUP>
@@ -54,10 +54,10 @@
                 file="Source/sg_HybridSpatAlgorithm.cpp"/>
           <FILE id="ncBTxz" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
                 file="Source/sg_HybridSpatAlgorithm.hpp"/>
-          <FILE id="wYF40j" name="sg_LbapSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_LbapSpatAlgorithm.cpp"/>
-          <FILE id="u2DKQo" name="sg_LbapSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_LbapSpatAlgorithm.hpp"/>
+          <FILE id="wYF40j" name="sg_MbapSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/sg_MbapSpatAlgorithm.cpp"/>
+          <FILE id="u2DKQo" name="sg_MbapSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/sg_MbapSpatAlgorithm.hpp"/>
           <FILE id="qEq08c" name="sg_StereoSpatAlgorithm.cpp" compile="1" resource="0"
                 file="Source/sg_StereoSpatAlgorithm.cpp"/>
           <FILE id="KcGDRK" name="sg_StereoSpatAlgorithm.hpp" compile="0" resource="0"

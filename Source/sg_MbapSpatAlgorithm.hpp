@@ -1,4 +1,4 @@
-/*
+﻿/*
  This file is part of SpatGRIS.
 
  Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
@@ -22,37 +22,37 @@
 #include "sg_AbstractSpatAlgorithm.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
-#include "sg_lbap.hpp"
+#include "sg_mbap.hpp"
 
 namespace gris
 {
-struct LbapSpatData {
+struct MbapSpatData {
     SpeakersSpatGains gains{};
-    float lbapSourceDistance{};
+    float mbapSourceDistance{};
 };
 
-using LbapSpatDataQueue = AtomicUpdater<LbapSpatData>;
+using MbapSpatDataQueue = AtomicUpdater<MbapSpatData>;
 
-struct LbapSourceData {
-    LbapSpatDataQueue dataQueue{};
-    LbapSpatDataQueue::Token * currentData{};
-    LbapSourceAttenuationState attenuationState{};
+struct MbapSourceData {
+    MbapSpatDataQueue dataQueue{};
+    MbapSpatDataQueue::Token * currentData{};
+    MbapSourceAttenuationState attenuationState{};
     SpeakersSpatGains lastGains{};
 };
 
 //==============================================================================
-class LbapSpatAlgorithm final : public AbstractSpatAlgorithm
+class MbapSpatAlgorithm final : public AbstractSpatAlgorithm
 {
-    LbapField mField{};
-    StrongArray<source_index_t, LbapSourceData, MAX_NUM_SOURCES> mData{};
+    MbapField mField{};
+    StrongArray<source_index_t, MbapSourceData, MAX_NUM_SOURCES> mData{};
 
 public:
     //==============================================================================
-    LbapSpatAlgorithm() = delete;
-    ~LbapSpatAlgorithm() override = default;
-    SG_DELETE_COPY_AND_MOVE(LbapSpatAlgorithm)
+    MbapSpatAlgorithm() = delete;
+    ~MbapSpatAlgorithm() override = default;
+    SG_DELETE_COPY_AND_MOVE(MbapSpatAlgorithm)
     //==============================================================================
-    explicit LbapSpatAlgorithm(SpeakerSetup const & speakerSetup);
+    explicit MbapSpatAlgorithm(SpeakerSetup const & speakerSetup);
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
@@ -68,7 +68,7 @@ public:
     static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup);
 
 private:
-    JUCE_LEAK_DETECTOR(LbapSpatAlgorithm)
+    JUCE_LEAK_DETECTOR(MbapSpatAlgorithm)
 };
 
 } // namespace gris

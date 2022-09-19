@@ -210,7 +210,7 @@ void SpeakerViewComponent::render()
         case SpatMode::vbap:
             drawFieldSphere();
             break;
-        case SpatMode::lbap:
+        case SpatMode::mbap:
             drawFieldCube();
             break;
         case SpatMode::hybrid:
@@ -433,7 +433,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     case SpatMode::vbap:
         drawDomeGrid();
         break;
-    case SpatMode::lbap:
+    case SpatMode::mbap:
         drawCubeGrid();
         break;
     case SpatMode::hybrid:
@@ -518,7 +518,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     case SpatMode::vbap:
         drawDomeCrosses();
         break;
-    case SpatMode::lbap:
+    case SpatMode::mbap:
         drawCubeCrosses();
         break;
     case SpatMode::hybrid:
@@ -639,7 +639,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
         auto const & baseSpatMode{ mData.warmData.spatMode };
         switch (baseSpatMode) {
         case SpatMode::vbap:
-        case SpatMode::lbap:
+        case SpatMode::mbap:
             return baseSpatMode;
         case SpatMode::hybrid:
             return source.hybridSpatMode;
@@ -652,8 +652,8 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
 
     if (source.azimuthSpan != 0.0f || source.zenithSpan != 0.0f) {
         switch (getEffectiveSpatMode()) {
-        case SpatMode::lbap:
-            drawLbapSpan(source);
+        case SpatMode::mbap:
+            drawMbapSpan(source);
             break;
         case SpatMode::vbap:
             drawVbapSpan(source);
@@ -742,7 +742,7 @@ void SpeakerViewComponent::drawFieldCube()
     juce::gl::glLineWidth(1.0f);
     juce::gl::glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
     juce::gl::glColor3f(0.8f, 0.2f, 0.1f);
-    // Draw a cube when in LBAP mode.
+    // Draw a cube when in MBAP mode.
     static constexpr auto DEFINITION = 10;
     for (auto i{ -DEFINITION }; i <= DEFINITION; i += 2) {
         auto const i_f{ narrow<float>(i) / narrow<float>(DEFINITION) };
@@ -778,7 +778,7 @@ void SpeakerViewComponent::drawFieldCube()
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
+void SpeakerViewComponent::drawMbapSpan(ViewportSourceData const & source)
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 

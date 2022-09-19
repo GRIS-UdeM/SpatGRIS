@@ -19,20 +19,20 @@
 
 #pragma once
 
-#include "sg_LbapSpatAlgorithm.hpp"
+#include "sg_MbapSpatAlgorithm.hpp"
 #include "sg_VbapSpatAlgorithm.hpp"
 
 namespace gris
 {
 //==============================================================================
-/** A spatialization algorithm that uses both Vbap (dome) and Lbap (cube).
+/** A spatialization algorithm that uses both Vbap (dome) and Mbap (cube).
  *
  * The selection of the algorithm is done on a per-source basis.
  */
 class HybridSpatAlgorithm final : public AbstractSpatAlgorithm
 {
     std::unique_ptr<AbstractSpatAlgorithm> mVbap{};
-    std::unique_ptr<AbstractSpatAlgorithm> mLbap{};
+    std::unique_ptr<AbstractSpatAlgorithm> mMbap{};
 
 public:
     //==============================================================================

@@ -37,9 +37,10 @@ juce::String const SpeakerData::XmlTags::GAIN = "GAIN";
 juce::String const SpeakerData::XmlTags::IS_DIRECT_OUT_ONLY = "DIRECT_OUT_ONLY";
 juce::String const SpeakerData::XmlTags::MAIN_TAG_PREFIX = "SPEAKER_";
 
-juce::String const LbapDistanceAttenuationData::XmlTags::MAIN_TAG = "LBAP_SETTINGS";
-juce::String const LbapDistanceAttenuationData::XmlTags::FREQ = "FREQ";
-juce::String const LbapDistanceAttenuationData::XmlTags::ATTENUATION = "ATTENUATION";
+juce::String const MbapDistanceAttenuationData::XmlTags::MAIN_TAG = "MBAP_SETTINGS";
+juce::String const MbapDistanceAttenuationData::XmlTags::LEGACY_MAIN_TAG = "LBAP_SETTINGS";
+juce::String const MbapDistanceAttenuationData::XmlTags::FREQ = "FREQ";
+juce::String const MbapDistanceAttenuationData::XmlTags::ATTENUATION = "ATTENUATION";
 
 juce::String const AudioSettings::XmlTags::MAIN_TAG = "AUDIO_SETTINGS";
 juce::String const AudioSettings::XmlTags::INTERFACE_TYPE = "INTERFACE_TYPE";
@@ -344,16 +345,16 @@ bool SpeakerData::operator==(SpeakerData const & other) const noexcept
 }
 
 //==============================================================================
-LbapAttenuationConfig LbapDistanceAttenuationData::toConfig(double const sampleRate, bool shouldProcess) const
+MbapAttenuationConfig MbapDistanceAttenuationData::toConfig(double const sampleRate, bool shouldProcess) const
 {
     auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi * freq.get() / narrow<float>(sampleRate)) };
     auto const gain{ attenuation.toGain() };
-    LbapAttenuationConfig const result{ gain, coefficient, shouldProcess };
+    MbapAttenuationConfig const result{ gain, coefficient, shouldProcess };
     return result;
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> LbapDistanceAttenuationData::toXml() const
+std::unique_ptr<juce::XmlElement> MbapDistanceAttenuationData::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
@@ -364,14 +365,14 @@ std::unique_ptr<juce::XmlElement> LbapDistanceAttenuationData::toXml() const
 }
 
 //==============================================================================
-tl::optional<LbapDistanceAttenuationData> LbapDistanceAttenuationData::fromXml(juce::XmlElement const & xml)
+tl::optional<MbapDistanceAttenuationData> MbapDistanceAttenuationData::fromXml(juce::XmlElement const & xml)
 {
-    if (xml.getTagName() != XmlTags::MAIN_TAG || !xml.hasAttribute(XmlTags::FREQ)
-        || !xml.hasAttribute(XmlTags::ATTENUATION)) {
+    if ((xml.getTagName() != XmlTags::MAIN_TAG && xml.getTagName() != XmlTags::LEGACY_MAIN_TAG)
+        || !xml.hasAttribute(XmlTags::FREQ) || !xml.hasAttribute(XmlTags::ATTENUATION)) {
         return tl::nullopt;
     }
 
-    LbapDistanceAttenuationData result{};
+    MbapDistanceAttenuationData result{};
     result.freq = hz_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::FREQ)) };
     result.attenuation = dbfs_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::ATTENUATION)) };
 
@@ -379,7 +380,7 @@ tl::optional<LbapDistanceAttenuationData> LbapDistanceAttenuationData::fromXml(j
 }
 
 //==============================================================================
-bool LbapDistanceAttenuationData::operator==(LbapDistanceAttenuationData const & other) const noexcept
+bool MbapDistanceAttenuationData::operator==(MbapDistanceAttenuationData const & other) const noexcept
 {
     return other.attenuation == attenuation && other.freq == freq;
 }
@@ -566,7 +567,7 @@ std::unique_ptr<juce::XmlElement> ProjectData::toXml() const
     }
 
     result->addChildElement(sourcesElement.release());
-    result->addChildElement(lbapDistanceAttenuationData.toXml().release());
+    result->addChildElement(mbapDistanceAttenuationData.toXml().release());
 
     result->setAttribute(XmlTags::OSC_PORT, oscPort);
     result->setAttribute(XmlTags::MASTER_GAIN, masterGain.get());
@@ -589,22 +590,30 @@ tl::optional<ProjectData> ProjectData::fromXml(juce::XmlElement const & xml)
     }
 
     auto const * sourcesElement{ xml.getChildByName(XmlTags::SOURCES) };
-    auto const * lbapAttenuationElement{ xml.getChildByName(LbapDistanceAttenuationData::XmlTags::MAIN_TAG) };
+    auto const * mbapAttenuationElement{ xml.getChildByName(MbapDistanceAttenuationData::XmlTags::MAIN_TAG) };
+    auto const * legacyLbapAttenuationElement{ xml.getChildByName(
+        MbapDistanceAttenuationData::XmlTags::LEGACY_MAIN_TAG) };
 
     // If spatMode does not have a value, it will take spatMode value from SpeakerSetup
     auto const spatMode{ (stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE)))
                              ? stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE))
                              : SpatMode::invalid };
 
-    if (!sourcesElement || !lbapAttenuationElement) {
+    if (!sourcesElement || (!mbapAttenuationElement && !legacyLbapAttenuationElement)) {
         return tl::nullopt;
     }
 
     ProjectData result{};
 
-    auto const lbapAttenuation{ LbapDistanceAttenuationData::fromXml(*lbapAttenuationElement) };
+    // check for LBAP (old project file) or MBAP Attenuation tag name
+    tl::optional<gris::MbapDistanceAttenuationData> mbapAttenuation;
+    if (legacyLbapAttenuationElement != nullptr) {
+        mbapAttenuation = MbapDistanceAttenuationData::fromXml(*legacyLbapAttenuationElement);
+    } else if (mbapAttenuationElement != nullptr) {
+        mbapAttenuation = MbapDistanceAttenuationData::fromXml(*mbapAttenuationElement);
+    }
 
-    if (!lbapAttenuation) {
+    if (!mbapAttenuation) {
         return tl::nullopt;
     }
 
@@ -613,7 +622,7 @@ tl::optional<ProjectData> ProjectData::fromXml(juce::XmlElement const & xml)
     result.spatGainsInterpolation = LEGAL_GAIN_INTERPOLATION_RANGE.clipValue(
         static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN_INTERPOLATION)));
     result.oscPort = xml.getIntAttribute(XmlTags::OSC_PORT); // TODO : validate value
-    result.lbapDistanceAttenuationData = *lbapAttenuation;
+    result.mbapDistanceAttenuationData = *mbapAttenuation;
     result.spatMode = *spatMode;
 
     for (auto const * sourceElement : sourcesElement->getChildIterator()) {
@@ -639,7 +648,7 @@ tl::optional<ProjectData> ProjectData::fromXml(juce::XmlElement const & xml)
 bool ProjectData::operator==(ProjectData const & other) const noexcept
 {
     return other.spatGainsInterpolation == spatGainsInterpolation && other.oscPort == oscPort
-           && other.masterGain == masterGain && other.lbapDistanceAttenuationData == lbapDistanceAttenuationData
+           && other.masterGain == masterGain && other.mbapDistanceAttenuationData == mbapDistanceAttenuationData
            && other.sources == sources && other.spatMode == spatMode;
 }
 
@@ -863,8 +872,8 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
         }
     }
 
-    result->lbapAttenuationConfig
-        = project.lbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate, !appData.playerExists);
+    result->MbapAttenuationConfig
+        = project.mbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate, !appData.playerExists);
     result->masterGain = project.masterGain.toGain();
     result->pinkNoiseGain = pinkNoiseLevel.map([](auto const & level) { return level.toGain(); });
     for (auto const source : project.sources) {

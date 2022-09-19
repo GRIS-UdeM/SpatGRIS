@@ -91,11 +91,11 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g) const
         g.fillEllipse(x, x, w, w);
     };
 
-    auto const drawLbapBackground = [&]() {
+    auto const drawMbapBackground = [&]() {
         // Draw shaded background squares.
         g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
-        auto const smallRect{ getCenteredSquare(realSize / LBAP_EXTENDED_RADIUS / 2.0f) };
-        auto const noAttenuationRect{ getCenteredSquare(realSize / LBAP_EXTENDED_RADIUS) };
+        auto const smallRect{ getCenteredSquare(realSize / MBAP_EXTENDED_RADIUS / 2.0f) };
+        auto const noAttenuationRect{ getCenteredSquare(realSize / MBAP_EXTENDED_RADIUS) };
         auto const maxAttenuationRect{ getCenteredSquare(realSize) };
         g.drawRect(smallRect);
         g.drawEllipse(noAttenuationRect, 1.0f);
@@ -115,12 +115,12 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g) const
     case SpatMode::vbap:
         drawVbapBackground();
         return;
-    case SpatMode::lbap:
-        drawLbapBackground();
+    case SpatMode::mbap:
+        drawMbapBackground();
         return;
     case SpatMode::hybrid:
         drawVbapBackground();
-        drawLbapBackground();
+        drawMbapBackground();
         return;
     case SpatMode::invalid:
         return;
@@ -159,7 +159,7 @@ void FlatViewWindow::paint(juce::Graphics & g)
         auto const getEffectiveSpatMode = [&]() {
             switch (baseSpatMode) {
             case SpatMode::vbap:
-            case SpatMode::lbap:
+            case SpatMode::mbap:
                 return baseSpatMode;
             case SpatMode::hybrid:
                 return sourceData->hybridSpatMode;
@@ -196,9 +196,9 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
             auto const radius{ 1.0f - vector.elevation / HALF_PI };
             return juce::Point<float>{ std::cos(vector.azimuth.get()), -std::sin(vector.azimuth.get()) } * radius;
         }
-        case SpatMode::lbap: {
+        case SpatMode::mbap: {
             auto const & position{ sourceData.position.getCartesian() };
-            return juce::Point<float>{ position.x, -position.y } / LBAP_EXTENDED_RADIUS;
+            return juce::Point<float>{ position.x, -position.y } / MBAP_EXTENDED_RADIUS;
         }
         case SpatMode::hybrid:
         case SpatMode::invalid:
@@ -216,8 +216,8 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
     case SpatMode::vbap:
         drawSourceVbapSpan(g, sourceData);
         break;
-    case SpatMode::lbap:
-        drawSourceLbapSpan(g, sourceData, sourcePositionAbsolute);
+    case SpatMode::mbap:
+        drawSourceMbapSpan(g, sourceData, sourcePositionAbsolute);
         break;
     case SpatMode::hybrid:
     case SpatMode::invalid:
@@ -248,14 +248,14 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
 }
 
 //==============================================================================
-void FlatViewWindow::drawSourceLbapSpan(juce::Graphics & g,
+void FlatViewWindow::drawSourceMbapSpan(juce::Graphics & g,
                                         ViewportSourceData const & sourceData,
                                         juce::Point<float> const & sourcePositionAbsolute) const
 {
     auto const fieldSize{ narrow<float>(getWidth()) };
     auto const realSize{ fieldSize - SOURCE_DIAMETER };
 
-    auto const maxSpan{ realSize / LBAP_EXTENDED_RADIUS * juce::MathConstants<float>::sqrt2 };
+    auto const maxSpan{ realSize / MBAP_EXTENDED_RADIUS * juce::MathConstants<float>::sqrt2 };
     auto const spanRange{ maxSpan - SOURCE_DIAMETER };
 
     auto const span{ sourceData.azimuthSpan * spanRange + SOURCE_DIAMETER };

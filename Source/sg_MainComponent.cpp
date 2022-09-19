@@ -136,8 +136,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
         mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
         mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
-        mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
-        mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
+        mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
+        mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
         mControlPanel->setStereoMode(mData.appData.stereoMode);
         mControlPanel->setStereoRouting(mData.appData.stereoRouting);
 
@@ -378,8 +378,8 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
 
     mControlPanel->setMasterGain(mData.project.masterGain);
     mControlPanel->setInterpolation(mData.project.spatGainsInterpolation);
-    mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
-    mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
+    mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
+    mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
 
     refreshAudioProcessor();
     refreshViewportConfig();
@@ -673,7 +673,7 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
     juce::ScopedWriteLock const lock{ mLock };
 
     auto const ensureVbapIsDomeLike = [&]() {
-        if (spatMode != SpatMode::lbap && !mData.speakerSetup.isDomeLike()) {
+        if (spatMode != SpatMode::mbap && !mData.speakerSetup.isDomeLike()) {
             auto const result{ juce::AlertWindow::showOkCancelBox(
                 juce::AlertWindow::InfoIcon,
                 "Converting to DOME",
@@ -742,7 +742,7 @@ void MainContentComponent::cubeAttenuationDbChanged(dbfs_t const value)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    mData.project.lbapDistanceAttenuationData.attenuation = value;
+    mData.project.mbapDistanceAttenuationData.attenuation = value;
     refreshAudioProcessor();
 }
 
@@ -752,7 +752,7 @@ void MainContentComponent::cubeAttenuationHzChanged(hz_t const value)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    mData.project.lbapDistanceAttenuationData.freq = value;
+    mData.project.mbapDistanceAttenuationData.freq = value;
     refreshAudioProcessor();
 }
 
@@ -1639,7 +1639,7 @@ void MainContentComponent::setLegacySourcePosition(source_index_t const sourceIn
         case SpatMode::vbap:
             return Position{ PolarVector{ azimuth, elevation, 1.0f } };
 
-        case SpatMode::lbap:
+        case SpatMode::mbap:
             return LegacyLbapPosition{ azimuth, elevation, length }.toPosition();
         case SpatMode::hybrid:
         case SpatMode::invalid:
@@ -1692,7 +1692,7 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
     case SpatMode::vbap:
         position = position.getPolar().normalized();
         break;
-    case SpatMode::lbap:
+    case SpatMode::mbap:
         position = position.getCartesian().clampedToFarField();
         break;
     case SpatMode::hybrid:
@@ -1737,7 +1737,7 @@ void MainContentComponent::speakerDirectOutOnlyChanged(output_patch_t const outp
     if (state != val) {
         val = state;
 
-        if (!state && mData.speakerSetup.spatMode != SpatMode::lbap) {
+        if (!state && mData.speakerSetup.spatMode != SpatMode::mbap) {
             speaker.position = speaker.position.normalized();
         }
 
@@ -2211,12 +2211,12 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
 
     // specific mode-dependent checks
     switch (mData.speakerSetup.spatMode) {
-    case SpatMode::lbap:
+    case SpatMode::mbap:
         mData.appData.viewSettings.showSpeakerTriplets = false;
         [[fallthrough]];
     case SpatMode::hybrid:
-        mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
-        mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
+        mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
+        mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
         break;
     case SpatMode::vbap:
     case SpatMode::invalid:

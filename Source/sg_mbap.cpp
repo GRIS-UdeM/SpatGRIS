@@ -30,7 +30,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sg_lbap.hpp"
+#include "sg_mbap.hpp"
 
 #include "sg_AudioStructs.hpp"
 #include "sg_Narrow.hpp"
@@ -66,13 +66,13 @@ static float trilinearInterpolation(matrix_t const & matrix, float const x, floa
 }
 
 //==============================================================================
-/* Returns a vector lbap_pos created from an array of lbap_speaker.
+/* Returns a vector mbap_pos created from an array of mbap_speaker.
  */
-static std::vector<Position> lbapPositionsFromSpeakers(LbapSpeaker const * speakers, size_t const num)
+static std::vector<Position> mbapPositionsFromSpeakers(MbapSpeaker const * speakers, size_t const num)
 {
     std::vector<Position> positions{};
     positions.reserve(num);
-    std::transform(speakers, speakers + num, std::back_inserter(positions), [](LbapSpeaker const & speaker) {
+    std::transform(speakers, speakers + num, std::back_inserter(positions), [](MbapSpeaker const & speaker) {
         return speaker.position;
     });
     return positions;
@@ -80,9 +80,9 @@ static std::vector<Position> lbapPositionsFromSpeakers(LbapSpeaker const * speak
 
 //==============================================================================
 /* Initialize a newly created field for `num` speakers. */
-static LbapField initField(std::vector<Position> speakers)
+static MbapField initField(std::vector<Position> speakers)
 {
-    LbapField field{};
+    MbapField field{};
 
     field.amplitudeMatrix.reserve(speakers.size());
     static constexpr matrix_t EMPTY_MATRIX{};
@@ -94,34 +94,34 @@ static LbapField initField(std::vector<Position> speakers)
 
 //==============================================================================
 /* Pre-compute the 3 dimensional matrix of amplitude for the speakers. */
-static void computeMatrix(LbapField & field)
+static void computeMatrix(MbapField & field)
 {
-    static auto constexpr H_SIZE = LBAP_MATRIX_SIZE / 2;
+    static auto constexpr H_SIZE = MBAP_MATRIX_SIZE / 2;
 
     for (size_t i{}; i < field.speakerPositions.size(); ++i) {
         auto const px = field.speakerPositions[i].getCartesian().x * H_SIZE + H_SIZE;
         auto const py = field.speakerPositions[i].getCartesian().y * H_SIZE + H_SIZE;
         auto const pz = field.speakerPositions[i].getCartesian().z * H_SIZE + H_SIZE;
 
-        for (size_t x{}; x < LBAP_MATRIX_SIZE; ++x) {
-            for (size_t y{}; y < LBAP_MATRIX_SIZE; ++y) {
-                for (size_t z{}; z < LBAP_MATRIX_SIZE; ++z) {
+        for (size_t x{}; x < MBAP_MATRIX_SIZE; ++x) {
+            for (size_t y{}; y < MBAP_MATRIX_SIZE; ++y) {
+                for (size_t z{}; z < MBAP_MATRIX_SIZE; ++z) {
                     auto dist = std::sqrt(std::pow(narrow<float>(x) - px, 2.0f) + std::pow(narrow<float>(y) - py, 2.0f)
                                           + std::pow(narrow<float>(z) - pz, 2.0f));
                     dist = std::pow(std::pow(10.0f, 1.0f / 20), dist);          // root-power ratio
                     field.amplitudeMatrix[i][x][y][z] = 1.0f / std::sqrt(dist); // inverse square law
                 }
-                field.amplitudeMatrix[i][x][y][LBAP_MATRIX_SIZE] = field.amplitudeMatrix[i][x][y][0];
+                field.amplitudeMatrix[i][x][y][MBAP_MATRIX_SIZE] = field.amplitudeMatrix[i][x][y][0];
             }
-            field.amplitudeMatrix[i][x][LBAP_MATRIX_SIZE] = field.amplitudeMatrix[i][x][0];
+            field.amplitudeMatrix[i][x][MBAP_MATRIX_SIZE] = field.amplitudeMatrix[i][x][0];
         }
-        field.amplitudeMatrix[i][LBAP_MATRIX_SIZE] = field.amplitudeMatrix[i][0];
+        field.amplitudeMatrix[i][MBAP_MATRIX_SIZE] = field.amplitudeMatrix[i][0];
     }
 }
 
 //==============================================================================
 /* Create the field */
-static LbapField createField(std::vector<Position> speakers)
+static MbapField createField(std::vector<Position> speakers)
 {
     auto result{ initField(std::move(speakers)) };
     computeMatrix(result);
@@ -130,15 +130,15 @@ static LbapField createField(std::vector<Position> speakers)
 
 //==============================================================================
 /* Compute the gain of field of speakers, for the given position, and store the result in the `gains` array.*/
-static void computeGains(LbapField const & field, SourceData const & source, float * gains)
+static void computeGains(MbapField const & field, SourceData const & source, float * gains)
 {
-    static constexpr auto H_SIZE = LBAP_MATRIX_SIZE / 2.0f;
-    static constexpr auto SIZE_MINUS_ONE = LBAP_MATRIX_SIZE - 1.0f;
+    static constexpr auto H_SIZE = MBAP_MATRIX_SIZE / 2.0f;
+    static constexpr auto SIZE_MINUS_ONE = MBAP_MATRIX_SIZE - 1.0f;
 
     auto constexpr EXPONENT_MIN_IN{ 0.0f };
     auto constexpr EXPONENT_MAX_IN{ 1.0f };
-    auto constexpr EXPONENT_MIN_OUT{ 4.0f }; // 8.0f ?
-    auto constexpr EXPONENT_MAX_OUT{ 8.0f }; // 16.0f ?
+    auto constexpr EXPONENT_MIN_OUT{ 4.0f };
+    auto constexpr EXPONENT_MAX_OUT{ 8.0f };
 
     jassert(source.position);
 
@@ -218,53 +218,53 @@ static void computeGains(LbapField const & field, SourceData const & source, flo
 }
 
 //==============================================================================
-size_t LbapField::getNumSpeakers() const
+size_t MbapField::getNumSpeakers() const
 {
     return speakerPositions.size();
 }
 
 //==============================================================================
-void LbapField::reset()
+void MbapField::reset()
 {
     outputOrder.clear();
     amplitudeMatrix.clear();
 }
 
 //==============================================================================
-LbapField lbapInit(SpeakersData const & speakers)
+MbapField mbapInit(SpeakersData const & speakers)
 {
     std::vector<Position> tempSpeakerPositions;
     tempSpeakerPositions.reserve(narrow<std::size_t>(speakers.size()));
 
-    std::vector<LbapSpeaker> lbapSpeakers{};
-    lbapSpeakers.reserve(narrow<std::size_t>(speakers.size()));
+    std::vector<MbapSpeaker> MbapSpeakers{};
+    MbapSpeakers.reserve(narrow<std::size_t>(speakers.size()));
 
     for (auto const & speaker : speakers) {
         if (speaker.value->isDirectOutOnly) {
             continue;
         }
 
-        LbapSpeaker const newSpeaker{ speaker.value->position, speaker.key };
-        lbapSpeakers.push_back(newSpeaker);
+        MbapSpeaker const newSpeaker{ speaker.value->position, speaker.key };
+        MbapSpeakers.push_back(newSpeaker);
     }
 
-    auto const spk{ lbapPositionsFromSpeakers(&lbapSpeakers[0], lbapSpeakers.size()) };
+    auto const spk{ mbapPositionsFromSpeakers(&MbapSpeakers[0], MbapSpeakers.size()) };
     for (auto speaker : spk) {
         tempSpeakerPositions.emplace_back(speaker);
     }
 
     auto field{ createField(tempSpeakerPositions) };
 
-    std::transform(lbapSpeakers.cbegin(),
-                   lbapSpeakers.cend(),
+    std::transform(MbapSpeakers.cbegin(),
+                   MbapSpeakers.cend(),
                    std::back_inserter(field.outputOrder),
-                   [](LbapSpeaker const & speaker) { return speaker.outputPatch; });
+                   [](MbapSpeaker const & speaker) { return speaker.outputPatch; });
 
     return field;
 }
 
 //==============================================================================
-void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const & field)
+void mbap(SourceData const & source, SpeakersSpatGains & gains, MbapField const & field)
 {
     jassert(source.position);
 

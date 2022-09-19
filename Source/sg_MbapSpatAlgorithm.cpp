@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sg_LbapSpatAlgorithm.hpp"
+#include "sg_MbapSpatAlgorithm.hpp"
 #include "sg_DummySpatAlgorithm.hpp"
 #include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
@@ -26,7 +26,7 @@
 namespace gris
 {
 //==============================================================================
-LbapSpatAlgorithm::LbapSpatAlgorithm(SpeakerSetup const & speakerSetup) : mField(lbapInit(speakerSetup.speakers))
+MbapSpatAlgorithm::MbapSpatAlgorithm(SpeakerSetup const & speakerSetup) : mField(mbapInit(speakerSetup.speakers))
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -44,7 +44,7 @@ LbapSpatAlgorithm::LbapSpatAlgorithm(SpeakerSetup const & speakerSetup) : mField
 }
 
 //==============================================================================
-void LbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
+void MbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
     jassert(!isProbablyAudioThread());
 
@@ -55,14 +55,14 @@ void LbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceD
     auto & spatData{ ticket->get() };
 
     if (sourceData.position) {
-        lbap(sourceData, spatData.gains, mField);
-        spatData.lbapSourceDistance = std::sqrt(std::pow(sourceData.position->getCartesian().x, 2.0f)
+        mbap(sourceData, spatData.gains, mField);
+        spatData.mbapSourceDistance = std::sqrt(std::pow(sourceData.position->getCartesian().x, 2.0f)
                                                 + std::pow(sourceData.position->getCartesian().y, 2.0f)
                                                 + std::pow(sourceData.position->getCartesian().z, 2.0f));
 
-        // If we want lbapAttenuation from origin when source is under ground
+        // If we want mbapAttenuation from origin when source is under ground
         // if (sourceData.position->getCartesian().z < 0.0f) {
-        //    spatData.lbapSourceDistance += 1.0f;
+        //    spatData.mbapSourceDistance += 1.0f;
         //}
 
     } else {
@@ -73,7 +73,7 @@ void LbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceD
 }
 
 //==============================================================================
-void LbapSpatAlgorithm::process(AudioConfig const & config,
+void MbapSpatAlgorithm::process(AudioConfig const & config,
                                 SourceAudioBuffer & sourceBuffer,
                                 SpeakerAudioBuffer & speakersBuffer,
                                 [[maybe_unused]] juce::AudioBuffer<float> & stereoBuffer,
@@ -108,10 +108,10 @@ void LbapSpatAlgorithm::process(AudioConfig const & config,
 
         // process attenuation if Player does not exist
         auto * inputSamples{ sourceBuffer[source.key].getWritePointer(0) };
-        if (config.lbapAttenuationConfig.shouldProcess) {
-            config.lbapAttenuationConfig.process(inputSamples,
+        if (config.MbapAttenuationConfig.shouldProcess) {
+            config.MbapAttenuationConfig.process(inputSamples,
                                                  numSamples,
-                                                 spatData.lbapSourceDistance,
+                                                 spatData.mbapSourceDistance,
                                                  data.attenuationState);
         }
 
@@ -165,7 +165,7 @@ void LbapSpatAlgorithm::process(AudioConfig const & config,
 }
 
 //==============================================================================
-juce::Array<Triplet> LbapSpatAlgorithm::getTriplets() const noexcept
+juce::Array<Triplet> MbapSpatAlgorithm::getTriplets() const noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     jassertfalse;
@@ -173,7 +173,7 @@ juce::Array<Triplet> LbapSpatAlgorithm::getTriplets() const noexcept
 }
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm> LbapSpatAlgorithm::make(SpeakerSetup const & speakerSetup)
+std::unique_ptr<AbstractSpatAlgorithm> MbapSpatAlgorithm::make(SpeakerSetup const & speakerSetup)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -181,7 +181,7 @@ std::unique_ptr<AbstractSpatAlgorithm> LbapSpatAlgorithm::make(SpeakerSetup cons
         return std::make_unique<DummySpatAlgorithm>(Error::notEnoughCubeSpeakers);
     }
 
-    return std::make_unique<LbapSpatAlgorithm>(speakerSetup);
+    return std::make_unique<MbapSpatAlgorithm>(speakerSetup);
 }
 
 } // namespace gris

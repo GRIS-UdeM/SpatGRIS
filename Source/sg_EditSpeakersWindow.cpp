@@ -55,7 +55,7 @@ static Position getLegalSpeakerPosition(Position const & position,
               valueToAdjust = sign * length;
           };
 
-    if (spatMode == SpatMode::lbap || isDirectOutOnly) {
+    if (spatMode == SpatMode::mbap || isDirectOutOnly) {
         return Position{ position.getCartesian().clampedToFarField() };
     }
 
@@ -622,8 +622,8 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
     } else if (&textEditor == &mRadiusTextEditor) {
         juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
         auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
-        auto const minRadius{ spatMode == SpatMode::lbap ? 0.001f : 1.0f };
-        auto const maxRadius{ spatMode == SpatMode::lbap ? SQRT3 : 1.0f };
+        auto const minRadius{ spatMode == SpatMode::mbap ? 0.001f : 1.0f };
+        auto const maxRadius{ spatMode == SpatMode::mbap ? SQRT3 : 1.0f };
         auto const value{ std::clamp(mRadiusTextEditor.getText().getFloatValue(), minRadius, maxRadius) };
         mRadiusTextEditor.setText(juce::String{ value, 1 }, false);
         mShouldComputeSpeakers = true;
@@ -795,7 +795,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
         case Cols::X:
         case Cols::Y:
         case Cols::Z:
-            return spatMode == SpatMode::lbap;
+            return spatMode == SpatMode::mbap;
         case Cols::DRAG_HANDLE:
         case Cols::DIRECT_TOGGLE:
         case Cols::DELETE_BUTTON:
@@ -1145,7 +1145,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         case Cols::X:
         case Cols::Y:
         case Cols::Z:
-            if (spatMode == SpatMode::lbap) {
+            if (spatMode == SpatMode::mbap) {
                 return EditionType::valueDraggable;
             }
             return EditionType::notEditable;

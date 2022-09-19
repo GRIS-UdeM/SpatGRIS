@@ -62,7 +62,7 @@ public:
     static const juce::Colour COLOR_SPEAKER_SELECT;
     static constexpr float SIZE_SPEAKER{ 0.05f };
     static auto constexpr MAX_RADIUS{ 1.0f };
-    static auto constexpr SPACE_LIMIT{ MAX_RADIUS * LBAP_EXTENDED_RADIUS };
+    static auto constexpr SPACE_LIMIT{ MAX_RADIUS * MBAP_EXTENDED_RADIUS };
 
 private:
     //==============================================================================
@@ -133,7 +133,7 @@ private:
     static void drawBackground();
     static void drawTextOnGrid(std::string const & val, CartesianVector const & position, float scale = 0.003f);
     static void drawVbapSpan(ViewportSourceData const & source);
-    static void drawLbapSpan(ViewportSourceData const & source);
+    static void drawMbapSpan(ViewportSourceData const & source);
     static void drawFieldSphere();
     static void drawFieldCube();
     //==============================================================================

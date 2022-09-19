@@ -206,7 +206,7 @@ void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) 
         case SpatMode::hybrid:
         case SpatMode::invalid:
             return tl::nullopt;
-        case SpatMode::lbap:
+        case SpatMode::mbap:
         case SpatMode::vbap:
             return spatMode;
         }

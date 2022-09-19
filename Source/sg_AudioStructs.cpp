@@ -55,13 +55,13 @@ void SpeakerHighpassConfig::process(float * data,
 }
 
 //==============================================================================
-void LbapAttenuationConfig::process(float * data,
+void MbapAttenuationConfig::process(float * data,
                                     int const numSamples,
                                     float const distance,
-                                    LbapSourceAttenuationState & state) const
+                                    MbapSourceAttenuationState & state) const
 {
     static constexpr auto NORMAL_DISTANCE = 1.0f;
-    static constexpr auto EXTRA_DISTANCE = LBAP_EXTENDED_RADIUS - NORMAL_DISTANCE;
+    static constexpr auto EXTRA_DISTANCE = MBAP_EXTENDED_RADIUS - NORMAL_DISTANCE;
 
     auto const attenuationRatio{ std::clamp((distance - NORMAL_DISTANCE) / EXTRA_DISTANCE, 0.0f, 1.0f) };
     auto const targetGain{ 1.0f - attenuationRatio * (1.0f - linearGain) };

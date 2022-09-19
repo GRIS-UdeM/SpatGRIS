@@ -77,7 +77,7 @@ struct SpeakerAudioState {
 };
 
 //==============================================================================
-struct LbapSourceAttenuationState {
+struct MbapSourceAttenuationState {
     float currentGain{};
     float currentCoefficient{};
     float lowpassY{};
@@ -85,12 +85,12 @@ struct LbapSourceAttenuationState {
 };
 
 //==============================================================================
-struct LbapAttenuationConfig {
+struct MbapAttenuationConfig {
     float linearGain{};
     float lowpassCoefficient{};
     bool shouldProcess{};
     //==============================================================================
-    void process(float * data, int numSamples, float distance, LbapSourceAttenuationState & state) const;
+    void process(float * data, int numSamples, float distance, MbapSourceAttenuationState & state) const;
 };
 
 //==============================================================================
@@ -100,8 +100,8 @@ using SpeakersSpatGains = StrongArray<output_patch_t, float, MAX_NUM_SPEAKERS>;
 struct SourceAudioState {
     SpeakersSpatGains lastSpatGains{};
 
-    // LBAP-specific
-    LbapSourceAttenuationState lbapAttenuationState{};
+    // MBAP-specific
+    MbapSourceAttenuationState mbapAttenuationState{};
     // STEREO-specific
     radians_t stereoLastAzimuth{};
 };
@@ -130,8 +130,8 @@ struct AudioConfig {
 
     tl::optional<float> pinkNoiseGain{};
 
-    // LBAP-specific
-    LbapAttenuationConfig lbapAttenuationConfig{};
+    // MBAP-specific
+    MbapAttenuationConfig MbapAttenuationConfig{};
 };
 
 //==============================================================================

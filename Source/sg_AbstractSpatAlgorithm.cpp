@@ -21,7 +21,7 @@
 
 #include "sg_HrtfSpatAlgorithm.hpp"
 #include "sg_HybridSpatAlgorithm.hpp"
-#include "sg_LbapSpatAlgorithm.hpp"
+#include "sg_MbapSpatAlgorithm.hpp"
 #include "sg_StereoSpatAlgorithm.hpp"
 #include "sg_VbapSpatAlgorithm.hpp"
 
@@ -61,7 +61,7 @@ void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
         case SpatMode::hybrid:
             fakeSourceData.position = speaker.position.getPolar().normalized();
             return fakeSourceData;
-        case SpatMode::lbap:
+        case SpatMode::mbap:
             fakeSourceData.position = speaker.position;
             return fakeSourceData;
         case SpatMode::invalid:
@@ -113,8 +113,8 @@ std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup 
     switch (speakerSetup.spatMode) {
     case SpatMode::vbap:
         return VbapSpatAlgorithm::make(speakerSetup);
-    case SpatMode::lbap:
-        return LbapSpatAlgorithm::make(speakerSetup);
+    case SpatMode::mbap:
+        return MbapSpatAlgorithm::make(speakerSetup);
     case SpatMode::hybrid:
         return HybridSpatAlgorithm::make(speakerSetup);
     case SpatMode::invalid:

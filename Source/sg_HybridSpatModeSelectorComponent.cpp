@@ -43,7 +43,7 @@ void HybridSpatModeSelectorComponent::setSpatMode(SpatMode const spatMode)
 
     auto const isDome{ [&]() {
         switch (spatMode) {
-        case SpatMode::lbap:
+        case SpatMode::mbap:
             return false;
         case SpatMode::vbap:
             return true;
@@ -83,12 +83,12 @@ void HybridSpatModeSelectorComponent::smallButtonClicked(SmallToggleButton * but
                                                          bool /*isLeftMouseButton*/)
 {
     if (button == &mDomeButton) {
-        auto const spatMode{ state ? SpatMode::vbap : SpatMode::lbap };
+        auto const spatMode{ state ? SpatMode::vbap : SpatMode::mbap };
         mListener.hybridSpatModeSelectorClicked(spatMode);
         return;
     }
     jassert(button == &mCubeButton);
-    auto const spatMode{ state ? SpatMode::lbap : SpatMode::vbap };
+    auto const spatMode{ state ? SpatMode::mbap : SpatMode::vbap };
     mListener.hybridSpatModeSelectorClicked(spatMode);
 }
 

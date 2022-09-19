@@ -62,7 +62,7 @@ private:
                     ViewportSourceData const & sourceData,
                     SpatMode spatMode) const;
     void drawSourceVbapSpan(juce::Graphics & g, ViewportSourceData const & sourceData) const;
-    void drawSourceLbapSpan(juce::Graphics & g,
+    void drawSourceMbapSpan(juce::Graphics & g,
                             ViewportSourceData const & sourceData,
                             juce::Point<float> const & sourcePositionAbsolute) const;
     //==============================================================================

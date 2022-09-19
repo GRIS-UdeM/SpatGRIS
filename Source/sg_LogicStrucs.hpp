@@ -233,17 +233,18 @@ struct SpeakerData {
 using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_NUM_SPEAKERS>;
 
 //==============================================================================
-struct LbapDistanceAttenuationData {
+struct MbapDistanceAttenuationData {
     hz_t freq{ 1000.0f };
     dbfs_t attenuation{};
     //==============================================================================
-    [[nodiscard]] LbapAttenuationConfig toConfig(double sampleRate, bool shouldProcess) const;
+    [[nodiscard]] MbapAttenuationConfig toConfig(double sampleRate, bool shouldProcess) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<LbapDistanceAttenuationData> fromXml(juce::XmlElement const & xml);
-    [[nodiscard]] bool operator==(LbapDistanceAttenuationData const & other) const noexcept;
+    [[nodiscard]] static tl::optional<MbapDistanceAttenuationData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(MbapDistanceAttenuationData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
+        static juce::String const LEGACY_MAIN_TAG;
         static juce::String const FREQ;
         static juce::String const ATTENUATION;
     };
@@ -322,7 +323,7 @@ struct StereoRouting {
 //==============================================================================
 struct ProjectData {
     SourcesData sources{};
-    LbapDistanceAttenuationData lbapDistanceAttenuationData{};
+    MbapDistanceAttenuationData mbapDistanceAttenuationData{};
     int oscPort{ DEFAULT_OSC_INPUT_PORT };
     dbfs_t masterGain{};
     float spatGainsInterpolation{};

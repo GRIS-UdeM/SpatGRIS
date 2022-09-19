@@ -21,7 +21,7 @@
 
 #include "sg_DummySpatAlgorithm.hpp"
 #include "sg_HybridSpatAlgorithm.hpp"
-#include "sg_LbapSpatAlgorithm.hpp"
+#include "sg_MbapSpatAlgorithm.hpp"
 #include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
@@ -86,8 +86,8 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
     case SpatMode::vbap:
         mInnerAlgorithm = std::make_unique<VbapSpatAlgorithm>(binauralSpeakerData);
         break;
-    case SpatMode::lbap:
-        mInnerAlgorithm = std::make_unique<LbapSpatAlgorithm>(speakerSetup);
+    case SpatMode::mbap:
+        mInnerAlgorithm = std::make_unique<MbapSpatAlgorithm>(speakerSetup);
         break;
     case SpatMode::hybrid:
         mInnerAlgorithm = std::make_unique<HybridSpatAlgorithm>(speakerSetup);

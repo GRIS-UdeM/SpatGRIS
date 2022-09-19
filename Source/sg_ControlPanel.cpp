@@ -114,7 +114,7 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initLabel(mRightLabel, "Right :", juce::Justification::topRight);
 
     initButton(mDomeButton, spatModeToString(SpatMode::vbap), spatModeToTooltip(SpatMode::vbap));
-    initButton(mCubeButton, spatModeToString(SpatMode::lbap), spatModeToTooltip(SpatMode::lbap));
+    initButton(mCubeButton, spatModeToString(SpatMode::mbap), spatModeToTooltip(SpatMode::mbap));
     initButton(mHybridButton, spatModeToString(SpatMode::hybrid), spatModeToTooltip(SpatMode::hybrid));
 
     juce::StringArray items{ "None" };
@@ -176,7 +176,7 @@ SpatMode SpatSettingsSubPanel::getSpatMode() const
         return SpatMode::vbap;
     }
     if (mCubeButton.getToggleState()) {
-        return SpatMode::lbap;
+        return SpatMode::mbap;
     }
 
     jassert(mHybridButton.getToggleState());
@@ -196,7 +196,7 @@ bool SpatSettingsSubPanel::shouldShowAttenuationSettings() const
     switch (getSpatMode()) {
     case SpatMode::vbap:
         return false;
-    case SpatMode::lbap:
+    case SpatMode::mbap:
     case SpatMode::hybrid:
         return true;
     case SpatMode::invalid:
@@ -239,7 +239,7 @@ void SpatSettingsSubPanel::setSpatMode(SpatMode const spatMode)
         case SpatMode::vbap:
             mDomeButton.setToggleState(true, juce::dontSendNotification);
             return;
-        case SpatMode::lbap:
+        case SpatMode::mbap:
             mCubeButton.setToggleState(true, juce::dontSendNotification);
             return;
         case SpatMode::hybrid:
@@ -375,7 +375,7 @@ void SpatSettingsSubPanel::buttonClicked(juce::Button * button)
             return SpatMode::vbap;
         }
         if (button == &mCubeButton) {
-            return SpatMode::lbap;
+            return SpatMode::mbap;
         }
         jassert(button == &mHybridButton);
         return SpatMode::hybrid;

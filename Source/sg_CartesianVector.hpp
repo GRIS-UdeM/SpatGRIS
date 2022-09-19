@@ -66,7 +66,7 @@ struct CartesianVector {
     /** @return a vector identical to this one but with its z value moved by delta. */
     [[nodiscard]] constexpr CartesianVector translatedZ(float delta) const noexcept;
     //==============================================================================
-    /** @return this vector clipped to the LBAP extended field. */
+    /** @return this vector clipped to the MBAP extended field. */
     [[nodiscard]] constexpr CartesianVector clampedToFarField() const noexcept;
     /** @return the midpoint between this vector and another one. */
     [[nodiscard]] constexpr CartesianVector midPoint(CartesianVector const & other) const noexcept;
@@ -181,9 +181,9 @@ constexpr float CartesianVector::dotProduct(CartesianVector const & other) const
 //==============================================================================
 constexpr CartesianVector CartesianVector::clampedToFarField() const noexcept
 {
-    return CartesianVector{ std::clamp(x, -LBAP_EXTENDED_RADIUS, LBAP_EXTENDED_RADIUS),
-                            std::clamp(y, -LBAP_EXTENDED_RADIUS, LBAP_EXTENDED_RADIUS),
-                            std::clamp(z, -LBAP_EXTENDED_RADIUS, LBAP_EXTENDED_RADIUS) };
+    return CartesianVector{ std::clamp(x, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS),
+                            std::clamp(y, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS),
+                            std::clamp(z, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS) };
 }
 
 //==============================================================================

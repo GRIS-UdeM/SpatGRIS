@@ -25,7 +25,7 @@ namespace gris
 //==============================================================================
 HybridSpatAlgorithm::HybridSpatAlgorithm(SpeakerSetup const & speakerSetup)
     : mVbap(std::make_unique<VbapSpatAlgorithm>(speakerSetup.speakers))
-    , mLbap(std::make_unique<LbapSpatAlgorithm>(speakerSetup))
+    , mMbap(std::make_unique<MbapSpatAlgorithm>(speakerSetup))
 {
 }
 
@@ -35,7 +35,7 @@ void HybridSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
     if (!sourceData.position.has_value()) {
         // resetting a position should reset both algorithms
         mVbap->updateSpatData(sourceIndex, sourceData);
-        mLbap->updateSpatData(sourceIndex, sourceData);
+        mMbap->updateSpatData(sourceIndex, sourceData);
         return;
     }
 
@@ -44,8 +44,8 @@ void HybridSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
     case SpatMode::vbap:
         mVbap->updateSpatData(sourceIndex, sourceData);
         return;
-    case SpatMode::lbap:
-        mLbap->updateSpatData(sourceIndex, sourceData);
+    case SpatMode::mbap:
+        mMbap->updateSpatData(sourceIndex, sourceData);
         return;
     case SpatMode::hybrid:
     case SpatMode::invalid:
@@ -63,7 +63,7 @@ void HybridSpatAlgorithm::process(AudioConfig const & config,
                                   SpeakersAudioConfig const * altSpeakerConfig)
 {
     mVbap->process(config, sourcesBuffer, speakersBuffer, stereoBuffer, sourcePeaks, altSpeakerConfig);
-    mLbap->process(config, sourcesBuffer, speakersBuffer, stereoBuffer, sourcePeaks, altSpeakerConfig);
+    mMbap->process(config, sourcesBuffer, speakersBuffer, stereoBuffer, sourcePeaks, altSpeakerConfig);
 }
 
 //==============================================================================
@@ -82,7 +82,7 @@ bool HybridSpatAlgorithm::hasTriplets() const noexcept
 tl::optional<AbstractSpatAlgorithm::Error> HybridSpatAlgorithm::getError() const noexcept
 {
     // It seems this always return nullopt...
-    return mVbap->getError().disjunction(mLbap->getError());
+    return mVbap->getError().disjunction(mMbap->getError());
 }
 
 //==============================================================================
