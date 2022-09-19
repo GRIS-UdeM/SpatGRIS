@@ -228,12 +228,10 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mDiffusionSlider.setTooltip("Adjuts the spreading range of sources sound");
     mDiffusionSlider.setSliderStyle(juce::Slider::Rotary);
     mDiffusionSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
-                                             juce::MathConstants<float>::pi * 2.7f,
-                                             true);
-    mDiffusionSlider.setRange(0.0f,
-                                  1.0f,
-                                  0.01f);
-    mDiffusionSlider.setValue(0.0f);
+                                         juce::MathConstants<float>::pi * 2.7f,
+                                         true);
+    mDiffusionSlider.setRange(0.0f, 1.0f, 0.01f);
+    mDiffusionSlider.setValue(mMainContentComponent.getData().speakerSetup.diffusion);
     mDiffusionSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
     mDiffusionSlider.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mDiffusionSlider.setLookAndFeel(&mLookAndFeel);
@@ -482,6 +480,8 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
         dbfs_t const db{ narrow<float>(mPinkNoiseGainSlider.getValue()) };
         mMainContentComponent.setPinkNoiseGain(db);
     } else if (slider == &mDiffusionSlider) {
+        mMainContentComponent.setSpeakerSetupDiffusion(static_cast<float>(slider->getValue()));
+        mShouldComputeSpeakers = true;
     }
 }
 

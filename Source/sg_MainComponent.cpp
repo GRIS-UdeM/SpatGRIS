@@ -1810,6 +1810,12 @@ void MainContentComponent::setOscPort(int const newOscPort)
 }
 
 //==============================================================================
+void MainContentComponent::setSpeakerSetupDiffusion(float diffusion)
+{
+    mData.speakerSetup.diffusion = diffusion;
+}
+
+//==============================================================================
 void MainContentComponent::setPinkNoiseGain(tl::optional<dbfs_t> const gain)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
