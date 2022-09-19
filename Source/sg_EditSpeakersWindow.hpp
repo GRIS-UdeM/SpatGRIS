@@ -84,6 +84,9 @@ private:
     juce::ToggleButton mPinkNoiseToggleButton;
     juce::Slider mPinkNoiseGainSlider;
 
+    juce::Label mDiffusionLabel;
+    juce::Slider mDiffusionSlider;
+
     juce::TableListBox mSpeakersTableListBox;
     juce::Font mFont;
 

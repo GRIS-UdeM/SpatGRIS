@@ -200,7 +200,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mListSpeakerBox.getContent()->addAndMakeVisible(mPinkNoiseToggleButton);
 
     mPinkNoiseGainSlider.setTextValueSuffix(" dB");
-    mPinkNoiseGainSlider.setBounds(200, 500, 60, 60);
+    mPinkNoiseGainSlider.setBounds(170, 500, 60, 60);
     mPinkNoiseGainSlider.setSliderStyle(juce::Slider::Rotary);
     mPinkNoiseGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
                                              juce::MathConstants<float>::pi * 2.7f,
@@ -214,6 +214,31 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mPinkNoiseGainSlider.setLookAndFeel(&mLookAndFeel);
     mPinkNoiseGainSlider.addListener(this);
     mListSpeakerBox.getContent()->addAndMakeVisible(mPinkNoiseGainSlider);
+
+    // Sound diffusion controls
+    mDiffusionLabel.setText("Global Sound Diffusion", juce::NotificationType::dontSendNotification);
+    mDiffusionLabel.setJustificationType(juce::Justification::right);
+    mDiffusionLabel.setFont(mLookAndFeel.getFont());
+    mDiffusionLabel.setLookAndFeel(&mLookAndFeel);
+    mDiffusionLabel.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
+    mDiffusionLabel.setBounds(270, 500, 160, 24);
+    mListSpeakerBox.getContent()->addAndMakeVisible(mDiffusionLabel);
+
+    mDiffusionSlider.setBounds(450, 500, 60, 60);
+    mDiffusionSlider.setTooltip("Adjuts the spreading range of sources sound");
+    mDiffusionSlider.setSliderStyle(juce::Slider::Rotary);
+    mDiffusionSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
+                                             juce::MathConstants<float>::pi * 2.7f,
+                                             true);
+    mDiffusionSlider.setRange(0.0f,
+                                  1.0f,
+                                  0.01f);
+    mDiffusionSlider.setValue(0.0f);
+    mDiffusionSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
+    mDiffusionSlider.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+    mDiffusionSlider.setLookAndFeel(&mLookAndFeel);
+    mDiffusionSlider.addListener(this);
+    mListSpeakerBox.getContent()->addAndMakeVisible(mDiffusionSlider);
 
     mListSpeakerBox.getContent()->addAndMakeVisible(mSpeakersTableListBox);
 
@@ -451,11 +476,12 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
 void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    jassert(slider == &mPinkNoiseGainSlider);
+    jassert(slider == &mPinkNoiseGainSlider || slider == &mDiffusionSlider);
 
     if (slider == &mPinkNoiseGainSlider && mPinkNoiseToggleButton.getToggleState()) {
         dbfs_t const db{ narrow<float>(mPinkNoiseGainSlider.getValue()) };
         mMainContentComponent.setPinkNoiseGain(db);
+    } else if (slider == &mDiffusionSlider) {
     }
 }
 
@@ -699,7 +725,10 @@ void EditSpeakersWindow::resized()
     mAddRingButton.setBounds(getWidth() - 105, getHeight() - 140, 100, 24);
 
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 75, 150, 24);
-    mPinkNoiseGainSlider.setBounds(180, getHeight() - 100, 60, 60);
+    mPinkNoiseGainSlider.setBounds(170, getHeight() - 100, 60, 60);
+
+    mDiffusionLabel.setBounds(270, getHeight() - 75, 160, 24);
+    mDiffusionSlider.setBounds(450, getHeight() - 100, 60, 60);
 }
 
 //==============================================================================
