@@ -643,6 +643,7 @@ void EditSpeakersWindow::updateWinContent()
 
     mNumRows = mMainContentComponent.getData().speakerSetup.speakers.size();
     mSpeakersTableListBox.updateContent();
+    mDiffusionSlider.setValue(mMainContentComponent.getData().speakerSetup.diffusion);
 }
 
 //==============================================================================
