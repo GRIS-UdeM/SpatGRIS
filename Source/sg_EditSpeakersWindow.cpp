@@ -243,6 +243,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mDiffusionSlider.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mDiffusionSlider.setLookAndFeel(&mLookAndFeel);
     mDiffusionSlider.addListener(this);
+    mDiffusionSlider.setEnabled(mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::mbap
+                                || mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::hybrid);
     mListSpeakerBox.getContent()->addAndMakeVisible(mDiffusionSlider);
 
     mListSpeakerBox.getContent()->addAndMakeVisible(mSpeakersTableListBox);
@@ -656,6 +658,8 @@ void EditSpeakersWindow::updateWinContent()
     mNumRows = mMainContentComponent.getData().speakerSetup.speakers.size();
     mSpeakersTableListBox.updateContent();
     mDiffusionSlider.setValue(mMainContentComponent.getData().speakerSetup.diffusion);
+    mDiffusionSlider.setEnabled(mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::mbap
+                                || mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::hybrid);
 }
 
 //==============================================================================
