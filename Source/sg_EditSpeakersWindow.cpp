@@ -103,14 +103,14 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mListSpeakerBox.getContent()->addAndMakeVisible(mAddSpeakerButton);
 
     mSaveAsSpeakerSetupButton.setButtonText("Save As...");
-    mSaveAsSpeakerSetupButton.setBounds(80, 404, 100, 22);
+    mSaveAsSpeakerSetupButton.setBounds(370, 404, 100, 22);
     mSaveAsSpeakerSetupButton.addListener(this);
     mSaveAsSpeakerSetupButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mSaveAsSpeakerSetupButton.setLookAndFeel(&mLookAndFeel);
     mListSpeakerBox.getContent()->addAndMakeVisible(mSaveAsSpeakerSetupButton);
 
     mSaveSpeakerSetupButton.setButtonText("Save");
-    mSaveSpeakerSetupButton.setBounds(110, 404, 100, 22);
+    mSaveSpeakerSetupButton.setBounds(400, 404, 100, 22);
     mSaveSpeakerSetupButton.addListener(this);
     mSaveSpeakerSetupButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mSaveSpeakerSetupButton.setLookAndFeel(&mLookAndFeel);
@@ -224,14 +224,13 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 
     // Sound diffusion controls
     mDiffusionLabel.setText("Global Sound Diffusion", juce::NotificationType::dontSendNotification);
-    mDiffusionLabel.setJustificationType(juce::Justification::right);
     mDiffusionLabel.setFont(mLookAndFeel.getFont());
     mDiffusionLabel.setLookAndFeel(&mLookAndFeel);
     mDiffusionLabel.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
-    mDiffusionLabel.setBounds(270, 500, 160, 24);
+    mDiffusionLabel.setBounds(getWidth() - 385, getHeight() - 180, 160, 24);
     mListSpeakerBox.getContent()->addAndMakeVisible(mDiffusionLabel);
 
-    mDiffusionSlider.setBounds(450, 500, 60, 60);
+    mDiffusionSlider.setBounds(getWidth() - 105, getHeight() - 180, 60, 60);
     mDiffusionSlider.setTooltip("Adjuts the spreading range of sources sound");
     mDiffusionSlider.setSliderStyle(juce::Slider::Rotary);
     mDiffusionSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
@@ -742,11 +741,11 @@ void EditSpeakersWindow::resized()
     mOffsetAngleTextEditor.setBounds(400 + 80, getHeight() - 140, 60, 24);
     mAddRingButton.setBounds(getWidth() - 105, getHeight() - 140, 100, 24);
 
-    mPinkNoiseToggleButton.setBounds(5, getHeight() - 75, 150, 24);
-    mPinkNoiseGainSlider.setBounds(170, getHeight() - 100, 60, 60);
+    mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, 24);
+    mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, 60);
 
-    mDiffusionLabel.setBounds(270, getHeight() - 75, 160, 24);
-    mDiffusionSlider.setBounds(450, getHeight() - 100, 60, 60);
+    mDiffusionLabel.setBounds(getWidth() - 247, getHeight() - 70, 160, 24);
+    mDiffusionSlider.setBounds(getWidth() - 88, getHeight() - 95, 60, 60);
 }
 
 //==============================================================================
