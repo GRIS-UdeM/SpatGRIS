@@ -401,9 +401,11 @@ void PlayerComponent::stopAudio()
 }
 
 //==============================================================================
-void PlayerComponent::loadPlayer()
+void PlayerComponent::loadPlayer(bool handleNewProject)
 {
-    mMainContentComponent.handleNewProjectForPlayer();
+    if (handleNewProject) {
+        mMainContentComponent.handleNewProjectForPlayer();
+    }
     mMainContentComponent.handlePlayerSourcesPositions(mPlayerSpeakerSetup, mPlayerFilesFolder);
     mThumbnails->addThumbnails(mPlayerSpeakerSetup->speakers.size());
 
@@ -579,7 +581,7 @@ void PlayerWindow::reloadPlayer()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mPlayerComponent.loadPlayer();
+    mPlayerComponent.loadPlayer(false);
     auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
     AudioManager::getInstance().reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
                                                        currentAudioDevice->getCurrentSampleRate());

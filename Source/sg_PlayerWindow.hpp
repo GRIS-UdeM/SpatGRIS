@@ -69,7 +69,7 @@ public:
     void setTimeCode(double const timeInSec);
     void playAudio();
     void stopAudio();
-    void loadPlayer();
+    void loadPlayer(bool handleNewProject = true);
 
 private:
     //==============================================================================
