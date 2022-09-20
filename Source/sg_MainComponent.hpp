@@ -224,6 +224,7 @@ public:
     // Commands.
     void handleShowPreferences();
     void closeSpeakersConfigurationWindow();
+    void saveAsEditedSpeakerSetup();
     void saveEditedSpeakerSetup();
 
     //==============================================================================

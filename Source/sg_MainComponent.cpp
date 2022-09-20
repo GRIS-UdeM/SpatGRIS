@@ -517,6 +517,12 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 }
 
 //==============================================================================
+void MainContentComponent::saveAsEditedSpeakerSetup()
+{
+    saveSpeakerSetup(tl::nullopt);
+}
+
+//==============================================================================
 void MainContentComponent::saveEditedSpeakerSetup()
 {
     handleSaveSpeakerSetup();

@@ -102,6 +102,13 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mAddSpeakerButton.setLookAndFeel(&mLookAndFeel);
     mListSpeakerBox.getContent()->addAndMakeVisible(mAddSpeakerButton);
 
+    mSaveAsSpeakerSetupButton.setButtonText("Save As...");
+    mSaveAsSpeakerSetupButton.setBounds(80, 404, 100, 22);
+    mSaveAsSpeakerSetupButton.addListener(this);
+    mSaveAsSpeakerSetupButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+    mSaveAsSpeakerSetupButton.setLookAndFeel(&mLookAndFeel);
+    mListSpeakerBox.getContent()->addAndMakeVisible(mSaveAsSpeakerSetupButton);
+
     mSaveSpeakerSetupButton.setButtonText("Save");
     mSaveSpeakerSetupButton.setBounds(110, 404, 100, 22);
     mSaveSpeakerSetupButton.addListener(this);
@@ -521,6 +528,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         selectSpeaker(newOutputPatch);
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards); // TODO: necessary?
         mShouldComputeSpeakers = true;
+    } else if (button == &mSaveAsSpeakerSetupButton) {
+        // Save as... speaker button
+        mShouldComputeSpeakers = true;
+        computeSpeakers();
+        mMainContentComponent.saveAsEditedSpeakerSetup();
     } else if (button == &mSaveSpeakerSetupButton) {
         // Save speaker button
         mShouldComputeSpeakers = true;
@@ -713,6 +725,7 @@ void EditSpeakersWindow::resized()
     mListSpeakerBox.correctSize(getWidth() - 10, getHeight() - 30);
 
     mAddSpeakerButton.setBounds(5, getHeight() - 180, 100, 22);
+    mSaveAsSpeakerSetupButton.setBounds(getWidth() - 210, getHeight() - 180, 100, 22);
     mSaveSpeakerSetupButton.setBounds(getWidth() - 105, getHeight() - 180, 100, 22);
 
     mNumOfSpeakersLabel.setBounds(5, getHeight() - 140, 80, 24);
