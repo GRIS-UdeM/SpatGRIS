@@ -808,7 +808,9 @@ void SpeakerViewComponent::drawMbapSpan(ViewportSourceData const & source)
     for (int j{}; j < NUM; ++j) {
         auto const eledev{ narrow<float>(j + 1) / narrow<float>(NUM) * source.zenithSpan };
         for (int k{}; k < 2; ++k) {
-            auto const zTemp{ std::clamp(k != 0 ? pos.z + eledev : pos.z - eledev, 0.0f, 1.0f) };
+            auto const zTemp{
+                std::clamp(k != 0 ? pos.z + eledev : pos.z - eledev, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS)
+            };
             for (auto i{ 1 }; i <= NUM; ++i) {
                 auto const raddev{ narrow<float>(i) * source.azimuthSpan / narrow<float>(NUM - 1) };
                 if (i < NUM) {
