@@ -72,7 +72,7 @@ cd <ServerGRIS-path>
 
 Go to the generated `Builds/` folder.
 
-On Windows, use the Visual Studio 2019 solution file.
+On Windows, use the Visual Studio 2022 solution file.
 
 On MacOS, use the Xcode project. You will have to supply your own developer ID to XCode.
 
@@ -133,7 +133,7 @@ ex : The message `/spat/serv deg 7 -90.0 45.0 0.5 0.1 0.2` moves the source #7 a
 | 2     | int    | [1, 128]       | Source index    |
 | 3     | float  | [-1.66, 1.66]  | x (left/right)  |
 | 4     | float  | [-1.66, 1.66]  | y (back/front)  |
-| 5     | float  | [0, 1]         | z (down/up)     |
+| 5     | float  | [-1.66, 1.66]  | z (down/up)     |
 | 6     | float  | [0, 1]         | Horizontal span |
 | 7     | float  | [0, 1]         | Vertical span   |
 
@@ -156,4 +156,4 @@ ex : The message `/spat/serv clr 7` clears the seventh source's position.
 | 2     | int    | [1, 128]         | Source index |
 | 3     | string | `dome` or `cube` | Algorithm    |
 
-ex : The message `/spat/serv alg 7 cube` sets the seventh source's spatialization algorithm to "dome" (only works in _hybrid_ mode).
+ex : The message `/spat/serv alg 7 cube` sets the seventh source's spatialization algorithm to "cube" (only works in _hybrid_ mode).
