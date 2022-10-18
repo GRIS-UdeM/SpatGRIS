@@ -763,6 +763,16 @@ void MainContentComponent::cubeAttenuationHzChanged(hz_t const value)
 }
 
 //==============================================================================
+void MainContentComponent::cubeAttenuationBypass(bool attenuationIsBypassed)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.mbapDistanceAttenuationData.bypassAttenuation = attenuationIsBypassed;
+    refreshAudioProcessor();
+}
+
+//==============================================================================
 void MainContentComponent::numSourcesChanged(int const numSources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;

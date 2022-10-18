@@ -236,6 +236,7 @@ using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_NUM_SPEAKERS>;
 struct MbapDistanceAttenuationData {
     hz_t freq{ 1000.0f };
     dbfs_t attenuation{};
+    bool bypassAttenuation{};
     //==============================================================================
     [[nodiscard]] MbapAttenuationConfig toConfig(double sampleRate, bool shouldProcess) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;

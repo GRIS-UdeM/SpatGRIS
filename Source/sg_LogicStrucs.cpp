@@ -871,9 +871,10 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
             result->directOutPairs.add(std::make_pair(source.key, *source.value->directOut));
         }
     }
-
+    auto const shouldProcessAttenuation{ !appData.playerExists
+                                         && !project.mbapDistanceAttenuationData.bypassAttenuation };
     result->MbapAttenuationConfig
-        = project.mbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate, !appData.playerExists);
+        = project.mbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate, shouldProcessAttenuation);
     result->masterGain = project.masterGain.toGain();
     result->pinkNoiseGain = pinkNoiseLevel.map([](auto const & level) { return level.toGain(); });
     for (auto const source : project.sources) {

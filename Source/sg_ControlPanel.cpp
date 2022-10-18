@@ -107,11 +107,13 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     };
 
     initLabel(mAlgorithmSelectionLabel, "Algorithm selection");
-    initLabel(mAttenuationSettingsLabel, "Attenuation settings");
     initLabel(mStereoReductionLabel, "Stereo reduction");
     initLabel(mStereoRoutingLabel, "Stereo routing");
     initLabel(mLeftLabel, "Left :", juce::Justification::topRight);
     initLabel(mRightLabel, "Right :", juce::Justification::topRight);
+
+    mAttenuationSettingsButton.setColour(juce::ToggleButton::ColourIds::textColourId, lookAndFeel.getFontColour());
+    mAttenuationSettingsButton.onClick = [this] { updateAttenuationState(); };
 
     initButton(mDomeButton, spatModeToString(SpatMode::vbap), spatModeToTooltip(SpatMode::vbap));
     initButton(mCubeButton, spatModeToString(SpatMode::mbap), spatModeToTooltip(SpatMode::mbap));
@@ -161,7 +163,7 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     mStereoRoutingLayout.addSection(mRightLabel).withFixedSize(COL_2_QUARTER_WIDTH);
     mStereoRoutingLayout.addSection(mRightCombo).withFixedSize(COL_2_QUARTER_WIDTH);
 
-    mCol2Layout.addSection(mAttenuationSettingsLabel).withFixedSize(LABEL_HEIGHT);
+    mCol2Layout.addSection(mAttenuationSettingsButton).withFixedSize(LABEL_HEIGHT);
     mCol2Layout.addSection(mAttenuationLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
     mCol2Layout.addSection(mStereoRoutingLabel).withFixedSize(LABEL_HEIGHT);
     mCol2Layout.addSection(mStereoRoutingLayout).withFixedSize(ROW_2_CONTENT_HEIGHT);
@@ -210,6 +212,17 @@ bool SpatSettingsSubPanel::shouldShowAttenuationSettings() const
 bool SpatSettingsSubPanel::shouldShowStereoRouting() const
 {
     return getStereoMode().has_value();
+}
+
+//==============================================================================
+void SpatSettingsSubPanel::updateAttenuationState()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto const attenuationState{ mAttenuationSettingsButton.getToggleStateValue() };
+    const bool bypassAttenuation{ !attenuationState.getValue() };
+
+    mMainContentComponent.cubeAttenuationBypass(bypassAttenuation);
 }
 
 //==============================================================================

@@ -204,6 +204,7 @@ public:
     void setStereoRouting(StereoRouting const & routing);
     void cubeAttenuationDbChanged(dbfs_t value);
     void cubeAttenuationHzChanged(hz_t value);
+    void cubeAttenuationBypass(bool attenuationIsBypassed);
     void numSourcesChanged(int numSources);
     void masterGainChanged(dbfs_t gain);
     void interpolationChanged(float interpolation);

@@ -95,6 +95,7 @@ class SpatSettingsSubPanel final
 
     juce::Label mAlgorithmSelectionLabel{};
     juce::Label mAttenuationSettingsLabel{};
+    juce::ToggleButton mAttenuationSettingsButton{ "Attenuation settings" };
 
     juce::TextButton mDomeButton{};
     juce::TextButton mCubeButton{};
@@ -135,6 +136,7 @@ private:
     [[nodiscard]] tl::optional<StereoMode> getStereoMode() const;
     [[nodiscard]] bool shouldShowAttenuationSettings() const;
     [[nodiscard]] bool shouldShowStereoRouting() const;
+    void updateAttenuationState();
     void updateEnabledStereoRoutings();
     void updateVisibility();
     void updateLayout();
