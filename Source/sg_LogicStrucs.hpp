@@ -248,6 +248,7 @@ struct MbapDistanceAttenuationData {
         static juce::String const LEGACY_MAIN_TAG;
         static juce::String const FREQ;
         static juce::String const ATTENUATION;
+        static juce::String const BYPASS;
     };
 };
 

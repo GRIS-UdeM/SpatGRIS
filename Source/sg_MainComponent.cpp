@@ -380,6 +380,7 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     mControlPanel->setInterpolation(mData.project.spatGainsInterpolation);
     mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
     mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
+    mControlPanel->setCubeAttenuationBypass(mData.project.mbapDistanceAttenuationData.bypassAttenuation);
 
     refreshAudioProcessor();
     refreshViewportConfig();

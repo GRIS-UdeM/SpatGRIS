@@ -301,6 +301,14 @@ void SpatSettingsSubPanel::setAttenuationHz(hz_t const freq)
 }
 
 //==============================================================================
+void SpatSettingsSubPanel::setAttenuationBypass(bool attenuationIsBypassed)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mAttenuationSettingsButton.setToggleState(!attenuationIsBypassed, juce::dontSendNotification);
+}
+
+//==============================================================================
 void SpatSettingsSubPanel::setStereoRouting(StereoRouting const & routing)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -520,6 +528,13 @@ void ControlPanel::setCubeAttenuationHz(hz_t const value)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mSpatSettingsSubPanel.setAttenuationHz(value);
+}
+
+//==============================================================================
+void ControlPanel::setCubeAttenuationBypass(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mSpatSettingsSubPanel.setAttenuationBypass(value);
 }
 
 //==============================================================================

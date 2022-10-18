@@ -41,6 +41,7 @@ juce::String const MbapDistanceAttenuationData::XmlTags::MAIN_TAG = "MBAP_SETTIN
 juce::String const MbapDistanceAttenuationData::XmlTags::LEGACY_MAIN_TAG = "LBAP_SETTINGS";
 juce::String const MbapDistanceAttenuationData::XmlTags::FREQ = "FREQ";
 juce::String const MbapDistanceAttenuationData::XmlTags::ATTENUATION = "ATTENUATION";
+juce::String const MbapDistanceAttenuationData::XmlTags::BYPASS = "BYPASS";
 
 juce::String const AudioSettings::XmlTags::MAIN_TAG = "AUDIO_SETTINGS";
 juce::String const AudioSettings::XmlTags::INTERFACE_TYPE = "INTERFACE_TYPE";
@@ -360,6 +361,7 @@ std::unique_ptr<juce::XmlElement> MbapDistanceAttenuationData::toXml() const
 
     result->setAttribute(XmlTags::FREQ, freq.get());
     result->setAttribute(XmlTags::ATTENUATION, attenuation.get());
+    result->setAttribute(XmlTags::BYPASS, bypassAttenuation);
 
     return result;
 }
@@ -375,6 +377,7 @@ tl::optional<MbapDistanceAttenuationData> MbapDistanceAttenuationData::fromXml(j
     MbapDistanceAttenuationData result{};
     result.freq = hz_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::FREQ)) };
     result.attenuation = dbfs_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::ATTENUATION)) };
+    result.bypassAttenuation = !xml.hasAttribute(XmlTags::BYPASS) ? false : xml.getBoolAttribute(XmlTags::BYPASS);
 
     return result;
 }
@@ -382,7 +385,7 @@ tl::optional<MbapDistanceAttenuationData> MbapDistanceAttenuationData::fromXml(j
 //==============================================================================
 bool MbapDistanceAttenuationData::operator==(MbapDistanceAttenuationData const & other) const noexcept
 {
-    return other.attenuation == attenuation && other.freq == freq;
+    return other.attenuation == attenuation && other.freq == freq && other.bypassAttenuation == bypassAttenuation;
 }
 
 //==============================================================================

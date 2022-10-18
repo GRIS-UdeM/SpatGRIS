@@ -128,6 +128,7 @@ public:
     void setStereoMode(tl::optional<StereoMode> const & stereoMode);
     void setAttenuationDb(dbfs_t attenuation);
     void setAttenuationHz(hz_t freq);
+    void setAttenuationBypass(bool attenuationIsBypassed);
     void setStereoRouting(StereoRouting const & routing);
 
 private:
@@ -176,6 +177,7 @@ public:
     void setStereoMode(tl::optional<StereoMode> const & mode);
     void setCubeAttenuationDb(dbfs_t value);
     void setCubeAttenuationHz(hz_t value);
+    void setCubeAttenuationBypass(bool value);
     void setRecordButtonState(RecordButton::State state);
     void setStereoRouting(StereoRouting const & routing);
     void updateMaxOutputPatch(output_patch_t maxOutputPatch, StereoRouting const & routing);
