@@ -490,6 +490,10 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
     } else if (slider == &mDiffusionSlider) {
         mMainContentComponent.setSpeakerSetupDiffusion(static_cast<float>(slider->getValue()));
         mShouldComputeSpeakers = true;
+
+        if (juce::KeyPress::isKeyCurrentlyDown(juce::KeyPress::returnKey)) {
+            computeSpeakers();
+        }
     }
 }
 
