@@ -42,6 +42,12 @@ enum class SliceState { normal, muted, solo };
 [[nodiscard]] tl::optional<SliceState> stringToSliceState(juce::String const & string);
 
 //==============================================================================
+/** Attenuation Bypass State. Invalid is here to keep project file compatiblity */
+enum class AttenuationBypassSate { invalid, on, off };
+[[nodiscard]] juce::String attenuationBypassStateToString(AttenuationBypassSate state);
+[[nodiscard]] AttenuationBypassSate stringToAttenuationBypassState(juce::String const & string);
+
+//==============================================================================
 /** For the following data structures, we use the following semantics:
  *
  * COLD  : no concurrent access. All reads and writes happen on the same thread.
@@ -236,7 +242,7 @@ using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_NUM_SPEAKERS>;
 struct MbapDistanceAttenuationData {
     hz_t freq{ 1000.0f };
     dbfs_t attenuation{};
-    bool bypassAttenuation{};
+    AttenuationBypassSate attenuationBypassState{};
     //==============================================================================
     [[nodiscard]] MbapAttenuationConfig toConfig(double sampleRate, bool shouldProcess) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;

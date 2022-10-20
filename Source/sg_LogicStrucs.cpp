@@ -123,6 +123,33 @@ tl::optional<SliceState> stringToSliceState(juce::String const & string)
 }
 
 //==============================================================================
+juce::String attenuationBypassStateToString(AttenuationBypassSate state)
+{
+    switch (state) {
+    case AttenuationBypassSate::invalid:
+        return "invalid";
+    case AttenuationBypassSate::on:
+        return "on";
+    case AttenuationBypassSate::off:
+        return "off";
+    }
+    jassertfalse;
+    return "";
+}
+
+//==============================================================================
+AttenuationBypassSate stringToAttenuationBypassState(juce::String const & string)
+{
+    if (string == "on") {
+        return AttenuationBypassSate::on;
+    }
+    if (string == "off") {
+        return AttenuationBypassSate::off;
+    }
+    return AttenuationBypassSate::invalid;
+}
+
+//==============================================================================
 SourceAudioConfig SourceData::toConfig(bool const soloMode) const
 {
     SourceAudioConfig result;
@@ -361,7 +388,7 @@ std::unique_ptr<juce::XmlElement> MbapDistanceAttenuationData::toXml() const
 
     result->setAttribute(XmlTags::FREQ, freq.get());
     result->setAttribute(XmlTags::ATTENUATION, attenuation.get());
-    result->setAttribute(XmlTags::BYPASS, bypassAttenuation);
+    result->setAttribute(XmlTags::BYPASS, attenuationBypassStateToString(attenuationBypassState));
 
     return result;
 }
@@ -377,7 +404,7 @@ tl::optional<MbapDistanceAttenuationData> MbapDistanceAttenuationData::fromXml(j
     MbapDistanceAttenuationData result{};
     result.freq = hz_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::FREQ)) };
     result.attenuation = dbfs_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::ATTENUATION)) };
-    result.bypassAttenuation = !xml.hasAttribute(XmlTags::BYPASS) ? false : xml.getBoolAttribute(XmlTags::BYPASS);
+    result.attenuationBypassState = stringToAttenuationBypassState(xml.getStringAttribute(XmlTags::BYPASS));
 
     return result;
 }
@@ -385,7 +412,8 @@ tl::optional<MbapDistanceAttenuationData> MbapDistanceAttenuationData::fromXml(j
 //==============================================================================
 bool MbapDistanceAttenuationData::operator==(MbapDistanceAttenuationData const & other) const noexcept
 {
-    return other.attenuation == attenuation && other.freq == freq && other.bypassAttenuation == bypassAttenuation;
+    return other.attenuation == attenuation && other.freq == freq
+           && other.attenuationBypassState == attenuationBypassState;
 }
 
 //==============================================================================
@@ -875,7 +903,8 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
         }
     }
     auto const shouldProcessAttenuation{ !appData.playerExists
-                                         && !project.mbapDistanceAttenuationData.bypassAttenuation };
+                                         && project.mbapDistanceAttenuationData.attenuationBypassState
+                                                == AttenuationBypassSate::off };
     result->MbapAttenuationConfig
         = project.mbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate, shouldProcessAttenuation);
     result->masterGain = project.masterGain.toGain();

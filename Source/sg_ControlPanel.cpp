@@ -219,10 +219,11 @@ void SpatSettingsSubPanel::updateAttenuationState()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const attenuationState{ mAttenuationSettingsButton.getToggleStateValue() };
-    const bool bypassAttenuation{ !attenuationState.getValue() };
+    auto const attenuationButtonState{ mAttenuationSettingsButton.getToggleStateValue() };
+    const bool bypassAttenuation{ !attenuationButtonState.getValue() };
+    auto const attenuationBypassState{ bypassAttenuation ? AttenuationBypassSate::on : AttenuationBypassSate::off };
 
-    mMainContentComponent.cubeAttenuationBypass(bypassAttenuation);
+    mMainContentComponent.cubeAttenuationBypassState(attenuationBypassState);
 }
 
 //==============================================================================
@@ -301,11 +302,19 @@ void SpatSettingsSubPanel::setAttenuationHz(hz_t const freq)
 }
 
 //==============================================================================
-void SpatSettingsSubPanel::setAttenuationBypass(bool attenuationIsBypassed)
+void SpatSettingsSubPanel::setAttenuationBypass(AttenuationBypassSate state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mAttenuationSettingsButton.setToggleState(!attenuationIsBypassed, juce::dontSendNotification);
+    auto bypassState{ state };
+
+    // for Project file compatibility
+    if (bypassState == AttenuationBypassSate::invalid) {
+        mMainContentComponent.cubeAttenuationBypassState(AttenuationBypassSate::off);
+        bypassState = AttenuationBypassSate::off;
+    }
+
+    mAttenuationSettingsButton.setToggleState(bypassState == AttenuationBypassSate::off, juce::dontSendNotification);
 }
 
 //==============================================================================
@@ -531,7 +540,7 @@ void ControlPanel::setCubeAttenuationHz(hz_t const value)
 }
 
 //==============================================================================
-void ControlPanel::setCubeAttenuationBypass(bool value)
+void ControlPanel::setCubeAttenuationBypass(AttenuationBypassSate value)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mSpatSettingsSubPanel.setAttenuationBypass(value);

@@ -380,7 +380,7 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     mControlPanel->setInterpolation(mData.project.spatGainsInterpolation);
     mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
     mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
-    mControlPanel->setCubeAttenuationBypass(mData.project.mbapDistanceAttenuationData.bypassAttenuation);
+    mControlPanel->setCubeAttenuationBypass(mData.project.mbapDistanceAttenuationData.attenuationBypassState);
 
     refreshAudioProcessor();
     refreshViewportConfig();
@@ -764,12 +764,12 @@ void MainContentComponent::cubeAttenuationHzChanged(hz_t const value)
 }
 
 //==============================================================================
-void MainContentComponent::cubeAttenuationBypass(bool attenuationIsBypassed)
+void MainContentComponent::cubeAttenuationBypassState(AttenuationBypassSate state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    mData.project.mbapDistanceAttenuationData.bypassAttenuation = attenuationIsBypassed;
+    mData.project.mbapDistanceAttenuationData.attenuationBypassState = state;
     refreshAudioProcessor();
 }
 
