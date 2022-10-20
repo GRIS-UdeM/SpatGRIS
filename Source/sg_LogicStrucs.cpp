@@ -230,7 +230,8 @@ bool SourceData::operator==(SourceData const & other) const noexcept
 {
     // TODO : this is very misleading and should be replaced with something that does make it seem like we're really
     // comparing the two sources.
-    return other.directOut == directOut && other.colour == colour && other.hybridSpatMode == hybridSpatMode;
+    return other.directOut == directOut && other.colour == colour && other.hybridSpatMode == hybridSpatMode
+           && other.state == state;
 }
 
 //==============================================================================
@@ -369,7 +370,7 @@ tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml) noe
 bool SpeakerData::operator==(SpeakerData const & other) const noexcept
 {
     return other.isDirectOutOnly == isDirectOutOnly && other.highpassData == highpassData && other.position == position
-           && other.gain == gain;
+           && other.gain == gain && other.state == state;
 }
 
 //==============================================================================
