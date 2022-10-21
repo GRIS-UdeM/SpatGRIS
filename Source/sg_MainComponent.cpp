@@ -1640,7 +1640,7 @@ void MainContentComponent::setLegacySourcePosition(source_index_t const sourceIn
                                                    float const newZenithSpan)
 {
     ASSERT_OSC_THREAD;
-    juce::ScopedReadLock const readLock{ mLock };
+    juce::ScopedWriteLock const lock{ mLock };
 
     if (!mData.project.sources.contains(sourceIndex)) {
         jassertfalse;
