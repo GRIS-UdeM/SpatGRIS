@@ -104,8 +104,8 @@ The server address is always `/spat/serv`.
 | 1          | string | `pol`          | -               |
 | 2          | int    | [1, 128]       | Source index    |
 | 3          | float  | any            | azimuth angle   |
-| 4          | float  | [0, π/2]       | elevation angle |
-| 5          | float  | [0, 2.56]      | radius          |
+| 4          | float  | any            | elevation angle |
+| 5          | float  | [-3.0, 3.0]    | radius          |
 | 6          | float  | [0, 1]         | Horizontal span |
 | 7          | float  | [0, 1]         | Vertical span   |
 
@@ -118,8 +118,8 @@ ex : The message `/spat/serv pol 7 0.0 0.78 0.5 0.1 0.2` moves the source #7 in 
 | 1     | string | `deg`          | -               |
 | 2     | int    | [1, 128]       | Source index    |
 | 3     | float  | any            | azimuth angle   |
-| 4     | float  | [0, 90]        | elevation angle |
-| 5     | float  | [0, 2.56]      | radius          |
+| 4     | float  | any            | elevation angle |
+| 5     | float  | [-3.0, 3.0]    | radius          |
 | 6     | float  | [0, 1]         | Horizontal span |
 | 7     | float  | [0, 1]         | Vertical span   |
 
