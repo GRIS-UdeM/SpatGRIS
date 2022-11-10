@@ -113,7 +113,10 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initLabel(mRightLabel, "Right :", juce::Justification::topRight);
 
     mAttenuationSettingsButton.setColour(juce::ToggleButton::ColourIds::textColourId, lookAndFeel.getFontColour());
-    mAttenuationSettingsButton.onClick = [this] { updateAttenuationState(); };
+    mAttenuationSettingsButton.onClick = [this] {
+        updateAttenuationState();
+        updateLayout();
+    };
 
     initButton(mDomeButton, spatModeToString(SpatMode::vbap), spatModeToTooltip(SpatMode::vbap));
     initButton(mCubeButton, spatModeToString(SpatMode::mbap), spatModeToTooltip(SpatMode::mbap));
@@ -346,6 +349,10 @@ void SpatSettingsSubPanel::updateLayout()
 {
     auto const showAttenuation{ shouldShowAttenuationSettings() };
     auto const showRouting{ shouldShowStereoRouting() };
+    auto const isAttenuationActive{ mAttenuationSettingsButton.getToggleState() };
+
+    mAttenuationDbCombo.setEnabled(isAttenuationActive);
+    mAttenuationHzCombo.setEnabled(isAttenuationActive);
 
     mAttenuationSettingsLabel.setVisible(showAttenuation);
     mAttenuationSettingsButton.setVisible(showAttenuation);
