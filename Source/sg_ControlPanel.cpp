@@ -195,17 +195,8 @@ tl::optional<StereoMode> SpatSettingsSubPanel::getStereoMode() const
 //==============================================================================
 bool SpatSettingsSubPanel::shouldShowAttenuationSettings() const
 {
-    switch (getSpatMode()) {
-    case SpatMode::vbap:
-        return false;
-    case SpatMode::mbap:
-    case SpatMode::hybrid:
-        return true;
-    case SpatMode::invalid:
-        break;
-    }
-    jassertfalse;
-    return false;
+    auto const spatMode{ getSpatMode() };
+    return (spatMode == SpatMode::mbap || spatMode == SpatMode::hybrid) ? true : false;
 }
 
 //==============================================================================
@@ -351,30 +342,13 @@ void SpatSettingsSubPanel::updateEnabledStereoRoutings()
 }
 
 //==============================================================================
-void SpatSettingsSubPanel::updateVisibility()
-{
-    auto const showAttenuation{ shouldShowAttenuationSettings() };
-
-    mAttenuationSettingsLabel.setVisible(showAttenuation);
-    mAttenuationDbCombo.setVisible(showAttenuation);
-    mAttenuationHzCombo.setVisible(shouldShowAttenuationSettings());
-
-    auto const showRouting{ shouldShowStereoRouting() };
-
-    mStereoRoutingLabel.setVisible(showRouting);
-    mLeftLabel.setVisible(showRouting);
-    mLeftCombo.setVisible(showRouting);
-    mRightLabel.setVisible(showRouting);
-    mRightCombo.setVisible(showRouting);
-}
-
-//==============================================================================
 void SpatSettingsSubPanel::updateLayout()
 {
     auto const showAttenuation{ shouldShowAttenuationSettings() };
     auto const showRouting{ shouldShowStereoRouting() };
 
     mAttenuationSettingsLabel.setVisible(showAttenuation);
+    mAttenuationSettingsButton.setVisible(showAttenuation);
     mAttenuationDbCombo.setVisible(showAttenuation);
     mAttenuationHzCombo.setVisible(showAttenuation);
 

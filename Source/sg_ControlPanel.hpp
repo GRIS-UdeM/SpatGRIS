@@ -139,7 +139,6 @@ private:
     [[nodiscard]] bool shouldShowStereoRouting() const;
     void updateAttenuationState();
     void updateEnabledStereoRoutings();
-    void updateVisibility();
     void updateLayout();
     //==============================================================================
     void buttonClicked(juce::Button * button) override;
