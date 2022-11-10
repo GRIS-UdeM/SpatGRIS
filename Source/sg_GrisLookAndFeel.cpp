@@ -37,6 +37,7 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->mOnColorOver = juce::Colour::fromRGB(255, 184, 75);
     this->mOnColorDown = juce::Colour::fromRGB(222, 144, 22);
     this->mOffColor = juce::Colour::fromRGB(56, 56, 56);
+    this->mOutlineOffColor = juce::Colour::fromRGB(130, 130, 130);
 
     this->mGreenColor = juce::Colour::fromRGB(56, 156, 56);
     this->mRedColor = juce::Colour::fromRGB(220, 48, 35);
@@ -206,7 +207,11 @@ void GrisLookAndFeel::drawTickBox(juce::Graphics & g,
                                   bool /*isButtonDown*/)
 {
     auto const boxSize{ w * 0.8f };
-    juce::Rectangle<float> const r{ x, y + (h - boxSize) * 0.5f, boxSize, boxSize };
+    juce::Rectangle<float> const outlineR{ x, y + (h - boxSize) * 0.5f, boxSize, boxSize };
+    juce::Rectangle<float> const r{ outlineR.reduced(1.5f) };
+
+    g.setColour(mOutlineOffColor);
+    g.fillRect(outlineR);
 
     if (ticked) {
         auto colour{ this->mOnColor };
