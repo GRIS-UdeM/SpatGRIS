@@ -547,7 +547,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     juce::ScopedReadLock const lock{ mLock };
 
     if (mEditSpeakersWindow == nullptr) {
-        auto const windowName = juce::String{ "Speakers Setup Edition - " }
+        auto const windowName = juce::String{ "Speaker Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
                                 + juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension();
         mEditSpeakersWindow
@@ -2267,7 +2267,7 @@ void MainContentComponent::setTitles() const
 
     if (mEditSpeakersWindow != nullptr) {
         auto const speakerSetupFileName{ juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension() };
-        auto const windowName{ juce::String{ "Speakers Setup Edition - " }
+        auto const windowName{ juce::String{ "Speaker Setup Edition - " }
                                + spatModeToString(mData.speakerSetup.spatMode) + juce::String(" - ")
                                + speakerSetupFileName };
         mEditSpeakersWindow->setName(windowName);
