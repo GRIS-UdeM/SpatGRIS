@@ -61,9 +61,9 @@ void MbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceD
                                                 + std::pow(sourceData.position->getCartesian().z, 2.0f));
 
         // If we want mbapAttenuation from origin when source is under ground
-        // if (sourceData.position->getCartesian().z < 0.0f) {
-        //    spatData.mbapSourceDistance += 1.0f;
-        //}
+        if (sourceData.position->getCartesian().z < 0.0f) {
+            spatData.mbapSourceDistance += 1.0f;
+        }
 
     } else {
         spatData.gains = SpeakersSpatGains{};
