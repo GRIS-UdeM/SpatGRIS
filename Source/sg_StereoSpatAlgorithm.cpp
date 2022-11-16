@@ -19,6 +19,9 @@
 
 #include "sg_StereoSpatAlgorithm.hpp"
 #include "sg_DummySpatAlgorithm.hpp"
+#include "sg_VbapSpatAlgorithm.hpp"
+#include "sg_MbapSpatAlgorithm.hpp"
+#include "sg_HybridSpatAlgorithm.hpp"
 #include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
@@ -33,6 +36,8 @@ void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
     if (sourceData.directOut) {
         return;
     }
+
+    mInnerAlgorithm->updateSpatData(sourceIndex, sourceData);
 
     // using fast = juce::dsp::FastMathApproximations;
 
@@ -62,7 +67,7 @@ void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
 //==============================================================================
 void StereoSpatAlgorithm::process(AudioConfig const & config,
                                   SourceAudioBuffer & sourcesBuffer,
-                                  SpeakerAudioBuffer & /*speakersBuffer*/,
+                                  SpeakerAudioBuffer & speakersBuffer,
                                   juce::AudioBuffer<float> & stereoBuffer,
                                   SourcePeaks const & sourcePeaks,
                                   [[maybe_unused]] SpeakersAudioConfig const * altSpeakerConfig)
@@ -73,6 +78,9 @@ void StereoSpatAlgorithm::process(AudioConfig const & config,
 
     auto const & gainInterpolation{ config.spatGainsInterpolation };
     auto const gainFactor{ std::pow(gainInterpolation, 0.1f) * 0.0099f + 0.99f };
+
+    mInnerAlgorithm
+        ->process(config, sourcesBuffer, speakersBuffer, stereoBuffer, sourcePeaks, altSpeakerConfig);
 
     auto const numSamples{ sourcesBuffer.getNumSamples() };
     for (auto const & source : config.sourcesAudioConfig) {
@@ -150,6 +158,23 @@ std::unique_ptr<AbstractSpatAlgorithm> StereoSpatAlgorithm::make(SpeakerSetup co
 StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
+        switch (speakerSetup.spatMode) {
+    case SpatMode::vbap:
+        mInnerAlgorithm = std::make_unique<VbapSpatAlgorithm>(speakerSetup.speakers);
+        break;
+    case SpatMode::mbap:
+        mInnerAlgorithm = std::make_unique<MbapSpatAlgorithm>(speakerSetup);
+        break;
+    case SpatMode::hybrid:
+        mInnerAlgorithm = std::make_unique<HybridSpatAlgorithm>(speakerSetup);
+        break;
+    case SpatMode::invalid:
+        break;
+    }
+
+    jassert(mInnerAlgorithm);
+
     fixDirectOutsIntoPlace(sources, speakerSetup);
 }
 

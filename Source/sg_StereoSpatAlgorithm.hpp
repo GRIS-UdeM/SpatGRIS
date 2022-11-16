@@ -39,6 +39,7 @@ using StereoSourcesData = StrongArray<source_index_t, StereoSourceData, MAX_NUM_
 //==============================================================================
 class StereoSpatAlgorithm final : public AbstractSpatAlgorithm
 {
+    std::unique_ptr<AbstractSpatAlgorithm> mInnerAlgorithm{};
     StereoSourcesData mData{};
 
 public:
