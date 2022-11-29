@@ -309,6 +309,7 @@ void SpatSettingsSubPanel::setAttenuationBypass(AttenuationBypassSate state)
     }
 
     mAttenuationSettingsButton.setToggleState(bypassState == AttenuationBypassSate::off, juce::dontSendNotification);
+    updateLayout();
 }
 
 //==============================================================================
