@@ -55,16 +55,23 @@ void MbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceD
     auto & spatData{ ticket->get() };
 
     if (sourceData.position) {
+        auto const distXY{ std::sqrt(std::pow(sourceData.position->getCartesian().x, 2.0f)
+                                     + std::pow(sourceData.position->getCartesian().y, 2.0f)) };
+        auto const distZ{ sourceData.position->getCartesian().z };
+        auto const attenuationRadius{ 1.0f };
+
         mbap(sourceData, spatData.gains, mField);
-        spatData.mbapSourceDistance = std::sqrt(std::pow(sourceData.position->getCartesian().x, 2.0f)
-                                                + std::pow(sourceData.position->getCartesian().y, 2.0f)
-                                                + std::pow(sourceData.position->getCartesian().z, 2.0f));
 
-        // If we want mbapAttenuation from origin when source is under ground
-        if (sourceData.position->getCartesian().z < 0.0f) {
-            spatData.mbapSourceDistance += 1.0f;
+        // mbapAttenuation when source is under the floor
+        if (distZ < 0.0f && distXY < attenuationRadius) {
+            spatData.mbapSourceDistance = std::abs(distZ - attenuationRadius);
+        } else if (distZ < 0.0f) {
+            spatData.mbapSourceDistance = distXY + std::abs(distZ);
+        } else {
+            spatData.mbapSourceDistance = std::sqrt(std::pow(sourceData.position->getCartesian().x, 2.0f)
+                                                    + std::pow(sourceData.position->getCartesian().y, 2.0f)
+                                                    + std::pow(sourceData.position->getCartesian().z, 2.0f));
         }
-
     } else {
         spatData.gains = SpeakersSpatGains{};
     }
