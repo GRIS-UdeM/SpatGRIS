@@ -19,12 +19,12 @@
 
 #include "sg_StereoSpatAlgorithm.hpp"
 #include "sg_DummySpatAlgorithm.hpp"
-#include "sg_VbapSpatAlgorithm.hpp"
-#include "sg_MbapSpatAlgorithm.hpp"
 #include "sg_HybridSpatAlgorithm.hpp"
+#include "sg_MbapSpatAlgorithm.hpp"
 #include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
+#include "sg_VbapSpatAlgorithm.hpp"
 
 namespace gris
 {
@@ -79,8 +79,7 @@ void StereoSpatAlgorithm::process(AudioConfig const & config,
     auto const & gainInterpolation{ config.spatGainsInterpolation };
     auto const gainFactor{ std::pow(gainInterpolation, 0.1f) * 0.0099f + 0.99f };
 
-    mInnerAlgorithm
-        ->process(config, sourcesBuffer, speakersBuffer, stereoBuffer, sourcePeaks, altSpeakerConfig);
+    mInnerAlgorithm->process(config, sourcesBuffer, speakersBuffer, stereoBuffer, sourcePeaks, altSpeakerConfig);
 
     auto const numSamples{ sourcesBuffer.getNumSamples() };
     for (auto const & source : config.sourcesAudioConfig) {
@@ -159,7 +158,7 @@ StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, Sour
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-        switch (speakerSetup.spatMode) {
+    switch (speakerSetup.spatMode) {
     case SpatMode::vbap:
         mInnerAlgorithm = std::make_unique<VbapSpatAlgorithm>(speakerSetup.speakers);
         break;
