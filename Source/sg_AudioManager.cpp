@@ -69,8 +69,6 @@ AudioManager::AudioManager(juce::String const & deviceType,
     }
 #endif
 
-    mRecordersThread.setPriority(9);
-    mPlayerThread.setPriority(9);
     mAudioDeviceManager.addAudioCallback(this);
 }
 
@@ -358,7 +356,7 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
         }
     }
 
-    mPlayerThread.startThread();
+    mPlayerThread.startThread(juce::Thread::Priority::highest);
     reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
                            currentAudioDevice->getCurrentSampleRate());
     return true;
@@ -711,7 +709,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return false;
     }
 
-    mRecordersThread.startThread();
+    mRecordersThread.startThread(juce::Thread::Priority::highest);
 
     return true;
 }
