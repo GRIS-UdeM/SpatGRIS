@@ -75,11 +75,12 @@ AudioManager::AudioManager(juce::String const & deviceType,
 }
 
 //==============================================================================
-void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
-                                         int const totalNumInputChannels,
-                                         float ** const outputChannelData,
-                                         int const totalNumOutputChannels,
-                                         int const numSamples)
+void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputChannelData,
+                                                    int totalNumInputChannels,
+                                                    float * const * outputChannelData,
+                                                    int totalNumOutputChannels,
+                                                    int numSamples,
+                                                    const juce::AudioIODeviceCallbackContext & /*context*/)
 {
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
