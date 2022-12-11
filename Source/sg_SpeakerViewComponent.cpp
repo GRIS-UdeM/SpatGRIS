@@ -54,12 +54,7 @@ void SpeakerViewComponent::initialise()
 //==============================================================================
 static bool isOpenGlThread()
 {
-    auto const * currentThread{ juce::Thread::getCurrentThread() };
-    if (!currentThread) {
-        return false;
-    }
-
-    return currentThread->getThreadName() == "Pool";
+    return juce::OpenGLHelpers::isContextActive();
 }
 
 //==============================================================================
