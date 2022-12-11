@@ -1309,6 +1309,14 @@ void MainContentComponent::audioParametersChanged()
         mInfoPanel->setNumOutputs(outputCount);
 
         output_patch_t const maxOutputPatch{ outputCount };
+
+        // reset stereo routing if current output channels don't exist
+        if (mData.appData.stereoRouting.left.get() > maxOutputPatch.get()
+            || mData.appData.stereoRouting.right.get() > maxOutputPatch.get()) {
+            StereoRouting const newStereoRouting;
+            setStereoRouting(newStereoRouting);
+        }
+
         mControlPanel->updateMaxOutputPatch(maxOutputPatch, mData.appData.stereoRouting);
     }
 
