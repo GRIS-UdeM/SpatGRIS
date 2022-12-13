@@ -44,7 +44,7 @@ Download and extract [Juce 7.0.3](https://github.com/juce-framework/JUCE/release
 ##### Additional dependencies on Linux :
 
 ```bash
-sudo apt-get install clang++-10 ladspa-sdk freeglut3-dev libasound2-dev \
+sudo apt-get install clang++-14 ladspa-sdk freeglut3-dev libasound2-dev \
 libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev \
 libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-dev
 ```
@@ -80,7 +80,7 @@ On Linux :
 
 ```bash
 cd Builds/LinuxMakeFile
-make CONFIG=Release CXX=clang++-10 -j 8
+make CONFIG=Release CXX=clang++-14 -j 8
 ```
 
 ## Running
