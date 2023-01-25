@@ -69,16 +69,17 @@ AudioManager::AudioManager(juce::String const & deviceType,
     }
 #endif
 
+    mRecordersThread.setPriority(9);
+    mPlayerThread.setPriority(9);
     mAudioDeviceManager.addAudioCallback(this);
 }
 
 //==============================================================================
-void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputChannelData,
-                                                    int totalNumInputChannels,
-                                                    float * const * outputChannelData,
-                                                    int totalNumOutputChannels,
-                                                    int numSamples,
-                                                    const juce::AudioIODeviceCallbackContext & /*context*/)
+void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
+                                         int const totalNumInputChannels,
+                                         float ** const outputChannelData,
+                                         int const totalNumOutputChannels,
+                                         int const numSamples)
 {
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
@@ -356,7 +357,7 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
         }
     }
 
-    mPlayerThread.startThread(juce::Thread::Priority::highest);
+    mPlayerThread.startThread();
     reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
                            currentAudioDevice->getCurrentSampleRate());
     return true;
@@ -709,7 +710,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return false;
     }
 
-    mRecordersThread.startThread(juce::Thread::Priority::highest);
+    mRecordersThread.startThread();
 
     return true;
 }
