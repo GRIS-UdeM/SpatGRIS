@@ -2636,8 +2636,6 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
     std::vector<bool> subSources(numberOfSources);
     std::fill(subSources.begin(), subSources.end(), false);
 
-    auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
-
     for (auto & speaker : playerSpeakerSetup->speakers) {
         // update sources data from speakers position of speaker setup
         source_index_t const sourceIndex{ speaker.key.get() };
@@ -2660,6 +2658,7 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
             setSourceState(sourceIndex, SliceState::normal);
         }
 
+        auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
         spatAlgorithm.updateSpatData(source.key, *source.value);
     }
 
