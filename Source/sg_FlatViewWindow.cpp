@@ -111,7 +111,7 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g) const
         g.drawRect(maxAttenuationRect);
     };
 
-    switch (mMainContentComponent.getData().speakerSetup.spatMode) {
+    switch (mMainContentComponent.getData().project.spatMode) {
     case SpatMode::vbap:
         drawVbapBackground();
         return;
@@ -137,7 +137,7 @@ void FlatViewWindow::paint(juce::Graphics & g)
 
     juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
 
-    auto const baseSpatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
+    auto const baseSpatMode{ mMainContentComponent.getData().project.spatMode };
 
     // Draw sources.
     for (auto const & source : mMainContentComponent.getData().project.sources) {

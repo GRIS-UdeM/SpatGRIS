@@ -242,8 +242,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mDiffusionSlider.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mDiffusionSlider.setLookAndFeel(&mLookAndFeel);
     mDiffusionSlider.addListener(this);
-    mDiffusionSlider.setEnabled(mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::mbap
-                                || mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::hybrid);
+    mDiffusionSlider.setEnabled(mMainContentComponent.getData().project.spatMode == SpatMode::mbap
+                                || mMainContentComponent.getData().project.spatMode == SpatMode::hybrid);
     mListSpeakerBox.getContent()->addAndMakeVisible(mDiffusionSlider);
 
     mListSpeakerBox.getContent()->addAndMakeVisible(mSpeakersTableListBox);
@@ -661,8 +661,8 @@ void EditSpeakersWindow::updateWinContent()
     mNumRows = mMainContentComponent.getData().speakerSetup.speakers.size();
     mSpeakersTableListBox.updateContent();
     mDiffusionSlider.setValue(mMainContentComponent.getData().speakerSetup.diffusion);
-    mDiffusionSlider.setEnabled(mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::mbap
-                                || mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::hybrid);
+    mDiffusionSlider.setEnabled(mMainContentComponent.getData().project.spatMode == SpatMode::mbap
+                                || mMainContentComponent.getData().project.spatMode == SpatMode::hybrid);
 }
 
 //==============================================================================
@@ -812,7 +812,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
             return true;
         case Cols::AZIMUTH:
         case Cols::ELEVATION:
-            return spatMode == SpatMode::vbap || spatMode == SpatMode::hybrid;
+            return spatMode == SpatMode::vbap;
         case Cols::X:
         case Cols::Y:
         case Cols::Z:
@@ -822,7 +822,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
         case Cols::DELETE_BUTTON:
             return false;
         case Cols::DISTANCE:
-            return (spatMode == SpatMode::vbap || spatMode == SpatMode::hybrid) && speaker.isDirectOutOnly;
+            return spatMode == SpatMode::vbap && speaker.isDirectOutOnly;
         default:
             jassertfalse;
         }
@@ -1159,7 +1159,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     auto const getEditionType = [=]() -> EditionType {
         switch (columnId) {
         case Cols::DISTANCE:
-            if ((spatMode == SpatMode::vbap || spatMode == SpatMode::hybrid) && speaker.isDirectOutOnly) {
+            if (spatMode == SpatMode::vbap && speaker.isDirectOutOnly) {
                 return EditionType::valueDraggable;
             }
             return EditionType::notEditable;
@@ -1172,7 +1172,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
             return EditionType::notEditable;
         case Cols::AZIMUTH:
         case Cols::ELEVATION:
-            if (spatMode == SpatMode::vbap || spatMode == SpatMode::hybrid) {
+            if (spatMode == SpatMode::vbap) {
                 return EditionType::valueDraggable;
             }
             return EditionType::notEditable;

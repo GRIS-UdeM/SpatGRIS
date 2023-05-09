@@ -49,14 +49,15 @@ bool isProbablyAudioThread()
 
 //==============================================================================
 void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
-                                                   SpeakerSetup const & speakerSetup) noexcept
+                                                   SpeakerSetup const & speakerSetup,
+                                                   SpatMode const & projectSpatMode) noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const getFakeSourceData = [&](SourceData const & source, SpeakerData const & speaker) -> SourceData {
         auto fakeSourceData{ source };
         fakeSourceData.directOut.reset();
-        switch (speakerSetup.spatMode) {
+        switch (projectSpatMode) {
         case SpatMode::vbap:
         case SpatMode::hybrid:
             fakeSourceData.position = speaker.position.getPolar().normalized();
@@ -89,6 +90,7 @@ void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
 
 //==============================================================================
 std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
+                                                                   SpatMode const & projectSpatMode,
                                                                    tl::optional<StereoMode> stereoMode,
                                                                    SourcesData const & sources,
                                                                    double const sampleRate,
@@ -99,9 +101,9 @@ std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup 
     if (stereoMode) {
         switch (*stereoMode) {
         case StereoMode::hrtf:
-            return HrtfSpatAlgorithm::make(speakerSetup, sources, sampleRate, bufferSize);
+            return HrtfSpatAlgorithm::make(speakerSetup, projectSpatMode, sources, sampleRate, bufferSize);
         case StereoMode::stereo:
-            return StereoSpatAlgorithm::make(speakerSetup, sources);
+            return StereoSpatAlgorithm::make(speakerSetup, projectSpatMode, sources);
 #ifdef USE_DOPPLER
         case StereoMode::doppler:
             return DopplerSpatAlgorithm::make(sampleRate, bufferSize);
@@ -110,7 +112,7 @@ std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup 
         jassertfalse;
     }
 
-    switch (speakerSetup.spatMode) {
+    switch (projectSpatMode) {
     case SpatMode::vbap:
         return VbapSpatAlgorithm::make(speakerSetup);
     case SpatMode::mbap:

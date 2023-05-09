@@ -56,7 +56,9 @@ public:
      * Sources that use the "direct out" feature usually don't receive any positional OSC data. This is not a problem in
      * a physical setup, where there is an actual speaker assigned to the direct output. In a stereo reduction, the
      * source's position has to be faked so that it matches the position of the speaker used as a direct out.     */
-    void fixDirectOutsIntoPlace(SourcesData const & sources, SpeakerSetup const & speakerSetup) noexcept;
+    void fixDirectOutsIntoPlace(SourcesData const & sources,
+                                SpeakerSetup const & speakerSetup,
+                                SpatMode const & projectSpatMode) noexcept;
     //==============================================================================
     /** Updates the data of a source (its position, span, etc.).
      *
@@ -89,12 +91,14 @@ public:
     /** Builds a spatialization algorithm. If the instantiation fails, this will hold a DummySpatAlgorithm.
      *
      * @param speakerSetup the current speaker setup
+     * @param projectSpatMode the spatialization mode of the current project
      * @param stereoMode the stereo reduction mode, or tl::nullopt if none.
      * @param sources the sources' data.
      * @param sampleRate the expected sample rate
      * @param bufferSize the expected buffer size in samples
      */
     [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
+                                                                     SpatMode const & projectSpatMode,
                                                                      tl::optional<StereoMode> stereoMode,
                                                                      SourcesData const & sources,
                                                                      double sampleRate,

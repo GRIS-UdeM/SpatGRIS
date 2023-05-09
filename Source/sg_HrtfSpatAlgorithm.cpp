@@ -31,6 +31,7 @@ namespace gris
 {
 //==============================================================================
 HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
+                                     SpatMode const & projectSpatMode,
                                      SourcesData const & sources,
                                      double const sampleRate,
                                      int const bufferSize)
@@ -82,7 +83,7 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
 
     auto const & binauralSpeakerData{ binauralSpeakerSetup->speakers };
 
-    switch (speakerSetup.spatMode) {
+    switch (projectSpatMode) {
     case SpatMode::vbap:
         mInnerAlgorithm = std::make_unique<VbapSpatAlgorithm>(binauralSpeakerData);
         break;
@@ -113,7 +114,7 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
         convolution.reset();
     }
 
-    fixDirectOutsIntoPlace(sources, speakerSetup);
+    fixDirectOutsIntoPlace(sources, speakerSetup, projectSpatMode);
 }
 
 //==============================================================================
@@ -201,12 +202,13 @@ juce::Array<Triplet> HrtfSpatAlgorithm::getTriplets() const noexcept
 
 //==============================================================================
 std::unique_ptr<AbstractSpatAlgorithm> HrtfSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
+                                                               SpatMode const & projectSpatMode,
                                                                SourcesData const & sources,
                                                                double const sampleRate,
                                                                int const bufferSize)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    return std::make_unique<HrtfSpatAlgorithm>(speakerSetup, sources, sampleRate, bufferSize);
+    return std::make_unique<HrtfSpatAlgorithm>(speakerSetup, projectSpatMode, sources, sampleRate, bufferSize);
 }
 
 } // namespace gris

@@ -805,6 +805,10 @@ tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
     result->spatMode = *spatMode;
     result->diffusion = *diffusion;
 
+    // Speaker setup spatialization mode is either vbap or mbap.
+    if (result->spatMode != SpatMode::mbap)
+        result->spatMode = SpatMode::vbap;
+
     for (auto const * speaker : xml.getChildIterator()) {
         auto const tagName{ speaker->getTagName() };
         if (!tagName.startsWith(SpeakerData::XmlTags::MAIN_TAG_PREFIX)) {
@@ -913,7 +917,7 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
     for (auto const source : project.sources) {
         result->sourcesAudioConfig.add(source.key, source.value->toConfig(isAtLeastOneSourceSolo));
     }
-    result->spatMode = speakerSetup.spatMode;
+    result->spatMode = project.spatMode;
     result->spatGainsInterpolation = project.spatGainsInterpolation;
 
     if (appData.stereoMode) {
@@ -937,7 +941,7 @@ ViewportConfig SpatGrisData::toViewportConfig() const noexcept
     for (auto const & speaker : speakerSetup.speakers) {
         result.speakers.add(speaker.key, speaker.value->toViewportConfig());
     }
-    result.spatMode = speakerSetup.spatMode;
+    result.spatMode = project.spatMode;
     result.viewSettings = appData.viewSettings;
     result.title = juce::File{ appData.lastSpeakerSetup }.getFileNameWithoutExtension();
 

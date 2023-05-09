@@ -24,7 +24,7 @@
 #include "lib/tl/optional.hpp"
 
 // Uncomment to enable the Doppler stereo reduction.
-//#define USE_DOPPLER 1
+// #define USE_DOPPLER 1
 
 namespace gris
 {

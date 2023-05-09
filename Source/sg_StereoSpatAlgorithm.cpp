@@ -146,19 +146,22 @@ juce::Array<Triplet> StereoSpatAlgorithm::getTriplets() const noexcept
 
 //==============================================================================
 std::unique_ptr<AbstractSpatAlgorithm> StereoSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
+                                                                 SpatMode const & projectSpatMode,
                                                                  SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    return std::make_unique<StereoSpatAlgorithm>(speakerSetup, sources);
+    return std::make_unique<StereoSpatAlgorithm>(speakerSetup, projectSpatMode, sources);
 }
 
 //==============================================================================
-StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources)
+StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup,
+                                         SpatMode const & projectSpatMode,
+                                         SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    switch (speakerSetup.spatMode) {
+    switch (projectSpatMode) {
     case SpatMode::vbap:
         mInnerAlgorithm = std::make_unique<VbapSpatAlgorithm>(speakerSetup.speakers);
         break;
@@ -174,7 +177,7 @@ StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, Sour
 
     jassert(mInnerAlgorithm);
 
-    fixDirectOutsIntoPlace(sources, speakerSetup);
+    fixDirectOutsIntoPlace(sources, speakerSetup, projectSpatMode);
 }
 
 } // namespace gris

@@ -50,6 +50,7 @@ public:
     //==============================================================================
     /** Note: You should never use this function directly. Use HrtfSpatAlgorithm::make() instead. */
     HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
+                      SpatMode const & projectSpatMode,
                       SourcesData const & sources,
                       double sampleRate,
                       int bufferSize);
@@ -70,8 +71,11 @@ public:
     [[nodiscard]] tl::optional<Error> getError() const noexcept override { return tl::nullopt; }
     //==============================================================================
     /** Instantiates an HRTF algorithm. This should never fail. */
-    static std::unique_ptr<AbstractSpatAlgorithm>
-        make(SpeakerSetup const & speakerSetup, SourcesData const & sources, double sampleRate, int bufferSize);
+    static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
+                                                       SpatMode const & projectSpatMode,
+                                                       SourcesData const & sources,
+                                                       double sampleRate,
+                                                       int bufferSize);
 
 private:
     //==============================================================================

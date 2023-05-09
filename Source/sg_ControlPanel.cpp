@@ -394,7 +394,7 @@ void SpatSettingsSubPanel::buttonClicked(juce::Button * button)
     };
 
     auto const spatMode{ getSpatMode() };
-    [[maybe_unused]] auto const success{ mMainContentComponent.setSpatMode(spatMode) };
+    mMainContentComponent.setSpatMode(spatMode);
     updateLayout();
     mControlPanel.forceLayoutUpdate();
 }

@@ -423,7 +423,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     };
 
     // Squares & circles
-    auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
+    auto const spatMode{ mMainContentComponent.getData().project.spatMode };
     switch (spatMode) {
     case SpatMode::vbap:
         drawDomeGrid();

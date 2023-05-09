@@ -135,7 +135,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // Control panel
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
         mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
-        mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
+        mControlPanel->setSpatMode(mData.project.spatMode);
         mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
         mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
         mControlPanel->setStereoMode(mData.appData.stereoMode);
@@ -365,7 +365,7 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     mData.appData.lastProject = file.getFullPathName();
 
     if (mData.project.spatMode == SpatMode::invalid) {
-        mData.project.spatMode = mData.speakerSetup.spatMode;
+        jassertfalse;
     }
 
     // keep spat mode when loading Player
@@ -373,8 +373,10 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
         mData.project.spatMode = currentSpatMode;
     }
 
-    [[maybe_unused]] auto const success{ setSpatMode(mData.project.spatMode) };
-    jassert(success);
+    setSpatMode(mData.project.spatMode);
+
+    if (mData.project.spatMode == SpatMode::mbap)
+        mData.appData.viewSettings.showSpeakerTriplets = false;
 
     mControlPanel->setMasterGain(mData.project.masterGain);
     mControlPanel->setInterpolation(mData.project.spatGainsInterpolation);
@@ -384,7 +386,6 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
 
     refreshAudioProcessor();
     refreshViewportConfig();
-    setTitles();
     refreshSourceSlices();
 
     mIsLoadingSpeakerSetupOrProjectFile = false;
@@ -502,7 +503,9 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
                 return;
             }
         } else if (result == 2) {
+            auto const spatMode{ mData.project.spatMode };
             loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
+            setSpatMode(spatMode);
         }
 
         refreshSpeakers();
@@ -674,7 +677,7 @@ void MainContentComponent::interpolationChanged(float const interpolation)
 }
 
 //==============================================================================
-bool MainContentComponent::setSpatMode(SpatMode const spatMode)
+void MainContentComponent::setSpatMode(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -684,7 +687,8 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
             auto const result{ juce::AlertWindow::showOkCancelBox(
                 juce::AlertWindow::InfoIcon,
                 "Converting to DOME",
-                "A CUBE speaker setup will be converted to a DOME structure.\nThis will not affect the original file.",
+                "A CUBE speaker setup will be converted to a DOME structure.\nThis "
+                "will not affect the original file.",
                 "Ok",
                 "Cancel",
                 this) };
@@ -703,17 +707,17 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
         return true;
     };
 
-    if (!ensureVbapIsDomeLike()) {
-        mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
-        mData.project.spatMode = mData.speakerSetup.spatMode;
-        return false;
-    }
+    auto newSpatMode{ spatMode };
 
-    mData.speakerSetup.spatMode = spatMode;
-    mData.project.spatMode = spatMode;
-    mControlPanel->setSpatMode(spatMode);
+    if (!ensureVbapIsDomeLike())
+        newSpatMode = SpatMode::mbap;
+
+    // Speaker setup must be Dome or Cube, never Hybrid
+    mData.speakerSetup.spatMode = newSpatMode == SpatMode::mbap ? SpatMode::mbap : SpatMode::vbap;
+    mData.project.spatMode = newSpatMode;
+    mControlPanel->setSpatMode(newSpatMode);
+    setTitles();
     refreshSpeakers();
-    return true;
 }
 
 //==============================================================================
@@ -1656,7 +1660,7 @@ void MainContentComponent::setLegacySourcePosition(source_index_t const sourceIn
     }
 
     auto const getCorrectedPosition = [&]() -> Position {
-        auto const & projectSpatMode{ mData.speakerSetup.spatMode };
+        auto const & projectSpatMode{ mData.project.spatMode };
         auto const spatMode{ projectSpatMode == SpatMode::hybrid ? mData.project.sources[sourceIndex].hybridSpatMode
                                                                  : projectSpatMode };
 
@@ -1711,8 +1715,8 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
     azimuthSpan = std::clamp(azimuthSpan, 0.0f, 1.0f);
     zenithSpan = std::clamp(zenithSpan, 0.0f, 1.0f);
 
-    auto const & setupSpatMode{ mData.speakerSetup.spatMode };
-    auto const effectiveSpatMode{ setupSpatMode == SpatMode::hybrid ? source.hybridSpatMode : setupSpatMode };
+    auto const & projectSpatMode{ mData.project.spatMode };
+    auto const effectiveSpatMode{ projectSpatMode == SpatMode::hybrid ? source.hybridSpatMode : projectSpatMode };
     switch (effectiveSpatMode) {
     case SpatMode::vbap:
         position = position.getPolar().normalized();
@@ -1966,6 +1970,7 @@ void MainContentComponent::refreshSpatAlgorithm()
 
     auto & oldSpatAlgorithm{ mAudioProcessor->getSpatAlgorithm() };
     auto newSpatAlgorithm{ AbstractSpatAlgorithm::make(mData.speakerSetup,
+                                                       mData.project.spatMode,
                                                        mData.appData.stereoMode,
                                                        mData.project.sources,
                                                        mData.appData.audioSettings.sampleRate,
@@ -2234,24 +2239,13 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
     mData.speakerSetup = std::move(*speakerSetup);
     mData.appData.lastSpeakerSetup = file.getFullPathName();
 
-    // specific mode-dependent checks
-    switch (mData.speakerSetup.spatMode) {
-    case SpatMode::mbap:
-        mData.appData.viewSettings.showSpeakerTriplets = false;
-        [[fallthrough]];
-    case SpatMode::hybrid:
-        mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
-        mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
-        break;
-    case SpatMode::vbap:
-    case SpatMode::invalid:
-        break;
+    auto newSpatMode{ mData.speakerSetup.spatMode };
+
+    if (mData.project.spatMode == SpatMode::hybrid && newSpatMode == SpatMode::vbap) {
+        newSpatMode = SpatMode::hybrid;
     }
 
-    [[maybe_unused]] auto const success{ setSpatMode(mData.speakerSetup.spatMode) };
-    jassert(success);
-
-    setTitles();
+    setSpatMode(newSpatMode);
     mIsLoadingSpeakerSetupOrProjectFile = false;
 
     if (mPlayerWindow != nullptr) {
