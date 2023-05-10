@@ -1037,7 +1037,6 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 
     addTemplate(SPEAKER_SETUP_TEMPLATES.dome);
     addTemplate(SPEAKER_SETUP_TEMPLATES.cube);
-    addTemplate(SPEAKER_SETUP_TEMPLATES.hybrid);
     addProjectTemplate(PROJECT_TEMPLATES.dome);
     addProjectTemplate(PROJECT_TEMPLATES.cube);
     addProjectTemplate(PROJECT_TEMPLATES.hybrid);
@@ -1355,7 +1354,6 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         juce::PopupMenu menu{};
         menu.addSubMenu("Dome", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.dome));
         menu.addSubMenu("Cube", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.cube));
-        menu.addSubMenu("Hybrid", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.hybrid));
         return menu;
     };
 
