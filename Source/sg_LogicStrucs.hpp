@@ -240,7 +240,7 @@ using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_NUM_SPEAKERS>;
 
 //==============================================================================
 struct MbapDistanceAttenuationData {
-    hz_t freq{ 1000.0f };
+    hz_t freq{ 16000.0f };
     dbfs_t attenuation{};
     AttenuationBypassSate attenuationBypassState{};
     //==============================================================================
