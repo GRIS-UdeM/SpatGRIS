@@ -364,8 +364,9 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     mData.project = std::move(*projectData);
     mData.appData.lastProject = file.getFullPathName();
 
+    // for project prior to SG 3.1.8 (hybrid is redirected to vbap)
     if (mData.project.spatMode == SpatMode::invalid) {
-        jassertfalse;
+        mData.project.spatMode = mData.speakerSetup.spatMode;
     }
 
     // keep spat mode when loading Player
