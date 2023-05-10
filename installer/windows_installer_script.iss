@@ -32,6 +32,7 @@ ArchitecturesInstallIn64BitMode=x64
 Compression=lzma
 DefaultDirName={autopf}\{#AppName}
 DisableProgramGroupPage=yes
+InfoBeforeFile=winInstallerUserInfos.txt
 LicenseFile="..\LICENSE"
 OutputDir=.
 OutputBaseFilename="{#AppName}_{#AppVersion}_Windows_x64"  
