@@ -83,8 +83,7 @@ static SpeakerSetupTemplates getSpeakerSetupTemplates()
     auto const cubeDir{ SPEAKER_TEMPLATES_DIR.getChildFile("CUBE") };
     auto commandId{ SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
 
-    return SpeakerSetupTemplates{ extract(domeDir, commandId),
-                                  extract(cubeDir, commandId) };
+    return SpeakerSetupTemplates{ extract(domeDir, commandId), extract(cubeDir, commandId) };
 }
 
 //==============================================================================
