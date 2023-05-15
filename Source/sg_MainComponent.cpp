@@ -323,6 +323,28 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
                                                nullptr);
     };
 
+    auto const informSpeakerSetupAlgoHasChanged = [&]() {
+        if (mData.speakerSetup.spatMode == SpatMode::invalid)
+            return;
+
+        auto const newSpatMode{ mData.project.spatMode == SpatMode::mbap ? SpatMode::mbap : SpatMode::vbap };
+
+        if (newSpatMode == mData.speakerSetup.spatMode)
+            return;
+
+        if (mData.speakerSetup.spatMode == SpatMode::mbap && !mData.speakerSetup.isDomeLike()
+            && newSpatMode == SpatMode::vbap)
+            return;
+
+        const juce::String message{ "Your current speaker setup has been changed to " + spatModeToString(newSpatMode)
+                                    + "." };
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                               "Modified Speaker Setup",
+                                               message,
+                                               "Ok",
+                                               nullptr);
+    };
+
     if (!file.existsAsFile()) {
         displayError("File \"" + file.getFullPathName() + "\" does not exist.");
         return false;
@@ -372,6 +394,10 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     // keep spat mode when loading Player
     if (mPlayerWindow != nullptr && file == DEFAULT_PROJECT_FILE) {
         mData.project.spatMode = currentSpatMode;
+    }
+
+    if (!discardCurrentProject) {
+        informSpeakerSetupAlgoHasChanged();
     }
 
     setSpatMode(mData.project.spatMode);
