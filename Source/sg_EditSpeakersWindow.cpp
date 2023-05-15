@@ -519,6 +519,10 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
     if (button == &mAddSpeakerButton) {
         // Add speaker button
+        if (mMainContentComponent.getMaxSpeakerOutputPatch().get() >= MAX_NUM_SPEAKERS) {
+            return;
+        }
+
         tl::optional<output_patch_t> outputPatch{};
         tl::optional<int> index{};
 
@@ -546,7 +550,13 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     } else if (button == &mAddRingButton) {
         // Add ring button
         output_patch_t newOutputPatch;
-        for (int i{}; i < mNumOfSpeakersTextEditor.getText().getIntValue(); i++) {
+        auto const numSpeakersToAdd{ mNumOfSpeakersTextEditor.getText().getIntValue() };
+
+        if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakersToAdd > MAX_NUM_SPEAKERS) {
+            return;
+        }
+
+        for (int i{}; i < numSpeakersToAdd; i++) {
             tl::optional<output_patch_t> outputPatch{};
             tl::optional<int> index{};
 
@@ -559,8 +569,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
             mNumRows = speakers.size();
 
-            degrees_t azimuth{ -360.0f / narrow<float>(mNumOfSpeakersTextEditor.getText().getIntValue())
-                                   * narrow<float>(i)
+            degrees_t azimuth{ -360.0f / narrow<float>(numSpeakersToAdd) * narrow<float>(i)
                                - mOffsetAngleTextEditor.getText().getFloatValue() + 90.0f };
             azimuth = azimuth.centered();
             degrees_t const zenith{ mZenithTextEditor.getText().getFloatValue() < 90.0f + (360.0f - 270.0f) / 2

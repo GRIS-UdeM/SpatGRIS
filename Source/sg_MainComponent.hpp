@@ -215,6 +215,7 @@ public:
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
     void removeSpeaker(output_patch_t outputPatch);
     void reorderSpeakers(juce::Array<output_patch_t> newOrder);
+    [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
 
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
@@ -285,7 +286,6 @@ private:
     void refreshAudioProcessor() const;
     void refreshSpatAlgorithm();
     void updatePeaks();
-    [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
     void reassignSourcesPositions();
     //==============================================================================
     // OSC
