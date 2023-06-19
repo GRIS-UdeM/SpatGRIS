@@ -66,8 +66,8 @@ struct SpatGrisVersion {
 
 extern const SpatGrisVersion SPAT_GRIS_VERSION;
 
-constexpr auto MAX_NUM_SOURCES = 128;
-constexpr auto MAX_NUM_SPEAKERS = 128;
+constexpr auto MAX_NUM_SOURCES = 256;
+constexpr auto MAX_NUM_SPEAKERS = 256;
 constexpr auto MBAP_EXTENDED_RADIUS = 1.6666667f;
 constexpr dbfs_t DEFAULT_PINK_NOISE_DB{ -20.0f };
 constexpr auto DEFAULT_SAMPLE_RATE{ 48000.0 };
