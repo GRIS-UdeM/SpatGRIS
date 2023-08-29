@@ -298,13 +298,10 @@
           <FILE id="mTbg4w" name="sg_SettingsWindow.hpp" compile="0" resource="0"
                 file="Source/sg_SettingsWindow.hpp"/>
         </GROUP>
-        <FILE id="efSSAS" name="sg_GlSphere.hpp" compile="0" resource="0" file="Source/sg_GlSphere.hpp"/>
         <FILE id="DJRXzh" name="sg_GrisLookAndFeel.cpp" compile="1" resource="0"
               file="Source/sg_GrisLookAndFeel.cpp"/>
         <FILE id="ePcarq" name="sg_GrisLookAndFeel.hpp" compile="0" resource="0"
               file="Source/sg_GrisLookAndFeel.hpp"/>
-        <FILE id="Zl8DNQ" name="sg_Ray.cpp" compile="1" resource="0" file="Source/sg_Ray.cpp"/>
-        <FILE id="BsQLZ7" name="sg_Ray.hpp" compile="0" resource="0" file="Source/sg_Ray.hpp"/>
       </GROUP>
       <FILE id="EJRUGM" name="sg_Application.cpp" compile="1" resource="0"
             file="Source/sg_Application.cpp"/>

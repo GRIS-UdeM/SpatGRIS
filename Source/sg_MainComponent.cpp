@@ -123,7 +123,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
         // SpeakerViewComponent 3D view
         mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
-        addAndMakeVisible(mSpeakerViewComponent.get());
 
         // Box Main
         mMainLayout
@@ -166,23 +165,18 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         addAndMakeVisible(mMainLayout.get());
 
         // Set up the layout and resize bars.
-        mVerticalLayout.setItemLayout(0,
-                                      -0.2,
-                                      -0.8,
-                                      -0.435); // width of the speaker view must be between 20% and 80%, preferably 50%
-        mVerticalLayout.setItemLayout(1, 8, 8, 8); // the vertical divider drag-bar thing is always 8 pixels wide
+        // Since SpeakerView, there is only one pane in the vertical layout.
         mVerticalLayout.setItemLayout(
-            2,
+            0,
             150.0,
             -1.0,
             -0.565); // right panes must be at least 150 pixels wide, preferably 50% of the total width
-        mVerticalDividerBar.reset(new juce::StretchableLayoutResizerBar(&mVerticalLayout, 1, true));
-        addAndMakeVisible(mVerticalDividerBar.get());
 
         // Default application window size.
         setSize(1285, 610);
 
         // Restore last vertical divider position and speaker view cam distance.
+        // TODO: sashPosition not needed anymore since SpeakerView.
         auto const sashPosition{ mData.appData.sashPosition };
         auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(sashPosition))) };
         mVerticalLayout.setItemPosition(1, trueSize);
@@ -254,6 +248,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     resized();
     startTimerHz(24);
 
+    // Start SpeakerView networking
+    // mSpeakerViewComponent->startSpeakerViewNetworking();
+
     // init buffers properly
     audioParametersChanged();
 }
@@ -276,6 +273,10 @@ MainContentComponent::~MainContentComponent()
         mData.appData.cameraPosition = mSpeakerViewComponent->getCameraPosition().getCartesian();
 
         mConfiguration.save(mData.appData);
+    }
+
+    if (mSpeakerViewProcess.isRunning()) {
+        mSpeakerViewProcess.kill();
     }
 
     mSpeakerViewComponent.reset();
@@ -622,10 +623,7 @@ void MainContentComponent::handleShow2DView()
     }
 
     if (mFlatViewWindowRect.getWidth() == 0) {
-        mFlatViewWindowRect.setBounds(getScreenX() + mSpeakerViewComponent->getWidth() + 22,
-                                      getScreenY() + 100,
-                                      500,
-                                      500);
+        mFlatViewWindowRect.setBounds(getScreenX() + 22, getScreenY() + 100, 500, 500);
     }
 
     mFlatViewWindow->setBounds(mFlatViewWindowRect);
@@ -657,6 +655,110 @@ void MainContentComponent::handleShowPlayerWindow()
     if (!makeSureProjectIsSavedToDisk()) {
         closePlayerWindow();
     }
+}
+
+//==============================================================================
+void MainContentComponent::handleShowSpeakerViewWindow()
+{
+    if (mSpeakerViewProcess.isRunning()) {
+        // we're closing speakerview
+        mSpeakerViewProcess.kill();
+        mSpeakerViewComponent->stopSpeakerViewNetworking();
+        return;
+    }
+
+    auto const displayError = [&](juce::String const & title, juce::String const & error) {
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                               title,
+                                               error,
+                                               "OK",
+                                               this,
+                                               nullptr);
+    };
+
+    juce::StringArray launchCommand;
+    auto const SpatGrisDirectory{ juce::File::getSpecialLocation(
+        juce::File::SpecialLocationType::currentExecutableFile) };
+
+    auto const speakerViewExecWindows{ SpatGrisDirectory.getSiblingFile("RoomView.exe") };
+    auto const speakerViewExecMacOS{ SpatGrisDirectory.getSiblingFile("RoomView.app") };
+    auto const speakerViewExecLinux{ SpatGrisDirectory.getSiblingFile("RoomView.x86_64") };
+    auto const speakerViewPckWindowsAndLinux{ SpatGrisDirectory.getSiblingFile("RoomView.pck") };
+
+    bool speakerViewExecExists{};
+    bool speakerViewPckExists{ speakerViewPckWindowsAndLinux.existsAsFile() };
+
+    if (speakerViewExecWindows.existsAsFile()) {
+        launchCommand.add(speakerViewExecWindows.getFullPathName());
+        speakerViewExecExists = true;
+    } else if (speakerViewExecMacOS.exists()) {
+        launchCommand.add("/usr/bin/open");
+        launchCommand.add(speakerViewExecMacOS.getFullPathName());
+        launchCommand.add("--args");
+        speakerViewExecExists = true;
+        speakerViewPckExists = true;
+    } else if (speakerViewExecLinux.existsAsFile()) {
+        // TODO: test if SpeakerView is in the PATH
+        launchCommand.add(speakerViewExecLinux.getFullPathName());
+        speakerViewExecExists = true;
+    }
+
+    if (!speakerViewExecExists) {
+        const juce::String title{ "Unable to find SpeakerView executable." };
+        const juce::String message{ "Make sure the SpeakerView executable is in the same folder as SpatGris." };
+        displayError(title, message);
+        return;
+    }
+
+    if (!speakerViewPckExists) {
+        const juce::String title{ "Unable to find SpeakerView pck file." };
+        const juce::String message{ "Make sure the SpeakerView.pck file is in the same folder as SpatGris." };
+        displayError(title, message);
+        return;
+    }
+
+    launchCommand.add("--");
+    launchCommand.add("launchedBySG=true");
+
+    // SpeakerView window position
+    if (mData.appData.speakerViewWindowPosition != juce::Point<int>{}) {
+        auto xPos{ juce::String(mData.appData.speakerViewWindowPosition.getX()) };
+        auto yPos{ juce::String(mData.appData.speakerViewWindowPosition.getY()) };
+        launchCommand.add(juce::String("winPosition=" + xPos + "," + yPos));
+    }
+
+    // SpeakerView window size
+    if (mData.appData.speakerViewWindowSize != juce::Point<int>{}) {
+        auto xSize{ juce::String(mData.appData.speakerViewWindowSize.getX()) };
+        auto ySize{ juce::String(mData.appData.speakerViewWindowSize.getY()) };
+        launchCommand.add(juce::String("winSize=" + xSize + "," + ySize));
+    }
+
+    // SpeakerView camera position
+    auto const & camPos{ mSpeakerViewComponent->getCameraPosition().getPolar() };
+    auto azi = -camPos.azimuth; // azimuth is inverted in SpeakerView
+    auto aziDeg = juce::radiansToDegrees(azi.get());
+    auto elev = camPos.elevation;
+    auto elevDeg = juce::radiansToDegrees(elev.get());
+    elevDeg = std::clamp(elevDeg, -89.0f, 89.0f);
+    auto len = camPos.length * 10.0f;
+    len = std::clamp(len, 6.0f, 70.0f);
+
+    juce::String cmd;
+    if (std::isnan(azi.get()) || std::isnan(elev.get()) || std::isnan(len)) {
+        cmd = juce::String("camPos=45.0,45.0,20.0");
+    } else {
+        cmd = juce::String("camPos=" + juce::String(aziDeg) + "," + juce::String(elevDeg) + "," + juce::String(len));
+    }
+
+    launchCommand.add(cmd);
+
+    auto res{ mSpeakerViewProcess.start(launchCommand) };
+    jassert(res);
+
+    // Start SpeakerView networking
+    if (res)
+        mSpeakerViewComponent->startSpeakerViewNetworking();
 }
 
 //==============================================================================
@@ -1041,6 +1143,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
                                              CommandId::show2DViewId,
                                              CommandId::showPlayerWindowId,
                                              CommandId::showOscMonitorId,
+                                             CommandId::showSpeakerViewId,
                                              CommandId::showSourceNumbersId,
                                              CommandId::showSpeakerNumbersId,
                                              CommandId::showSpeakersId,
@@ -1135,6 +1238,11 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         return;
     case CommandId::showOscMonitorId:
         result.setInfo("Show OSC monitor", "Show the OSC monitor window", generalCategory, 0);
+        return;
+    case CommandId::showSpeakerViewId:
+        result.setInfo("Show Speaker View", "Show the speaker window.", generalCategory, 0);
+        result.addDefaultKeypress('V', juce::ModifierKeys::altModifier);
+        result.setTicked(mSpeakerViewProcess.isRunning());
         return;
     case CommandId::showSourceNumbersId:
         result.setInfo("Show Source Numbers", "Show source numbers on the 3D view.", generalCategory, 0);
@@ -1256,6 +1364,9 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::showOscMonitorId:
             handleShowOscMonitorWindow();
+            break;
+        case CommandId::showSpeakerViewId:
+            handleShowSpeakerViewWindow();
             break;
         case CommandId::showSourceNumbersId:
             handleShowSourceNumbers();
@@ -1424,6 +1535,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, CommandId::showSpeakerEditId);
         menu.addCommandItem(commandManager, CommandId::showPlayerWindowId);
         menu.addCommandItem(commandManager, CommandId::showOscMonitorId);
+        menu.addCommandItem(commandManager, CommandId::showSpeakerViewId);
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::showSourceNumbersId);
         menu.addCommandItem(commandManager, CommandId::showSpeakerNumbersId);
@@ -2765,6 +2877,153 @@ void MainContentComponent::handleNewProjectForPlayer()
 }
 
 //==============================================================================
+void MainContentComponent::handleResetSourcesPositionsFromSpeakerView()
+{
+    handleResetSourcesPositions();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowSourceNumbersFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.showSourceNumbers };
+
+    if (var != value) {
+        var = value;
+        refreshViewportConfig();
+    }
+}
+
+//==============================================================================
+void MainContentComponent::handleShowSpeakerNumbersFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    {
+        juce::ScopedWriteLock const lock{ mLock };
+
+        auto & var{ mData.appData.viewSettings.showSpeakerNumbers };
+        var = value;
+    }
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowSpeakersFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    {
+        juce::ScopedWriteLock const lock{ mLock };
+
+        auto & var{ mData.appData.viewSettings.showSpeakers };
+        var = value;
+    }
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowSpeakerTripletsFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const readLock{ mLock };
+
+    if (!mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
+        return;
+    }
+
+    juce::ScopedWriteLock const writeLock{ mLock };
+    mData.appData.viewSettings.showSpeakerTriplets = value;
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowSourceActivityFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.showSourceActivity };
+    var = value;
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowSpeakerLevelFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.showSpeakerLevels };
+    var = value;
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowSphereOrCubeFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.showSphereOrCube };
+    var = value;
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::handleWindowPositionFromSpeakerView(juce::String value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    value = value.removeCharacters("( )");
+    auto posX = value.upToFirstOccurrenceOf(",", false, true).getIntValue();
+    auto posY = value.fromFirstOccurrenceOf(",", false, true).getIntValue();
+
+    auto & var{ mData.appData.speakerViewWindowPosition };
+
+    var = juce::Point<int>(posX, posY);
+}
+
+//==============================================================================
+void MainContentComponent::handleWindowSizeFromSpeakerView(juce::String value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    value = value.removeCharacters("( )");
+    auto sizeX = value.upToFirstOccurrenceOf(",", false, true).getIntValue();
+    auto sizeY = value.fromFirstOccurrenceOf(",", false, true).getIntValue();
+
+    auto & var{ mData.appData.speakerViewWindowSize };
+
+    var = juce::Point<int>(sizeX, sizeY);
+}
+
+//==============================================================================
+void MainContentComponent::handleCameraPositionFromSpeakerView(juce::String value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    value = value.removeCharacters("( )");
+    auto lengthStr = value.fromLastOccurrenceOf(",", false, true);
+    value = value.dropLastCharacters(lengthStr.length() + 1);
+    auto elevationStr = value.fromLastOccurrenceOf(",", false, true);
+    value = value.dropLastCharacters(elevationStr.length() + 1);
+    auto azimuthStr = value.fromLastOccurrenceOf(",", false, true);
+
+    auto azimuth = static_cast<radians_t>(juce::degreesToRadians(azimuthStr.getFloatValue()));
+    auto elevation = static_cast<radians_t>(juce::degreesToRadians(elevationStr.getFloatValue()));
+    auto length = lengthStr.getFloatValue() / 10.0f;
+
+    auto camPolarVec = PolarVector(azimuth, elevation, length);
+    auto camPos = Position(camPolarVec);
+
+    mSpeakerViewComponent->setCameraPosition(camPos.getCartesian());
+}
+
+//==============================================================================
 bool MainContentComponent::savePlayerProject(juce::File & playerFilesFolder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2818,12 +3077,12 @@ void MainContentComponent::resized()
 
     auto const availableBounds{ getLocalBounds().reduced(2).withTrimmedTop(MENU_BAR_HEIGHT) };
 
-    // Lay out the speaker view and the vertical divider.
-    Component * vComps[] = { mSpeakerViewComponent.get(), mVerticalDividerBar.get(), mMainLayout.get(), nullptr };
+    // Lay out the speaker view and the vertical divider. (No divider since SpeakerView)
+    Component * vComps[] = { mMainLayout.get(), nullptr };
 
     // Lay out side-by-side and resize the components' heights as well as widths.
     mVerticalLayout.layOutComponents(vComps,
-                                     3,
+                                     1,
                                      availableBounds.getX(),
                                      availableBounds.getY(),
                                      availableBounds.getWidth(),
