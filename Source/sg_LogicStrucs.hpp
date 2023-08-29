@@ -32,6 +32,9 @@
 
 namespace gris
 {
+constexpr auto DEFAULT_UDP_INPUT_PORT = 18022;
+constexpr auto DEFAULT_UDP_OUTPUT_PORT = 18023;
+
 constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
 constexpr auto MAX_OSC_INPUT_PORT = 65535;
 
@@ -359,6 +362,8 @@ struct AppData {
     RecordingOptions recordingOptions{};
     ViewSettings viewSettings{};
     CartesianVector cameraPosition{ -0.5256794095039368f, -2.008379459381104f, 1.312143206596375f };
+    juce::Point<int> speakerViewWindowPosition{};
+    juce::Point<int> speakerViewWindowSize{};
     juce::String lastSpeakerSetup{ DEFAULT_SPEAKER_SETUP_FILE.getFullPathName() };
     juce::String lastProject{ DEFAULT_PROJECT_FILE.getFullPathName() };
     juce::String lastRecordingDirectory{
@@ -371,7 +376,7 @@ struct AppData {
     int windowY{ 100 };
     int windowWidth{ 1200 };
     int windowHeight{ 637 };
-    double sashPosition{ -0.4694048616932104 };
+    double sashPosition{ -0.4694048616932104 }; // TODO: should be removed since SpeakerView
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<AppData> fromXml(juce::XmlElement const & xml);

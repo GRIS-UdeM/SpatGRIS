@@ -41,6 +41,7 @@ enum CommandId {
     showPlayerWindowId,
     showSpeakerEditId,
     showOscMonitorId,
+    showSpeakerViewId,
 
     showSourceNumbersId,
     showSpeakerNumbersId,

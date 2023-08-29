@@ -117,6 +117,7 @@ class MainContentComponent final
     std::unique_ptr<LayoutComponent> mMainLayout{};
     //==============================================================================
     std::unique_ptr<SpeakerViewComponent> mSpeakerViewComponent{};
+    juce::ChildProcess mSpeakerViewProcess;
     juce::StretchableLayoutManager mVerticalLayout{};
     std::unique_ptr<juce::StretchableLayoutResizerBar> mVerticalDividerBar{};
 
@@ -248,6 +249,19 @@ public:
     void handleNewProjectForPlayer();
     bool savePlayerProject(juce::File & playerFilesFolder);
 
+    // SpeakerView
+    void handleResetSourcesPositionsFromSpeakerView();
+    void handleShowSourceNumbersFromSpeakerView(bool value);
+    void handleShowSpeakerNumbersFromSpeakerView(bool value);
+    void handleShowSpeakersFromSpeakerView(bool value);
+    void handleShowSpeakerTripletsFromSpeakerView(bool value);
+    void handleShowSourceActivityFromSpeakerView(bool value);
+    void handleShowSpeakerLevelFromSpeakerView(bool value);
+    void handleShowSphereOrCubeFromSpeakerView(bool value);
+    void handleWindowPositionFromSpeakerView(juce::String value);
+    void handleWindowSizeFromSpeakerView(juce::String value);
+    void handleCameraPositionFromSpeakerView(juce::String value);
+
 private:
     //==============================================================================
     [[nodiscard]] bool isProjectModified() const;
@@ -264,6 +278,7 @@ private:
     void handleShowAbout();
     void handleShow2DView();
     void handleShowPlayerWindow();
+    void handleShowSpeakerViewWindow();
     void handleShowSourceNumbers();
     void handleShowSpeakerNumbers();
     void handleShowSpeakers();
