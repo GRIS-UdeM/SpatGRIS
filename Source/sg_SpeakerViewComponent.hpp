@@ -52,6 +52,8 @@ private:
     juce::Array<juce::var> mJsonSpeakers;
     std::unique_ptr<juce::DynamicObject> mJsonSGInfos;
 
+    bool mKillSpeakerViewProcess{};
+
 public:
     //==============================================================================
     static constexpr auto SPHERE_RADIUS = 0.03f;
@@ -75,12 +77,15 @@ public:
     void setCameraPosition(CartesianVector const & position) noexcept;
     void setTriplets(juce::Array<Triplet> triplets) noexcept;
 
+    void shouldKillSpeakerViewProcess(bool shouldKill);
+
     auto const & getLock() const noexcept { return mLock; }
     //==============================================================================
     void hiResTimerCallback() override;
 
 private:
     //==============================================================================
+    void prepareSGInfos();
     bool isHiResTimerThread();
     void listenUDP();
     void sendUDP();

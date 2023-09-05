@@ -248,9 +248,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     resized();
     startTimerHz(24);
 
-    // Start SpeakerView networking
-    // mSpeakerViewComponent->startSpeakerViewNetworking();
-
     // init buffers properly
     audioParametersChanged();
 }
@@ -275,8 +272,9 @@ MainContentComponent::~MainContentComponent()
         mConfiguration.save(mData.appData);
     }
 
-    if (mSpeakerViewProcess.isRunning()) {
-        mSpeakerViewProcess.kill();
+    if (isSpeakerViewProcessRunning()) {
+        // instead of mSpeakerViewProcess.kill(), we ask SpeakerView to quit itself
+        mSpeakerViewComponent->shouldKillSpeakerViewProcess(true);
     }
 
     mSpeakerViewComponent.reset();
@@ -660,10 +658,9 @@ void MainContentComponent::handleShowPlayerWindow()
 //==============================================================================
 void MainContentComponent::handleShowSpeakerViewWindow()
 {
-    if (mSpeakerViewProcess.isRunning()) {
-        // we're closing speakerview
-        mSpeakerViewProcess.kill();
-        mSpeakerViewComponent->stopSpeakerViewNetworking();
+    if (isSpeakerViewProcessRunning()) {
+        // instead of mSpeakerViewProcess.kill(), we ask SpeakerView to quit itself
+        mSpeakerViewComponent->shouldKillSpeakerViewProcess(true);
         return;
     }
 
@@ -676,14 +673,18 @@ void MainContentComponent::handleShowSpeakerViewWindow()
                                                nullptr);
     };
 
-    juce::StringArray launchCommand;
-    auto const SpatGrisDirectory{ juce::File::getSpecialLocation(
-        juce::File::SpecialLocationType::currentExecutableFile) };
+    mSpeakerViewComponent->shouldKillSpeakerViewProcess(false);
 
-    auto const speakerViewExecWindows{ SpatGrisDirectory.getSiblingFile("RoomView.exe") };
-    auto const speakerViewExecMacOS{ SpatGrisDirectory.getSiblingFile("RoomView.app") };
-    auto const speakerViewExecLinux{ SpatGrisDirectory.getSiblingFile("RoomView.x86_64") };
-    auto const speakerViewPckWindowsAndLinux{ SpatGrisDirectory.getSiblingFile("RoomView.pck") };
+    juce::StringArray launchCommand;
+    auto const spatGrisDirectory{ juce::File::getSpecialLocation(
+        juce::File::SpecialLocationType::currentExecutableFile) };
+    auto const spatGrisMacOSAppDirectory{ juce::File::getSpecialLocation(
+        juce::File::SpecialLocationType::currentApplicationFile) };
+
+    auto const speakerViewExecWindows{ spatGrisDirectory.getSiblingFile("SpeakerView.exe") };
+    auto const speakerViewExecMacOS{ spatGrisMacOSAppDirectory.getSiblingFile("SpeakerView.app") };
+    auto const speakerViewExecLinux{ spatGrisDirectory.getSiblingFile("SpeakerView.x86_64") };
+    auto const speakerViewPckWindowsAndLinux{ spatGrisDirectory.getSiblingFile("SpeakerView.pck") };
 
     bool speakerViewExecExists{};
     bool speakerViewPckExists{ speakerViewPckWindowsAndLinux.existsAsFile() };
@@ -757,8 +758,10 @@ void MainContentComponent::handleShowSpeakerViewWindow()
     jassert(res);
 
     // Start SpeakerView networking
-    if (res)
+    if (res) {
+        mSpeakerViewComponent->stopSpeakerViewNetworking();
         mSpeakerViewComponent->startSpeakerViewNetworking();
+    }
 }
 
 //==============================================================================
@@ -1231,7 +1234,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case CommandId::showSpeakerViewId:
         result.setInfo("Show Speaker View", "Show the speaker window.", generalCategory, 0);
         result.addDefaultKeypress('V', juce::ModifierKeys::altModifier);
-        result.setTicked(mSpeakerViewProcess.isRunning());
+        result.setTicked(isSpeakerViewProcessRunning());
         return;
     case CommandId::showSourceNumbersId:
         result.setInfo("Show Source Numbers", "Show source numbers on the 3D view.", generalCategory, 0);
@@ -2447,6 +2450,34 @@ void MainContentComponent::handlePlayerPlayStop()
         const juce::KeyPress spaceKey(juce::KeyPress::spaceKey);
         mPlayerWindow->keyPressed(spaceKey);
     }
+}
+
+//==============================================================================
+int MainContentComponent::getSpeakerViewPIDOnMacOS() const
+{
+    juce::ChildProcess checkPID;
+    juce::StringArray launchCommand;
+
+    launchCommand.add("pgrep");
+    launchCommand.add("SpeakerView");
+
+    [[maybe_unused]] auto res{ checkPID.start(launchCommand) };
+    auto pid{ checkPID.readAllProcessOutput().getIntValue() };
+
+    return pid ? pid : -1;
+}
+
+//==============================================================================
+bool MainContentComponent::isSpeakerViewProcessRunning() const
+{
+    if (juce::SystemStats::getOperatingSystemName().contains("Mac")) {
+        auto const speakerViewPID{ getSpeakerViewPIDOnMacOS() };
+        if (speakerViewPID > 0) {
+            return true;
+        }
+    }
+
+    return mSpeakerViewProcess.isRunning();
 }
 
 //==============================================================================

@@ -310,6 +310,10 @@ private:
     // Player control
     void handlePlayerPlayStop();
     //==============================================================================
+    // SpeakerView
+    int getSpeakerViewPIDOnMacOS() const;
+    bool isSpeakerViewProcessRunning() const;
+    //==============================================================================
     // Open - save.
     [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
     bool loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption option);

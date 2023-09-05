@@ -42,12 +42,25 @@ SpeakerViewComponent::~SpeakerViewComponent()
 //==============================================================================
 void SpeakerViewComponent::startSpeakerViewNetworking()
 {
+    JUCE_ASSERT_MESSAGE_THREAD
+    juce::ScopedLock const lock{ mLock };
+
     startTimer(33);
 }
 
 //==============================================================================
 void SpeakerViewComponent::stopSpeakerViewNetworking()
 {
+    JUCE_ASSERT_MESSAGE_THREAD
+    juce::ScopedLock const lock{ mLock };
+
+    // empty UDP buffer
+    juce::String senderAddress;
+    int senderPort;
+    char receiveBuffer[mMaxBufferSize];
+    [[maybe_unused]] auto packetSize
+        = mUdpReceiverSocket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
+
     stopTimer();
 }
 
@@ -88,6 +101,21 @@ void SpeakerViewComponent::setTriplets(juce::Array<Triplet> triplets) noexcept
     JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
     mData.coldData.triplets = std::move(triplets);
+}
+
+//==============================================================================
+void SpeakerViewComponent::shouldKillSpeakerViewProcess(bool shouldKill)
+{
+    JUCE_ASSERT_MESSAGE_THREAD
+    juce::ScopedLock const lock{ mLock };
+
+    mKillSpeakerViewProcess = shouldKill;
+
+    if (shouldKill) {
+        prepareSGInfos();
+        sendUDP();
+        stopTimer();
+    }
 }
 
 //==============================================================================
@@ -188,10 +216,19 @@ void SpeakerViewComponent::hiResTimerCallback()
     }
 
     // Prepare json SpatGris infos
-    auto const & spatMode{ static_cast<int>(mData.warmData.spatMode) };
+    prepareSGInfos();
 
+    sendUDP();
+}
+
+//==============================================================================
+void SpeakerViewComponent::prepareSGInfos()
+{
+    auto const & spatMode{ static_cast<int>(mData.warmData.spatMode) };
+    auto const & viewSettings{ mData.warmData.viewSettings };
     mJsonSGInfos.reset(new juce::DynamicObject());
 
+    mJsonSGInfos->setProperty("killSV", mKillSpeakerViewProcess);
     mJsonSGInfos->setProperty("spkStpName", mData.warmData.title);
     mJsonSGInfos->setProperty("spatMode", spatMode); // -1, 0, 1, 2
     mJsonSGInfos->setProperty("showSourceNumber", viewSettings.showSourceNumbers);
@@ -214,7 +251,6 @@ void SpeakerViewComponent::hiResTimerCallback()
     }
 
     mJsonSGInfos->setProperty("spkTriplets", triplets);
-    sendUDP();
 }
 
 //==============================================================================
@@ -313,6 +349,10 @@ void SpeakerViewComponent::listenUDP()
                         juce::MessageManager::callAsync([this, camPosValue] {
                             mMainContentComponent.handleCameraPositionFromSpeakerView(camPosValue);
                         });
+                    } else if (property.compare(juce::String("quitting")) == 0) {
+                        bool quittingValue = value;
+                        if (quittingValue)
+                            stopTimer();
                     }
                 }
             }
@@ -348,15 +388,17 @@ void SpeakerViewComponent::sendUDP()
         jassert(!(numBytesWrittenSpeakers < 0));
     }
 
-    juce::var jsonSGInfos(mJsonSGInfos.release());
-    juce::String jsonSGInfosStr = juce::JSON::toString(jsonSGInfos);
-    if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
-        [[maybe_unused]] int numBytesWrittenSGInfos
-            = udpSenderSocket.write(remoteHostname,
-                                    DEFAULT_UDP_INPUT_PORT,
-                                    jsonSGInfosStr.toStdString().c_str(),
-                                    static_cast<int>(jsonSGInfosStr.toStdString().length()));
-        jassert(!(numBytesWrittenSGInfos < 0));
+    if (mJsonSGInfos != nullptr) {
+        juce::var jsonSGInfos(mJsonSGInfos.release());
+        juce::String jsonSGInfosStr = juce::JSON::toString(jsonSGInfos);
+        if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
+            [[maybe_unused]] int numBytesWrittenSGInfos
+                = udpSenderSocket.write(remoteHostname,
+                                        DEFAULT_UDP_INPUT_PORT,
+                                        jsonSGInfosStr.toStdString().c_str(),
+                                        static_cast<int>(jsonSGInfosStr.toStdString().length()));
+            jassert(!(numBytesWrittenSGInfos < 0));
+        }
     }
 }
 
