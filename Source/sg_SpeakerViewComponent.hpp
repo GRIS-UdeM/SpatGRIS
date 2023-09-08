@@ -70,6 +70,7 @@ public:
 
     void startSpeakerViewNetworking();
     void stopSpeakerViewNetworking();
+    bool isSpeakerViewNetworkingRunning();
 
     Position getCameraPosition() const noexcept;
 
@@ -89,6 +90,7 @@ private:
     bool isHiResTimerThread();
     void listenUDP();
     void sendUDP();
+    void emptyUDPReceiverBuffer();
 
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerViewComponent)
