@@ -659,8 +659,14 @@ void MainContentComponent::handleShowPlayerWindow()
 void MainContentComponent::handleShowSpeakerViewWindow()
 {
     if (isSpeakerViewProcessRunning()) {
-        // instead of mSpeakerViewProcess.kill(), we ask SpeakerView to quit itself
-        mSpeakerViewComponent->shouldKillSpeakerViewProcess(true);
+        if (mSpeakerViewComponent->isSpeakerViewNetworkingRunning()) {
+            // instead of mSpeakerViewProcess.kill(), we ask SpeakerView to quit itself
+            mSpeakerViewComponent->shouldKillSpeakerViewProcess(true);
+            return;
+        }
+
+        mSpeakerViewComponent->stopSpeakerViewNetworking();
+        mSpeakerViewComponent->startSpeakerViewNetworking();
         return;
     }
 
@@ -673,6 +679,7 @@ void MainContentComponent::handleShowSpeakerViewWindow()
                                                nullptr);
     };
 
+    mSpeakerViewComponent->stopSpeakerViewNetworking();
     mSpeakerViewComponent->shouldKillSpeakerViewProcess(false);
 
     juce::StringArray launchCommand;
@@ -759,7 +766,6 @@ void MainContentComponent::handleShowSpeakerViewWindow()
 
     // Start SpeakerView networking
     if (res) {
-        mSpeakerViewComponent->stopSpeakerViewNetworking();
         mSpeakerViewComponent->startSpeakerViewNetworking();
     }
 }

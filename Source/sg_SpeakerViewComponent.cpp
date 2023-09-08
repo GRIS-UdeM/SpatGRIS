@@ -35,8 +35,8 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentCom
 //==============================================================================
 SpeakerViewComponent::~SpeakerViewComponent()
 {
-    mUdpReceiverSocket.shutdown();
     stopTimer();
+    mUdpReceiverSocket.shutdown();
 }
 
 //==============================================================================
@@ -54,14 +54,17 @@ void SpeakerViewComponent::stopSpeakerViewNetworking()
     JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
 
-    // empty UDP buffer
-    juce::String senderAddress;
-    int senderPort;
-    char receiveBuffer[mMaxBufferSize];
-    [[maybe_unused]] auto packetSize
-        = mUdpReceiverSocket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
-
     stopTimer();
+    emptyUDPReceiverBuffer();
+}
+
+//==============================================================================
+bool SpeakerViewComponent::isSpeakerViewNetworkingRunning()
+{
+    JUCE_ASSERT_MESSAGE_THREAD
+    juce::ScopedLock const lock{ mLock };
+
+    return isTimerRunning();
 }
 
 //==============================================================================
@@ -112,9 +115,9 @@ void SpeakerViewComponent::shouldKillSpeakerViewProcess(bool shouldKill)
     mKillSpeakerViewProcess = shouldKill;
 
     if (shouldKill) {
+        // asking SpeakView to quit itself. SpeakView will send stop message before closing
         prepareSGInfos();
         sendUDP();
-        stopTimer();
     }
 }
 
@@ -351,8 +354,10 @@ void SpeakerViewComponent::listenUDP()
                         });
                     } else if (property.compare(juce::String("quitting")) == 0) {
                         bool quittingValue = value;
-                        if (quittingValue)
+                        if (quittingValue) {
                             stopTimer();
+                            emptyUDPReceiverBuffer();
+                        }
                     }
                 }
             }
@@ -400,6 +405,16 @@ void SpeakerViewComponent::sendUDP()
             jassert(!(numBytesWrittenSGInfos < 0));
         }
     }
+}
+
+//==============================================================================
+void SpeakerViewComponent::emptyUDPReceiverBuffer()
+{
+    juce::String senderAddress;
+    int senderPort;
+    char receiveBuffer[mMaxBufferSize];
+    [[maybe_unused]] auto packetSize
+        = mUdpReceiverSocket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
 }
 
 } // namespace gris
