@@ -3,7 +3,8 @@
 #define AppURL "http://gris.musique.umontreal.ca/"
 #define AppExeName "SpatGris.exe"
 #define ControlGrisDir "ControlGris"
-#define ManualName "SpatGRIS_3.2.11_Manual_EN.pdf"
+#define ManualENName "SpatGRIS_3.2.11_Manual_EN.pdf"
+#define ManualFRName "SpatGRIS_3.2.11_Manual_FR.pdf"
 #define RootDir ".."
 
 #define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
@@ -56,7 +57,8 @@ Source: "{#BuildDir}\freeglut.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ResourcesDir}\hrtf_compact\*"; DestDir: "{app}\Resources\hrtf_compact"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\default_preset\*"; DestDir: "{app}\Resources\default_preset"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\templates\*"; DestDir: "{app}\Resources\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#ResourcesDir}\{#ManualName}"; DestDir: "{app}\Resources"; Flags: ignoreversion
+Source: "{#ResourcesDir}\{#ManualENName}"; DestDir: "{app}\Resources"; Flags: ignoreversion
+Source: "{#ResourcesDir}\{#ManualFRName}"; DestDir: "{app}\Resources"; Flags: ignoreversion
 Source: "{#ResourcesDir}\ServerGRIS_icon_splash_small.png"; DestDir: "{app}\Resources"; Flags: ignoreversion
 Source: "{#ResourcesDir}\splash_screen.png"; DestDir: "{app}\Resources"; Flags: ignoreversion
 
@@ -79,7 +81,8 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: deskto
 Name: "{group}\Uninstall {#AppName} {#AppVersion}"; Filename: {uninstallexe}
 
 [Run]
-Filename: "{app}\Resources\{#ManualName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF Users Manual"; Flags: shellexec postinstall skipifsilent nowait
+Filename: "{app}\Resources\{#ManualENName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF Users Manual (EN)"; Flags: shellexec postinstall skipifsilent nowait
+Filename: "{app}\Resources\{#ManualFRName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF Users Manual (FR)"; Flags: shellexec postinstall skipifsilent nowait unchecked
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 ; code shared by discoDSP https://www.kvraudio.com/forum/viewtopic.php?t=501615
