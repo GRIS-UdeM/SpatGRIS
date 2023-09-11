@@ -33,7 +33,7 @@ ArchitecturesInstallIn64BitMode=x64
 Compression=lzma
 DefaultDirName={autopf}\{#AppName}
 DisableProgramGroupPage=yes
-InfoBeforeFile=winInstallerUserInfos.txt
+;InfoBeforeFile=winInstallerUserInfos.txt
 LicenseFile="..\LICENSE"
 OutputDir=.
 OutputBaseFilename="{#AppName}_{#AppVersion}_Windows_x64"  
@@ -81,8 +81,8 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: deskto
 Name: "{group}\Uninstall {#AppName} {#AppVersion}"; Filename: {uninstallexe}
 
 [Run]
-Filename: "{app}\Resources\{#ManualENName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF Users Manual (EN)"; Flags: shellexec postinstall skipifsilent nowait
-Filename: "{app}\Resources\{#ManualFRName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF Users Manual (FR)"; Flags: shellexec postinstall skipifsilent nowait unchecked
+Filename: "{app}\Resources\{#ManualENName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF User Manual (EN)"; Flags: shellexec postinstall skipifsilent nowait
+Filename: "{app}\Resources\{#ManualFRName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF User Manual (FR)"; Flags: shellexec postinstall skipifsilent nowait unchecked
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 ; code shared by discoDSP https://www.kvraudio.com/forum/viewtopic.php?t=501615
