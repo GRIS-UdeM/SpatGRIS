@@ -320,7 +320,8 @@ private:
     [[nodiscard]] juce::ApplicationCommandTarget * getNextCommandTarget() override;
     [[nodiscard]] bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
     //==============================================================================
-    static void handleOpenManual();
+    static void handleOpenManualEN();
+    static void handleOpenManualFR();
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };

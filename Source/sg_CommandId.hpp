@@ -56,7 +56,8 @@ enum CommandId {
 
     // Help menu
     aboutId,
-    openManualId,
+    openManualENId,
+    openManualFRId,
 
     // Player control
     playerPlayStopId

@@ -26,7 +26,8 @@ namespace gris
 void SpatGrisApplication::initialise(juce::String const & /*commandLine*/)
 {
     // Make sure that the manual can be found.
-    jassert(MANUAL_FILE.existsAsFile());
+    jassert(MANUAL_FILE_EN.existsAsFile());
+    jassert(MANUAL_FILE_FR.existsAsFile());
 
     mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel, mSmallLookAndFeel);
 }
