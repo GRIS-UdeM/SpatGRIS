@@ -51,7 +51,9 @@ float gainToSpeakerAlpha(float const gain)
     static constexpr dbfs_t DB_RANGE{ MAX_DB - MIN_DB };
 
     auto const clippedGain{ std::clamp(dbfs_t::fromGain(gain), MIN_DB, MAX_DB) };
-    auto const ratio{ (clippedGain - MIN_DB) / DB_RANGE };
+    // Using abs() because of -ffast-math compiler flag (Projucer Relax IEEE Compliance is Enabled)
+    // ratio value can be -0.0f, which makes result nan (and cause problems to SpeakerView)
+    auto const ratio{ std::abs((clippedGain - MIN_DB) / DB_RANGE) };
     jassert(ratio >= 0.0f && ratio <= 1.0f);
     auto const result{ std::pow(ratio, ALPHA_CURVE) * ALPHA_RANGE + MIN_ALPHA };
 
