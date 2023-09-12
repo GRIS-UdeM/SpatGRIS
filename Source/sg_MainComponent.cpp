@@ -781,12 +781,22 @@ void MainContentComponent::handleShowAbout()
 }
 
 //==============================================================================
-void MainContentComponent::handleOpenManual()
+void MainContentComponent::handleOpenManualEN()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (MANUAL_FILE.exists()) {
-        juce::Process::openDocument("file:" + MANUAL_FILE.getFullPathName(), juce::String());
+    if (MANUAL_FILE_EN.exists()) {
+        juce::Process::openDocument("file:" + MANUAL_FILE_EN.getFullPathName(), juce::String());
+    }
+}
+
+//==============================================================================
+void MainContentComponent::handleOpenManualFR()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (MANUAL_FILE_FR.exists()) {
+        juce::Process::openDocument("file:" + MANUAL_FILE_FR.getFullPathName(), juce::String());
     }
 }
 
@@ -1156,7 +1166,8 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
                                              CommandId::openSettingsWindowId,
                                              CommandId::quitId,
                                              CommandId::aboutId,
-                                             CommandId::openManualId,
+                                             CommandId::openManualENId,
+                                             CommandId::openManualFRId,
                                              CommandId::playerPlayStopId };
 
     commands.addArray(ids.data(), narrow<int>(ids.size()));
@@ -1304,8 +1315,11 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case CommandId::aboutId:
         result.setInfo("About SpatGRIS", "Open the about window.", generalCategory, 0);
         return;
-    case CommandId::openManualId:
-        result.setInfo("Open Documentation", "Open the manual in pdf viewer.", generalCategory, 0);
+    case CommandId::openManualENId:
+        result.setInfo("Open Documentation (EN)", "Open the manual in pdf viewer.", generalCategory, 0);
+        return;
+    case CommandId::openManualFRId:
+        result.setInfo("Open Documentation (FR)", "Open the manual in pdf viewer.", generalCategory, 0);
         return;
     case CommandId::playerPlayStopId:
         result.setInfo("Play Stop", "Play or Stop Player Playback", generalCategory, 0);
@@ -1402,8 +1416,11 @@ bool MainContentComponent::perform(InvocationInfo const & info)
         case CommandId::aboutId:
             handleShowAbout();
             break;
-        case CommandId::openManualId:
-            handleOpenManual();
+        case CommandId::openManualENId:
+            handleOpenManualEN();
+            break;
+        case CommandId::openManualFRId:
+            handleOpenManualFR();
             break;
         case CommandId::playerPlayStopId:
             handlePlayerPlayStop();
@@ -1546,7 +1563,8 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, CommandId::resetMeterClipping);
     } else if (menuName == "Help") {
         menu.addCommandItem(commandManager, CommandId::aboutId);
-        menu.addCommandItem(commandManager, CommandId::openManualId);
+        menu.addCommandItem(commandManager, CommandId::openManualENId);
+        menu.addCommandItem(commandManager, CommandId::openManualFRId);
     }
     return menu;
 }

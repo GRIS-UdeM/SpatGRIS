@@ -3,11 +3,13 @@
 # Developers: Gaël Lane Lépine, Olivier Belanger, Samuel Béland
 
 #==============================================================================
-export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkg-path> --pass <dev-id-password>"
+export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --pass <dev-id-password>"
 export BIN_PATH=""
 export PASS=""
 export PLUGINS_PKG=""
-export BLACKHOLE_PKG=""
+export BLACKHOLE_PKGS_DIR=""
+
+Projucer=~/JUCE/Projucer.app/Contents/MacOS/Projucer
 
 #==============================================================================
 # Parse args
@@ -34,7 +36,7 @@ case $key in
 	shift
 	;;
 	--blackhole)
-	BLACKHOLE_PKG="$2"
+	BLACKHOLE_PKGS_DIR="$2""/*"
 	shift
 	shift
 	;;
@@ -58,7 +60,7 @@ elif [[ $PLUGINS_PKG == "" ]];then
 	echo "Missing param --plugins"
 	echo -e "$USAGE"
 	exit 1
-elif [[ $BLACKHOLE_PKG == "" ]];then
+elif [[ $BLACKHOLE_PKGS_DIR == "" ]];then
 	echo "Missing param --backhole"
 	echo -e "$USAGE"
 	exit 1
@@ -68,7 +70,7 @@ fi
 # get app version
 
 PROJECT_FILE="../SpatGRIS.jucer"
-VERSION=`Projucer --get-version "$PROJECT_FILE"`
+VERSION=`$Projucer --get-version "$PROJECT_FILE"`
 echo "SpatGris version is $VERSION"
 
 #==============================================================================
@@ -150,7 +152,10 @@ function build_dmg() {
 	mkdir -p "$DMG_DIR" || exit 1
 	cd "$DMG_DIR" || exit 1
 	cp "../$PACKAGE_NAME" . || exit 1
-	cp "$BLACKHOLE_PKG" . || exit -1
+
+	for blackhole_pkg in $BLACKHOLE_PKGS_DIR; do
+		cp $blackhole_pkg . || exit -1
+	done
 
 	cd ..
 
