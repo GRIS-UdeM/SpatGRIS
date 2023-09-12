@@ -8,7 +8,7 @@
 #define RootDir ".."
 
 #define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
-#define ControlGrisVersionLong GetVersionNumbersString(ControlGrisDir + "\ControlGris.vst3")
+#define ControlGrisVersionLong GetVersionNumbersString(ControlGrisDir + "\ControlGris.vst3\Contents\x86_64-win\ControlGris.vst3")
 #define ResourcesDir RootDir + "\Resources"
 
 #define AppExePath BuildDir + "\" + AppExeName
@@ -41,6 +41,7 @@ PrivilegesRequired=admin
 SetupIconFile="{#ResourcesDir}\ServerGRIS_icon_doc.ico"
 SolidCompression=yes
 WizardStyle=modern
+;UsePreviousAppDir=no
 ; Add the following line to run user mode (install for all users.)
 ;PrivilegesRequired=lowest
 ;PrivilegesRequiredOverridesAllowed=dialog
@@ -50,6 +51,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+[InstallDelete]
+Type: filesandordirs; Name: "{commoncf64}\VST3\ControlGris.vst3"
 
 [Files]
 Source: "{#AppExePath}"; DestDir: "{app}"; Flags: ignoreversion
@@ -64,11 +68,13 @@ Source: "{#ResourcesDir}\splash_screen.png"; DestDir: "{app}\Resources"; Flags: 
 
 ; ControlGris
 Source: "{#ControlGrisDir}\ControlGris.dll"; DestDir: {code:GetVST2Dir|0}; Components: VST64;
-Source: "{#ControlGrisDir}\ControlGris.vst3"; DestDir: "{cf64}\VST3\"; Components: VST364;
-;Source: "{#AaxInPath}\Contents"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion recursesubdirs createallsubdirs;
-Source: "{#AaxInPath}"; DestDir: "C:\Program Files\Common Files\Avid\Audio\Plug-Ins"; Components: AAX; Flags: ignoreversion recursesubdirs createallsubdirs;
-Source: "{#AaxInPath}\desktop.ini"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
-Source: "{#AaxInPath}\PlugIn.ico"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
+
+Source: "{#ControlGrisDir}\ControlGris.vst3\*"; DestDir: "C:\Program Files\Common Files\VST3\ControlGris.vst3"; Components: VST364; Flags: ignoreversion recursesubdirs createallsubdirs;
+;Source: "{#ControlGrisDir}\ControlGris.vst3\Contents\Resources\moduleinfo.json"; DestDir: "{commoncf64}\VST3\ControlGris.vst3\Contents\Resources\"; Components: VST364; Flags: ignoreversion;
+
+Source: "ControlGris\ControlGris.aaxplugin\*"; DestDir: "C:\Program Files\Common Files\Avid\Audio\Plug-Ins\ControlGris.aaxplugin"; Components: AAX; Flags: ignoreversion recursesubdirs createallsubdirs;
+;Source: "{#AaxInPath}\desktop.ini"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
+;Source: "{#AaxInPath}\PlugIn.ico"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
 
 [Components]
 Name: "VST364"; Description: "ControlGris {#ControlGrisVersion} VST3"; Types: custom full;
@@ -134,7 +140,7 @@ procedure CurPageChanged(CurPageID: Integer);
 begin
   if CurPageID = VST2DirPage.ID then
   begin
-    VST2DirPage.Buttons[0].Enabled := IsComponentSelected('VST64');
+    VST2DirPage.Buttons[0].Enabled := WizardIsComponentSelected('VST64');
     VST2DirPage.PromptLabels[0].Enabled := VST2DirPage.Buttons[0].Enabled;
     VST2DirPage.Edits[0].Enabled := VST2DirPage.Buttons[0].Enabled;
   end;
@@ -149,7 +155,7 @@ function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   if PageID = VST2DirPage.ID then
   begin
-    If (not IsComponentSelected('VST')) and (not IsComponentSelected('VST64'))then
+    If (not WizardIsComponentSelected('VST')) and (not WizardIsComponentSelected('VST64'))then
       begin
         Result := True
       end;
