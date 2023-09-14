@@ -45,7 +45,7 @@ void SpeakerViewComponent::startSpeakerViewNetworking()
     JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
 
-    startTimer(33);
+    startTimer(40);
 }
 
 //==============================================================================
