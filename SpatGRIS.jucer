@@ -259,10 +259,6 @@
                 resource="0" file="Source/sg_EditableTextCustomComponent.cpp"/>
           <FILE id="rOZ5jL" name="sg_EditableTextCustomComponent.hpp" compile="0"
                 resource="0" file="Source/sg_EditableTextCustomComponent.hpp"/>
-          <FILE id="cbWnv8" name="sg_SpeakerViewComponent.cpp" compile="1" resource="0"
-                file="Source/sg_SpeakerViewComponent.cpp"/>
-          <FILE id="rQi0F2" name="sg_SpeakerViewComponent.hpp" compile="0" resource="0"
-                file="Source/sg_SpeakerViewComponent.hpp"/>
         </GROUP>
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Windows">
           <FILE id="SHGT1U" name="sg_AboutWindow.cpp" compile="1" resource="0"
@@ -322,6 +318,10 @@
             file="Source/sg_MainWindow.hpp"/>
       <FILE id="hAjUTJ" name="sg_OscInput.cpp" compile="1" resource="0" file="Source/sg_OscInput.cpp"/>
       <FILE id="LWdvSw" name="sg_OscInput.hpp" compile="0" resource="0" file="Source/sg_OscInput.hpp"/>
+      <FILE id="cbWnv8" name="sg_SpeakerViewComponent.cpp" compile="1" resource="0"
+            file="Source/sg_SpeakerViewComponent.cpp"/>
+      <FILE id="rQi0F2" name="sg_SpeakerViewComponent.hpp" compile="0" resource="0"
+            file="Source/sg_SpeakerViewComponent.hpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
