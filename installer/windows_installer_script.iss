@@ -59,7 +59,6 @@ Type: filesandordirs; Name: "{commoncf64}\VST3\ControlGris.vst3"
 
 [Files]
 Source: "{#AppExePath}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\freeglut.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ResourcesDir}\hrtf_compact\*"; DestDir: "{app}\Resources\hrtf_compact"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\default_preset\*"; DestDir: "{app}\Resources\default_preset"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\templates\*"; DestDir: "{app}\Resources\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
