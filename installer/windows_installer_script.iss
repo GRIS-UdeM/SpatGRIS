@@ -3,12 +3,14 @@
 #define AppURL "http://gris.musique.umontreal.ca/"
 #define AppExeName "SpatGris.exe"
 #define ControlGrisDir "ControlGris"
+#define SpeakerViewDir "SpeakerView"
 #define ManualENName "SpatGRIS_3.2.11_Manual_EN.pdf"
 #define ManualFRName "SpatGRIS_3.2.11_Manual_FR.pdf"
 #define RootDir ".."
 
 #define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
 #define ControlGrisVersionLong GetVersionNumbersString(ControlGrisDir + "\ControlGris.vst3\Contents\x86_64-win\ControlGris.vst3")
+#define SpeakerViewVersion GetFileVersion(SpeakerViewDir + "\SpeakerView.exe")
 #define ResourcesDir RootDir + "\Resources"
 
 #define AppExePath BuildDir + "\" + AppExeName
@@ -76,7 +78,12 @@ Source: "ControlGris\ControlGris.aaxplugin\*"; DestDir: "C:\Program Files\Common
 ;Source: "{#AaxInPath}\desktop.ini"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
 ;Source: "{#AaxInPath}\PlugIn.ico"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
 
+; SpeakerView
+Source: "{#SpeakerViewDir}\SpeakerView.exe"; DestDir: "{app}"; Components: SpeakerView; Flags: ignoreversion
+Source: "{#SpeakerViewDir}\SpeakerView.pck"; DestDir: "{app}"; Components: SpeakerView; Flags: ignoreversion
+
 [Components]
+Name: "SpeakerView"; Description: SpeakerView {#SpeakerViewVersion}; Types: custom full;
 Name: "VST364"; Description: "ControlGris {#ControlGrisVersion} VST3"; Types: custom full;
 Name: "VST64"; Description: "ControlGris {#ControlGrisVersion} VST"; Types: custom full;
 Name: "AAX"; Description: "ControlGris {#ControlGrisVersion} AAX"; Types: custom full;
