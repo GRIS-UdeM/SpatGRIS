@@ -1,4 +1,5 @@
 installer/ControlGris
+installer/SpeakerView
 
 # Inno output dir for Windows installer
 WindowsInstallerOutput
