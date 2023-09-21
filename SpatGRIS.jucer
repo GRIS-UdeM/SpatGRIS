@@ -331,9 +331,9 @@
                iosDevelopmentTeamID="62PMMWH49Z">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
-                       targetName="SpatGRIS" headerPath="../../glm" fastMath="1" macOSDeploymentTarget="10.11"/>
+                       targetName="SpatGRIS" fastMath="1" macOSDeploymentTarget="10.11"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       headerPath="../../glm" osxArchitecture="Native" fastMath="1"/>
+                       osxArchitecture="Native" fastMath="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
