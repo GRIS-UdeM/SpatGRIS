@@ -3,11 +3,12 @@
 # Developers: Gaël Lane Lépine, Olivier Belanger, Samuel Béland
 
 #==============================================================================
-export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --pass <dev-id-password>"
+export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --pass <dev-id-password>"
 export BIN_PATH=""
 export PASS=""
 export PLUGINS_PKG=""
 export BLACKHOLE_PKGS_DIR=""
+export SPEAKERVIEW_APP=""
 
 Projucer=~/JUCE/Projucer.app/Contents/MacOS/Projucer
 
@@ -40,6 +41,11 @@ case $key in
 	shift
 	shift
 	;;
+	--speakerview)
+	SPEAKERVIEW_APP="$2"
+	shift
+	shift
+	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -64,6 +70,10 @@ elif [[ $BLACKHOLE_PKGS_DIR == "" ]];then
 	echo "Missing param --backhole"
 	echo -e "$USAGE"
 	exit 1
+elif [[ $SPEAKERVIEW_APP == "" ]];then
+	echo "Missing param --speakerview"
+	echo -e "$USAGE"
+	exit 1
 fi
 
 #==============================================================================
@@ -80,9 +90,16 @@ PLUGINS_VERSION=$(echo $PLUGINS_PKG | awk -F 'ControlGris_' '{print $NF}' | awk 
 echo "ControlGris version is $PLUGINS_VERSION"
 
 #==============================================================================
+# get SpeakerView version
+
+SPEAKERVIEW_VERSION=`plutil -p $SPEAKERVIEW_APP/Contents/Info.plist | grep CFBundleShortVersionString | grep -o '"[[:digit:].]*"' | sed 's/"//g'`
+echo "SpeakerView version is $SPEAKERVIEW_VERSION"
+
+#==============================================================================
 # package app
 
 IDENTIFIER="ca.umontreal.musique.gris.spatgris.pkg"
+SPEAKERVIEW_IDENTIFIER="ca.umontreal.musique.gris.speakerview.pkg"
 installerSignature="Developer ID Installer: Gael Lane Lepine (62PMMWH49Z)"
 appSignature="Developer ID Application: Gael Lane Lepine (62PMMWH49Z)"
 
@@ -95,6 +112,7 @@ export DMG_NAME="SpatGRIS_v$VERSION.dmg"
 
 export INSTALLER_DIR=`pwd`/installerdir
 export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications
+export SPEAKERVIEW_APPLICATIONS_DIR=$INSTALLER_DIR/SpeakerView_Application/Package_Contents/Applications
 export PLUGINS_DIR=$INSTALLER_DIR/Plugins/Package_Contents/Library/Audio/Plug-Ins
 
 export BUILD_RESOURCES=$INSTALLER_DIR/PkgResources/English.lproj
@@ -102,6 +120,7 @@ export PKG_RESOURCES=$INSTALLER_DIR/../PkgResources
 
 function build_package() {
 	mkdir -p $APPLICATIONS_DIR || exit 1
+	mkdir -p $SPEAKERVIEW_APPLICATIONS_DIR || exit 1
 	mkdir -p $BUILD_RESOURCES || exit 1
 
 	cp $PKG_RESOURCES/License.rtf $BUILD_RESOURCES/License.rtf || exit 1
@@ -110,6 +129,9 @@ function build_package() {
 
 	echo "copying application..."
 	cp -r $BIN_PATH $APPLICATIONS_DIR/ || exit 1
+	
+	echo "copying SpeakerView application..."
+	cp -r $SPEAKERVIEW_APP $SPEAKERVIEW_APPLICATIONS_DIR/ || exit 1
 
 	echo "Copying plugins..."
 	cp -r $PLUGINS_PKG "$INSTALLER_DIR/Plugins.pkg"
@@ -125,9 +147,19 @@ function build_package() {
 	            --sign "$installerSignature" \
 	            --timestamp \
 	            "Application.pkg" || exit 1
+	
+	echo "building SpeakerView.pkg"
+	pkgbuild    --identifier "$SPEAKERVIEW_IDENTIFIER" \
+	            --root "SpeakerView_Application/Package_Contents/" \
+	            --version "$SPEAKERVIEW_VERSION" \
+	            --component-plist "../SpeakerView.plist" \
+	            --sign "$installerSignature" \
+	            --timestamp \
+	            "SpeakerView.pkg" || exit 1
 
-	echo "adding SpatGris and CoontrolGris versions to installer"
+	echo "adding SpatGris, SpeakerView and ControlGris versions to installer"
 	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS $VERSION\"/" ../Distribution.xml || exit 1
+	sed -i '' "s/title=\"SpeakerView.*\"/title=\"SpeakerView $SPEAKERVIEW_VERSION\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"ControlGRIS.*\"/title=\"ControlGRIS $PLUGINS_VERSION\"/" ../Distribution.xml || exit 1
 
 	echo "building $PACKAGE_NAME"
@@ -140,6 +172,7 @@ function build_package() {
 
 	echo "resetting Distribution.xml file"
 	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS\"/" ../Distribution.xml || exit 1
+	sed -i '' "s/title=\"SpeakerView.*\"/title=\"SpeakerView\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"ControlGRIS.*\"/title=\"ControlGRIS\"/" ../Distribution.xml || exit 1
 }
 
@@ -159,7 +192,7 @@ function build_dmg() {
 
 	cd ..
 
-	hdiutil create "$DMG_NAME" -srcfolder "$DMG_DIR" || exit 1
+	hdiutil create -size 130m "$DMG_NAME" -srcfolder "$DMG_DIR" || exit 1
 
 	cd ..
 	mv $INSTALLER_DIR/$DMG_NAME . || exit 1

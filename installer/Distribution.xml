@@ -9,20 +9,26 @@
     <license file="License.rtf" />
 
     <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
+    <pkg-ref id="ca.umontreal.musique.gris.speakerview.pkg"/>
     <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg"/>
 
     <choices-outline>
         <line choice="ca.umontreal.musique.gris.spatgris.pkg"/>
+		<line choice="ca.umontreal.musique.gris.speakerview.pkg"/>
         <line choice="ca.umontreal.musique.gris.controlgris.pkg"/>
     </choices-outline>
     
     <choice id="ca.umontreal.musique.gris.spatgris.pkg" visible="true" title="SpatGRIS">
         <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
     </choice>
+    <choice id="ca.umontreal.musique.gris.speakerview.pkg" visible="true" title="SpeakerView">
+        <pkg-ref id="ca.umontreal.musique.gris.speakerview.pkg"/>
+    </choice>
     <choice id="ca.umontreal.musique.gris.controlgris.pkg" visible="true" title="ControlGRIS">
         <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg"/>
     </choice>
     
     <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg" onConclusion="none" auth="root">Application.pkg</pkg-ref>
+    <pkg-ref id="ca.umontreal.musique.gris.speakerview.pkg" onConclusion="none" auth="root">SpeakerView.pkg</pkg-ref>
     <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg" onConclusion="none" auth="root">Plugins.pkg</pkg-ref>
 </installer-gui-script>
