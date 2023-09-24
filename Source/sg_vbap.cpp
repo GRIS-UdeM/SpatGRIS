@@ -100,6 +100,10 @@ static void computeGains(juce::Array<SpeakerSet> & sets,
     }
 
     auto * rawGains{ gains.data() };
+#if DEBUG
+    if (sets.isEmpty())
+        return;
+#endif
     rawGains[sets[j].speakerNos[0].get() - 1] = sets[j].setGains[0];
     rawGains[sets[j].speakerNos[1].get() - 1] = sets[j].setGains[1];
     if (dim == 3) {
