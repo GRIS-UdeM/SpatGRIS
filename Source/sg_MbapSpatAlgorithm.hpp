@@ -1,4 +1,4 @@
-﻿/*
+/*
  This file is part of SpatGRIS.
 
  Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
