@@ -163,13 +163,13 @@ StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup,
 
     switch (projectSpatMode) {
     case SpatMode::vbap:
-        mInnerAlgorithm = std::make_unique<VbapSpatAlgorithm>(speakerSetup.speakers);
+        mInnerAlgorithm = VbapSpatAlgorithm::make(speakerSetup);
         break;
     case SpatMode::mbap:
-        mInnerAlgorithm = std::make_unique<MbapSpatAlgorithm>(speakerSetup);
+        mInnerAlgorithm = MbapSpatAlgorithm::make(speakerSetup);
         break;
     case SpatMode::hybrid:
-        mInnerAlgorithm = std::make_unique<HybridSpatAlgorithm>(speakerSetup);
+        mInnerAlgorithm = HybridSpatAlgorithm::make(speakerSetup);
         break;
     case SpatMode::invalid:
         break;
