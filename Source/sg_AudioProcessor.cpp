@@ -156,13 +156,13 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
             stereoPeaks[narrow<size_t>(i)] = stereoBuffer.getMagnitude(i, 0, numSamples);
         }
         mAudioData.stereoPeaksUpdater.setMostRecent(stereoPeaksTicket);
-    } else {
-        auto * speakerPeaksTicket{ mAudioData.speakerPeaksUpdater.acquire() };
-        auto & speakerPeaks{ speakerPeaksTicket->get() };
-        // Process speaker peaks/gains/highpass
-        processOutputModifiersAndPeaks(speakerBuffer, speakerPeaks);
-        mAudioData.speakerPeaksUpdater.setMostRecent(speakerPeaksTicket);
     }
+    // TODO: should not process if stereo mode is hrtf
+    auto * speakerPeaksTicket{ mAudioData.speakerPeaksUpdater.acquire() };
+    auto & speakerPeaks{ speakerPeaksTicket->get() };
+    // Process speaker peaks/gains/highpass
+    processOutputModifiersAndPeaks(speakerBuffer, speakerPeaks);
+    mAudioData.speakerPeaksUpdater.setMostRecent(speakerPeaksTicket);
 }
 
 //==============================================================================

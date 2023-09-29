@@ -1699,6 +1699,21 @@ void MainContentComponent::updatePeaks()
             auto const dbPeak{ dbfs_t::fromGain(peak) };
             mStereoSliceComponents[static_cast<int>(i)]->setLevel(dbPeak);
         }
+        if (mData.appData.viewSettings.showSpeakerLevels) {
+            auto *& speakerPeaksTicket{ mData.mostRecentSpeakerPeaks };
+            audioData.speakerPeaksUpdater.getMostRecent(speakerPeaksTicket);
+            if (speakerPeaksTicket == nullptr) {
+                return;
+            }
+            auto const & speakerPeaks{ speakerPeaksTicket->get() };
+            for (auto const speaker : mData.speakerSetup.speakers) {
+                auto const & peak{ speakerPeaks[speaker.key] };
+                auto & exchanger{ viewPortData.hotSpeakersAlphaUpdaters[speaker.key] };
+                auto * ticket{ exchanger.acquire() };
+                ticket->get() = gainToSpeakerAlpha(peak);
+                exchanger.setMostRecent(ticket);
+            }
+        }
         return;
     }
 

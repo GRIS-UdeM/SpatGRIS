@@ -92,9 +92,10 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     mInputBuffer.silence();
     if (mStereoRouting) {
         mStereoOutputBuffer.clear();
-    } else {
-        mOutputBuffer.silence();
     }
+    // TODO: should not process if setreo mode is hrtf
+    mOutputBuffer.silence();
+
     std::for_each_n(outputChannelData, totalNumOutputChannels, [numSamples](float * const data) {
         std::fill_n(data, numSamples, 0.0f);
     });
