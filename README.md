@@ -6,7 +6,7 @@ With the ControlGRIS plugin distributed with SpatGRIS, rich spatial trajectories
 
 SpatGRIS supports any speaker setup, including 2D layouts like quad, 5.1 or octophonic rings, and 3D layouts like speaker domes, concert halls, theatres, etc. Projects can also be mixed down to stereo using a binaural head-related transfer function or simple stereo panning.
 
-It can handle up to 128 inputs and outputs simultaneously and features 3D and 2D views that help visualizing sources motions and monitor sound activity.
+It can handle up to 256 inputs and outputs simultaneously and features 3D and 2D views that help visualizing sources motions and monitor sound activity.
 
 SpatGRIS is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) at Université de Montréal and is in active development. Updates are published on a regular basis.
 
@@ -15,27 +15,31 @@ SpatGRIS is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) 
 - [Running](#running)
 - [Using custom OSC interfaces](#using-custom-OSC-interfaces)
 
-![alt text](https://samuelbeland.com/gris/spatGRIS_3.1.png "SpatGRIS")
-
 ## Using a virtual audio device
 
 If you want to use SpatGRIS and ControlGRIS on the same computer, you will need a virtual audio device that can route the audio from your DAW to SpatGRIS.
 
 #### MacOS
 
-We officially support using [BlackHole](https://github.com/ExistentialAudio/BlackHole). A 128 channels version is distributed alongside SpatGRIS.
+We officially support the use of [BlackHole](https://github.com/ExistentialAudio/BlackHole). The 256, 128 and 64 channel versions are distributed with SpatGRIS.
 
 #### Windows
 
-If you are a [Reaper](https://www.reaper.fm/) user, ReaRoute seems to be the best-working virtual interface available at this time on Windows. Because ASIO dissalows interfacing with two different audio devices simoultaneously, sound has to be sent back to Reaper.
+Because ASIO does not allow interfacing with two different audio devices simultaneously, the best working configuration is to use [JACK](https://jackaudio.org/) with [ASIO4ALL](https://asio4all.org/).
 
-If you use an other DAW, there is a donationware called [VB-CABLE Virtual Audio Device](https://vb-audio.com/Cable/) that _sorta_ works, although it seems to have trouble staying in sync with SpatGRIS and is limited to 32 channels.
+If you are a [Reaper](https://www.reaper.fm/) user, ReaRoute may be a viable alternative. Note that sound has to be sent back to Reaper.
 
 #### Linux
 
-While we do not support a specific routing solution on Linux, there are a lot of different ways of creating loopback audio ports with either JACK, ALSA or PulseAudio.
+While we do not support a specific routing solution on Linux, there are a lot of different ways of creating loopback audio ports with either JACK, PipeWire, ALSA or PulseAudio.
 
 ## Building
+
+Starting with version 3.3.0, the 3D speaker setup view of SpatGRIS is a seperate application: [SpeakerView](https://github.com/GRIS-UdeM/SpeakerView). It is included in the SpatGRIS installer.
+
+To function correctly, the SpeakerView executable (and the SpeakerView.pck file under Windows and Linux) must be placed in the same folder as SpatGris. SpeakerView is independent of SpatGris, but designed to be controlled by SpatGris using the UDP protocol.
+
+On Linux, the name of the executable must be SpeakerView.x86_64.
 
 #### 1. Install dependencies
 
@@ -44,21 +48,9 @@ Download and extract [Juce 7.0.1](https://github.com/juce-framework/JUCE/release
 ##### Additional dependencies on Linux :
 
 ```bash
-sudo apt-get install clang++-14 ladspa-sdk freeglut3-dev libasound2-dev \
+sudo apt-get install clang++-14 ladspa-sdk libasound2-dev \
 libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev \
 libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-dev
-```
-
-##### Additional dependencies on Windows :
-
-The `freeglut` library must be globally available.
-
-Usage of [vcpkg](https://github.com/microsoft/vcpkg) is highly recommended on Windows.
-
-```bash
-# as an admin
-vcpkg install freeglut:x64-windows
-vcpkg integrate install
 ```
 
 #### 2. Generating project files
