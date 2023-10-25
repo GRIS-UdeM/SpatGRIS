@@ -227,12 +227,14 @@ void SpeakerViewComponent::hiResTimerCallback()
 //==============================================================================
 void SpeakerViewComponent::prepareSGInfos()
 {
+    auto * topLevelComp = mMainContentComponent.getTopLevelComponent();
     auto const & spatMode{ static_cast<int>(mData.warmData.spatMode) };
     auto const & viewSettings{ mData.warmData.viewSettings };
     mJsonSGInfos.reset(new juce::DynamicObject());
 
     mJsonSGInfos->setProperty("killSV", mKillSpeakerViewProcess);
     mJsonSGInfos->setProperty("spkStpName", mData.warmData.title);
+    mJsonSGInfos->setProperty("SGHasFocus", topLevelComp->hasKeyboardFocus(true));
     mJsonSGInfos->setProperty("spatMode", spatMode); // -1, 0, 1, 2
     mJsonSGInfos->setProperty("showSourceNumber", viewSettings.showSourceNumbers);
     mJsonSGInfos->setProperty("showSpeakerNumber", viewSettings.showSpeakerNumbers);
