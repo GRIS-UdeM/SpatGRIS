@@ -84,6 +84,10 @@ juce::String const AppData::XmlTags::WINDOW_X = "WINDOW_X";
 juce::String const AppData::XmlTags::WINDOW_Y = "WINDOW_Y";
 juce::String const AppData::XmlTags::WINDOW_WIDTH = "WINDOW_WIDTH";
 juce::String const AppData::XmlTags::WINDOW_HEIGHT = "WINDOW_HEIGHT";
+juce::String const AppData::XmlTags::SV_WINDOW_X = "SV_WINDOW_X";
+juce::String const AppData::XmlTags::SV_WINDOW_Y = "SV_WINDOW_Y";
+juce::String const AppData::XmlTags::SV_WINDOW_WIDTH = "SV_WINDOW_WIDTH";
+juce::String const AppData::XmlTags::SV_WINDOW_HEIGHT = "SV_WINDOW_HEIGHT";
 juce::String const AppData::XmlTags::SASH_POSITION = "SASH_POSITION";
 juce::String const AppData::XmlTags::CAMERA = "CAMERA";
 
@@ -705,6 +709,10 @@ std::unique_ptr<juce::XmlElement> AppData::toXml() const
     result->setAttribute(XmlTags::WINDOW_Y, windowY);
     result->setAttribute(XmlTags::WINDOW_WIDTH, windowWidth);
     result->setAttribute(XmlTags::WINDOW_HEIGHT, windowHeight);
+    result->setAttribute(XmlTags::SV_WINDOW_X, speakerViewWindowPosition.x);
+    result->setAttribute(XmlTags::SV_WINDOW_Y, speakerViewWindowPosition.y);
+    result->setAttribute(XmlTags::SV_WINDOW_WIDTH, speakerViewWindowSize.x);
+    result->setAttribute(XmlTags::SV_WINDOW_HEIGHT, speakerViewWindowSize.y);
     result->setAttribute(XmlTags::SASH_POSITION, sashPosition);
 
     if (stereoMode) {
@@ -718,9 +726,10 @@ std::unique_ptr<juce::XmlElement> AppData::toXml() const
 tl::optional<AppData> AppData::fromXml(juce::XmlElement const & xml)
 {
     juce::StringArray const requiredTags{
-        XmlTags::LAST_SPEAKER_SETUP, XmlTags::LAST_PROJECT, XmlTags::LAST_RECORDING_DIRECTORY,
-        XmlTags::WINDOW_X,           XmlTags::WINDOW_Y,     XmlTags::WINDOW_WIDTH,
-        XmlTags::WINDOW_HEIGHT,      XmlTags::SASH_POSITION
+        XmlTags::LAST_SPEAKER_SETUP, XmlTags::LAST_PROJECT,     XmlTags::LAST_RECORDING_DIRECTORY,
+        XmlTags::WINDOW_X,           XmlTags::WINDOW_Y,         XmlTags::WINDOW_WIDTH,
+        XmlTags::WINDOW_HEIGHT,      XmlTags::SV_WINDOW_X,      XmlTags::SV_WINDOW_Y,
+        XmlTags::SV_WINDOW_WIDTH,    XmlTags::SV_WINDOW_HEIGHT, XmlTags::SASH_POSITION
     };
 
     auto const * audioSettingsElement{ xml.getChildByName(AudioSettings::XmlTags::MAIN_TAG) };
@@ -767,6 +776,10 @@ tl::optional<AppData> AppData::fromXml(juce::XmlElement const & xml)
     result.windowY = xml.getIntAttribute(XmlTags::WINDOW_Y);
     result.windowWidth = xml.getIntAttribute(XmlTags::WINDOW_WIDTH);
     result.windowHeight = xml.getIntAttribute(XmlTags::WINDOW_HEIGHT);
+    result.speakerViewWindowPosition.x = xml.getIntAttribute(XmlTags::SV_WINDOW_X);
+    result.speakerViewWindowPosition.y = xml.getIntAttribute(XmlTags::SV_WINDOW_Y);
+    result.speakerViewWindowSize.x = xml.getIntAttribute(XmlTags::SV_WINDOW_WIDTH);
+    result.speakerViewWindowSize.y = xml.getIntAttribute(XmlTags::SV_WINDOW_HEIGHT);
     result.sashPosition = xml.getDoubleAttribute(XmlTags::SASH_POSITION);
     result.viewSettings = *viewSettings;
     result.cameraPosition = *cameraPosition;

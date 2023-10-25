@@ -391,6 +391,10 @@ struct AppData {
         static juce::String const WINDOW_Y;
         static juce::String const WINDOW_WIDTH;
         static juce::String const WINDOW_HEIGHT;
+        static juce::String const SV_WINDOW_X;
+        static juce::String const SV_WINDOW_Y;
+        static juce::String const SV_WINDOW_WIDTH;
+        static juce::String const SV_WINDOW_HEIGHT;
         static juce::String const SASH_POSITION;
         static juce::String const CAMERA;
     };
