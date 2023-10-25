@@ -11,6 +11,7 @@
     <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
     <pkg-ref id="ca.umontreal.musique.gris.speakerview.pkg"/>
     <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg"/>
+    <pkg-ref id="ca.umontreal.musique.gris.svmouseevents.pkg"/>
 
     <choices-outline>
         <line choice="ca.umontreal.musique.gris.spatgris.pkg"/>
@@ -23,6 +24,7 @@
     </choice>
     <choice id="ca.umontreal.musique.gris.speakerview.pkg" visible="true" title="SpeakerView">
         <pkg-ref id="ca.umontreal.musique.gris.speakerview.pkg"/>
+		<pkg-ref id="ca.umontreal.musique.gris.svmouseevents.pkg"/>
     </choice>
     <choice id="ca.umontreal.musique.gris.controlgris.pkg" visible="true" title="ControlGRIS">
         <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg"/>
@@ -30,5 +32,6 @@
     
     <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg" onConclusion="none" auth="root">Application.pkg</pkg-ref>
     <pkg-ref id="ca.umontreal.musique.gris.speakerview.pkg" onConclusion="none" auth="root">SpeakerView.pkg</pkg-ref>
+	<pkg-ref id="ca.umontreal.musique.gris.svmouseevents.pkg" onConclusion="none" auth="root">SV_Mouse_Events.pkg</pkg-ref>
     <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg" onConclusion="none" auth="root">Plugins.pkg</pkg-ref>
 </installer-gui-script>

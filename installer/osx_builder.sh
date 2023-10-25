@@ -3,12 +3,13 @@
 # Developers: Gaël Lane Lépine, Olivier Belanger, Samuel Béland
 
 #==============================================================================
-export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --pass <dev-id-password>"
+export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --svme <SV_mouse_events-app-path> --pass <dev-id-password>"
 export BIN_PATH=""
 export PASS=""
 export PLUGINS_PKG=""
 export BLACKHOLE_PKGS_DIR=""
 export SPEAKERVIEW_APP=""
+export SVME_DIR=""
 
 Projucer=~/JUCE/Projucer.app/Contents/MacOS/Projucer
 
@@ -46,6 +47,11 @@ case $key in
 	shift
 	shift
 	;;
+	--svme)
+	SVME_DIR="$2"
+	shift
+	shift
+	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -74,6 +80,10 @@ elif [[ $SPEAKERVIEW_APP == "" ]];then
 	echo "Missing param --speakerview"
 	echo -e "$USAGE"
 	exit 1
+elif [[ $SVME_DIR == "" ]];then
+	echo "Missing param --svme"
+	echo -e "$USAGE"
+	exit 1
 fi
 
 #==============================================================================
@@ -96,10 +106,17 @@ SPEAKERVIEW_VERSION=`plutil -p $SPEAKERVIEW_APP/Contents/Info.plist | grep CFBun
 echo "SpeakerView version is $SPEAKERVIEW_VERSION"
 
 #==============================================================================
+# get SV_mouse_events version
+
+SVME_VERSION=`$SVME_DIR/SV_mouse_events -v`
+echo "SV_mouse_events version is $SVME_VERSION"
+
+#==============================================================================
 # package app
 
 IDENTIFIER="ca.umontreal.musique.gris.spatgris.pkg"
 SPEAKERVIEW_IDENTIFIER="ca.umontreal.musique.gris.speakerview.pkg"
+SVME_IDENTIFIER="ca.umontreal.musique.gris.svmouseevents.pkg"
 installerSignature="Developer ID Installer: Gael Lane Lepine (62PMMWH49Z)"
 appSignature="Developer ID Application: Gael Lane Lepine (62PMMWH49Z)"
 
@@ -111,8 +128,9 @@ export DMG_DIR="SpatGRIS_v$VERSION"
 export DMG_NAME="SpatGRIS_v$VERSION.dmg"
 
 export INSTALLER_DIR=`pwd`/installerdir
-export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications
-export SPEAKERVIEW_APPLICATIONS_DIR=$INSTALLER_DIR/SpeakerView_Application/Package_Contents/Applications
+export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications/GRIS
+export SPEAKERVIEW_APPLICATIONS_DIR=$INSTALLER_DIR/SpeakerView_Application/Package_Contents/Applications/GRIS
+export SVME_APPLICATIONS_DIR=$INSTALLER_DIR/SVME_Application/Package_Contents/Applications/GRIS/SVME
 export PLUGINS_DIR=$INSTALLER_DIR/Plugins/Package_Contents/Library/Audio/Plug-Ins
 
 export BUILD_RESOURCES=$INSTALLER_DIR/PkgResources/English.lproj
@@ -121,6 +139,7 @@ export PKG_RESOURCES=$INSTALLER_DIR/../PkgResources
 function build_package() {
 	mkdir -p $APPLICATIONS_DIR || exit 1
 	mkdir -p $SPEAKERVIEW_APPLICATIONS_DIR || exit 1
+	mkdir -p $SVME_APPLICATIONS_DIR || exit 1
 	mkdir -p $BUILD_RESOURCES || exit 1
 
 	cp $PKG_RESOURCES/License.rtf $BUILD_RESOURCES/License.rtf || exit 1
@@ -132,6 +151,9 @@ function build_package() {
 	
 	echo "copying SpeakerView application..."
 	cp -r $SPEAKERVIEW_APP $SPEAKERVIEW_APPLICATIONS_DIR/ || exit 1
+
+	echo "copying SV_mouse_events application..."
+	cp -a $SVME_DIR $SVME_APPLICATIONS_DIR/ || exit 1
 
 	echo "Copying plugins..."
 	cp -r $PLUGINS_PKG "$INSTALLER_DIR/Plugins.pkg"
@@ -147,7 +169,7 @@ function build_package() {
 	            --sign "$installerSignature" \
 	            --timestamp \
 	            "Application.pkg" || exit 1
-	
+
 	echo "building SpeakerView.pkg"
 	pkgbuild    --identifier "$SPEAKERVIEW_IDENTIFIER" \
 	            --root "SpeakerView_Application/Package_Contents/" \
@@ -156,6 +178,14 @@ function build_package() {
 	            --sign "$installerSignature" \
 	            --timestamp \
 	            "SpeakerView.pkg" || exit 1
+
+	echo "building SV_Mouse_Events.pkg"
+	pkgbuild	--identifier "SVME_IDENTIFIER" \
+				--root "SVME_Application/Package_Contents/" \
+				--version "$SVME_VERSION" \
+				--sign "$installerSignature" \
+				--timestamp \
+				"SV_Mouse_Events.pkg" || exit 1
 
 	echo "adding SpatGris, SpeakerView and ControlGris versions to installer"
 	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS $VERSION\"/" ../Distribution.xml || exit 1
