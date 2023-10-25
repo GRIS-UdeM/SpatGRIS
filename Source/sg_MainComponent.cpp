@@ -184,6 +184,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mVerticalLayout.setItemPosition(1, trueSize);
 
         mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
+        handleShowSpeakerViewWindow();
     };
 
     //==============================================================================
