@@ -910,7 +910,7 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
     auto const shouldProcessAttenuation{ !appData.playerExists
                                          && project.mbapDistanceAttenuationData.attenuationBypassState
                                                 == AttenuationBypassSate::off };
-    result->MbapAttenuationConfig
+    result->mbapAttenuationConfig
         = project.mbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate, shouldProcessAttenuation);
     result->masterGain = project.masterGain.toGain();
     result->pinkNoiseGain = pinkNoiseLevel.map([](auto const & level) { return level.toGain(); });
