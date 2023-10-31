@@ -10,6 +10,7 @@ export PLUGINS_PKG=""
 export BLACKHOLE_PKGS_DIR=""
 export SPEAKERVIEW_APP=""
 export SVME_DIR=""
+export MOVE_SG_TO_FOREGROUND_DIR=""
 
 Projucer=~/JUCE/Projucer.app/Contents/MacOS/Projucer
 
@@ -52,6 +53,11 @@ case $key in
 	shift
 	shift
 	;;
+	--movetoforeground)
+	MOVE_SG_TO_FOREGROUND_DIR="$2"
+	shift
+	shift
+	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -84,6 +90,10 @@ elif [[ $SVME_DIR == "" ]];then
 	echo "Missing param --svme"
 	echo -e "$USAGE"
 	exit 1
+elif [[ $MOVE_SG_TO_FOREGROUND_DIR == "" ]];then
+	echo "Missing param --movetoforeground"
+	echo -e "$USAGE"
+	exit 1
 fi
 
 #==============================================================================
@@ -112,11 +122,18 @@ SVME_VERSION=`$SVME_DIR/SV_mouse_events -v`
 echo "SV_mouse_events version is $SVME_VERSION"
 
 #==============================================================================
+# get moveSGToForeground version
+
+MSGTF_VERSION=`$MOVE_SG_TO_FOREGROUND_DIR/moveSGToForegroundMacOS.sh -v`
+echo "moveSGToForeground version is $MSGTF_VERSION"
+
+#==============================================================================
 # package app
 
 IDENTIFIER="ca.umontreal.musique.gris.spatgris.pkg"
 SPEAKERVIEW_IDENTIFIER="ca.umontreal.musique.gris.speakerview.pkg"
 SVME_IDENTIFIER="ca.umontreal.musique.gris.svmouseevents.pkg"
+MSGTF_IDENTIFIER="ca.umontreal.musique.gris.movesgtoforeground.pkg"
 installerSignature="Developer ID Installer: Gael Lane Lepine (62PMMWH49Z)"
 appSignature="Developer ID Application: Gael Lane Lepine (62PMMWH49Z)"
 
@@ -130,7 +147,8 @@ export DMG_NAME="SpatGRIS_v$VERSION.dmg"
 export INSTALLER_DIR=`pwd`/installerdir
 export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications/GRIS
 export SPEAKERVIEW_APPLICATIONS_DIR=$INSTALLER_DIR/SpeakerView_Application/Package_Contents/Applications/GRIS
-export SVME_APPLICATIONS_DIR=$INSTALLER_DIR/SVME_Application/Package_Contents/Applications/GRIS/SVME
+export SVME_APPLICATIONS_DIR=$INSTALLER_DIR/SVME_Application/Package_Contents/Applications/GRIS/utilities/SVME
+export MSGTF_APPLICATIONS_DIR=$INSTALLER_DIR/MSGTF_Application/Package_Contents/Applications/GRIS/utilities/MSGTF
 export PLUGINS_DIR=$INSTALLER_DIR/Plugins/Package_Contents/Library/Audio/Plug-Ins
 
 export BUILD_RESOURCES=$INSTALLER_DIR/PkgResources/English.lproj
@@ -140,6 +158,7 @@ function build_package() {
 	mkdir -p $APPLICATIONS_DIR || exit 1
 	mkdir -p $SPEAKERVIEW_APPLICATIONS_DIR || exit 1
 	mkdir -p $SVME_APPLICATIONS_DIR || exit 1
+	mkdir -p $MSGTF_APPLICATIONS_DIR || exit 1
 	mkdir -p $BUILD_RESOURCES || exit 1
 
 	cp $PKG_RESOURCES/License.rtf $BUILD_RESOURCES/License.rtf || exit 1
@@ -154,6 +173,11 @@ function build_package() {
 
 	echo "copying SV_mouse_events application..."
 	cp -a $SVME_DIR $SVME_APPLICATIONS_DIR/ || exit 1
+
+	echo "copying and signing moveSGTOForeground script..."
+	cp -r $MOVE_SG_TO_FOREGROUND_DIR $MSGTF_APPLICATIONS_DIR/ || exit 1
+	codesign -f -s "$appSignature" "$MSGTF_APPLICATIONS_DIR/moveSGToForegroundMacOS.sh" \
+		--timestamp --options=runtime --verbose
 
 	echo "Copying plugins..."
 	cp -r $PLUGINS_PKG "$INSTALLER_DIR/Plugins.pkg"
@@ -180,12 +204,20 @@ function build_package() {
 	            "SpeakerView.pkg" || exit 1
 
 	echo "building SV_Mouse_Events.pkg"
-	pkgbuild	--identifier "SVME_IDENTIFIER" \
+	pkgbuild	--identifier "$SVME_IDENTIFIER" \
 				--root "SVME_Application/Package_Contents/" \
 				--version "$SVME_VERSION" \
 				--sign "$installerSignature" \
 				--timestamp \
 				"SV_Mouse_Events.pkg" || exit 1
+
+	echo "building moveSGToForeground.pkg"
+	pkgbuild	--identifier "$MSGTF_IDENTIFIER" \
+				--root "MSGTF_Application/Package_Contents/" \
+				--version "$MSGTF_VERSION" \
+				--sign "$installerSignature" \
+				--timestamp \
+				"MoveSGToForeground.pkg" || exit 1
 
 	echo "adding SpatGris, SpeakerView and ControlGris versions to installer"
 	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS $VERSION\"/" ../Distribution.xml || exit 1
