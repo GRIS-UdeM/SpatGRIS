@@ -115,8 +115,8 @@ void MbapSpatAlgorithm::process(AudioConfig const & config,
 
         // process attenuation if Player does not exist
         auto * inputSamples{ sourceBuffer[source.key].getWritePointer(0) };
-        if (config.MbapAttenuationConfig.shouldProcess) {
-            config.MbapAttenuationConfig.process(inputSamples,
+        if (config.mbapAttenuationConfig.shouldProcess) {
+            config.mbapAttenuationConfig.process(inputSamples,
                                                  numSamples,
                                                  spatData.mbapSourceDistance,
                                                  data.attenuationState);

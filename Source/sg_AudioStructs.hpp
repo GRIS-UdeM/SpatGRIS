@@ -131,7 +131,7 @@ struct AudioConfig {
     tl::optional<float> pinkNoiseGain{};
 
     // MBAP-specific
-    MbapAttenuationConfig MbapAttenuationConfig{};
+    MbapAttenuationConfig mbapAttenuationConfig{};
 };
 
 //==============================================================================
