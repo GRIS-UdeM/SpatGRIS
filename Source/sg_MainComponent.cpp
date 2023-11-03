@@ -603,9 +603,13 @@ void MainContentComponent::handleShowPreferences()
 //==============================================================================
 void MainContentComponent::handleShowOscMonitorWindow()
 {
-    if (!mOscMonitorWindow) {
+    if (mOscMonitorWindow == nullptr) {
         mOscMonitorWindow = std::make_unique<OscMonitorWindow>(mLogBuffer, *this, mLookAndFeel);
+    } else {
+        mOscMonitorWindow->toFront(true);
     }
+
+    
 }
 
 //==============================================================================
@@ -2707,15 +2711,9 @@ void MainContentComponent::timerCallback()
     if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
         mIsProcessForeground = juce::Process::isForegroundProcess();
         if (mEditSpeakersWindow != nullptr && mIsProcessForeground) {
-            mEditSpeakersWindow->setVisible(true);
             mEditSpeakersWindow->setAlwaysOnTop(true);
         } else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
-            mEditSpeakersWindow->setVisible(false);
             mEditSpeakersWindow->setAlwaysOnTop(false);
-        }
-        if (mFlatViewWindow != nullptr && mIsProcessForeground) {
-            mFlatViewWindow->toFront(false);
-            toFront(true);
         }
     }
 }
