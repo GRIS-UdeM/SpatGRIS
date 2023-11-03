@@ -662,14 +662,10 @@ void MainContentComponent::handleShowPlayerWindow()
 void MainContentComponent::handleShowSpeakerViewWindow()
 {
     if (isSpeakerViewProcessRunning()) {
-        if (mSpeakerViewComponent->isSpeakerViewNetworkingRunning()) {
-            // instead of mSpeakerViewProcess.kill(), we ask SpeakerView to quit itself
-            mSpeakerViewComponent->shouldKillSpeakerViewProcess(true);
-            return;
+        if (!mSpeakerViewComponent->isSpeakerViewNetworkingRunning()) {
+            mSpeakerViewComponent->stopSpeakerViewNetworking();
+            mSpeakerViewComponent->startSpeakerViewNetworking();
         }
-
-        mSpeakerViewComponent->stopSpeakerViewNetworking();
-        mSpeakerViewComponent->startSpeakerViewNetworking();
         return;
     }
 
@@ -1254,7 +1250,6 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case CommandId::showSpeakerViewId:
         result.setInfo("Show Speaker View", "Show the speaker window.", generalCategory, 0);
         result.addDefaultKeypress('V', juce::ModifierKeys::altModifier);
-        result.setTicked(isSpeakerViewProcessRunning());
         return;
     case CommandId::showSourceNumbersId:
         result.setInfo("Show Source Numbers", "Show source numbers on the 3D view.", generalCategory, 0);
