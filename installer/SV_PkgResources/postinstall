@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [ -d /Applications/GRIS/SpeakerView*loc* ]; then
+	sudo rm -r /Applications/GRIS/SpeakerView.app*
+	sudo cp -a /Applications/GRIS/SpeakerView*loc*/SpeakerView.app* /Applications/GRIS/SpeakerView.app
+	sudo rm -r /Applications/GRIS/SpeakerView*loc*
+fi
+
+exit 0
