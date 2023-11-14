@@ -608,8 +608,6 @@ void MainContentComponent::handleShowOscMonitorWindow()
     } else {
         mOscMonitorWindow->toFront(true);
     }
-
-    
 }
 
 //==============================================================================
@@ -771,6 +769,13 @@ void MainContentComponent::handleShowSpeakerViewWindow()
     if (res) {
         mSpeakerViewComponent->startSpeakerViewNetworking();
     }
+}
+
+//==============================================================================
+void MainContentComponent::handleKeepSpeakerViewWindowOnTop()
+{
+    mData.appData.viewSettings.keepSpeakerViewWindowOnTop = !mData.appData.viewSettings.keepSpeakerViewWindowOnTop;
+    refreshViewportConfig();
 }
 
 //==============================================================================
@@ -1144,7 +1149,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 28> ids{ CommandId::newProjectId,
+    constexpr std::array<CommandId, 29> ids{ CommandId::newProjectId,
                                              CommandId::openProjectId,
                                              CommandId::saveProjectId,
                                              CommandId::saveProjectAsId,
@@ -1156,6 +1161,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
                                              CommandId::showPlayerWindowId,
                                              CommandId::showOscMonitorId,
                                              CommandId::showSpeakerViewId,
+                                             CommandId::keepSpeakerViewOnTopId,
                                              CommandId::showSourceNumbersId,
                                              CommandId::showSpeakerNumbersId,
                                              CommandId::showSpeakersId,
@@ -1254,6 +1260,14 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case CommandId::showSpeakerViewId:
         result.setInfo("Show Speaker View", "Show the speaker window.", generalCategory, 0);
         result.addDefaultKeypress('V', juce::ModifierKeys::altModifier);
+        return;
+    case CommandId::keepSpeakerViewOnTopId:
+        result.setInfo("Keep Speaker View On Top",
+                       "Keep the speaker window on top of other windows when SpatGris has focus.",
+                       generalCategory,
+                       0);
+        result.setTicked(mData.appData.viewSettings.keepSpeakerViewWindowOnTop);
+        result.addDefaultKeypress('V', juce::ModifierKeys::altModifier + juce::ModifierKeys::shiftModifier);
         return;
     case CommandId::showSourceNumbersId:
         result.setInfo("Show Source Numbers", "Show source numbers on the 3D view.", generalCategory, 0);
@@ -1378,6 +1392,9 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::showSpeakerViewId:
             handleShowSpeakerViewWindow();
+            break;
+        case CommandId::keepSpeakerViewOnTopId:
+            handleKeepSpeakerViewWindowOnTop();
             break;
         case CommandId::showSourceNumbersId:
             handleShowSourceNumbers();
@@ -1547,6 +1564,8 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, CommandId::showPlayerWindowId);
         menu.addCommandItem(commandManager, CommandId::showOscMonitorId);
         menu.addCommandItem(commandManager, CommandId::showSpeakerViewId);
+        menu.addSeparator();
+        menu.addCommandItem(commandManager, CommandId::keepSpeakerViewOnTopId);
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::showSourceNumbersId);
         menu.addCommandItem(commandManager, CommandId::showSpeakerNumbersId);

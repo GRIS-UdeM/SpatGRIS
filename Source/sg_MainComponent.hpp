@@ -279,6 +279,7 @@ private:
     void handleShow2DView();
     void handleShowPlayerWindow();
     void handleShowSpeakerViewWindow();
+    void handleKeepSpeakerViewWindowOnTop();
     void handleShowSourceNumbers();
     void handleShowSpeakerNumbers();
     void handleShowSpeakers();

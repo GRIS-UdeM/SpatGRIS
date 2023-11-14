@@ -43,6 +43,7 @@ enum CommandId {
     showOscMonitorId,
     showSpeakerViewId,
 
+    keepSpeakerViewOnTopId,
     showSourceNumbersId,
     showSpeakerNumbersId,
     showSpeakersId,

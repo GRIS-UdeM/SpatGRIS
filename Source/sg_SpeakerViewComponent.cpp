@@ -235,6 +235,7 @@ void SpeakerViewComponent::prepareSGInfos()
     mJsonSGInfos->setProperty("killSV", mKillSpeakerViewProcess);
     mJsonSGInfos->setProperty("spkStpName", mData.warmData.title);
     mJsonSGInfos->setProperty("SGHasFocus", topLevelComp->hasKeyboardFocus(true));
+    mJsonSGInfos->setProperty("KeepSVOnTop", viewSettings.keepSpeakerViewWindowOnTop);
     mJsonSGInfos->setProperty("spatMode", spatMode); // -1, 0, 1, 2
     mJsonSGInfos->setProperty("showSourceNumber", viewSettings.showSourceNumbers);
     mJsonSGInfos->setProperty("showSpeakerNumber", viewSettings.showSpeakerNumbers);
