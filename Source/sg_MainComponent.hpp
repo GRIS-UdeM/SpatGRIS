@@ -280,6 +280,7 @@ private:
     void handleShowPlayerWindow();
     void handleShowSpeakerViewWindow();
     void handleKeepSpeakerViewWindowOnTop();
+    void handleShowHall();
     void handleShowSourceNumbers();
     void handleShowSpeakerNumbers();
     void handleShowSpeakers();

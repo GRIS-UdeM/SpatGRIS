@@ -779,6 +779,13 @@ void MainContentComponent::handleKeepSpeakerViewWindowOnTop()
 }
 
 //==============================================================================
+void MainContentComponent::handleShowHall()
+{
+    mData.appData.viewSettings.showHall = !mData.appData.viewSettings.showHall;
+    refreshViewportConfig();
+}
+
+//==============================================================================
 void MainContentComponent::handleShowAbout()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1149,7 +1156,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 29> ids{ CommandId::newProjectId,
+    constexpr std::array<CommandId, 30> ids{ CommandId::newProjectId,
                                              CommandId::openProjectId,
                                              CommandId::saveProjectId,
                                              CommandId::saveProjectAsId,
@@ -1162,6 +1169,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
                                              CommandId::showOscMonitorId,
                                              CommandId::showSpeakerViewId,
                                              CommandId::keepSpeakerViewOnTopId,
+                                             CommandId::showHallId,
                                              CommandId::showSourceNumbersId,
                                              CommandId::showSpeakerNumbersId,
                                              CommandId::showSpeakersId,
@@ -1268,6 +1276,11 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
                        0);
         result.setTicked(mData.appData.viewSettings.keepSpeakerViewWindowOnTop);
         result.addDefaultKeypress('V', juce::ModifierKeys::altModifier + juce::ModifierKeys::shiftModifier);
+        return;
+    case CommandId::showHallId:
+        result.setInfo("Show Hall", "Show the hall in the speaker view.", generalCategory, 0);
+        result.setTicked(mData.appData.viewSettings.showHall);
+        result.addDefaultKeypress('H', juce::ModifierKeys::altModifier);
         return;
     case CommandId::showSourceNumbersId:
         result.setInfo("Show Source Numbers", "Show source numbers on the 3D view.", generalCategory, 0);
@@ -1395,6 +1408,9 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::keepSpeakerViewOnTopId:
             handleKeepSpeakerViewWindowOnTop();
+            break;
+        case CommandId::showHallId:
+            handleShowHall();
             break;
         case CommandId::showSourceNumbersId:
             handleShowSourceNumbers();
@@ -1567,6 +1583,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::keepSpeakerViewOnTopId);
         menu.addSeparator();
+        menu.addCommandItem(commandManager, CommandId::showHallId);
         menu.addCommandItem(commandManager, CommandId::showSourceNumbersId);
         menu.addCommandItem(commandManager, CommandId::showSpeakerNumbersId);
         menu.addCommandItem(commandManager, CommandId::showSpeakersId);

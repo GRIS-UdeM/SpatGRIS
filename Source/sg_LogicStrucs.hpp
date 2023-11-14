@@ -69,6 +69,7 @@ enum class AttenuationBypassSate { invalid, on, off };
  */
 struct ViewSettings {
     bool keepSpeakerViewWindowOnTop{ false };
+    bool showHall{ false };
     bool showSpeakers{ true };
     bool showSourceNumbers{ false };
     bool showSpeakerNumbers{ false };
@@ -83,6 +84,7 @@ struct ViewSettings {
     struct XmlTags {
         static juce::String const MAIN_TAG;
         static juce::String const KEEP_SPEAKERVIEW_ON_TOP;
+        static juce::String const SHOW_HALL;
         static juce::String const SHOW_SPEAKERS;
         static juce::String const SHOW_SOURCE_NUMBERS;
         static juce::String const SHOW_SPEAKER_NUMBERS;

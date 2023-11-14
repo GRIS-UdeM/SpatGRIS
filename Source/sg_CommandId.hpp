@@ -44,6 +44,8 @@ enum CommandId {
     showSpeakerViewId,
 
     keepSpeakerViewOnTopId,
+
+    showHallId,
     showSourceNumbersId,
     showSpeakerNumbersId,
     showSpeakersId,
