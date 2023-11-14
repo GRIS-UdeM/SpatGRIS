@@ -123,6 +123,7 @@ class MainContentComponent final
 
     bool mIsProcessForeground{ true };
     bool mIsLoadingSpeakerSetupOrProjectFile{ false };
+    bool mSpeakerViewShouldGrabFocus{ false };
 
     GrisLookAndFeel & mLookAndFeel;
     SmallGrisLookAndFeel & mSmallLookAndFeel;
@@ -261,6 +262,9 @@ public:
     void handleWindowPositionFromSpeakerView(juce::String value);
     void handleWindowSizeFromSpeakerView(juce::String value);
     void handleCameraPositionFromSpeakerView(juce::String value);
+
+    bool speakerViewShouldGrabFocus();
+    void resetSpeakerViewShouldGrabFocus();
 
 private:
     //==============================================================================

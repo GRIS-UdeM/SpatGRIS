@@ -668,6 +668,7 @@ void MainContentComponent::handleShowSpeakerViewWindow()
             mSpeakerViewComponent->stopSpeakerViewNetworking();
             mSpeakerViewComponent->startSpeakerViewNetworking();
         }
+        mSpeakerViewShouldGrabFocus = true;
         return;
     }
 
@@ -679,6 +680,8 @@ void MainContentComponent::handleShowSpeakerViewWindow()
                                                this,
                                                nullptr);
     };
+
+    bool speakerViewFirstLaunch{ mData.appData.speakerViewWindowPosition == juce::Point<int>{} };
 
     mSpeakerViewComponent->stopSpeakerViewNetworking();
     mSpeakerViewComponent->shouldKillSpeakerViewProcess(false);
@@ -728,6 +731,12 @@ void MainContentComponent::handleShowSpeakerViewWindow()
 
     launchCommand.add("--");
     launchCommand.add("launchedBySG=true");
+
+    if (speakerViewFirstLaunch) {
+        launchCommand.add(juce::String("firstLaunchBySG=true"));
+    } else {
+        launchCommand.add(juce::String("firstLaunchBySG=false"));
+    }
 
     // SpeakerView window position
     if (mData.appData.speakerViewWindowPosition != juce::Point<int>{}) {
@@ -3105,6 +3114,18 @@ void MainContentComponent::handleCameraPositionFromSpeakerView(juce::String valu
     auto camPos = Position(camPolarVec);
 
     mSpeakerViewComponent->setCameraPosition(camPos.getCartesian());
+}
+
+//==============================================================================
+bool MainContentComponent::speakerViewShouldGrabFocus()
+{
+    return mSpeakerViewShouldGrabFocus;
+}
+
+//==============================================================================
+void MainContentComponent::resetSpeakerViewShouldGrabFocus()
+{
+    mSpeakerViewShouldGrabFocus = false;
 }
 
 //==============================================================================
