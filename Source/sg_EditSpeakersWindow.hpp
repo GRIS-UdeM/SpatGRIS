@@ -131,6 +131,7 @@ private:
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void textEditorFocusLost(juce::TextEditor &) override;
     void closeButtonPressed() override;
+    bool keyPressed (const juce::KeyPress &key) override;
     void sliderValueChanged(juce::Slider * slider) override;
     void sortOrderChanged(int newSortColumnId, bool isForwards) override;
     void resized() override;
