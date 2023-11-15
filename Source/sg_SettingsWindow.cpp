@@ -144,6 +144,17 @@ void SettingsWindow::closeButtonPressed()
 }
 
 //==============================================================================
+bool SettingsWindow::keyPressed(const juce::KeyPress &key)
+{
+    auto const key_w{ juce::KeyPress(87) };
+    if (key.getModifiers().isCommandDown() && key.isKeyCurrentlyDown(key_w.getKeyCode())) {
+        mMainContentComponent.closePropertiesWindow();
+        return true;
+    }
+    return false;
+}
+
+//==============================================================================
 void SettingsComponent::buttonClicked(juce::Button * button)
 {
     if (button == &mSaveSettingsButton) {
