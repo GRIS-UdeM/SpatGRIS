@@ -566,13 +566,20 @@ bool PlayerWindow::keyPressed(const juce::KeyPress & k)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    auto const key_w{ juce::KeyPress(87) };
+
     if (k == juce::KeyPress::spaceKey) {
         auto & audioManager{ AudioManager::getInstance() };
         if (audioManager.getTransportSources().size() > 0) {
             audioManager.isPlaying() ? mPlayerComponent.stopAudio() : mPlayerComponent.playAudio();
             return true;
         }
+    } else if (k.getModifiers().isCommandDown() && k.isKeyCurrentlyDown(key_w.getKeyCode())) {
+        mPlayerComponent.stopAudio();
+        mMainContentComponent.closePlayerWindow();
+        return true;
     }
+
     return false;
 }
 
