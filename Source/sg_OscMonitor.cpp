@@ -122,4 +122,15 @@ void OscMonitorWindow::closeButtonPressed()
     mMainContentComponent.closeOscMonitorWindow();
 }
 
+//==============================================================================
+bool OscMonitorWindow::keyPressed(const juce::KeyPress &key)
+{
+    auto const key_w{ juce::KeyPress(87) };
+    if (key.getModifiers().isCommandDown() && key.isKeyCurrentlyDown(key_w.getKeyCode())) {
+        mMainContentComponent.closeOscMonitorWindow();
+        return true;
+    }
+    return false;
+}
+
 } // namespace gris

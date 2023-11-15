@@ -66,6 +66,7 @@ public:
     SG_DELETE_COPY_AND_MOVE(OscMonitorWindow)
     //==============================================================================
     void closeButtonPressed() override;
+    bool keyPressed (const juce::KeyPress &key) override;
 
 private:
     //==============================================================================
