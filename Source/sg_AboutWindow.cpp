@@ -110,4 +110,15 @@ void AboutWindow::closeButtonPressed()
     mMainContentComponent.closeAboutWindow();
 }
 
+//==============================================================================
+bool AboutWindow::keyPressed(const juce::KeyPress &key)
+{
+    auto const key_w{ juce::KeyPress(87) };
+    if (key.getModifiers().isCommandDown() && key.isKeyCurrentlyDown(key_w.getKeyCode())) {
+        mMainContentComponent.closeAboutWindow();
+        return true;
+    }
+    return false;
+}
+
 } // namespace gris
