@@ -227,7 +227,6 @@ public:
     //==============================================================================
     // Commands.
     void handleShowPreferences();
-    void closeSpeakersConfigurationWindow();
     void saveAsEditedSpeakerSetup();
     void saveEditedSpeakerSetup();
 
@@ -235,6 +234,7 @@ public:
     // Close windows
     void closePropertiesWindow() { mPropertiesWindow.reset(); }
     void closeFlatViewWindow() { mFlatViewWindow.reset(); }
+    void closeSpeakersConfigurationWindow();
     void closeAboutWindow() { mAboutWindow.reset(); }
     void closePlayerWindow();
     void closeOscMonitorWindow() { mOscMonitorWindow.reset(); }
