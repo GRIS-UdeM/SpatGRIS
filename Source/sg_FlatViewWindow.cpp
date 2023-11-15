@@ -324,4 +324,15 @@ void FlatViewWindow::closeButtonPressed()
     mMainContentComponent.closeFlatViewWindow();
 }
 
+//==============================================================================
+bool FlatViewWindow::keyPressed(const juce::KeyPress &key)
+{
+    auto const key_w{ juce::KeyPress(87) };
+    if (key.getModifiers().isCommandDown() && key.isKeyCurrentlyDown(key_w.getKeyCode())) {
+        mMainContentComponent.closeFlatViewWindow();
+        return true;
+    }
+    return false;
+}
+
 } // namespace gris
