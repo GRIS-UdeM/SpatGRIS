@@ -2117,10 +2117,20 @@ void MainContentComponent::setSelectedSpeakers(juce::Array<output_patch_t> const
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
+    if (mEditSpeakersWindow) {
+        output_patch_t const unusedOutputPatchFromSV{ -1 };
+        if (selection.contains(unusedOutputPatchFromSV))
+            return;
+    }
+
     for (auto const speaker : mData.speakerSetup.speakers) {
         auto const isSelected{ selection.contains(speaker.key) };
 
         if (speaker.value->isSelected == isSelected) {
+            if (speaker.value->isSelected && !mEditSpeakersWindow) {
+                speaker.value->isSelected = false;
+                mSpeakerSliceComponents[speaker.key].setSelected(false);
+            }
             continue;
         }
 
