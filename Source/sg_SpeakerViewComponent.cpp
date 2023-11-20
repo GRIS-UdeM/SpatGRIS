@@ -308,6 +308,16 @@ void SpeakerViewComponent::listenUDP()
                                 mMainContentComponent.setSelectedSpeakers(juce::Array<output_patch_t>{ speaker });
                             });
                         }
+                    } else if (property.compare(juce::String("keepSVTop")) == 0) {
+                        auto keepSVOnTopValue = static_cast<bool>(value);
+                        juce::MessageManager::callAsync([this, keepSVOnTopValue] {
+                            mMainContentComponent.handleKeepSVOnTopFromSpeakerView(keepSVOnTopValue);
+                        });
+                    } else if (property.compare(juce::String("showHall")) == 0) {
+                        auto showHallValue = static_cast<bool>(value);
+                        juce::MessageManager::callAsync([this, showHallValue] {
+                            mMainContentComponent.handleShowHallFromSpeakerView(showHallValue);
+                        });
                     } else if (property.compare(juce::String("showSrcNum")) == 0) {
                         auto showSrcValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSrcValue] {

@@ -252,6 +252,8 @@ public:
 
     // SpeakerView
     void handleResetSourcesPositionsFromSpeakerView();
+    void handleKeepSVOnTopFromSpeakerView(bool value);
+    void handleShowHallFromSpeakerView(bool value);
     void handleShowSourceNumbersFromSpeakerView(bool value);
     void handleShowSpeakerNumbersFromSpeakerView(bool value);
     void handleShowSpeakersFromSpeakerView(bool value);

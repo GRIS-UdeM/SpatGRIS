@@ -1283,13 +1283,13 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
                        "Keep the speaker window on top of other windows when SpatGris has focus.",
                        generalCategory,
                        0);
+        result.addDefaultKeypress('V', juce::ModifierKeys::altModifier | juce::ModifierKeys::shiftModifier);
         result.setTicked(mData.appData.viewSettings.keepSpeakerViewWindowOnTop);
-        result.addDefaultKeypress('V', juce::ModifierKeys::altModifier + juce::ModifierKeys::shiftModifier);
         return;
     case CommandId::showHallId:
         result.setInfo("Show Hall", "Show the hall in the speaker view.", generalCategory, 0);
-        result.setTicked(mData.appData.viewSettings.showHall);
         result.addDefaultKeypress('H', juce::ModifierKeys::altModifier);
+        result.setTicked(mData.appData.viewSettings.showHall);
         return;
     case CommandId::showSourceNumbersId:
         result.setInfo("Show Source Numbers", "Show source numbers on the 3D view.", generalCategory, 0);
@@ -2983,6 +2983,28 @@ void MainContentComponent::handleNewProjectForPlayer()
 void MainContentComponent::handleResetSourcesPositionsFromSpeakerView()
 {
     handleResetSourcesPositions();
+}
+
+//==============================================================================
+void MainContentComponent::handleKeepSVOnTopFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.keepSpeakerViewWindowOnTop };
+    var = value;
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowHallFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.showHall };
+    var = value;
+    refreshViewportConfig();
 }
 
 //==============================================================================
