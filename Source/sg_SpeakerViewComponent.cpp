@@ -300,8 +300,13 @@ void SpeakerViewComponent::listenUDP()
                     juce::var value = keys.getValueAt(i);
 
                     if (property.compare(juce::String("selSpkNum")) == 0) {
-                        auto selectedSpkNum = static_cast<int>(value);
-                        if (selectedSpkNum) {
+                        juce::String selSpkNumValues = value;
+                        auto spkIsSelectedWithMouseStr = selSpkNumValues.fromLastOccurrenceOf(",", false, true);
+                        selSpkNumValues = selSpkNumValues.dropLastCharacters(spkIsSelectedWithMouseStr.length() + 1);
+                        auto selectedSpkNumStr = selSpkNumValues.fromLastOccurrenceOf(",", false, true);
+                        const auto selectedSpkNum = selectedSpkNumStr.getIntValue();
+
+                        if (spkIsSelectedWithMouseStr.compare("true") == 0) {
                             tl::optional<output_patch_t> iBestSpeaker{};
                             iBestSpeaker = static_cast<output_patch_t>(selectedSpkNum);
                             juce::MessageManager::callAsync([this, speaker = *iBestSpeaker] {

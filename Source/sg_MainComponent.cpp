@@ -2118,7 +2118,7 @@ void MainContentComponent::setSelectedSpeakers(juce::Array<output_patch_t> const
     juce::ScopedWriteLock const lock{ mLock };
 
     if (mEditSpeakersWindow) {
-        output_patch_t const unusedOutputPatchFromSV{ -1 };
+        output_patch_t const unusedOutputPatchFromSV{ 0 };
         if (selection.contains(unusedOutputPatchFromSV))
             return;
     }
