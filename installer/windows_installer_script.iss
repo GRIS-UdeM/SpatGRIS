@@ -56,8 +56,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
-[InstallDelete]
-Type: filesandordirs; Name: "{commoncf64}\VST3\ControlGris.vst3"
+;[InstallDelete]
+;Type: files; Name: "{commoncf64}\VST3\ControlGris.vst3"
 
 [Files]
 Source: "{#AppExePath}"; DestDir: "{app}"; Flags: ignoreversion
@@ -184,4 +184,15 @@ end;
 procedure RegisterPreviousData(PreviousDataKey: Integer);
 begin
   SetPreviousData(PreviousDataKey, 'VST64', VST2DirPage.Values[0]);
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssInstall then
+  begin
+    if WizardIsComponentSelected('VST364') then
+    begin
+      DeleteFile('C:\Program Files\Common Files\VST3\ControlGris.vst3');
+    end;
+  end;
 end;
