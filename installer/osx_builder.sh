@@ -3,7 +3,7 @@
 # Developers: Gaël Lane Lépine, Olivier Belanger, Samuel Béland
 
 #==============================================================================
-export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --speakerview-compat <speakerview-compat-app-path> --speakerview-mobile <speakerview-mobile-app-path> --svme <SV_mouse_events-app-path> --pass <dev-id-password>"
+export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --speakerview-compat <speakerview-compat-app-path> --speakerview-mobile <speakerview-mobile-app-path> --pass <dev-id-password>"
 export BIN_PATH=""
 export PASS=""
 export PLUGINS_PKG=""
@@ -11,7 +11,6 @@ export BLACKHOLE_PKGS_DIR=""
 export SPEAKERVIEW_APP=""
 export SPEAKERVIEW_COMPATIBILITY_APP=""
 export SPEAKERVIEW_MOBILE_APP=""
-export SVME_DIR=""
 export MOVE_SG_TO_FOREGROUND_DIR=""
 
 Projucer=~/JUCE/Projucer.app/Contents/MacOS/Projucer
@@ -60,11 +59,6 @@ case $key in
 	shift
 	shift
 	;;
-	--svme)
-	SVME_DIR="$2"
-	shift
-	shift
-	;;
 	--movetoforeground)
 	MOVE_SG_TO_FOREGROUND_DIR="$2"
 	shift
@@ -106,10 +100,6 @@ elif [[ $SPEAKERVIEW_MOBILE_APP == "" ]];then
 	echo "Missing param --speakerview-mobile"
 	echo -e "$USAGE"
 	exit 1
-elif [[ $SVME_DIR == "" ]];then
-	echo "Missing param --svme"
-	echo -e "$USAGE"
-	exit 1
 elif [[ $MOVE_SG_TO_FOREGROUND_DIR == "" ]];then
 	echo "Missing param --movetoforeground"
 	echo -e "$USAGE"
@@ -148,12 +138,6 @@ SPEAKERVIEW_MOBILE_VERSION=`plutil -p $SPEAKERVIEW_MOBILE_APP/Contents/Info.plis
 echo "SpeakerView Mobile version is $SPEAKERVIEW_MOBILE_VERSION"
 
 #==============================================================================
-# get SV_mouse_events version
-
-SVME_VERSION=`$SVME_DIR/SV_mouse_events -v`
-echo "SV_mouse_events version is $SVME_VERSION"
-
-#==============================================================================
 # get moveSGToForeground version
 
 MSGTF_VERSION=`$MOVE_SG_TO_FOREGROUND_DIR/moveSGToForegroundMacOS.sh -v`
@@ -166,7 +150,6 @@ IDENTIFIER="ca.umontreal.musique.gris.spatgris.pkg"
 SPEAKERVIEW_IDENTIFIER="ca.umontreal.musique.gris.speakerview.pkg"
 SPEAKERVIEW_COMPATIBILITY_IDENTIFIER="ca.umontreal.musique.gris.speakerview.compatibility.pkg"
 SPEAKERVIEW_MOBILE_IDENTIFIER="ca.umontreal.musique.gris.speakerview.mobile.pkg"
-SVME_IDENTIFIER="ca.umontreal.musique.gris.svmouseevents.pkg"
 MSGTF_IDENTIFIER="ca.umontreal.musique.gris.movesgtoforeground.pkg"
 installerSignature="Developer ID Installer: Gael Lane Lepine (62PMMWH49Z)"
 appSignature="Developer ID Application: Gael Lane Lepine (62PMMWH49Z)"
@@ -183,7 +166,6 @@ export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications
 export SPEAKERVIEW_APPLICATIONS_DIR=$INSTALLER_DIR/SpeakerView_Application/Package_Contents/Applications/GRIS
 export SPEAKERVIEW_COMPAT_APPLICATIONS_DIR=$INSTALLER_DIR/SpeakerView_Compat_Application/Package_Contents/Applications/GRIS
 export SPEAKERVIEW_MOBILE_APPLICATIONS_DIR=$INSTALLER_DIR/SpeakerView_Mobile_Application/Package_Contents/Applications/GRIS
-export SVME_APPLICATIONS_DIR=$INSTALLER_DIR/SVME_Application/Package_Contents/Applications/GRIS/utilities/SVME
 export MSGTF_APPLICATIONS_DIR=$INSTALLER_DIR/MSGTF_Application/Package_Contents/Applications/GRIS/utilities/MSGTF
 export PLUGINS_DIR=$INSTALLER_DIR/Plugins/Package_Contents/Library/Audio/Plug-Ins
 
@@ -197,7 +179,6 @@ function build_package() {
 	mkdir -p $SPEAKERVIEW_APPLICATIONS_DIR || exit 1
 	mkdir -p $SPEAKERVIEW_COMPAT_APPLICATIONS_DIR || exit 1
 	mkdir -p $SPEAKERVIEW_MOBILE_APPLICATIONS_DIR || exit 1
-	mkdir -p $SVME_APPLICATIONS_DIR || exit 1
 	mkdir -p $MSGTF_APPLICATIONS_DIR || exit 1
 	mkdir -p $BUILD_RESOURCES || exit 1
 
@@ -216,9 +197,6 @@ function build_package() {
 
 	echo "copying SpeakerView Mobile application..."
 	cp -r $SPEAKERVIEW_MOBILE_APP $SPEAKERVIEW_MOBILE_APPLICATIONS_DIR/ || exit 1
-
-	echo "copying SV_mouse_events application..."
-	cp -a $SVME_DIR $SVME_APPLICATIONS_DIR/ || exit 1
 
 	echo "copying and signing moveSGTOForeground script..."
 	cp -r $MOVE_SG_TO_FOREGROUND_DIR $MSGTF_APPLICATIONS_DIR/ || exit 1
@@ -269,14 +247,6 @@ function build_package() {
 	            --sign "$installerSignature" \
 	            --timestamp \
 	            "SpeakerView_Mobile.pkg" || exit 1
-
-	echo "building SV_Mouse_Events.pkg"
-	pkgbuild	--identifier "$SVME_IDENTIFIER" \
-				--root "SVME_Application/Package_Contents/" \
-				--version "$SVME_VERSION" \
-				--sign "$installerSignature" \
-				--timestamp \
-				"SV_Mouse_Events.pkg" || exit 1
 
 	echo "building moveSGToForeground.pkg"
 	pkgbuild	--identifier "$MSGTF_IDENTIFIER" \
