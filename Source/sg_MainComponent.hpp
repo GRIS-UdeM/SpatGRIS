@@ -196,6 +196,8 @@ public:
     void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     void setShowTriplets(bool state);
     void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) override;
+    
+    [[nodiscard]] source_index_t getNextProjectSourceIndex(source_index_t currentSourceIndex) override;
 
     template<typename T>
     void setSpeakerPosition(output_patch_t const outputPatch, T const & position)

@@ -109,7 +109,13 @@ void SourceSliceComponent::sourceIdButtonCopyColorToNextSource([[maybe_unused]] 
     JUCE_ASSERT_MESSAGE_THREAD;
     jassert(button == &mIdButton);
 
-    source_index_t const nextSourceIndex{ mSourceIndex.get() + 1 };
+    source_index_t const nextSourceIndex{ mOwner.getNextProjectSourceIndex(mSourceIndex) };
+
+    if (nextSourceIndex.get() > MAX_NUM_SOURCES) {
+        // Right click on the last source's color selector
+        return;
+    }
+
     mOwner.setSourceColor(nextSourceIndex, color);
 }
 

@@ -45,6 +45,8 @@ public:
         virtual ~Listener() = default;
         SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
+        virtual source_index_t getNextProjectSourceIndex(source_index_t currentSourceIndex) = 0;
+        //==============================================================================
         virtual void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) = 0;
         virtual void setSourceColor(source_index_t sourceIndex, juce::Colour colour) = 0;
         virtual void setSourceState(source_index_t sourceIndex, SliceState state) = 0;
