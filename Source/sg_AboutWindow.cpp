@@ -111,7 +111,7 @@ void AboutWindow::closeButtonPressed()
 }
 
 //==============================================================================
-bool AboutWindow::keyPressed(const juce::KeyPress &key)
+bool AboutWindow::keyPressed(const juce::KeyPress & key)
 {
     auto const key_w{ juce::KeyPress(87) };
     if (key.getModifiers().isCommandDown() && key.isKeyCurrentlyDown(key_w.getKeyCode())) {

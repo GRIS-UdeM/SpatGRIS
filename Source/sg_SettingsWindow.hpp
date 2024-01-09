@@ -105,7 +105,7 @@ public:
     SG_DELETE_COPY_AND_MOVE(SettingsWindow)
     //==============================================================================
     void closeButtonPressed() override;
-    bool keyPressed (const juce::KeyPress &key) override;
+    bool keyPressed(const juce::KeyPress & key) override;
 
 private:
     //==============================================================================

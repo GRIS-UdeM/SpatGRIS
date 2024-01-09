@@ -53,7 +53,7 @@ public:
     void paint(juce::Graphics & g) override;
     void resized() override;
     void closeButtonPressed() override;
-    bool keyPressed (const juce::KeyPress &key) override;
+    bool keyPressed(const juce::KeyPress & key) override;
 
 private:
     //==============================================================================

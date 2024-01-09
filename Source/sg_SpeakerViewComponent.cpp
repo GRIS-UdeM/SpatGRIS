@@ -261,9 +261,7 @@ void SpeakerViewComponent::prepareSGInfos()
     mJsonSGInfos->setProperty("spkTriplets", triplets);
 
     if (mMainContentComponent.speakerViewShouldGrabFocus()) {
-        juce::MessageManager::callAsync([this] {
-            mMainContentComponent.resetSpeakerViewShouldGrabFocus();
-        });
+        juce::MessageManager::callAsync([this] { mMainContentComponent.resetSpeakerViewShouldGrabFocus(); });
     }
 }
 
