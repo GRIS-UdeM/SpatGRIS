@@ -2117,11 +2117,6 @@ void MainContentComponent::setSourceColor(source_index_t const sourceIndex, juce
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    if (sourceIndex.get() == mData.project.sources.size() + 1) {
-        // Right click on the last source's color selector
-        return;
-    }
-
     mData.project.sources[sourceIndex].colour = colour;
     mSourceSliceComponents[sourceIndex].setSourceColour(colour);
 }
@@ -2479,6 +2474,19 @@ source_index_t MainContentComponent::getFirstAvailableProjectSourceIndex() const
 
     return firstAvailableIndex;
 }
+
+//==============================================================================
+source_index_t MainContentComponent::getNextProjectSourceIndex(source_index_t currentSourceIndex)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto source = mData.project.sources.getNode(currentSourceIndex);
+    auto nextSourceIndex = mData.project.sources.getNextUsedKey(source.key);
+
+    return nextSourceIndex;
+}
+
 //==============================================================================
 output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> const speakerToCopy,
                                                 tl::optional<int> const index)
