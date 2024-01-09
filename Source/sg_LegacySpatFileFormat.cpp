@@ -176,6 +176,7 @@ tl::optional<ProjectData> readLegacyProjectFile(juce::XmlElement const & xml)
             newSourceData->colour = color;
             newSourceData->directOut = directOut;
 
+            result.ordering.add(index);
             result.sources.add(index, std::move(newSourceData));
         }
     }

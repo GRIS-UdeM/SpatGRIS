@@ -336,8 +336,12 @@ struct StereoRouting {
 };
 
 //==============================================================================
+using SourcesOrdering = juce::Array<source_index_t>;
+
+//==============================================================================
 struct ProjectData {
     SourcesData sources{};
+    SourcesOrdering ordering{};
     MbapDistanceAttenuationData mbapDistanceAttenuationData{};
     int oscPort{ DEFAULT_OSC_INPUT_PORT };
     dbfs_t masterGain{};

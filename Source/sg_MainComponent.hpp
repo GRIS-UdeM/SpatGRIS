@@ -167,6 +167,7 @@ public:
     void setSourcePosition(source_index_t sourceIndex, Position position, float azimuthSpan, float zenithSpan);
 
     void resetSourcePosition(source_index_t sourceIndex);
+    void projectSourceIndexChanged(source_index_t oldSourceIndex, source_index_t newSourceIndex);
 
     void speakerDirectOutOnlyChanged(output_patch_t outputPatch, bool state);
     void speakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
@@ -213,6 +214,11 @@ public:
     void recordButtonPressed() override;
 
     juce::Component * getControlsComponent() const;
+
+    source_index_t addSource(std::optional<source_index_t> sourceToCopy, std::optional<int> index);
+    void removeSource(source_index_t sourceIndex);
+    [[nodiscard]] source_index_t getMaxProjectSourceIndex() const;
+    [[nodiscard]] source_index_t getFirstAvailableProjectSourceIndex() const;
 
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
     void removeSpeaker(output_patch_t outputPatch);

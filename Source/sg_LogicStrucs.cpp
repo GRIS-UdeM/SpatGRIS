@@ -605,8 +605,10 @@ std::unique_ptr<juce::XmlElement> ProjectData::toXml() const
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
     auto sourcesElement{ std::make_unique<juce::XmlElement>(XmlTags::SOURCES) };
-    for (auto const sourceData : sources) {
-        sourcesElement->addChildElement(sourceData.value->toXml(sourceData.key).release());
+    jassert(ordering.size() == sources.size());
+
+    for (auto const sourceIndex : ordering) {
+        sourcesElement->addChildElement(sources[sourceIndex].toXml(sourceIndex).release());
     }
 
     result->addChildElement(sourcesElement.release());
@@ -681,6 +683,8 @@ tl::optional<ProjectData> ProjectData::fromXml(juce::XmlElement const & xml)
         if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
             return tl::nullopt;
         }
+
+        result.ordering.add(sourceIndex);
         result.sources.add(sourceIndex, std::make_unique<SourceData>(*sourceData));
     }
 
@@ -690,7 +694,7 @@ tl::optional<ProjectData> ProjectData::fromXml(juce::XmlElement const & xml)
 //==============================================================================
 bool ProjectData::operator==(ProjectData const & other) const noexcept
 {
-    return other.spatGainsInterpolation == spatGainsInterpolation && other.oscPort == oscPort
+    return other.ordering == ordering && other.spatGainsInterpolation == spatGainsInterpolation && other.oscPort == oscPort
            && other.masterGain == masterGain && other.mbapDistanceAttenuationData == mbapDistanceAttenuationData
            && other.sources == sources && other.spatMode == spatMode;
 }
