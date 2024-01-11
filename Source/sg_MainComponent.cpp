@@ -2331,6 +2331,20 @@ void MainContentComponent::setSourceHybridSpatMode(source_index_t const sourceIn
 }
 
 //==============================================================================
+void MainContentComponent::setSourceNewSourceIndex(source_index_t oldSourceIndex, source_index_t newSourceIndex)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (mData.project.sources.contains(newSourceIndex) || mPlayerWindow != nullptr) {
+        return;
+    }
+
+    projectSourceIndexChanged(oldSourceIndex, newSourceIndex);
+    refreshSpatAlgorithm();
+    refreshViewportConfig();
+}
+
+//==============================================================================
 void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;

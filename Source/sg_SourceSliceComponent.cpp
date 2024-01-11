@@ -120,6 +120,15 @@ void SourceSliceComponent::sourceIdButtonCopyColorToNextSource([[maybe_unused]] 
 }
 
 //==============================================================================
+void SourceSliceComponent::sourceIdButtonSourceIndexChanged(SourceIdButton * button, source_index_t newSourceIndex)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(button == &mIdButton);
+
+    mOwner.setSourceNewSourceIndex(mSourceIndex, newSourceIndex);
+}
+
+//==============================================================================
 void SourceSliceComponent::directOutSelectorComponentClicked(tl::optional<output_patch_t> const directOut)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -133,6 +142,12 @@ void SourceSliceComponent::hybridSpatModeSelectorClicked(SpatMode const newHybri
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mOwner.setSourceHybridSpatMode(mSourceIndex, newHybridSpatMode);
+}
+
+//==============================================================================
+source_index_t SourceSliceComponent::getSourceIndex() const
+{
+    return mSourceIndex;
 }
 
 //==============================================================================
