@@ -77,6 +77,8 @@ private:
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
     void smallButtonClicked(SmallToggleButton * button, bool state, bool isLeftMouseButton) override;
     void textEditorReturnKeyPressed(juce::TextEditor &) override;
+    void textEditorEscapeKeyPressed(juce::TextEditor &) override;
+    void textEditorFocusLost(juce::TextEditor &) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(SourceIdButton)
 };
