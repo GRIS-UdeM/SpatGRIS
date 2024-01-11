@@ -126,4 +126,22 @@ void SourceIdButton::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
     mListener.sourceIdButtonSourceIndexChanged(this, static_cast<source_index_t>(srcIdx));
 }
 
+//==============================================================================
+void SourceIdButton::textEditorEscapeKeyPressed(juce::TextEditor & textEditor)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mSourceIndexCallBox->dismiss();
+    mSourceIndexCallBox = nullptr;
+}
+
+//==============================================================================
+void SourceIdButton::textEditorFocusLost(juce::TextEditor & textEditor)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mSourceIndexCallBox->dismiss();
+    mSourceIndexCallBox = nullptr;
+}
+
 } // namespace gris
