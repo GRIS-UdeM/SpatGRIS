@@ -51,6 +51,7 @@ public:
         virtual void setSourceColor(source_index_t sourceIndex, juce::Colour colour) = 0;
         virtual void setSourceState(source_index_t sourceIndex, SliceState state) = 0;
         virtual void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) = 0;
+        virtual void setSourceNewSourceIndex(source_index_t oldSourceIndex, source_index_t newSourceIndex) = 0;
     };
 
 private:
@@ -87,8 +88,10 @@ public:
     void muteSoloButtonClicked(SliceState state) override;
     void sourceIdButtonColorChanged(SourceIdButton * button, juce::Colour color) override;
     void sourceIdButtonCopyColorToNextSource(SourceIdButton * button, juce::Colour color) override;
+    void sourceIdButtonSourceIndexChanged(SourceIdButton * button, source_index_t newSourceIndex) override;
     void directOutSelectorComponentClicked(tl::optional<output_patch_t> directOut) override;
     void hybridSpatModeSelectorClicked(SpatMode newHybridSpatMode) override;
+    source_index_t getSourceIndex() const override;
 
 private:
     //==============================================================================
