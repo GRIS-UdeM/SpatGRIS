@@ -145,12 +145,6 @@ void SourceSliceComponent::hybridSpatModeSelectorClicked(SpatMode const newHybri
 }
 
 //==============================================================================
-source_index_t SourceSliceComponent::getSourceIndex() const
-{
-    return mSourceIndex;
-}
-
-//==============================================================================
 void SourceSliceComponent::rebuildLayout()
 {
     mLayout.clearSections();

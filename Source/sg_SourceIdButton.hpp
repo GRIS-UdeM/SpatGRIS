@@ -46,8 +46,6 @@ public:
         virtual void sourceIdButtonColorChanged(SourceIdButton * button, juce::Colour color) = 0;
         virtual void sourceIdButtonCopyColorToNextSource(SourceIdButton * button, juce::Colour color) = 0;
         virtual void sourceIdButtonSourceIndexChanged(SourceIdButton * button, source_index_t newSourceIndex) = 0;
-        //==============================================================================
-        virtual source_index_t getSourceIndex() const = 0;
     };
 
 private:

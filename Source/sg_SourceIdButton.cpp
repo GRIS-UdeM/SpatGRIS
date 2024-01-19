@@ -85,7 +85,6 @@ void SourceIdButton::smallButtonClicked([[maybe_unused]] SmallToggleButton * but
         auto sourceIndexTxtEditor{ std::make_unique<juce::TextEditor>() };
 
         sourceIndexTxtEditor->setJustification(juce::Justification::centred);
-        sourceIndexTxtEditor->setText(juce::String(mListener.getSourceIndex().get()));
         sourceIndexTxtEditor->setInputRestrictions(3, "1234567890");
         sourceIndexTxtEditor->addListener(this);
         sourceIndexTxtEditor->setSize(30, 20);

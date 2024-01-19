@@ -91,7 +91,6 @@ public:
     void sourceIdButtonSourceIndexChanged(SourceIdButton * button, source_index_t newSourceIndex) override;
     void directOutSelectorComponentClicked(tl::optional<output_patch_t> directOut) override;
     void hybridSpatModeSelectorClicked(SpatMode newHybridSpatMode) override;
-    source_index_t getSourceIndex() const override;
 
 private:
     //==============================================================================
