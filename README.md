@@ -1,3 +1,4 @@
+
 # SpatGRIS
 
 SpatGRIS is a sound spatialization software that frees composers and sound designers from the constraints of real-world speaker setups.
@@ -14,6 +15,10 @@ SpatGRIS is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) 
 - [Building](#building)
 - [Running](#running)
 - [Using custom OSC interfaces](#using-custom-OSC-interfaces)
+
+#### Note on the Windows installation program
+
+Installing version 3.2.10 (or earlier) on a newer version may fail due to the file format of the ControlGris VST3 plugin being impossible to update. If an error occurs, manually deleting ControlGris.vst3 (C:\Program Files\Common Files\VST3\ControlGris.vst3) will allow the installer to proceed.
 
 ## Using a virtual audio device
 
@@ -56,7 +61,7 @@ libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-dev
 #### 2. Generating project files
 
 ```bash
-cd <ServerGRIS-path>
+cd <SpatGRIS-path>
 <path-to-projucer> --resave SpatGRIS.jucer
 ```
 
