@@ -73,9 +73,9 @@ AudioManager::AudioManager(juce::String const & deviceType,
 }
 
 //==============================================================================
-void AudioManager::audioDeviceIOCallbackWithContext(const float *const * inputChannelData,
+void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputChannelData,
                                                     int totalNumInputChannels,
-                                                    float *const * outputChannelData,
+                                                    float * const * outputChannelData,
                                                     int totalNumOutputChannels,
                                                     int numSamples,
                                                     const juce::AudioIODeviceCallbackContext & context)
