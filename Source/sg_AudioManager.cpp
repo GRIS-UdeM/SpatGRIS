@@ -83,7 +83,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
 
-    if (!mAudioProcessor) {
+    if (!mAudioProcessor || mIsPlayerLoading) {
         return;
     }
 
@@ -402,6 +402,14 @@ void AudioManager::stopPlaying()
 bool AudioManager::isPlaying() const
 {
     return mIsPlaying;
+}
+
+//==============================================================================
+void AudioManager::setPlayerLoading(bool const playerIsLoading)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mIsPlayerLoading = playerIsLoading;
 }
 
 //==============================================================================
