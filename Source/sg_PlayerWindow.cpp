@@ -402,6 +402,8 @@ void PlayerComponent::stopAudio()
 //==============================================================================
 void PlayerComponent::loadPlayer(bool handleNewProject)
 {
+    AudioManager::getInstance().setPlayerLoading(true);
+
     if (handleNewProject) {
         mMainContentComponent.handleNewProjectForPlayer();
     }
@@ -418,6 +420,8 @@ void PlayerComponent::loadPlayer(bool handleNewProject)
 
     mThumbnails->updateCursorPosition();
     setTimeCode(0.0);
+
+    AudioManager::getInstance().setPlayerLoading(false);
 }
 
 //==============================================================================
