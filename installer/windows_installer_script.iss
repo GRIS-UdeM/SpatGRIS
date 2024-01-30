@@ -6,8 +6,8 @@
 #define SpeakerViewDir "SpeakerView\Forward"
 #define SpeakerViewCompatDir "SpeakerView\Compatibility"
 #define SpeakerViewMobileDir "SpeakerView\Mobile"
-#define ManualENName "SpatGRIS_3.3.4_Manual_EN.pdf"
-#define ManualFRName "SpatGRIS_3.3.4_Manual_FR.pdf"
+#define ManualENName "SpatGRIS_3.3.5_Manual_EN.pdf"
+#define ManualFRName "SpatGRIS_3.3.5_Manual_FR.pdf"
 #define RootDir ".."
 
 #define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
