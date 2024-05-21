@@ -3,6 +3,7 @@
 #define AppURL "http://gris.musique.umontreal.ca/"
 #define AppExeName "SpatGris.exe"
 #define ControlGrisDir "ControlGris"
+#define AudioDescriptorsDir "AudioDescriptors"
 #define SpeakerViewDir "SpeakerView\Forward"
 #define SpeakerViewCompatDir "SpeakerView\Compatibility"
 #define SpeakerViewMobileDir "SpeakerView\Mobile"
@@ -12,11 +13,13 @@
 
 #define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
 #define ControlGrisVersionLong GetVersionNumbersString(ControlGrisDir + "\ControlGris.vst3\Contents\x86_64-win\ControlGris.vst3")
+#define AudioDescriptorsVersionLong GetVersionNumbersString(AudioDescriptorsDir + "\AudioDescriptors.vst3\Contents\x86_64-win\AudioDescriptors.vst3")
 #define SpeakerViewVersion GetFileVersion(SpeakerViewDir + "\SpeakerView.exe")
 #define ResourcesDir RootDir + "\Resources"
 
 #define AppExePath BuildDir + "\" + AppExeName
 #define ControlGrisVersion Copy(ControlGrisVersionLong, 0, Len(ControlGrisVersionLong) - 2)
+#define AudioDescriptorsVersion Copy(AudioDescriptorsVersionLong, 0, Len(AudioDescriptorsVersionLong) - 2)
 #define AaxInPath RootDir + "\installer\ControlGris\ControlGris.aaxplugin"
 #define AaxOutPath "C:\Program Files\Common Files\Avid\Audio\Plug-Ins\ControlGris.aaxplugin"
 
@@ -79,6 +82,9 @@ Source: "ControlGris\ControlGris.aaxplugin\*"; DestDir: "C:\Program Files\Common
 ;Source: "{#AaxInPath}\desktop.ini"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
 ;Source: "{#AaxInPath}\PlugIn.ico"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
 
+; AudioDescriptors
+Source: "{#AudioDescriptorsDir}\AudioDescriptors.vst3\*"; DestDir: "C:\Program Files\Common Files\VST3\AudioDescriptors.vst3"; Components: AD_VST364; Flags: ignoreversion recursesubdirs createallsubdirs;
+
 ; SpeakerView
 Source: "{#SpeakerViewDir}\SpeakerView.exe"; DestDir: "{app}"; Components: SpeakerView; Flags: ignoreversion
 Source: "{#SpeakerViewDir}\SpeakerView.pck"; DestDir: "{app}"; Components: SpeakerView; Flags: ignoreversion
@@ -94,6 +100,7 @@ Name: "SpeakerViewMobile"; Description: SpeakerView Mobile {#SpeakerViewVersion}
 Name: "VST364"; Description: "ControlGris {#ControlGrisVersion} VST3"; Types: custom full;
 Name: "VST64"; Description: "ControlGris {#ControlGrisVersion} VST"; Types: custom full;
 Name: "AAX"; Description: "ControlGris {#ControlGrisVersion} AAX"; Types: custom full;
+Name: "AD_VST364"; Description: "AudioDescriptors {#AudioDescriptorsVersion} VST3"; Types: custom full;
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExeName}"
