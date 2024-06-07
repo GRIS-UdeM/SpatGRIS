@@ -37,6 +37,7 @@ function speakerview_mobile_selected() {
 	<pkg-ref id="ca.umontreal.musique.gris.speakerview.mobile.pkg"/>
     <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg"/>
     <pkg-ref id="ca.umontreal.musique.gris.movesgtoforeground.pkg"/>
+    <pkg-ref id="ca.umontreal.musique.gris.audiodescriptors.pkg"/>
 
     <choices-outline>
         <line choice="ca.umontreal.musique.gris.spatgris.pkg"/>
@@ -44,8 +45,9 @@ function speakerview_mobile_selected() {
 	    <line choice="ca.umontreal.musique.gris.speakerview.compatibility.pkg"/>
 		<line choice="ca.umontreal.musique.gris.speakerview.mobile.pkg"/>
         <line choice="ca.umontreal.musique.gris.controlgris.pkg"/>
+        <line choice="ca.umontreal.musique.gris.audiodescriptors.pkg"/>
     </choices-outline>
-    
+
     <choice id="ca.umontreal.musique.gris.spatgris.pkg" visible="true" title="SpatGRIS">
         <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
     </choice>
@@ -70,6 +72,9 @@ function speakerview_mobile_selected() {
     <choice id="ca.umontreal.musique.gris.controlgris.pkg" visible="true" title="ControlGRIS">
         <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg"/>
     </choice>
+    <choice id="ca.umontreal.musique.gris.audiodescriptors.pkg" visible="true" title="AudioDescriptors">
+        <pkg-ref id="ca.umontreal.musique.gris.audiodescriptors.pkg"/>
+    </choice>
 
     <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg" onConclusion="none" auth="root">Application.pkg</pkg-ref>
     <pkg-ref id="ca.umontreal.musique.gris.speakerview.pkg" onConclusion="none" auth="root">SpeakerView.pkg</pkg-ref>
@@ -77,5 +82,6 @@ function speakerview_mobile_selected() {
 	<pkg-ref id="ca.umontreal.musique.gris.speakerview.mobile.pkg" onConclusion="none" auth="root">SpeakerView_Mobile.pkg</pkg-ref>
 	<pkg-ref id="ca.umontreal.musique.gris.movesgtoforeground.pkg" onConclusion="none" auth="root">MoveSGToForeground.pkg</pkg-ref>
     <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg" onConclusion="none" auth="root">Plugins.pkg</pkg-ref>
+    <pkg-ref id="ca.umontreal.musique.gris.audiodescriptors.pkg" onConclusion="none" auth="root">AudioDescriptorsPlugins.pkg</pkg-ref>
 
 </installer-gui-script>

@@ -3,10 +3,11 @@
 # Developers: Gaël Lane Lépine, Olivier Belanger, Samuel Béland
 
 #==============================================================================
-export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --speakerview-compat <speakerview-compat-app-path> --speakerview-mobile <speakerview-mobile-app-path> --pass <dev-id-password>"
+export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <plugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --speakerview-compat <speakerview-compat-app-path> --speakerview-mobile <speakerview-mobile-app-path> --desc-plugins <audio-descriptors-plugins-pkg-path> --pass <dev-id-password>"
 export BIN_PATH=""
 export PASS=""
 export PLUGINS_PKG=""
+export AUDIO_DESCRIPTORS_PKG=""
 export BLACKHOLE_PKGS_DIR=""
 export SPEAKERVIEW_APP=""
 export SPEAKERVIEW_COMPATIBILITY_APP=""
@@ -64,6 +65,11 @@ case $key in
 	shift
 	shift
 	;;
+	--desc-plugins)
+	AUDIO_DESCRIPTORS_PKG="$2"
+	shift
+	shift
+	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -74,36 +80,40 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 if [[ "$BIN_PATH" == "" ]];then
 	echo "Missing param --path"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ "$PASS" == "" ]];then
 	echo "Missing param --pass"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $PLUGINS_PKG == "" ]];then
 	echo "Missing param --plugins"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $BLACKHOLE_PKGS_DIR == "" ]];then
 	echo "Missing param --backhole"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $SPEAKERVIEW_APP == "" ]];then
 	echo "Missing param --speakerview"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $SPEAKERVIEW_COMPATIBILITY_APP == "" ]];then
 	echo "Missing param --speakerview-compat"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $SPEAKERVIEW_MOBILE_APP == "" ]];then
 	echo "Missing param --speakerview-mobile"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $MOVE_SG_TO_FOREGROUND_DIR == "" ]];then
 	echo "Missing param --movetoforeground"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
+elif [[ $AUDIO_DESCRIPTORS_PKG == "" ]];then
+    echo "Missing param --desc-plugins"
+    echo "$USAGE"
+    exit 1
 fi
 
 #==============================================================================
@@ -118,6 +128,12 @@ echo "SpatGris version is $VERSION"
 
 PLUGINS_VERSION=$(echo $PLUGINS_PKG | awk -F 'ControlGris_' '{print $NF}' | awk -F '.pkg' '{print $1}')
 echo "ControlGris version is $PLUGINS_VERSION"
+
+#==============================================================================
+# get audio descriptors version
+
+AUDIO_DESCRIPTORS_VERSION=$(echo $AUDIO_DESCRIPTORS_PKG | awk -F 'AudioDescriptors_' '{print $NF}' | awk -F '.pkg' '{print $1}')
+echo "AudioDescriptors version is $AUDIO_DESCRIPTORS_VERSION"
 
 #==============================================================================
 # get SpeakerView version
@@ -188,7 +204,7 @@ function build_package() {
 
 	echo "copying application..."
 	cp -r $BIN_PATH $APPLICATIONS_DIR/ || exit 1
-	
+
 	echo "copying SpeakerView Forward application..."
 	cp -r $SPEAKERVIEW_APP $SPEAKERVIEW_APPLICATIONS_DIR/ || exit 1
 
@@ -205,6 +221,9 @@ function build_package() {
 
 	echo "Copying plugins..."
 	cp -r $PLUGINS_PKG "$INSTALLER_DIR/Plugins.pkg"
+
+	echo "Copying AudioDescriptors plugins..."
+	cp -r $AUDIO_DESCRIPTORS_PKG "$INSTALLER_DIR/AudioDescriptorsPlugins.pkg"
 
 	cd $INSTALLER_DIR
 
@@ -256,12 +275,13 @@ function build_package() {
 				--timestamp \
 				"MoveSGToForeground.pkg" || exit 1
 
-	echo "adding SpatGris, SpeakerView and ControlGris versions to installer"
+	echo "adding SpatGris, SpeakerView, ControlGris and AudioDescriptors versions to installer"
 	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS $VERSION\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"SpeakerView Forward.*\"/title=\"SpeakerView Forward $SPEAKERVIEW_VERSION (Recommended)\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"SpeakerView Compatibility.*\"/title=\"SpeakerView Compatibility $SPEAKERVIEW_COMPAT_VERSION\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"SpeakerView Mobile.*\"/title=\"SpeakerView Mobile $SPEAKERVIEW_MOBILE_VERSION\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"ControlGRIS.*\"/title=\"ControlGRIS $PLUGINS_VERSION\"/" ../Distribution.xml || exit 1
+	sed -i '' "s/title=\"AudioDescriptors.*\"/title=\"AudioDescriptors $AUDIO_DESCRIPTORS_VERSION\"/" ../Distribution.xml || exit 1
 
 	echo "building $PACKAGE_NAME"
 	productbuild 	--distribution "../Distribution.xml" \
@@ -277,6 +297,7 @@ function build_package() {
 	sed -i '' "s/title=\"SpeakerView Compatibility.*\"/title=\"SpeakerView Compatibility\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"SpeakerView Mobile.*\"/title=\"SpeakerView Mobile\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"ControlGRIS.*\"/title=\"ControlGRIS\"/" ../Distribution.xml || exit 1
+	sed -i '' "s/title=\"AudioDescriptors.*\"/title=\"AudioDescriptors\"/" ../Distribution.xml || exit 1
 }
 
 #==============================================================================
@@ -356,6 +377,7 @@ function cleanup() {
 	echo "cleaning up resources..."
 	rm -rf $INSTALLER_DIR
 	rm -fr Plugins.pkg
+	rm -rf AudioDescriptorsPlugins.pkg
 }
 
 #==============================================================================
