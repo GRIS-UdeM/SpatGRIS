@@ -246,6 +246,7 @@ void SpeakerViewComponent::prepareSGInfos()
     mJsonSGInfos->setProperty("showSourceActivity", viewSettings.showSourceActivity);
     mJsonSGInfos->setProperty("showSpeakerLevel", viewSettings.showSpeakerLevels);
     mJsonSGInfos->setProperty("showSphereOrCube", viewSettings.showSphereOrCube);
+    mJsonSGInfos->setProperty("keepSpeakersOriginOriented", viewSettings.keepSpeakersOriginOriented);
 
     juce::Array<juce::var> triplets;
     for (auto const & triplet : mData.coldData.triplets) {
