@@ -69,7 +69,6 @@ class MainContentComponent final
     , public juce::ApplicationCommandTarget
     , public SourceSliceComponent::Listener
     , public SpeakerSliceComponent::Listener
-    , public ControlPanel::Listener
     , private SpatButton::Listener
     , private AudioDeviceManagerListener
     , private juce::Timer
@@ -210,7 +209,8 @@ public:
     void numSourcesChanged(int numSources);
     void masterGainChanged(dbfs_t gain);
     void interpolationChanged(float interpolation);
-    void recordButtonPressed() override;
+    void generalMuteButtonPressed();
+    void recordButtonPressed();
 
     juce::Component * getControlsComponent() const;
 

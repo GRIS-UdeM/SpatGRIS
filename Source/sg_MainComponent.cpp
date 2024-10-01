@@ -977,6 +977,28 @@ void MainContentComponent::numSourcesChanged(int const numSources)
 }
 
 //==============================================================================
+void MainContentComponent::generalMuteButtonPressed()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto const newSliceState{ mControlPanel->getGeneralMuteButtonState() == GeneralMuteButton::State::allUnmuted
+                             ? SliceState::muted
+                             : SliceState::normal };
+    auto const newGeneralMuteButtonState{ mControlPanel->getGeneralMuteButtonState()
+                                                  == GeneralMuteButton::State::allUnmuted
+                                              ? GeneralMuteButton::State::allMuted
+                                              : GeneralMuteButton::State::allUnmuted };
+
+    mControlPanel->setGeneralMuteButtonState(newGeneralMuteButtonState);
+    for (auto const outputPatch : mData.speakerSetup.ordering) {
+        mData.speakerSetup.speakers[outputPatch].state = newSliceState;
+    }
+    refreshAudioProcessor();
+    refreshSpeakerSlices();
+}
+
+//==============================================================================
 void MainContentComponent::recordButtonPressed()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1165,7 +1187,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 30> ids{ CommandId::newProjectId,
+    constexpr std::array<CommandId, 31> ids{ CommandId::newProjectId,
                                              CommandId::openProjectId,
                                              CommandId::saveProjectId,
                                              CommandId::saveProjectAsId,
@@ -1189,6 +1211,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
                                              CommandId::colorizeInputsId,
                                              CommandId::resetInputPosId,
                                              CommandId::resetMeterClipping,
+                                             CommandId::muteAllSpeakers,
                                              CommandId::openSettingsWindowId,
                                              CommandId::quitId,
                                              CommandId::aboutId,
@@ -1342,6 +1365,10 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Reset Meter Clipping", "Reset clipping for all meters.", generalCategory, 0);
         result.addDefaultKeypress('M', juce::ModifierKeys::altModifier);
         return;
+    case CommandId::muteAllSpeakers:
+        result.setInfo("Mute/Unmute All Speakers", "Mute or unmute all speakers.", generalCategory, 0);
+        result.addDefaultKeypress('Q', juce::ModifierKeys::altModifier);
+        return;
     case CommandId::openSettingsWindowId:
         result.setInfo("Settings...", "Open the settings window.", generalCategory, 0);
         result.addDefaultKeypress(',', juce::ModifierKeys::commandModifier);
@@ -1450,6 +1477,9 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::resetMeterClipping:
             handleResetMeterClipping();
+            break;
+        case CommandId::muteAllSpeakers:
+            generalMuteButtonPressed();
             break;
         case CommandId::openSettingsWindowId:
             handleShowPreferences();
@@ -1608,6 +1638,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, CommandId::colorizeInputsId);
         menu.addCommandItem(commandManager, CommandId::resetInputPosId);
         menu.addCommandItem(commandManager, CommandId::resetMeterClipping);
+        menu.addCommandItem(commandManager, CommandId::muteAllSpeakers);
     } else if (menuName == "Help") {
         menu.addCommandItem(commandManager, CommandId::aboutId);
         menu.addCommandItem(commandManager, CommandId::openManualENId);

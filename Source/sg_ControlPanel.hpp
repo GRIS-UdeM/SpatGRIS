@@ -21,6 +21,7 @@
 
 #include "sg_LayoutComponent.hpp"
 #include "sg_LogicStrucs.hpp"
+#include "sg_GeneralMuteButton.h"
 #include "sg_RecordButton.hpp"
 #include "sg_SpatSlider.hpp"
 #include "sg_SubPanelComponent.hpp"
@@ -131,10 +132,11 @@ public:
     void setAttenuationBypass(AttenuationBypassSate state);
     void setStereoRouting(StereoRouting const & routing);
 
+    [[nodiscard]] tl::optional<StereoMode> getStereoMode() const;
+
 private:
     //==============================================================================
     [[nodiscard]] SpatMode getSpatMode() const;
-    [[nodiscard]] tl::optional<StereoMode> getStereoMode() const;
     [[nodiscard]] bool shouldShowAttenuationSettings() const;
     [[nodiscard]] bool shouldShowStereoRouting() const;
     void updateAttenuationState();
@@ -152,6 +154,7 @@ private:
 //==============================================================================
 class ControlPanel final
     : public MinSizedComponent
+    , public GeneralMuteButton::Listener
     , public RecordButton::Listener
 {
     //==============================================================================
@@ -162,6 +165,7 @@ class ControlPanel final
 
     GainsSubPanel mGainsSubPanel{ mMainContentComponent, mLookAndFeel };
     SpatSettingsSubPanel mSpatSettingsSubPanel{ *this, mMainContentComponent, mLookAndFeel };
+    GeneralMuteButton mGeneralMuteButton{ *this, mLookAndFeel };
     RecordButton mRecordButton{ *this, mLookAndFeel };
 
 public:
@@ -177,9 +181,11 @@ public:
     void setCubeAttenuationDb(dbfs_t value);
     void setCubeAttenuationHz(hz_t value);
     void setCubeAttenuationBypass(AttenuationBypassSate value);
+    void setGeneralMuteButtonState(GeneralMuteButton::State state);
     void setRecordButtonState(RecordButton::State state);
     void setStereoRouting(StereoRouting const & routing);
     void updateMaxOutputPatch(output_patch_t maxOutputPatch, StereoRouting const & routing);
+    GeneralMuteButton::State getGeneralMuteButtonState();
     //==============================================================================
     void resized() override;
     void forceLayoutUpdate();
@@ -188,6 +194,7 @@ public:
 
 private:
     //==============================================================================
+    void generalMuteButtonPressed() override;
     void recordButtonPressed() override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(ControlPanel)
