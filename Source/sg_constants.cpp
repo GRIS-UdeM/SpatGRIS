@@ -25,9 +25,12 @@ namespace gris
 {
 SpatGrisVersion const SPAT_GRIS_VERSION{ SpatGrisVersion::fromString(JUCE_STRINGIFY(JUCE_APP_VERSION)) };
 
-#if defined(__linux__) || defined(WIN32)
+#if defined(__linux__)
 juce::File const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
+#elif defined WIN32
+juce::File const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
+auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("../../Resources") };
 #elif defined(__APPLE__)
 juce::File const CURRENT_WORKING_DIR = juce::File::getSpecialLocation(juce::File::currentApplicationFile);
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildFile("Resources") };
