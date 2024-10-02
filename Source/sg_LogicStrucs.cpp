@@ -870,17 +870,17 @@ bool SpeakerSetup::isDomeLike() const noexcept
 //==============================================================================
 SpeakersAudioConfig SpeakerSetup::toAudioConfig(double const sampleRate) const noexcept
 {
-    SpeakersAudioConfig result{};
+    auto result{ std::make_unique<SpeakersAudioConfig>() };
 
     auto const isAtLeastOnSpeakerSolo{ std::any_of(speakers.cbegin(), speakers.cend(), [](auto const node) {
         return node.value->state == SliceState::solo;
     }) };
 
     for (auto const speaker : speakers) {
-        result.add(speaker.key, speaker.value->toConfig(isAtLeastOnSpeakerSolo, sampleRate));
+        result->add(speaker.key, speaker.value->toConfig(isAtLeastOnSpeakerSolo, sampleRate));
     }
 
-    return result;
+    return *result;
 }
 
 //==============================================================================
