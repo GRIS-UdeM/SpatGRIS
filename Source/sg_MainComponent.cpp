@@ -989,11 +989,14 @@ void MainContentComponent::generalMuteButtonPressed()
                                                   == GeneralMuteButton::State::allUnmuted
                                               ? GeneralMuteButton::State::allMuted
                                               : GeneralMuteButton::State::allUnmuted };
+    auto const generalMute{ newGeneralMuteButtonState == GeneralMuteButton::State::allMuted };
 
     mControlPanel->setGeneralMuteButtonState(newGeneralMuteButtonState);
     for (auto const outputPatch : mData.speakerSetup.ordering) {
         mData.speakerSetup.speakers[outputPatch].state = newSliceState;
     }
+    mData.speakerSetup.generalMute = generalMute;
+
     refreshAudioProcessor();
     refreshSpeakerSlices();
 }
@@ -1868,14 +1871,13 @@ void MainContentComponent::refreshSpeakerSlices()
         [](SpeakersData::ConstNode const & node) { return node.value->state == SliceState::solo; }) };
 
     if (mData.appData.stereoMode) {
-        mSpeakersLayout
-            ->addSection(mStereoSliceComponents.add(
-                std::make_unique<StereoSliceComponent>("L", mLookAndFeel, mSmallLookAndFeel)))
-            .withChildMinSize();
-        mSpeakersLayout
-            ->addSection(mStereoSliceComponents.add(
-                std::make_unique<StereoSliceComponent>("R", mLookAndFeel, mSmallLookAndFeel)))
-            .withChildMinSize();
+        auto const slicesState{ mData.speakerSetup.generalMute ? SliceState::muted : SliceState::normal };
+        auto newLeftSlice{ std::make_unique<StereoSliceComponent>("L", mLookAndFeel, mSmallLookAndFeel) };
+        auto newRightSlice{ std::make_unique<StereoSliceComponent>("R", mLookAndFeel, mSmallLookAndFeel) };
+        newLeftSlice->setState(slicesState, false);
+        newRightSlice->setState(slicesState, false);
+        mSpeakersLayout->addSection(mStereoSliceComponents.add(std::move(newLeftSlice))).withChildMinSize();
+        mSpeakersLayout->addSection(mStereoSliceComponents.add(std::move(newRightSlice))).withChildMinSize();
     } else {
         for (auto const outputPatch : mData.speakerSetup.ordering) {
             auto newSlice{
@@ -2510,6 +2512,12 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
 
     if (mData.project.spatMode == SpatMode::hybrid && newSpatMode == SpatMode::vbap) {
         newSpatMode = SpatMode::hybrid;
+    }
+
+    if (mData.speakerSetup.generalMute) {
+        for (auto& speaker : mData.speakerSetup.speakers) {
+            speaker.value->state = SliceState::muted;
+        }
     }
 
     setSpatMode(newSpatMode);

@@ -146,16 +146,20 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
     mAudioData.sourcePeaksUpdater.setMostRecent(sourcePeaksTicket);
 
     if (mAudioData.config->isStereo) {
-        auto const & masterGain{ mAudioData.config->masterGain };
-        if (masterGain != 0.0f) {
-            stereoBuffer.applyGain(masterGain);
+        if (mAudioData.config->isStereoMuted) {
+            stereoBuffer.applyGain(0.0f);
+        } else {
+            auto const & masterGain{ mAudioData.config->masterGain };
+            if (masterGain != 0.0f) {
+                stereoBuffer.applyGain(masterGain);
+            }
+            auto * stereoPeaksTicket{ mAudioData.stereoPeaksUpdater.acquire() };
+            auto & stereoPeaks{ stereoPeaksTicket->get() };
+            for (int i{}; i < 2; ++i) {
+                stereoPeaks[narrow<size_t>(i)] = stereoBuffer.getMagnitude(i, 0, numSamples);
+            }
+            mAudioData.stereoPeaksUpdater.setMostRecent(stereoPeaksTicket);
         }
-        auto * stereoPeaksTicket{ mAudioData.stereoPeaksUpdater.acquire() };
-        auto & stereoPeaks{ stereoPeaksTicket->get() };
-        for (int i{}; i < 2; ++i) {
-            stereoPeaks[narrow<size_t>(i)] = stereoBuffer.getMagnitude(i, 0, numSamples);
-        }
-        mAudioData.stereoPeaksUpdater.setMostRecent(stereoPeaksTicket);
     }
     // TODO: should not process if stereo mode is hrtf
     auto * speakerPeaksTicket{ mAudioData.speakerPeaksUpdater.acquire() };

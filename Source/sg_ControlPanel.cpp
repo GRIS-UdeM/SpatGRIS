@@ -568,15 +568,20 @@ void ControlPanel::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mLayout.setBounds(0, 0, getWidth(), getHeight());
-    mGeneralMuteButton.setVisible(!mSpatSettingsSubPanel.getStereoMode().has_value());
 }
 
 //==============================================================================
 void ControlPanel::forceLayoutUpdate()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto const generalMuteState{ mMainContentComponent.getData().speakerSetup.generalMute
+                                     ? GeneralMuteButton::State::allMuted
+                                     : GeneralMuteButton::State::allUnmuted };
+
     resized();
     mLayout.resized();
+    mGeneralMuteButton.setState(generalMuteState);
 }
 
 //==============================================================================
