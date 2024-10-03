@@ -77,6 +77,7 @@ struct ViewSettings {
     bool showSpeakerLevels{ false };
     bool showSphereOrCube{ false };
     bool showSourceActivity{ false };
+    bool keepSpeakersOriginOriented{ true };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
@@ -92,6 +93,7 @@ struct ViewSettings {
         static juce::String const SHOW_SPEAKER_LEVELS;
         static juce::String const SHOW_SPHERE_OR_CUBE;
         static juce::String const SHOW_SOURCE_ACTIVITY;
+        static juce::String const KEEP_SPEAKERS_ORIGIN_ORIENTED;
     };
 };
 

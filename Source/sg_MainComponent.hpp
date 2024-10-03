@@ -300,6 +300,7 @@ private:
     void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
     void handleShowOscMonitorWindow();
+    void handleShowSpeakerOrientation();
 
     void refreshSourceSlices();
     void refreshSpeakerSlices();
