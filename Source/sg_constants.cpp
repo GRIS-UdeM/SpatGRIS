@@ -130,77 +130,9 @@ static juce::Array<T> stringToStronglyTypedFloat(juce::StringArray const & strin
 }
 
 //==============================================================================
-static bool fancyStringCmp(juce::String const & a, juce::String const & b)
-{
-    static juce::StringArray const DEFAULT_FILES{ "Cube_default_speaker_setup",
-                                                  "Dome_default_speaker_setup",
-                                                  "default_project18(8X2-Subs2)" };
-
-    static auto const IS_NUMERIC = [](char const c) { return c >= '0' && c <= '9'; };
-    static auto const IS_NOT_NUMERIC = [](char const c) { return !IS_NUMERIC(c); };
-
-    static auto const STARTS_WITH_A_NUMBER = [](std::string const & string) {
-        if (string.empty()) {
-            return false;
-        }
-        return IS_NUMERIC(string.front());
-    };
-
-    static auto const SPLIT = [](std::string const & string, auto const & predicate) {
-        auto const end{ std::find_if_not(string.begin(), string.end(), predicate) };
-        auto const length{ narrow<size_t>(end - string.begin()) };
-        auto const extracted{ juce::String{ string.substr(0, length) } };
-        auto const left{ juce::String{ string.substr(length) } };
-        return std::make_pair(extracted, left);
-    };
-
-    auto const a_{ a.toStdString() };
-    auto const b_{ b.toStdString() };
-
-    if (a.isEmpty() && b.isEmpty()) {
-        return false;
-    }
-
-    if (DEFAULT_FILES.contains(a)) {
-        return true;
-    }
-
-    if (DEFAULT_FILES.contains(b)) {
-        return false;
-    }
-
-    auto const aStartsWithNumber{ STARTS_WITH_A_NUMBER(a_) };
-    auto const bStartsWithNumber{ STARTS_WITH_A_NUMBER(b_) };
-
-    if (aStartsWithNumber != bStartsWithNumber) {
-        return aStartsWithNumber;
-    }
-
-    if (aStartsWithNumber) {
-        auto const [aNumber, aLeft] = SPLIT(a_, IS_NUMERIC);
-        auto const [bNumber, bLeft] = SPLIT(b_, IS_NUMERIC);
-
-        if (aNumber.getIntValue() == bNumber.getIntValue()) {
-            return fancyStringCmp(aLeft, bLeft);
-        }
-
-        return aNumber.getIntValue() < bNumber.getIntValue();
-    }
-
-    auto const [aString, aLeft] = SPLIT(a_, IS_NOT_NUMERIC);
-    auto const [bString, bLeft] = SPLIT(b_, IS_NOT_NUMERIC);
-
-    if (aString == bString) {
-        return fancyStringCmp(aLeft, bLeft);
-    }
-
-    return aString < bString;
-}
-
-//==============================================================================
 bool FileTemplate::operator<(FileTemplate const & other) const noexcept
 {
-    return fancyStringCmp(name, other.name);
+    return name.compareNatural(other.name) >= 0 ? false : true;
 }
 
 //==============================================================================
