@@ -3135,6 +3135,19 @@ void MainContentComponent::handleShowSphereOrCubeFromSpeakerView(bool value)
 }
 
 //==============================================================================
+void MainContentComponent::handleGeneralMuteFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.speakerSetup.generalMute };
+
+    if (var != value) {
+        generalMuteButtonPressed();
+    }
+}
+
+//==============================================================================
 void MainContentComponent::handleWindowPositionFromSpeakerView(juce::String value)
 {
     JUCE_ASSERT_MESSAGE_THREAD;

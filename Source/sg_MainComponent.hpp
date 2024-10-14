@@ -261,6 +261,7 @@ public:
     void handleShowSourceActivityFromSpeakerView(bool value);
     void handleShowSpeakerLevelFromSpeakerView(bool value);
     void handleShowSphereOrCubeFromSpeakerView(bool value);
+    void handleGeneralMuteFromSpeakerView(bool value);
     void handleWindowPositionFromSpeakerView(juce::String value);
     void handleWindowSizeFromSpeakerView(juce::String value);
     void handleCameraPositionFromSpeakerView(juce::String value);
