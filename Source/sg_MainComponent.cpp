@@ -1387,7 +1387,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Open Documentation (EN)", "Open the manual in pdf viewer.", generalCategory, 0);
         return;
     case CommandId::openManualFRId:
-        result.setInfo("Open Documentation (FR)", "Open the manual in pdf viewer.", generalCategory, 0);
+        result.setInfo("Ouvrir Documentation (FR)", "Ouvrir le manuel dans le lecteur pdf.", generalCategory, 0);
         return;
     case CommandId::playerPlayStopId:
         result.setInfo("Play Stop", "Play or Stop Player Playback", generalCategory, 0);
