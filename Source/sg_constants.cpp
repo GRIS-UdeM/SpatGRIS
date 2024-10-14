@@ -49,8 +49,8 @@ juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("d
 juce::File const DEFAULT_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_speaker_setup.xml") };
 juce::File const BINAURAL_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("BINAURAL_SPEAKER_SETUP.xml") };
 juce::File const STEREO_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("STEREO_SPEAKER_SETUP.xml") };
-juce::File const MANUAL_FILE_EN{ RESOURCES_DIR.getChildFile("SpatGRIS_3.3.5_Manual_EN.pdf") };
-juce::File const MANUAL_FILE_FR{ RESOURCES_DIR.getChildFile("SpatGRIS_3.3.5_Manual_FR.pdf") };
+juce::File const MANUAL_FILE_EN{ RESOURCES_DIR.getChildFile("SpatGRIS_3.3.7_Manual_EN.pdf") };
+juce::File const MANUAL_FILE_FR{ RESOURCES_DIR.getChildFile("SpatGRIS_3.3.7_Manuel_FR.pdf") };
 juce::File const ICON_SMALL_FILE{ RESOURCES_DIR.getChildFile("ServerGRIS_icon_splash_small.png") };
 juce::File const HRTF_FOLDER_0{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(0) + "/") };
 juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(40) + "/") };

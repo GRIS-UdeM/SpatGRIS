@@ -22,10 +22,10 @@
             xcodeResource="1"/>
       <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
             file="Source/SinkinSans-400Regular.otf" xcodeResource="1"/>
-      <FILE id="oKL7Gn" name="SpatGRIS_3.3.5_Manual_EN.pdf" compile="0" resource="1"
-            file="Resources/SpatGRIS_3.3.5_Manual_EN.pdf" xcodeResource="1"/>
-      <FILE id="bLqx7h" name="SpatGRIS_3.3.5_Manual_FR.pdf" compile="0" resource="1"
-            file="Resources/SpatGRIS_3.3.5_Manual_FR.pdf" xcodeResource="1"/>
+      <FILE id="LuKwvo" name="SpatGRIS_3.3.7_Manual_EN.pdf" compile="0" resource="1"
+            file="Resources/SpatGRIS_3.3.7_Manual_EN.pdf" xcodeResource="1"/>
+      <FILE id="QYglW0" name="SpatGRIS_3.3.7_Manuel_FR.pdf" compile="0" resource="1"
+            file="Resources/SpatGRIS_3.3.7_Manuel_FR.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
     </GROUP>
