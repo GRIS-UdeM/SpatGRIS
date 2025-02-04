@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include "sg_Narrow.hpp"
-
 #include <JuceHeader.h>
 
 #include <array>

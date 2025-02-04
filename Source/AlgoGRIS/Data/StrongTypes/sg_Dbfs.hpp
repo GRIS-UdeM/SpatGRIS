@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include "sg_Macros.hpp"
 #include "sg_StrongFloat.hpp"
 
 #include <JuceHeader.h>
@@ -33,7 +32,11 @@ class dbfs_t final : public StrongFloat<float, dbfs_t, struct VolumeT>
 public:
     dbfs_t() = default;
     explicit constexpr dbfs_t(type const & value) : StrongFloat(value) {}
-    SG_DEFAULT_COPY_AND_MOVE(dbfs_t)
+    dbfs_t(dbfs_t const &) = default;
+    dbfs_t & operator=(dbfs_t const &) = default;
+    dbfs_t(dbfs_t &&) = default;                                                                                                 \
+    dbfs_t & operator=(dbfs_t &&) = default;
+
     //==============================================================================
     [[nodiscard]] type toGain() const { return juce::Decibels::decibelsToGain(mValue); }
     static dbfs_t fromGain(type const gain) { return dbfs_t{ juce::Decibels::gainToDecibels(gain) }; }

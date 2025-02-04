@@ -20,8 +20,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <optional>
 
-#include "lib/tl/optional.hpp"
 
 // Uncomment to enable the Doppler stereo reduction.
 // #define USE_DOPPLER 1
@@ -43,8 +43,8 @@ extern juce::StringArray const STEREO_MODE_TOOLTIPS;
 //==============================================================================
 juce::String const & spatModeToString(SpatMode mode);
 juce::String const & spatModeToTooltip(SpatMode mode);
-tl::optional<SpatMode> stringToSpatMode(juce::String const & string);
+std::optional<SpatMode> stringToSpatMode(juce::String const & string);
 juce::String const & stereoModeToString(StereoMode mode);
-tl::optional<StereoMode> stringToStereoMode(juce::String const & string);
+std::optional<StereoMode> stringToStereoMode(juce::String const & string);
 
 } // namespace gris
