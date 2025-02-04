@@ -32,42 +32,42 @@
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
       <GROUP id="{D059D036-0ECD-ACF5-4465-BDC1A866C55E}" name="Audio">
         <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
+          <FILE id="esYY3O" name="sg_StereoSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/spat/sg_StereoSpatAlgorithm.cpp"/>
+          <FILE id="AA3E4A" name="sg_AbstractSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/spat/sg_AbstractSpatAlgorithm.cpp"/>
+          <FILE id="m0MVig" name="sg_AbstractSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/spat/sg_AbstractSpatAlgorithm.hpp"/>
+          <FILE id="o083V8" name="sg_DopplerSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/spat/sg_DopplerSpatAlgorithm.cpp"/>
+          <FILE id="RuJVJW" name="sg_DopplerSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/spat/sg_DopplerSpatAlgorithm.hpp"/>
+          <FILE id="BnMQrW" name="sg_DummySpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/spat/sg_DummySpatAlgorithm.hpp"/>
+          <FILE id="V9SZcc" name="sg_HrtfSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/spat/sg_HrtfSpatAlgorithm.cpp"/>
+          <FILE id="uv38PE" name="sg_HrtfSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/spat/sg_HrtfSpatAlgorithm.hpp"/>
+          <FILE id="tIrMkK" name="sg_HybridSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/spat/sg_HybridSpatAlgorithm.cpp"/>
+          <FILE id="wZkiZn" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/spat/sg_HybridSpatAlgorithm.hpp"/>
+          <FILE id="awS0G6" name="sg_MbapSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/spat/sg_MbapSpatAlgorithm.cpp"/>
+          <FILE id="BQCHaO" name="sg_MbapSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/spat/sg_MbapSpatAlgorithm.hpp"/>
+          <FILE id="jrJq6t" name="sg_VbapSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/spat/sg_VbapSpatAlgorithm.cpp"/>
+          <FILE id="QIvIyo" name="sg_VbapSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/spat/sg_VbapSpatAlgorithm.hpp"/>
+          <FILE id="DRFpx1" name="sg_StereoSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/spat/sg_StereoSpatAlgorithm.hpp"/>
           <GROUP id="{F536EC3E-463E-F7C1-C73E-F95B29576CC6}" name="implementations">
-            <FILE id="jD7XJF" name="sg_mbap.cpp" compile="1" resource="0" file="Source/sg_mbap.cpp"/>
-            <FILE id="TjPFps" name="sg_mbap.hpp" compile="0" resource="0" file="Source/sg_mbap.hpp"/>
-            <FILE id="ZA3ukj" name="sg_vbap.cpp" compile="1" resource="0" file="Source/sg_vbap.cpp"/>
-            <FILE id="QvxuHw" name="sg_vbap.hpp" compile="0" resource="0" file="Source/sg_vbap.hpp"/>
+            <FILE id="ZquWiX" name="sg_vbap.hpp" compile="0" resource="0" file="Source/spat/implementations/sg_vbap.hpp"/>
+            <FILE id="PYzI8h" name="sg_mbap.cpp" compile="1" resource="0" file="Source/spat/implementations/sg_mbap.cpp"/>
+            <FILE id="ueGjRl" name="sg_mbap.hpp" compile="0" resource="0" file="Source/spat/implementations/sg_mbap.hpp"/>
+            <FILE id="rbTR6c" name="sg_vbap.cpp" compile="1" resource="0" file="Source/spat/implementations/sg_vbap.cpp"/>
           </GROUP>
-          <FILE id="V5pGbX" name="sg_AbstractSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_AbstractSpatAlgorithm.cpp"/>
-          <FILE id="M5gvQ0" name="sg_AbstractSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_AbstractSpatAlgorithm.hpp"/>
-          <FILE id="E8j6Aa" name="sg_DopplerSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_DopplerSpatAlgorithm.cpp"/>
-          <FILE id="ufofep" name="sg_DopplerSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_DopplerSpatAlgorithm.hpp"/>
-          <FILE id="pkCGrx" name="sg_DummySpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_DummySpatAlgorithm.hpp"/>
-          <FILE id="E45aKk" name="sg_HrtfSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_HrtfSpatAlgorithm.cpp"/>
-          <FILE id="tzcPNu" name="sg_HrtfSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_HrtfSpatAlgorithm.hpp"/>
-          <FILE id="bcGZDB" name="sg_HybridSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_HybridSpatAlgorithm.cpp"/>
-          <FILE id="ncBTxz" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_HybridSpatAlgorithm.hpp"/>
-          <FILE id="wYF40j" name="sg_MbapSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_MbapSpatAlgorithm.cpp"/>
-          <FILE id="u2DKQo" name="sg_MbapSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_MbapSpatAlgorithm.hpp"/>
-          <FILE id="qEq08c" name="sg_StereoSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_StereoSpatAlgorithm.cpp"/>
-          <FILE id="KcGDRK" name="sg_StereoSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_StereoSpatAlgorithm.hpp"/>
-          <FILE id="rBZVVV" name="sg_VbapSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_VbapSpatAlgorithm.cpp"/>
-          <FILE id="x1azHH" name="sg_VbapSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_VbapSpatAlgorithm.hpp"/>
         </GROUP>
         <FILE id="LDaWEl" name="sg_AudioManager.cpp" compile="1" resource="0"
               file="Source/sg_AudioManager.cpp"/>
