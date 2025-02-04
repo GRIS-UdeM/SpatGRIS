@@ -130,7 +130,7 @@ struct ProjectTemplates {
 
 extern SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES;
 extern ProjectTemplates const PROJECT_TEMPLATES;
-std::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId);
+std::optional<FileTemplate> commandIdToTemplate(juce::CommandID commandId);
 
 //==============================================================================
 extern juce::StringArray const RECORDING_FORMAT_STRINGS;

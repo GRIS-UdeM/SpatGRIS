@@ -46,6 +46,8 @@
                 file="Source/AlgoGRIS/Containers/sg_StaticVector.hpp"/>
           <FILE id="NA3jjZ" name="sg_StrongArray.hpp" compile="0" resource="0"
                 file="Source/AlgoGRIS/Containers/sg_StrongArray.hpp"/>
+          <FILE id="RpdYLZ" name="sg_TaggedAudioBuffer.hpp" compile="0" resource="0"
+                file="Source/AlgoGRIS/Containers/sg_TaggedAudioBuffer.hpp"/>
           <FILE id="nrPJjh" name="sg_ThreadSafeBuffer.hpp" compile="0" resource="0"
                 file="Source/AlgoGRIS/Containers/sg_ThreadSafeBuffer.hpp"/>
         </GROUP>
@@ -153,8 +155,6 @@
               file="Source/sg_PinkNoiseGenerator.cpp"/>
         <FILE id="BBFEaw" name="sg_PinkNoiseGenerator.hpp" compile="0" resource="0"
               file="Source/sg_PinkNoiseGenerator.hpp"/>
-        <FILE id="HLaIjn" name="sg_TaggedAudioBuffer.hpp" compile="0" resource="0"
-              file="Source/sg_TaggedAudioBuffer.hpp"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="Misc">
         <FILE id="uE7qMG" name="sg_FatalError.cpp" compile="1" resource="0"

@@ -715,7 +715,11 @@ void EditSpeakersWindow::selectSpeaker(std::optional<output_patch_t> const outpu
         return displayOrder.indexOf(id);
     };
 
-    selectRow(outputPatch.map(getSelectedRow));
+    //TODO VB: double check this
+    jassertfalse;
+    selectRow(outputPatch ? std::optional<int> {getSelectedRow(*outputPatch)} : std::nullopt);
+    //selectRow(outputPatch.map(getSelectedRow));
+
     pushSelectionToMainComponent();
 }
 
@@ -800,10 +804,10 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
     case Cols::GAIN:
         return juce::String{ speaker.gain.get(), 1 };
     case Cols::HIGHPASS:
-        return juce::String{
-            speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq.get(); }, float{}),
-            1
-        };
+        //return { speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq.get(); }, float{}), 1 };
+        //TODO VB: check logic
+        jassertfalse;
+        return juce::String { speaker.highpassData ? speaker.highpassData->freq.get() : 1 };
     case Cols::DIRECT_TOGGLE:
         return juce::String{ static_cast<int>(speaker.isDirectOutOnly) };
     case Cols::DRAG_HANDLE:
@@ -1005,9 +1009,12 @@ void EditSpeakersWindow::setText(int const columnNumber,
             static constexpr hz_t MIN_FREQ{ 20.0f };
             static constexpr hz_t MAX_FREQ{ 150.0f };
             hz_t val{ newText.getFloatValue() };
-            auto diff = val
-                        - speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq; },
-                                                      hz_t{ OFF_FREQ });
+            
+            //TODO VB: check logic
+            jassertfalse;
+            auto const diff = val - (speaker.highpassData ? speaker.highpassData->freq : hz_t{ OFF_FREQ });
+            //auto const diff = val - speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq; }, hz_t{ OFF_FREQ });
+
             auto mapValue = [&](hz_t value, hz_t modDiff) {
                 if (value <= OFF_FREQ && modDiff <= OFF_FREQ) {
                     value = OFF_FREQ;

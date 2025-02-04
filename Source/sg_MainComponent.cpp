@@ -214,7 +214,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
                            audioSettings.outputDevice,
                            audioSettings.sampleRate,
                            audioSettings.bufferSize,
-                           mData.appData.stereoMode ? tl::make_optional(mData.appData.stereoRouting) : std::nullopt);
+                           mData.appData.stereoMode ? std::optional {mData.appData.stereoRouting} : std::nullopt);
     };
 
     //==============================================================================
@@ -901,7 +901,7 @@ void MainContentComponent::setStereoMode(std::optional<StereoMode> const stereoM
     mData.appData.viewSettings.showSpeakerTriplets = false;
     mData.appData.stereoMode = stereoMode;
 
-    AudioManager::getInstance().setStereoRouting(stereoMode ? tl::make_optional(mData.appData.stereoRouting)
+    AudioManager::getInstance().setStereoRouting(stereoMode ? std::make_optional(mData.appData.stereoRouting)
                                                             : std::nullopt);
 
     refreshSpatAlgorithm();
@@ -916,7 +916,7 @@ void MainContentComponent::setStereoRouting(StereoRouting const & routing)
     juce::ScopedWriteLock const lock{ mLock };
 
     mData.appData.stereoRouting = routing;
-    AudioManager::getInstance().setStereoRouting(mData.appData.stereoMode ? tl::make_optional(routing) : std::nullopt);
+    AudioManager::getInstance().setStereoRouting(mData.appData.stereoMode ? std::make_optional(routing) : std::nullopt);
 }
 
 //==============================================================================

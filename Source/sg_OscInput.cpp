@@ -214,7 +214,12 @@ void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) 
         return {};
     };
 
-    auto const spatMode{ stringToSpatMode(message[2].getString()).and_then(filter_spat_mode) };
+    //auto const spatMode{ stringToSpatMode(message[2].getString()).and_then(filter_spat_mode) };
+    //TODO VB: this logic needs to be checked!!
+    jassertfalse;
+    auto spatMode{ stringToSpatMode(message[2].getString()) };
+    if (spatMode)
+        spatMode = filter_spat_mode(*spatMode);
 
     if (!spatMode) {
         addErrorToBuffer("unrecognized hybrid spat mode.");

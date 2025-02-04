@@ -307,7 +307,13 @@ SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampl
     SpeakerAudioConfig result;
     result.isMuted = soloMode ? state != SliceState::solo : state == SliceState::muted;
     result.gain = gain.toGain();
-    result.highpassConfig = highpassData.map(getHighpassConfig);
+
+    //TODO VB: check this logic!
+    jassertfalse;
+    if (highpassData)
+        result.highpassConfig = getHighpassConfig(*highpassData);
+    // result.highpassConfig = highpassData.map(getHighpassConfig);
+
     result.isDirectOutOnly = isDirectOutOnly;
     return result;
 }
@@ -685,7 +691,7 @@ std::optional<ProjectData> ProjectData::fromXml(juce::XmlElement const & xml)
         result.sources.add(sourceIndex, std::make_unique<SourceData>(*sourceData));
     }
 
-    return tl::make_optional(std::move(result));
+    return result;
 }
 
 //==============================================================================
@@ -933,10 +939,16 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
     auto const shouldProcessAttenuation{ !appData.playerExists
                                          && project.mbapDistanceAttenuationData.attenuationBypassState
                                                 == AttenuationBypassSate::off };
-    result->mbapAttenuationConfig
-        = project.mbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate, shouldProcessAttenuation);
+    result->mbapAttenuationConfig = project.mbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate, shouldProcessAttenuation);
     result->masterGain = project.masterGain.toGain();
-    result->pinkNoiseGain = pinkNoiseLevel.map([](auto const & level) { return level.toGain(); });
+
+    //TODO VB: double check
+    jassertfalse;
+    if (pinkNoiseLevel)
+        result->pinkNoiseGain = pinkNoiseLevel->toGain(); 
+
+    //result->pinkNoiseGain = pinkNoiseLevel.map([](auto const & level) { return level.toGain(); });
+
     for (auto const source : project.sources) {
         result->sourcesAudioConfig.add(source.key, source.value->toConfig(isAtLeastOneSourceSolo));
     }

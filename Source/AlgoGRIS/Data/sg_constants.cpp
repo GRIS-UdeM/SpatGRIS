@@ -141,10 +141,10 @@ bool FileTemplate::operator<(FileTemplate const & other) const noexcept
 }
 
 //==============================================================================
-std::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId)
+std::optional<FileTemplate> commandIdToTemplate(juce::CommandID commandId)
 {
-    auto const find = [&](juce::Array<FileTemplate> const & templates) -> std::optional<FileTemplate const &> {
-        auto const * it{ std::find_if(templates.begin(), templates.end(), [&](FileTemplate const & templateInfo) {
+    auto const find = [&](juce::Array<FileTemplate> templates) -> std::optional<FileTemplate> {
+        auto const * it{ std::find_if(templates.begin(), templates.end(), [&](FileTemplate templateInfo) {
             return templateInfo.commandId == commandId;
         }) };
         if (it == templates.end()) {
