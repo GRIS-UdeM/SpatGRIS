@@ -308,11 +308,8 @@ SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampl
     result.isMuted = soloMode ? state != SliceState::solo : state == SliceState::muted;
     result.gain = gain.toGain();
 
-    //TODO VB: check this logic!
-    jassertfalse;
     if (highpassData)
         result.highpassConfig = getHighpassConfig(*highpassData);
-    // result.highpassConfig = highpassData.map(getHighpassConfig);
 
     result.isDirectOutOnly = isDirectOutOnly;
     return result;
@@ -942,12 +939,8 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
     result->mbapAttenuationConfig = project.mbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate, shouldProcessAttenuation);
     result->masterGain = project.masterGain.toGain();
 
-    //TODO VB: double check
-    jassertfalse;
     if (pinkNoiseLevel)
         result->pinkNoiseGain = pinkNoiseLevel->toGain(); 
-
-    //result->pinkNoiseGain = pinkNoiseLevel.map([](auto const & level) { return level.toGain(); });
 
     for (auto const source : project.sources) {
         result->sourcesAudioConfig.add(source.key, source.value->toConfig(isAtLeastOneSourceSolo));
