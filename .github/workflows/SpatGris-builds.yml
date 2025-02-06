@@ -60,11 +60,11 @@ jobs:
         run: |
           curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-osx.zip --output JUCE.zip
 
-      - name: List directory contents
-        run: ls -R
-
       - name: unpack JUCE
         run: unzip JUCE.zip
+
+      - name: List directory contents
+        run: ls -R
 
       - name: set global JUCE search paths
         run: JUCE/Projucer --set-global-search-path mac defaultJuceModulePath /Users/runner/work/SpatGRIS/SpatGRIS/JUCE/modules
@@ -89,13 +89,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
 
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
-
-      # - name: Install Visual Studio Build Tools
-      #   run: |
-      #     choco install visualstudio2022buildtools #--package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
-
       - name: download JUCE
         run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-windows.zip --output JUCE.zip
 
@@ -108,10 +101,11 @@ jobs:
       - name: generate Visual Studio project
         run: JUCE/Projucer --resave SpatGRIS.jucer
 
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
       - name: build
-        run: |
-          cd Builds/VisualStudio2022
-          msbuild SpatGRIS_App.vcxproj /p:Configuration=Release
+        run: msbuild Builds/VisualStudio2022/SpatGRIS_App.vcxproj -p:Configuration=Release -p:Platform=x64
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
