@@ -57,8 +57,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: download JUCE
-        run: |
-          curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-osx.zip --output JUCE.zip
+        run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-osx.zip --output JUCE.zip
 
       - name: unpack JUCE
         run: unzip JUCE.zip
@@ -67,15 +66,13 @@ jobs:
         run: ls -R
 
       - name: set global JUCE search paths
-        run: JUCE/Projucer --set-global-search-path mac defaultJuceModulePath /Users/runner/work/SpatGRIS/SpatGRIS/JUCE/modules
+        run: JUCE/Projucer.app/Contents/MacOS/Projucer --set-global-search-path mac defaultJuceModulePath /Users/runner/work/SpatGRIS/SpatGRIS/JUCE/modules
 
       - name: generate Xcode project
-        run: JUCE/Projucer --resave SpatGRIS.jucer
+        run: JUCE/Projucer.app/Contents/MacOS/Projucer --resave SpatGRIS.jucer
 
       - name: build
-        run: |
-          cd Builds/MacOSX
-          xcodebuild -project SpatGRIS.xcodeproj -configuration Release
+        run: xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj -configuration Release
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -95,8 +92,14 @@ jobs:
       - name: unpack JUCE
         run: Expand-Archive -Path JUCE.zip -DestinationPath .
 
+      - name: download ASIO SDK
+        run: curl -L https://www.steinberg.net/asiosdk --output ASIOSDK.zip
+
+      - name: unpack ASIO SDK
+        run: Expand-Archive -Path ASIOSDK.zip -DestinationPath .
+
       - name: set global JUCE search paths
-        run: JUCE/Projucer --set-global-search-path windows defaultJuceModulePath ${{ github.workspace }}\JUCE\modules
+        run: JUCE/Projucer --set-global-search-path windows defaultJuceModulePath ${{ github.workspace }}\JUCE\modules --set-global-search-path windows defaultASIOSDKPath ${{ github.workspace }}\ASIOSDK2.3
 
       - name: generate Visual Studio project
         run: JUCE/Projucer --resave SpatGRIS.jucer
