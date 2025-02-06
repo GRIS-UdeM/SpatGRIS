@@ -19,7 +19,6 @@
 
 #pragma once
 
-//#include "sg_Macros.hpp"
 #include "sg_StaticVector.hpp"
 
 namespace gris
