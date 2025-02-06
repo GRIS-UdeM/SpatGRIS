@@ -72,7 +72,12 @@ jobs:
         run: JUCE/Projucer.app/Contents/MacOS/Projucer --resave SpatGRIS.jucer
 
       - name: build
-        run: xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj -configuration Release
+        run: |
+          xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
+            -configuration Release \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -99,7 +104,7 @@ jobs:
         run: Expand-Archive -Path ASIOSDK.zip -DestinationPath .
 
       - name: set global JUCE search paths
-        run: JUCE/Projucer --set-global-search-path windows defaultJuceModulePath ${{ github.workspace }}\JUCE\modules --set-global-search-path windows defaultASIOSDKPath ${{ github.workspace }}\ASIOSDK2.3
+        run: JUCE/Projucer --set-global-search-path windows defaultJuceModulePath ${{ github.workspace }}\JUCE\modules --set-global-search-path windows defaultASIOSDKPath ${{ github.workspace }}\asiosdk_2.3.3_2019-06-14\common
 
       - name: generate Visual Studio project
         run: JUCE/Projucer --resave SpatGRIS.jucer
