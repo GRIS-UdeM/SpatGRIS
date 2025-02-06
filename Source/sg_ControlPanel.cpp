@@ -189,7 +189,7 @@ SpatMode SpatSettingsSubPanel::getSpatMode() const
 }
 
 //==============================================================================
-tl::optional<StereoMode> SpatSettingsSubPanel::getStereoMode() const
+std::optional<StereoMode> SpatSettingsSubPanel::getStereoMode() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     return stringToStereoMode(mStereoReductionCombo.getText());
@@ -264,7 +264,7 @@ void SpatSettingsSubPanel::setSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
-void SpatSettingsSubPanel::setStereoMode(tl::optional<StereoMode> const & stereoMode)
+void SpatSettingsSubPanel::setStereoMode(std::optional<StereoMode> const & stereoMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     if (!stereoMode) {
@@ -502,7 +502,7 @@ void ControlPanel::setSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
-void ControlPanel::setStereoMode(tl::optional<StereoMode> const & mode)
+void ControlPanel::setStereoMode(std::optional<StereoMode> const & mode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mSpatSettingsSubPanel.setStereoMode(mode);

@@ -72,14 +72,14 @@ std::unique_ptr<juce::XmlElement> CartesianVector::toXml() const noexcept
 }
 
 //==============================================================================
-tl::optional<CartesianVector> CartesianVector::fromXml(juce::XmlElement const & xml)
+std::optional<CartesianVector> CartesianVector::fromXml(juce::XmlElement const & xml)
 {
     juce::StringArray const requiredTags{ XmlTags::X, XmlTags::Y, XmlTags::Z };
 
     if (!std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & tag) {
             return xml.hasAttribute(tag);
         })) {
-        return tl::nullopt;
+        return std::nullopt;
     }
 
     CartesianVector result;

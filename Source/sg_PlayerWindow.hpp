@@ -50,7 +50,7 @@ class PlayerComponent final
     juce::Label mTimeCodeLabel{};
 
     std::unique_ptr<ThumbnailComp> mThumbnails;
-    tl::optional<SpeakerSetup> mPlayerSpeakerSetup;
+    std::optional<SpeakerSetup> mPlayerSpeakerSetup;
     juce::File mPlayerFilesFolder{};
     int mBlinkNTimes{ 5 };
 

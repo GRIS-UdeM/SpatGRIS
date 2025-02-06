@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
 #include "sg_Narrow.hpp"
 #include "sg_StrongIndex.hpp"
 

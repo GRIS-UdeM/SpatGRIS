@@ -126,17 +126,16 @@ public:
     void updateMaxOutputPatch(output_patch_t maxOutputPatch, StereoRouting const & routing);
     //==============================================================================
     void setSpatMode(SpatMode spatMode);
-    void setStereoMode(tl::optional<StereoMode> const & stereoMode);
+    void setStereoMode(std::optional<StereoMode> const & stereoMode);
     void setAttenuationDb(dbfs_t attenuation);
     void setAttenuationHz(hz_t freq);
     void setAttenuationBypass(AttenuationBypassSate state);
     void setStereoRouting(StereoRouting const & routing);
 
-    [[nodiscard]] tl::optional<StereoMode> getStereoMode() const;
-
 private:
     //==============================================================================
     [[nodiscard]] SpatMode getSpatMode() const;
+    [[nodiscard]] std::optional<StereoMode> getStereoMode() const;
     [[nodiscard]] bool shouldShowAttenuationSettings() const;
     [[nodiscard]] bool shouldShowStereoRouting() const;
     void updateAttenuationState();
@@ -177,7 +176,7 @@ public:
     void setMasterGain(dbfs_t gain);
     void setInterpolation(float interpolation);
     void setSpatMode(SpatMode spatMode);
-    void setStereoMode(tl::optional<StereoMode> const & mode);
+    void setStereoMode(std::optional<StereoMode> const & mode);
     void setCubeAttenuationDb(dbfs_t value);
     void setCubeAttenuationHz(hz_t value);
     void setCubeAttenuationBypass(AttenuationBypassSate value);

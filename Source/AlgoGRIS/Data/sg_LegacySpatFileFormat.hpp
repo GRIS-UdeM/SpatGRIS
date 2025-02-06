@@ -23,7 +23,7 @@
 
 namespace gris
 {
-tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml);
-tl::optional<ProjectData> readLegacyProjectFile(juce::XmlElement const & xml);
+std::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml);
+std::optional<ProjectData> readLegacyProjectFile(juce::XmlElement const & xml);
 
 } // namespace gris

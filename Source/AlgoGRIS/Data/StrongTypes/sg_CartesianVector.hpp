@@ -86,8 +86,8 @@ struct CartesianVector {
     /** @return an XML representation of this vector. */
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const noexcept;
     //==============================================================================
-    /** @return the CartesianVector encoded in an XML element. tl::nullopt if parsing fails. */
-    [[nodiscard]] static tl::optional<CartesianVector> fromXml(juce::XmlElement const & xml);
+    /** @return the CartesianVector encoded in an XML element. std::nullopt if parsing fails. */
+    [[nodiscard]] static std::optional<CartesianVector> fromXml(juce::XmlElement const & xml);
 };
 
 //==============================================================================

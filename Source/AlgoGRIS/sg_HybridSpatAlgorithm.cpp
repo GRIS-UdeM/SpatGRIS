@@ -79,7 +79,7 @@ bool HybridSpatAlgorithm::hasTriplets() const noexcept
 }
 
 //==============================================================================
-tl::optional<AbstractSpatAlgorithm::Error> HybridSpatAlgorithm::getError() const noexcept
+std::optional<AbstractSpatAlgorithm::Error> HybridSpatAlgorithm::getError() const noexcept
 {
     // It seems this always return nullopt...
     return mVbap->getError().disjunction(mMbap->getError());

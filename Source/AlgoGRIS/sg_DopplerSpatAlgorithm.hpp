@@ -90,7 +90,7 @@ public:
                  juce::AudioBuffer<float> & stereoBuffer,
                  SourcePeaks const & sourcePeaks,
                  SpeakersAudioConfig const * altSpeakerConfig) override;
-    [[nodiscard]] tl::optional<Error> getError() const noexcept override { return tl::nullopt; }
+    [[nodiscard]] std::optional<Error> getError() const noexcept override { return std::nullopt; }
     //==============================================================================
     static std::unique_ptr<AbstractSpatAlgorithm> make(double sampleRate, int bufferSize) noexcept;
 

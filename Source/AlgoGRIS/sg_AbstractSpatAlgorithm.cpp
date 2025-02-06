@@ -91,7 +91,7 @@ void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
 //==============================================================================
 std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
                                                                    SpatMode const & projectSpatMode,
-                                                                   tl::optional<StereoMode> stereoMode,
+                                                                   std::optional<StereoMode> stereoMode,
                                                                    SourcesData const & sources,
                                                                    double const sampleRate,
                                                                    int const bufferSize)

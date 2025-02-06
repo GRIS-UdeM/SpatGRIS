@@ -73,7 +73,7 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
         jassertfalse;
     }
 
-    tl::optional<float> increment{};
+    std::optional<float> increment{};
     switch (mColumnId) {
     case col::X:
     case col::Y:

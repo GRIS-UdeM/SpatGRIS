@@ -68,7 +68,7 @@ struct SpeakerAudioConfig {
     bool isDirectOutOnly{};
     float gain{};
     bool isMuted{};
-    tl::optional<SpeakerHighpassConfig> highpassConfig{};
+    std::optional<SpeakerHighpassConfig> highpassConfig{};
 };
 
 //==============================================================================
@@ -109,7 +109,7 @@ struct SourceAudioState {
 //==============================================================================
 struct SourceAudioConfig {
     bool isMuted{};
-    tl::optional<output_patch_t> directOut{};
+    std::optional<output_patch_t> directOut{};
 };
 
 //==============================================================================
@@ -129,7 +129,7 @@ struct AudioConfig {
     SourcesAudioConfig sourcesAudioConfig{};
     SpeakersAudioConfig speakersAudioConfig{};
 
-    tl::optional<float> pinkNoiseGain{};
+    std::optional<float> pinkNoiseGain{};
 
     // MBAP-specific
     MbapAttenuationConfig mbapAttenuationConfig{};

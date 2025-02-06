@@ -25,16 +25,16 @@
 namespace gris
 {
 //==============================================================================
-tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
+std::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
 {
     if (!xml.hasTagName("SpeakerSetup")) {
-        return tl::nullopt;
+        return std::nullopt;
     }
 
     auto const spatMode{ static_cast<SpatMode>(xml.getIntAttribute("SpatMode")) };
     if (spatMode != SpatMode::mbap && spatMode != SpatMode::vbap) {
         jassertfalse;
-        return tl::nullopt;
+        return std::nullopt;
     }
 
     juce::Array<std::pair<int, output_patch_t>> layout;
@@ -50,7 +50,7 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
                     output_patch_t outputPatch{ spk->getIntAttribute("OutputPatch") };
                     jassert(LEGAL_OUTPUT_PATCH_RANGE.contains(outputPatch));
                     if (!LEGAL_OUTPUT_PATCH_RANGE.contains(outputPatch)) {
-                        return tl::nullopt;
+                        return std::nullopt;
                     }
 
                     // position
@@ -75,7 +75,7 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
                     speakerData->position = position;
                     speakerData->gain = gain;
                     speakerData->highpassData
-                        = (highpass == hz_t{} ? tl::optional<SpeakerHighpassData>{} : SpeakerHighpassData{ highpass });
+                        = (highpass == hz_t{} ? std::optional<SpeakerHighpassData>{} : SpeakerHighpassData{ highpass });
                     speakerData->isDirectOutOnly = isDirectOutOnly;
 
                     if (!result.speakers.contains(outputPatch)) {
@@ -135,10 +135,10 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
 }
 
 //==============================================================================
-tl::optional<ProjectData> readLegacyProjectFile(juce::XmlElement const & xml)
+std::optional<ProjectData> readLegacyProjectFile(juce::XmlElement const & xml)
 {
     if (!xml.hasTagName("SpatServerGRIS_Preset") && !xml.hasTagName("ServerGRIS_Preset")) {
-        return tl::nullopt;
+        return std::nullopt;
     }
 
     auto const oscPort{ xml.getIntAttribute("OSC_Input_Port", DEFAULT_OSC_INPUT_PORT) }; // TODO : validate value
@@ -157,18 +157,18 @@ tl::optional<ProjectData> readLegacyProjectFile(juce::XmlElement const & xml)
             source_index_t const index{ source->getIntAttribute("Index") };
             jassert(LEGAL_SOURCE_INDEX_RANGE.contains(index));
             if (!LEGAL_SOURCE_INDEX_RANGE.contains(index)) {
-                return tl::nullopt;
+                return std::nullopt;
             }
             auto const red{ static_cast<float>(source->getDoubleAttribute("R", 1.0f)) };
             auto const green{ static_cast<float>(source->getDoubleAttribute("G", 1.0f)) };
             auto const blue{ static_cast<float>(source->getDoubleAttribute("B", 1.0f)) };
             auto const color{ juce::Colour::fromFloatRGBA(red, green, blue, 1.0f) };
-            tl::optional<output_patch_t> directOut{};
+            std::optional<output_patch_t> directOut{};
             if (source->getIntAttribute("DirectOut") != 0) {
                 directOut = output_patch_t{ source->getIntAttribute("DirectOut") };
                 jassert(LEGAL_OUTPUT_PATCH_RANGE.contains(*directOut));
                 if (!LEGAL_OUTPUT_PATCH_RANGE.contains(*directOut)) {
-                    return tl::nullopt;
+                    return std::nullopt;
                 }
             }
 

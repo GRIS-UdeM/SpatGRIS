@@ -42,7 +42,7 @@ constexpr auto MAX_OSC_INPUT_PORT = 65535;
 /** The classical states of a mixing slice (input or output). */
 enum class SliceState { normal, muted, solo };
 [[nodiscard]] juce::String sliceStateToString(SliceState state);
-[[nodiscard]] tl::optional<SliceState> stringToSliceState(juce::String const & string);
+[[nodiscard]] std::optional<SliceState> stringToSliceState(juce::String const & string);
 
 //==============================================================================
 /** Attenuation Bypass State. Invalid is here to keep project file compatiblity */
@@ -79,7 +79,7 @@ struct ViewSettings {
     bool showSourceActivity{ false };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static std::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -112,7 +112,7 @@ struct ViewportSourceData {
 };
 
 /** The updater type used to send a source's data from the message thread to the OpenGL thread. */
-using ViewportSourceDataUpdater = AtomicUpdater<tl::optional<ViewportSourceData>>;
+using ViewportSourceDataUpdater = AtomicUpdater<std::optional<ViewportSourceData>>;
 
 //==============================================================================
 /** The data needed to display a speaker in the 3D viewport.
@@ -178,17 +178,17 @@ struct ViewportData {
  */
 struct SourceData {
     SliceState state{};                // normal / muted / solo
-    tl::optional<Position> position{}; // tl::nullopt if the source is inactive
+    std::optional<Position> position{}; // std::nullopt if the source is inactive
     float azimuthSpan{};
     float zenithSpan{};
-    tl::optional<output_patch_t> directOut{};
+    std::optional<output_patch_t> directOut{};
     juce::Colour colour{ DEFAULT_SOURCE_COLOR };
     SpatMode hybridSpatMode{};
     //==============================================================================
     [[nodiscard]] SourceAudioConfig toConfig(bool soloMode) const;
     [[nodiscard]] ViewportSourceData toViewportData(float alpha) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(source_index_t index) const;
-    [[nodiscard]] static tl::optional<SourceData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static std::optional<SourceData> fromXml(juce::XmlElement const & xml);
     [[nodiscard]] bool operator==(SourceData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
@@ -209,7 +209,7 @@ struct SpeakerHighpassData {
     //==============================================================================
     [[nodiscard]] SpeakerHighpassConfig toConfig(double sampleRate) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<SpeakerHighpassData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static std::optional<SpeakerHighpassData> fromXml(juce::XmlElement const & xml);
     [[nodiscard]] bool operator==(SpeakerHighpassData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
@@ -223,7 +223,7 @@ struct SpeakerData {
     SliceState state{};
     Position position{ PolarVector{ radians_t{ 0.0f }, radians_t{ 0.0f }, 1.0f } };
     dbfs_t gain{};
-    tl::optional<SpeakerHighpassData> highpassData{};
+    std::optional<SpeakerHighpassData> highpassData{};
     float peak{};
     bool isSelected{};
     bool isDirectOutOnly{};
@@ -231,7 +231,7 @@ struct SpeakerData {
     [[nodiscard]] SpeakerAudioConfig toConfig(bool soloMode, double sampleRate) const noexcept;
     [[nodiscard]] ViewportSpeakerConfig toViewportConfig() const noexcept;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(output_patch_t outputPatch) const noexcept;
-    [[nodiscard]] static tl::optional<SpeakerData> fromXml(juce::XmlElement const & xml) noexcept;
+    [[nodiscard]] static std::optional<SpeakerData> fromXml(juce::XmlElement const & xml) noexcept;
     [[nodiscard]] bool operator==(SpeakerData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
@@ -253,7 +253,7 @@ struct MbapDistanceAttenuationData {
     //==============================================================================
     [[nodiscard]] MbapAttenuationConfig toConfig(double sampleRate, bool shouldProcess) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<MbapDistanceAttenuationData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static std::optional<MbapDistanceAttenuationData> fromXml(juce::XmlElement const & xml);
     [[nodiscard]] bool operator==(MbapDistanceAttenuationData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
@@ -274,7 +274,7 @@ struct AudioSettings {
     int bufferSize{ DEFAULT_BUFFER_SIZE };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<AudioSettings> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static std::optional<AudioSettings> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -300,9 +300,9 @@ enum class RecordingFileType { mono, interleaved };
 constexpr auto DEFAULT_RECORDING_FILE_TYPE{ RecordingFileType::mono };
 
 juce::String recordingFormatToString(RecordingFormat format);
-tl::optional<RecordingFormat> stringToRecordingFormat(juce::String const & string);
+std::optional<RecordingFormat> stringToRecordingFormat(juce::String const & string);
 juce::String recordingFileTypeToString(RecordingFileType fileType);
-tl::optional<RecordingFileType> stringToRecordingFileType(juce::String const & string);
+std::optional<RecordingFileType> stringToRecordingFileType(juce::String const & string);
 
 //==============================================================================
 struct RecordingOptions {
@@ -311,7 +311,7 @@ struct RecordingOptions {
     bool shouldSaveSpeakerSetup{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<RecordingOptions> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static std::optional<RecordingOptions> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -326,7 +326,7 @@ struct StereoRouting {
     output_patch_t right{ 2 };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<StereoRouting> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static std::optional<StereoRouting> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -345,7 +345,7 @@ struct ProjectData {
     SpatMode spatMode{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ProjectData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static std::optional<ProjectData> fromXml(juce::XmlElement const & xml);
     [[nodiscard]] bool operator==(ProjectData const & other) const noexcept;
     [[nodiscard]] bool operator!=(ProjectData const & other) const noexcept { return !(*this == other); }
     //==============================================================================
@@ -373,7 +373,7 @@ struct AppData {
     juce::String lastRecordingDirectory{
         juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDesktopDirectory).getFullPathName()
     };
-    tl::optional<StereoMode> stereoMode{};
+    std::optional<StereoMode> stereoMode{};
     StereoRouting stereoRouting{};
     bool playerExists{};
     int windowX{ 100 };
@@ -383,7 +383,7 @@ struct AppData {
     double sashPosition{ -0.4694048616932104 }; // TODO: should be removed since SpeakerView
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<AppData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static std::optional<AppData> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -416,7 +416,7 @@ struct SpeakerSetup {
     bool generalMute{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<SpeakerSetup> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static std::optional<SpeakerSetup> fromXml(juce::XmlElement const & xml);
     [[nodiscard]] bool operator==(SpeakerSetup const & other) const noexcept;
     [[nodiscard]] bool operator!=(SpeakerSetup const & other) const noexcept { return !(*this == other); }
     [[nodiscard]] bool isDomeLike() const noexcept;
@@ -437,7 +437,7 @@ struct SpatGrisData {
     SpeakerSetup speakerSetup{};
     ProjectData project{};
     AppData appData{};
-    tl::optional<dbfs_t> pinkNoiseLevel{};
+    std::optional<dbfs_t> pinkNoiseLevel{};
     AtomicUpdater<SourcePeaks>::Token * mostRecentSourcePeaks{};
     AtomicUpdater<SpeakerPeaks>::Token * mostRecentSpeakerPeaks{};
     AtomicUpdater<StereoPeaks>::Token * mostRecentStereoPeaks{};

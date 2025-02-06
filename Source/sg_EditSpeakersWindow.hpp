@@ -24,7 +24,7 @@
 
 #include <JuceHeader.h>
 
-#include "lib/tl/optional.hpp"
+#include <optional>
 
 namespace gris
 {
@@ -92,7 +92,7 @@ private:
     juce::Font mFont;
 
     int mNumRows{};
-    tl::optional<int> mDragStartY{};
+    std::optional<int> mDragStartY{};
     bool mShouldComputeSpeakers{};
     juce::SparseSet<int> mLastSelectedRows{};
     //==============================================================================
@@ -110,8 +110,8 @@ public:
     SG_DELETE_COPY_AND_MOVE(EditSpeakersWindow)
     //==============================================================================
     void initComp();
-    void selectRow(tl::optional<int> value);
-    void selectSpeaker(tl::optional<output_patch_t> outputPatch);
+    void selectRow(std::optional<int> value);
+    void selectSpeaker(std::optional<output_patch_t> outputPatch);
     void updateWinContent();
 
 private:

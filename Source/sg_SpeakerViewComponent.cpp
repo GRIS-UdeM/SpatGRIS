@@ -308,7 +308,7 @@ void SpeakerViewComponent::listenUDP()
                         const auto selectedSpkNum = selectedSpkNumStr.getIntValue();
 
                         if (spkIsSelectedWithMouseStr.compare("true") == 0) {
-                            tl::optional<output_patch_t> iBestSpeaker{};
+                            std::optional<output_patch_t> iBestSpeaker{};
                             iBestSpeaker = static_cast<output_patch_t>(selectedSpkNum);
                             juce::MessageManager::callAsync([this, speaker = *iBestSpeaker] {
                                 mMainContentComponent.setSelectedSpeakers(juce::Array<output_patch_t>{ speaker });

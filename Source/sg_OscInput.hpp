@@ -22,7 +22,7 @@
 #include "sg_LogBuffer.hpp"
 #include "sg_SourceIndex.hpp"
 
-#include "lib/tl/optional.hpp"
+#include <optional>
 
 namespace gris
 {
@@ -82,7 +82,7 @@ private:
 
     enum class SourceIndexBase { fromZero, fromOne };
 
-    tl::optional<source_index_t> extractSourceIndex(juce::OSCArgument const & arg,
+    std::optional<source_index_t> extractSourceIndex(juce::OSCArgument const & arg,
                                                     SourceIndexBase const base) const noexcept;
     //==============================================================================
     void addToBuffer(juce::String const & string) const;

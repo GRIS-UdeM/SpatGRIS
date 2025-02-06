@@ -22,7 +22,7 @@
 #include "sg_OutputPatch.hpp"
 #include "sg_SpatButton.hpp"
 
-#include "lib/tl/optional.hpp"
+#include <optional>
 
 namespace gris
 {
@@ -42,7 +42,7 @@ public:
         virtual ~Listener() = default;
         SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
-        virtual void directOutSelectorComponentClicked(tl::optional<output_patch_t> directOut) = 0;
+        virtual void directOutSelectorComponentClicked(std::optional<output_patch_t> directOut) = 0;
     };
 
     //==============================================================================
@@ -61,7 +61,7 @@ private:
 
 public:
     //==============================================================================
-    DirectOutSelectorComponent(tl::optional<output_patch_t> const & directOut,
+    DirectOutSelectorComponent(std::optional<output_patch_t> const & directOut,
                                std::shared_ptr<Choices> choices,
                                Listener & listener,
                                SmallGrisLookAndFeel & lookAndFeel);
@@ -70,7 +70,7 @@ public:
     //==============================================================================
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
-    void setDirectOut(tl::optional<output_patch_t> const & directOut);
+    void setDirectOut(std::optional<output_patch_t> const & directOut);
     void setChoices(std::shared_ptr<Choices> choices);
     //==============================================================================
     void resized() override;

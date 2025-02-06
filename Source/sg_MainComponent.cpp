@@ -214,7 +214,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
                            audioSettings.outputDevice,
                            audioSettings.sampleRate,
                            audioSettings.bufferSize,
-                           mData.appData.stereoMode ? tl::make_optional(mData.appData.stereoRouting) : tl::nullopt);
+                           mData.appData.stereoMode ? tl::make_optional(mData.appData.stereoRouting) : std::nullopt);
     };
 
     //==============================================================================
@@ -460,7 +460,7 @@ void MainContentComponent::handleSaveProjectAs()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    [[maybe_unused]] auto const success{ saveProject(tl::nullopt) };
+    [[maybe_unused]] auto const success{ saveProject(std::nullopt) };
 }
 
 //==============================================================================
@@ -492,7 +492,7 @@ void MainContentComponent::handleSaveSpeakerSetupAs()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    [[maybe_unused]] auto const success{ saveSpeakerSetup(tl::nullopt) };
+    [[maybe_unused]] auto const success{ saveSpeakerSetup(std::nullopt) };
 }
 
 //==============================================================================
@@ -552,7 +552,7 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 //==============================================================================
 void MainContentComponent::saveAsEditedSpeakerSetup()
 {
-    saveSpeakerSetup(tl::nullopt);
+    saveSpeakerSetup(std::nullopt);
 }
 
 //==============================================================================
@@ -893,7 +893,7 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
-void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMode)
+void MainContentComponent::setStereoMode(std::optional<StereoMode> const stereoMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -902,7 +902,7 @@ void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMo
     mData.appData.stereoMode = stereoMode;
 
     AudioManager::getInstance().setStereoRouting(stereoMode ? tl::make_optional(mData.appData.stereoRouting)
-                                                            : tl::nullopt);
+                                                            : std::nullopt);
 
     refreshSpatAlgorithm();
     refreshSpeakerSlices();
@@ -916,7 +916,7 @@ void MainContentComponent::setStereoRouting(StereoRouting const & routing)
     juce::ScopedWriteLock const lock{ mLock };
 
     mData.appData.stereoRouting = routing;
-    AudioManager::getInstance().setStereoRouting(mData.appData.stereoMode ? tl::make_optional(routing) : tl::nullopt);
+    AudioManager::getInstance().setStereoRouting(mData.appData.stereoMode ? tl::make_optional(routing) : std::nullopt);
 }
 
 //==============================================================================
@@ -1127,13 +1127,13 @@ void MainContentComponent::handleResetSourcesPositions()
     auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
     for (auto const source : mData.project.sources) {
         // reset positions
-        source.value->position = tl::nullopt;
+        source.value->position = std::nullopt;
 
         {
             // reset 3d view
             auto & exchanger{ viewPortData.hotSourcesDataUpdaters[source.key] };
             auto * sourceTicket{ exchanger.acquire() };
-            sourceTicket->get() = tl::nullopt;
+            sourceTicket->get() = std::nullopt;
             exchanger.setMostRecent(sourceTicket);
         }
 
@@ -1141,7 +1141,7 @@ void MainContentComponent::handleResetSourcesPositions()
             // reset 2d view
             auto & exchanger{ mFlatViewWindow->getSourceDataQueues()[source.key] };
             auto * sourceTicket{ exchanger.acquire() };
-            sourceTicket->get() = tl::nullopt;
+            sourceTicket->get() = std::nullopt;
             exchanger.setMostRecent(sourceTicket);
         }
 
@@ -2010,7 +2010,7 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
         return;
     }
 
-    mData.project.sources[sourceIndex].position = tl::nullopt;
+    mData.project.sources[sourceIndex].position = std::nullopt;
     updateSourceSpatData(sourceIndex);
 }
 
@@ -2104,7 +2104,7 @@ void MainContentComponent::setSpeakerSetupDiffusion(float diffusion)
 }
 
 //==============================================================================
-void MainContentComponent::setPinkNoiseGain(tl::optional<dbfs_t> const gain)
+void MainContentComponent::setPinkNoiseGain(std::optional<dbfs_t> const gain)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2196,7 +2196,7 @@ void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, Sli
 
 //==============================================================================
 void MainContentComponent::setSourceDirectOut(source_index_t const sourceIndex,
-                                              tl::optional<output_patch_t> const outputPatch)
+                                              std::optional<output_patch_t> const outputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2330,7 +2330,7 @@ void MainContentComponent::setSourceHybridSpatMode(source_index_t const sourceIn
 
     // we need to erase the position in the current spat algorithm
     auto const position{ source.position };
-    source.position = tl::nullopt;
+    source.position = std::nullopt;
     updateSourceSpatData(sourceIndex);
 
     // we now reinstate the position and update again
@@ -2366,7 +2366,7 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 }
 
 //==============================================================================
-tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File const & file)
+std::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File const & file)
 {
     auto const displayError = [&](juce::String const & message) {
         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
@@ -2379,19 +2379,19 @@ tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File 
 
     if (!file.existsAsFile()) {
         displayError("File \"" + file.getFullPathName() + "\" does not exist.");
-        return tl::nullopt;
+        return std::nullopt;
     }
 
     juce::XmlDocument xmlDoc{ file };
     auto const mainXmlElem(xmlDoc.getDocumentElement());
     if (!mainXmlElem) {
         displayError("Corrupted file.\n" + xmlDoc.getLastParseError());
-        return tl::nullopt;
+        return std::nullopt;
     }
 
     if (mainXmlElem->hasTagName("ServerGRIS_Preset") || mainXmlElem->hasTagName(ProjectData::XmlTags::MAIN_TAG)) {
         displayError("This is a project file, not a Speaker Setup !");
-        return tl::nullopt;
+        return std::nullopt;
     }
 
     auto speakerSetup{ SpeakerSetup::fromXml(*mainXmlElem) };
@@ -2412,8 +2412,8 @@ tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File 
 }
 
 //==============================================================================
-output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> const speakerToCopy,
-                                                tl::optional<int> const index)
+output_patch_t MainContentComponent::addSpeaker(std::optional<output_patch_t> const speakerToCopy,
+                                                std::optional<int> const index)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2633,7 +2633,7 @@ void MainContentComponent::handleSaveSpeakerSetup()
 }
 
 //==============================================================================
-bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
+bool MainContentComponent::saveProject(std::optional<juce::File> maybeFile)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2670,7 +2670,7 @@ bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
 }
 
 //==============================================================================
-bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
+bool MainContentComponent::saveSpeakerSetup(std::optional<juce::File> maybeFile)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2735,7 +2735,7 @@ bool MainContentComponent::makeSureProjectIsSavedToDisk() noexcept
 
     jassert(pressedButton == BUTTON_OK);
 
-    return saveProject(tl::nullopt);
+    return saveProject(std::nullopt);
 }
 
 //==============================================================================
@@ -2767,7 +2767,7 @@ bool MainContentComponent::makeSureSpeakerSetupIsSavedToDisk() noexcept
 
     jassert(pressedButton == BUTTON_OK);
 
-    return saveSpeakerSetup(tl::nullopt);
+    return saveSpeakerSetup(std::nullopt);
 }
 
 //==============================================================================
@@ -2885,7 +2885,7 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
 }
 
 //==============================================================================
-tl::optional<SpeakerSetup> MainContentComponent::playerExtractSpeakerSetup(juce::File const & file)
+std::optional<SpeakerSetup> MainContentComponent::playerExtractSpeakerSetup(juce::File const & file)
 {
     juce::XmlDocument xmlDoc{ file };
     auto const mainXmlElem{ xmlDoc.getDocumentElement() };
@@ -2894,11 +2894,11 @@ tl::optional<SpeakerSetup> MainContentComponent::playerExtractSpeakerSetup(juce:
         return extractSpeakerSetup(file);
     }
 
-    return tl::nullopt;
+    return std::nullopt;
 }
 
 //==============================================================================
-void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetup> & playerSpeakerSetup,
+void MainContentComponent::handlePlayerSourcesPositions(std::optional<SpeakerSetup> & playerSpeakerSetup,
                                                         juce::File & playerFilesFolder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2945,7 +2945,7 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
             mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSourceColor());
 
             // reset source output
-            setSourceDirectOut(sourceIndex, tl::nullopt);
+            setSourceDirectOut(sourceIndex, std::nullopt);
             setSourceState(sourceIndex, SliceState::normal);
         }
 
@@ -2963,7 +2963,7 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
 
                 source_index_t const sourceIndex{ i + source_index_t::OFFSET };
                 setSourceState(sourceIndex, SliceState::muted);
-                setSourceDirectOut(sourceIndex, tl::nullopt);
+                setSourceDirectOut(sourceIndex, std::nullopt);
             }
             ++i;
         }

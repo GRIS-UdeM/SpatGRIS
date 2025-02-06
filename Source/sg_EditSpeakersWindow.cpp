@@ -502,10 +502,10 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    static auto const GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
+    static auto const GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> std::optional<int> {
         auto const selectedRow{ tableListBox.getSelectedRow() };
         if (selectedRow < 0) {
-            return tl::nullopt;
+            return std::nullopt;
         }
         return selectedRow;
     };
@@ -523,8 +523,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             return;
         }
 
-        tl::optional<output_patch_t> outputPatch{};
-        tl::optional<int> index{};
+        std::optional<output_patch_t> outputPatch{};
+        std::optional<int> index{};
 
         if (selectedRow) {
             outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
@@ -557,8 +557,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         }
 
         for (int i{}; i < numSpeakersToAdd; i++) {
-            tl::optional<output_patch_t> outputPatch{};
-            tl::optional<int> index{};
+            std::optional<output_patch_t> outputPatch{};
+            std::optional<int> index{};
 
             if (selectedRow) {
                 outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
@@ -590,7 +590,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mShouldComputeSpeakers = true;
     } else if (button == &mPinkNoiseToggleButton) {
         // Pink noise button
-        tl::optional<dbfs_t> newPinkNoiseLevel{};
+        std::optional<dbfs_t> newPinkNoiseLevel{};
         if (mPinkNoiseToggleButton.getToggleState()) {
             newPinkNoiseLevel = dbfs_t{ static_cast<float>(mPinkNoiseGainSlider.getValue()) };
         }
@@ -696,7 +696,7 @@ void EditSpeakersWindow::pushSelectionToMainComponent() const
 }
 
 //==============================================================================
-void EditSpeakersWindow::selectRow(tl::optional<int> const value)
+void EditSpeakersWindow::selectRow(std::optional<int> const value)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -706,7 +706,7 @@ void EditSpeakersWindow::selectRow(tl::optional<int> const value)
 }
 
 //==============================================================================
-void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const outputPatch)
+void EditSpeakersWindow::selectSpeaker(std::optional<output_patch_t> const outputPatch)
 {
     auto const getSelectedRow = [this](output_patch_t const id) {
         juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
@@ -724,7 +724,7 @@ void EditSpeakersWindow::closeButtonPressed()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mMainContentComponent.setPinkNoiseGain(tl::nullopt);
+    mMainContentComponent.setPinkNoiseGain(std::nullopt);
     mMainContentComponent.closeSpeakersConfigurationWindow();
 }
 
@@ -733,7 +733,7 @@ bool EditSpeakersWindow::keyPressed(const juce::KeyPress &key)
 {
     auto const key_w{ juce::KeyPress(87) };
     if (key.getModifiers().isCommandDown() && key.isKeyCurrentlyDown(key_w.getKeyCode())) {
-        mMainContentComponent.setPinkNoiseGain(tl::nullopt);
+        mMainContentComponent.setPinkNoiseGain(std::nullopt);
         mMainContentComponent.closeSpeakersConfigurationWindow();
         return true;
     }
@@ -1252,7 +1252,7 @@ void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
     if (isMouseOverDragHandle(event)) {
         mDragStartY = event.getEventRelativeTo(&mSpeakersTableListBox).getPosition().getY();
     } else {
-        mDragStartY = tl::nullopt;
+        mDragStartY = std::nullopt;
     }
     pushSelectionToMainComponent();
 }

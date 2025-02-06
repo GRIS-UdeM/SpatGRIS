@@ -18,7 +18,9 @@
 */
 
 #include "sg_constants.hpp"
+#include "sg_Narrow.hpp"
 
+//TODO VB: this cannot be included in the spat library
 #include "BinaryData.h"
 
 namespace gris
@@ -139,14 +141,14 @@ bool FileTemplate::operator<(FileTemplate const & other) const noexcept
 }
 
 //==============================================================================
-tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId)
+std::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId)
 {
-    auto const find = [&](juce::Array<FileTemplate> const & templates) -> tl::optional<FileTemplate const &> {
+    auto const find = [&](juce::Array<FileTemplate> const & templates) -> std::optional<FileTemplate const &> {
         auto const * it{ std::find_if(templates.begin(), templates.end(), [&](FileTemplate const & templateInfo) {
             return templateInfo.commandId == commandId;
         }) };
         if (it == templates.end()) {
-            return tl::nullopt;
+            return std::nullopt;
         }
         return *it;
     };
@@ -176,29 +178,29 @@ tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId
         return hybridProjectTemplate;
     }
 
-    return tl::nullopt;
+    return std::nullopt;
 }
 
 //==============================================================================
-tl::optional<int> attenuationDbToComboBoxIndex(dbfs_t const attenuation)
+std::optional<int> attenuationDbToComboBoxIndex(dbfs_t const attenuation)
 {
     static auto const ALLOWED_VALUES = stringToStronglyTypedFloat<dbfs_t>(ATTENUATION_DB_STRINGS);
 
     auto const index{ ALLOWED_VALUES.indexOf(attenuation) };
     if (index < 0) {
-        return tl::nullopt;
+        return std::nullopt;
     }
     return index + 1;
 }
 
 //==============================================================================
-tl::optional<int> attenuationFreqToComboBoxIndex(hz_t const freq)
+std::optional<int> attenuationFreqToComboBoxIndex(hz_t const freq)
 {
     static auto const ALLOWED_VALUES = stringToStronglyTypedFloat<hz_t>(ATTENUATION_FREQUENCY_STRINGS);
 
     auto const index{ ALLOWED_VALUES.indexOf(freq) };
     if (index < 0) {
-        return tl::nullopt;
+        return std::nullopt;
     }
     return index + 1;
 }

@@ -49,7 +49,7 @@ AudioManager::AudioManager(juce::String const & deviceType,
                            juce::String const & outputDevice,
                            double const sampleRate,
                            int const bufferSize,
-                           tl::optional<StereoRouting> const & stereoRouting)
+                           std::optional<StereoRouting> const & stereoRouting)
     : mStereoRouting(stereoRouting)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -232,7 +232,7 @@ void AudioManager::init(juce::String const & deviceType,
                         juce::String const & outputDevice,
                         double const sampleRate,
                         int const bufferSize,
-                        tl::optional<StereoRouting> const & stereoRouting)
+                        std::optional<StereoRouting> const & stereoRouting)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mInstance.reset(new AudioManager{ deviceType, inputDevice, outputDevice, sampleRate, bufferSize, stereoRouting });
@@ -765,7 +765,7 @@ void AudioManager::setBufferSize(int const newBufferSize)
 }
 
 //==============================================================================
-void AudioManager::setStereoRouting(tl::optional<StereoRouting> const & stereoRouting)
+void AudioManager::setStereoRouting(std::optional<StereoRouting> const & stereoRouting)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mAudioProcessor->getLock() };

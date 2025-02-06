@@ -23,7 +23,7 @@ namespace gris
 {
 //==============================================================================
 SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
-                                           tl::optional<output_patch_t> const directOut,
+                                           std::optional<output_patch_t> const directOut,
                                            SpatMode const projectSpatMode,
                                            SpatMode const hybridSpatMode,
                                            juce::Colour const colour,
@@ -44,7 +44,7 @@ SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
 }
 
 //==============================================================================
-void SourceSliceComponent::setDirectOut(tl::optional<output_patch_t> const directOut)
+void SourceSliceComponent::setDirectOut(std::optional<output_patch_t> const directOut)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -114,7 +114,7 @@ void SourceSliceComponent::sourceIdButtonCopyColorToNextSource([[maybe_unused]] 
 }
 
 //==============================================================================
-void SourceSliceComponent::directOutSelectorComponentClicked(tl::optional<output_patch_t> const directOut)
+void SourceSliceComponent::directOutSelectorComponentClicked(std::optional<output_patch_t> const directOut)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

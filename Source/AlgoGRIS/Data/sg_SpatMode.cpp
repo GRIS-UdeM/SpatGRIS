@@ -48,11 +48,11 @@ static juce::String const & enumToString(T const value, juce::StringArray const 
 
 //==============================================================================
 template<typename T>
-static tl::optional<T> stringToEnum(juce::String const & string, juce::StringArray const & stringArray) noexcept
+static std::optional<T> stringToEnum(juce::String const & string, juce::StringArray const & stringArray) noexcept
 {
     auto const index{ stringArray.indexOf(string, true) };
     if (index < 0) {
-        return tl::nullopt;
+        return std::nullopt;
     }
     return static_cast<T>(index);
 }
@@ -70,7 +70,7 @@ juce::String const & spatModeToTooltip(SpatMode const mode)
 }
 
 //==============================================================================
-tl::optional<SpatMode> stringToSpatMode(juce::String const & string)
+std::optional<SpatMode> stringToSpatMode(juce::String const & string)
 {
     return stringToEnum<SpatMode>(string, SPAT_MODE_STRINGS);
 }
@@ -82,7 +82,7 @@ juce::String const & stereoModeToString(StereoMode const mode)
 }
 
 //==============================================================================
-tl::optional<StereoMode> stringToStereoMode(juce::String const & string)
+std::optional<StereoMode> stringToStereoMode(juce::String const & string)
 {
     return stringToEnum<StereoMode>(string, STEREO_MODE_STRINGS);
 }

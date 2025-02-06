@@ -30,13 +30,8 @@ class LogBuffer final : private juce::AsyncUpdater
 {
 public:
     //==============================================================================
-    class Listener
+    struct Listener
     {
-    public:
-        Listener() = default;
-        virtual ~Listener() = default;
-        SG_DEFAULT_COPY_AND_MOVE(Listener)
-        //==============================================================================
         virtual void oscEventReceived(juce::String const & event) = 0;
     };
 

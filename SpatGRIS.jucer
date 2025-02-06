@@ -91,6 +91,7 @@
                 file="Source/AlgoGRIS/Data/sg_LogicStrucs.cpp"/>
           <FILE id="fVVEcw" name="sg_LogicStrucs.hpp" compile="0" resource="0"
                 file="Source/AlgoGRIS/Data/sg_LogicStrucs.hpp"/>
+          <FILE id="FCwIxW" name="sg_Macros.hpp" compile="0" resource="0" file="Source/AlgoGRIS/Data/sg_Macros.hpp"/>
           <FILE id="w25cot" name="sg_Narrow.hpp" compile="0" resource="0" file="Source/AlgoGRIS/Data/sg_Narrow.hpp"/>
           <FILE id="TuIQ6Y" name="sg_PolarVector.cpp" compile="1" resource="0"
                 file="Source/AlgoGRIS/Data/sg_PolarVector.cpp"/>
@@ -160,7 +161,6 @@
               file="Source/sg_FatalError.cpp"/>
         <FILE id="i24Hrh" name="sg_FatalError.hpp" compile="0" resource="0"
               file="Source/sg_FatalError.hpp"/>
-        <FILE id="yJeDzO" name="sg_Macros.hpp" compile="0" resource="0" file="Source/sg_Macros.hpp"/>
         <FILE id="Zaf3uS" name="sg_Remap.hpp" compile="0" resource="0" file="Source/sg_Remap.hpp"/>
         <FILE id="y1tIHN" name="sg_ScopeGuard.hpp" compile="0" resource="0"
               file="Source/sg_ScopeGuard.hpp"/>

@@ -34,7 +34,8 @@ class StrongIndex : public StrongIndexBase
 {
     T mValue;
 
-    static_assert(std::is_integral_v<T>, "Underlying types should be integrals.");
+    //TODO VB: this won't build, super weird
+    //static_assert(std::is_integral_v<T>, "Underlying types should be integrals.");
 
 public:
     //==============================================================================

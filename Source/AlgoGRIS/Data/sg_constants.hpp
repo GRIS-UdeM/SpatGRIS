@@ -19,13 +19,13 @@
 
 #pragma once
 
+#include <optional>
+#include <JuceHeader.h>
+
 #include "sg_Dbfs.hpp"
 #include "sg_Hz.hpp"
 #include "sg_OutputPatch.hpp"
 #include "sg_SourceIndex.hpp"
-
-#include "lib/tl/optional.hpp"
-#include <JuceHeader.h>
 
 namespace gris
 {
@@ -130,7 +130,7 @@ struct ProjectTemplates {
 
 extern SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES;
 extern ProjectTemplates const PROJECT_TEMPLATES;
-tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId);
+std::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId);
 
 //==============================================================================
 extern juce::StringArray const RECORDING_FORMAT_STRINGS;
@@ -142,7 +142,7 @@ extern juce::Array<int> const ATTENUATION_DB_VALUES;
 extern juce::Array<int> const ATTENUATION_FREQUENCY_VALUES;
 
 //==============================================================================
-[[nodiscard]] tl::optional<int> attenuationDbToComboBoxIndex(dbfs_t attenuation);
-[[nodiscard]] tl::optional<int> attenuationFreqToComboBoxIndex(hz_t freq);
+[[nodiscard]] std::optional<int> attenuationDbToComboBoxIndex(dbfs_t attenuation);
+[[nodiscard]] std::optional<int> attenuationFreqToComboBoxIndex(hz_t freq);
 
 } // namespace gris

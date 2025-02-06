@@ -51,7 +51,7 @@ public:
     }
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override { return juce::Array<Triplet>{}; }
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
-    [[nodiscard]] tl::optional<Error> getError() const noexcept override { return mError; }
+    [[nodiscard]] std::optional<Error> getError() const noexcept override { return mError; }
 
 private:
     //==============================================================================

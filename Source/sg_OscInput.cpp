@@ -201,11 +201,11 @@ void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) 
         return;
     }
 
-    static auto constexpr filter_spat_mode = [](SpatMode const spatMode) -> tl::optional<SpatMode> {
+    static auto constexpr filter_spat_mode = [](SpatMode const spatMode) -> std::optional<SpatMode> {
         switch (spatMode) {
         case SpatMode::hybrid:
         case SpatMode::invalid:
-            return tl::nullopt;
+            return std::nullopt;
         case SpatMode::mbap:
         case SpatMode::vbap:
             return spatMode;
@@ -328,7 +328,7 @@ OscInput::MessageType OscInput::getMessageType(juce::OSCMessage const & message)
 }
 
 //==============================================================================
-tl::optional<source_index_t> OscInput::extractSourceIndex(juce::OSCArgument const & arg,
+std::optional<source_index_t> OscInput::extractSourceIndex(juce::OSCArgument const & arg,
                                                           SourceIndexBase const base) const noexcept
 {
     auto const offset{ base == SourceIndexBase::fromZero ? 1 : 0 };
@@ -339,11 +339,11 @@ tl::optional<source_index_t> OscInput::extractSourceIndex(juce::OSCArgument cons
         result = source_index_t{ narrow<source_index_t::type>(std::round(arg.getFloat32())) + offset };
     } else {
         addErrorToBuffer("source index should be either an int or a float.");
-        return tl::nullopt;
+        return std::nullopt;
     }
     if (!LEGAL_SOURCE_INDEX_RANGE.contains(result)) {
         addErrorToBuffer("source index out of range.");
-        return tl::nullopt;
+        return std::nullopt;
     }
 
     return result;

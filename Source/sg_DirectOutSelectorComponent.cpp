@@ -24,7 +24,7 @@
 namespace gris
 {
 //==============================================================================
-DirectOutSelectorComponent::DirectOutSelectorComponent(tl::optional<output_patch_t> const & directOut,
+DirectOutSelectorComponent::DirectOutSelectorComponent(std::optional<output_patch_t> const & directOut,
                                                        std::shared_ptr<Choices> choices,
                                                        Listener & listener,
                                                        SmallGrisLookAndFeel & lookAndFeel)
@@ -69,7 +69,7 @@ void DirectOutSelectorComponent::buttonClicked([[maybe_unused]] juce::Button * b
         return;
     }
 
-    tl::optional<output_patch_t> newOutputPatch{};
+    std::optional<output_patch_t> newOutputPatch{};
     if (result != CHOICE_NOT_DIRECT_OUT) {
         newOutputPatch = output_patch_t{ result };
     }
@@ -90,7 +90,7 @@ int DirectOutSelectorComponent::getMinHeight() const noexcept
 }
 
 //==============================================================================
-void DirectOutSelectorComponent::setDirectOut(tl::optional<output_patch_t> const & directOut)
+void DirectOutSelectorComponent::setDirectOut(std::optional<output_patch_t> const & directOut)
 {
     mButton.setButtonText(directOut.has_value() ? juce::String{ directOut->get() } : NO_DIRECT_OUT_STRING);
 

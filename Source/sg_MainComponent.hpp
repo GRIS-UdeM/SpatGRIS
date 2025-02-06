@@ -140,7 +140,7 @@ class MainContentComponent final
     //==============================================================================
     // State
     SpatGrisData mData{};
-    tl::optional<SpeakerSetup> mCurrentSpeakerSetupBeforeEditing{};
+    std::optional<SpeakerSetup> mCurrentSpeakerSetupBeforeEditing{};
 
 public:
     //==============================================================================
@@ -174,13 +174,13 @@ public:
     void setOscPort(int newOscPort);
     void setSpeakerSetupDiffusion(float diffusion);
 
-    void setPinkNoiseGain(tl::optional<dbfs_t> gain);
+    void setPinkNoiseGain(std::optional<dbfs_t> gain);
 
     void setSourceColor(source_index_t sourceIndex, juce::Colour colour) override;
     void setSourceState(source_index_t sourceIndex, SliceState state) override;
     void setSelectedSpeakers(juce::Array<output_patch_t> selection) override;
     void setSpeakerState(output_patch_t outputPatch, SliceState state) override;
-    void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
+    void setSourceDirectOut(source_index_t sourceIndex, std::optional<output_patch_t> outputPatch) override;
     void setShowTriplets(bool state);
     void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) override;
 
@@ -201,7 +201,7 @@ public:
     //==============================================================================
     // Control Panel
     void setSpatMode(SpatMode const spatMode);
-    void setStereoMode(tl::optional<StereoMode> stereoMode);
+    void setStereoMode(std::optional<StereoMode> stereoMode);
     void setStereoRouting(StereoRouting const & routing);
     void cubeAttenuationDbChanged(dbfs_t value);
     void cubeAttenuationHzChanged(hz_t value);
@@ -214,7 +214,7 @@ public:
 
     juce::Component * getControlsComponent() const;
 
-    output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
+    output_patch_t addSpeaker(std::optional<output_patch_t> speakerToCopy, std::optional<int> index);
     void removeSpeaker(output_patch_t outputPatch);
     void reorderSpeakers(juce::Array<output_patch_t> newOrder);
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
@@ -245,8 +245,8 @@ public:
     void prepareAndStartRecording(juce::File const & fileOrDirectory, RecordingOptions const & recordingOptions);
     //==============================================================================
     // Player
-    [[nodiscard]] static tl::optional<SpeakerSetup> playerExtractSpeakerSetup(juce::File const & file);
-    void handlePlayerSourcesPositions(tl::optional<SpeakerSetup> & playerSpeakerSetup, juce::File & playerFilesFolder);
+    [[nodiscard]] static std::optional<SpeakerSetup> playerExtractSpeakerSetup(juce::File const & file);
+    void handlePlayerSourcesPositions(std::optional<SpeakerSetup> & playerSpeakerSetup, juce::File & playerFilesFolder);
     void handleNewProjectForPlayer();
     bool savePlayerProject(juce::File & playerFilesFolder);
 
@@ -324,11 +324,11 @@ private:
     bool isSpeakerViewProcessRunning() const;
     //==============================================================================
     // Open - save.
-    [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
+    [[nodiscard]] static std::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
     bool loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption option);
     bool loadProject(juce::File const & file, bool discardCurrentProject);
-    bool saveProject(tl::optional<juce::File> maybeFile);
-    bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
+    bool saveProject(std::optional<juce::File> maybeFile);
+    bool saveSpeakerSetup(std::optional<juce::File> maybeFile);
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
     [[nodiscard]] bool makeSureSpeakerSetupIsSavedToDisk() noexcept;
     void setTitles() const;
