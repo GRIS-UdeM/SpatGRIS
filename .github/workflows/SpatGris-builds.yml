@@ -58,14 +58,7 @@ jobs:
 
       - name: download JUCE
         run: |
-          curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-mac.zip --output JUCE.zip
-          if [ ! -f JUCE.zip ]; then
-            echo "JUCE.zip not found!"
-            exit 1
-          fi
-
-      - name: Print current path
-        run: pwd
+          curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-osx.zip --output JUCE.zip
 
       - name: List directory contents
         run: ls -R
@@ -96,15 +89,12 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
 
-      - name: Print current path
-        run: pwd
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
 
-      - name: List directory contents
-        run: ls -R
-
-      - name: Install Visual Studio Build Tools
-        run: |
-          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+      # - name: Install Visual Studio Build Tools
+      #   run: |
+      #     choco install visualstudio2022buildtools #--package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
 
       - name: download JUCE
         run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-windows.zip --output JUCE.zip
@@ -121,7 +111,7 @@ jobs:
       - name: build
         run: |
           cd Builds/VisualStudio2022
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" SpatGRIS_App.vcxproj /p:Configuration=Release
+          msbuild SpatGRIS_App.vcxproj /p:Configuration=Release
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
