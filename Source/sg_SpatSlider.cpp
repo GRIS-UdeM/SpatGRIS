@@ -44,7 +44,7 @@ SpatSlider::SpatSlider(float const minValue,
                        GrisLookAndFeel & lookAndFeel)
     : mListener(listener)
     , mLabel("", label)
-    , mSlider(juce::Slider::SliderStyle::Rotary, juce::Slider::TextEntryBoxPosition::TextBoxBelow)
+    , mSlider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
