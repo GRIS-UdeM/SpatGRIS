@@ -128,4 +128,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SpatGRIS-Build-Windows
-          path: Builds/VisualStudio2022/x64/Release/*
+          path: Builds/VisualStudio2022/x64/Release/**/*.exe
