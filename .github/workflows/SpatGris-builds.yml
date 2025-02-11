@@ -15,7 +15,7 @@ jobs:
       - name: Install required packages
         run: |
           apt-get update
-          apt-get install -y curl unzip sudo wget lsb-release software-properties-common
+          apt-get install -y curl unzip sudo wget lsb-release software-properties-common make build-essential
 
       - name: Check out repository code
         uses: actions/checkout@v2
