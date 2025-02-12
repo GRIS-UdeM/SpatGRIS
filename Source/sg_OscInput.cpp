@@ -160,6 +160,8 @@ void OscInput::processLegacySourcePositionMessage(juce::OSCMessage const & messa
         return;
     }
 
+    DBG (sourceIndex->mValue);
+
     auto const azimuth{ HALF_PI - radians_t{ message[1].getFloat32() }.balanced() };
     auto const zenith{ HALF_PI - radians_t{ message[2].getFloat32() } };
     auto const azimuthSpan{ message[3].getFloat32() / 2.0f };

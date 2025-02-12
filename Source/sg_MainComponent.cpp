@@ -769,7 +769,13 @@ void MainContentComponent::handleShowSpeakerViewWindow()
         cmd = juce::String("camPos=" + juce::String(aziDeg) + "," + juce::String(elevDeg) + "," + juce::String(len));
     }
 
+#if JUCE_DEBUG
+    launchCommand.add("--remote-debug 127.0.0.1:22");
+#endif
+
+
     launchCommand.add(cmd);
+    DBG (launchCommand.joinIntoString(" "));
 
     auto res{ mSpeakerViewProcess.start(launchCommand) };
     jassert(res);
@@ -1899,6 +1905,8 @@ void MainContentComponent::updateSourceSpatData(source_index_t const sourceIndex
     jassert(!isProbablyAudioThread());
 
     juce::ScopedReadLock const lock{ mLock };
+
+    DBG (sourceIndex.mValue);
     mAudioProcessor->getSpatAlgorithm()->updateSpatData(sourceIndex, mData.project.sources[sourceIndex]);
 }
 
@@ -1951,6 +1959,7 @@ void MainContentComponent::setLegacySourcePosition(source_index_t const sourceIn
     source.azimuthSpan = newAzimuthSpan;
     source.zenithSpan = newZenithSpan;
 
+    DBG (sourceIndex.mValue);
     updateSourceSpatData(sourceIndex);
 }
 

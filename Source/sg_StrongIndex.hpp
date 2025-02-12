@@ -34,11 +34,12 @@ class StrongIndexBase
 template<typename T, typename Dummy, T StartsAt>
 class StrongIndex : public StrongIndexBase
 {
-    T mValue;
+
 
     static_assert(std::is_integral_v<T>, "Underlying types should be integrals.");
 
 public:
+    T mValue;
     //==============================================================================
     using type = T;
     static constexpr auto OFFSET = StartsAt;

@@ -38,22 +38,6 @@ class SpeakerModel;
 //==============================================================================
 class SpeakerViewComponent final : public juce::HighResolutionTimer
 {
-private:
-    //==============================================================================
-    MainContentComponent & mMainContentComponent;
-    juce::CriticalSection mLock{};
-    ViewportData mData{};
-    juce::Thread::ThreadID mHighResTimerThreadID;
-
-    juce::DatagramSocket mUdpReceiverSocket;
-    static constexpr int mMaxBufferSize = 1024;
-
-    juce::Array<juce::var> mJsonSources;
-    juce::Array<juce::var> mJsonSpeakers;
-    std::unique_ptr<juce::DynamicObject> mJsonSGInfos;
-
-    bool mKillSpeakerViewProcess{};
-
 public:
     //==============================================================================
     static constexpr auto SPHERE_RADIUS = 0.03f;
@@ -86,6 +70,20 @@ public:
 
 private:
     //==============================================================================
+    MainContentComponent & mMainContentComponent;
+    juce::CriticalSection mLock{};
+    ViewportData mData{};
+    juce::Thread::ThreadID mHighResTimerThreadID;
+
+    juce::DatagramSocket mUdpReceiverSocket;
+    static constexpr int mMaxBufferSize = 1024;
+
+    juce::Array<juce::var> mJsonSources;
+    juce::Array<juce::var> mJsonSpeakers;
+    std::unique_ptr<juce::DynamicObject> mJsonSGInfos;
+
+    bool mKillSpeakerViewProcess{};
+
     void prepareSGInfos();
     bool isHiResTimerThread();
     void listenUDP();
