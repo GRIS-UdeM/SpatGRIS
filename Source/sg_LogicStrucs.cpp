@@ -68,6 +68,7 @@ juce::String const ViewSettings::XmlTags::SHOW_SPEAKER_TRIPLETS = "SHOW_SPEAKER_
 juce::String const ViewSettings::XmlTags::SHOW_SPEAKER_LEVELS = "SHOW_SPEAKER_LEVELS";
 juce::String const ViewSettings::XmlTags::SHOW_SPHERE_OR_CUBE = "SHOW_SPHERE_OR_CUBE";
 juce::String const ViewSettings::XmlTags::SHOW_SOURCE_ACTIVITY = "SHOW_SOURCE_ACTIVITY";
+juce::String const ViewSettings::XmlTags::KEEP_SPEAKERS_ORIGIN_ORIENTED = "KEEP_SPEAKERS_ORIGIN_ORIENTED";
 
 juce::String const ProjectData::XmlTags::MAIN_TAG = "SPAT_GRIS_PROJECT_DATA";
 juce::String const ProjectData::XmlTags::VERSION = "VERSION";
@@ -566,6 +567,7 @@ std::unique_ptr<juce::XmlElement> ViewSettings::toXml() const
     result->setAttribute(XmlTags::SHOW_SPEAKER_LEVELS, showSpeakerLevels);
     result->setAttribute(XmlTags::SHOW_SPHERE_OR_CUBE, showSphereOrCube);
     result->setAttribute(XmlTags::SHOW_SOURCE_ACTIVITY, showSourceActivity);
+    result->setAttribute(XmlTags::KEEP_SPEAKERS_ORIGIN_ORIENTED, keepSpeakersOriginOriented);
 
     return result;
 }
@@ -577,7 +579,7 @@ tl::optional<ViewSettings> ViewSettings::fromXml(juce::XmlElement const & xml)
                                           XmlTags::SHOW_SPEAKERS,           XmlTags::SHOW_SOURCE_NUMBERS,
                                           XmlTags::SHOW_SPEAKER_NUMBERS,    XmlTags::SHOW_SPEAKER_TRIPLETS,
                                           XmlTags::SHOW_SPEAKER_LEVELS,     XmlTags::SHOW_SPHERE_OR_CUBE,
-                                          XmlTags::SHOW_SOURCE_ACTIVITY };
+                                          XmlTags::SHOW_SOURCE_ACTIVITY,    XmlTags::KEEP_SPEAKERS_ORIGIN_ORIENTED};
 
     if (xml.getTagName() != XmlTags::MAIN_TAG
         || !std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & tag) {
@@ -596,6 +598,7 @@ tl::optional<ViewSettings> ViewSettings::fromXml(juce::XmlElement const & xml)
     result.showSpeakerLevels = xml.getBoolAttribute(XmlTags::SHOW_SPEAKER_LEVELS);
     result.showSphereOrCube = xml.getBoolAttribute(XmlTags::SHOW_SPHERE_OR_CUBE);
     result.showSourceActivity = xml.getBoolAttribute(XmlTags::SHOW_SOURCE_ACTIVITY);
+    result.keepSpeakersOriginOriented = xml.getBoolAttribute(XmlTags::KEEP_SPEAKERS_ORIGIN_ORIENTED);
 
     return result;
 }
