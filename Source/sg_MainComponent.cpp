@@ -1202,7 +1202,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 31> ids{ CommandId::newProjectId,
+    constexpr std::array<CommandId, 32> ids{ CommandId::newProjectId,
                                              CommandId::openProjectId,
                                              CommandId::saveProjectId,
                                              CommandId::saveProjectAsId,
