@@ -3,23 +3,20 @@
 #define AppURL "http://gris.musique.umontreal.ca/"
 #define AppExeName "SpatGris.exe"
 #define ControlGrisDir "ControlGris"
-#define AudioDescriptorsDir "AudioDescriptors"
 #define SpeakerViewDir "SpeakerView\Forward"
 #define SpeakerViewCompatDir "SpeakerView\Compatibility"
 #define SpeakerViewMobileDir "SpeakerView\Mobile"
-#define ManualENName "SpatGRIS_3.3.5_Manual_EN.pdf"
-#define ManualFRName "SpatGRIS_3.3.5_Manual_FR.pdf"
+#define ManualENName "SpatGRIS_3.3.7_Manual_EN.pdf"
+#define ManualFRName "SpatGRIS_3.3.7_Manuel_FR.pdf"
 #define RootDir ".."
 
 #define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
 #define ControlGrisVersionLong GetVersionNumbersString(ControlGrisDir + "\ControlGris.vst3\Contents\x86_64-win\ControlGris.vst3")
-#define AudioDescriptorsVersionLong GetVersionNumbersString(AudioDescriptorsDir + "\AudioDescriptors.vst3\Contents\x86_64-win\AudioDescriptors.vst3")
 #define SpeakerViewVersion GetFileVersion(SpeakerViewDir + "\SpeakerView.exe")
 #define ResourcesDir RootDir + "\Resources"
 
 #define AppExePath BuildDir + "\" + AppExeName
 #define ControlGrisVersion Copy(ControlGrisVersionLong, 0, Len(ControlGrisVersionLong) - 2)
-#define AudioDescriptorsVersion Copy(AudioDescriptorsVersionLong, 0, Len(AudioDescriptorsVersionLong) - 2)
 #define AaxInPath RootDir + "\installer\ControlGris\ControlGris.aaxplugin"
 #define AaxOutPath "C:\Program Files\Common Files\Avid\Audio\Plug-Ins\ControlGris.aaxplugin"
 
@@ -82,9 +79,6 @@ Source: "ControlGris\ControlGris.aaxplugin\*"; DestDir: "C:\Program Files\Common
 ;Source: "{#AaxInPath}\desktop.ini"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
 ;Source: "{#AaxInPath}\PlugIn.ico"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
 
-; AudioDescriptors
-Source: "{#AudioDescriptorsDir}\AudioDescriptors.vst3\*"; DestDir: "C:\Program Files\Common Files\VST3\AudioDescriptors.vst3"; Components: AD_VST364; Flags: ignoreversion recursesubdirs createallsubdirs;
-
 ; SpeakerView
 Source: "{#SpeakerViewDir}\SpeakerView.exe"; DestDir: "{app}"; Components: SpeakerView; Flags: ignoreversion
 Source: "{#SpeakerViewDir}\SpeakerView.pck"; DestDir: "{app}"; Components: SpeakerView; Flags: ignoreversion
@@ -100,7 +94,6 @@ Name: "SpeakerViewMobile"; Description: SpeakerView Mobile {#SpeakerViewVersion}
 Name: "VST364"; Description: "ControlGris {#ControlGrisVersion} VST3"; Types: custom full;
 Name: "VST64"; Description: "ControlGris {#ControlGrisVersion} VST"; Types: custom full;
 Name: "AAX"; Description: "ControlGris {#ControlGrisVersion} AAX"; Types: custom full;
-Name: "AD_VST364"; Description: "AudioDescriptors {#AudioDescriptorsVersion} VST3"; Types: custom full;
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExeName}"
@@ -109,7 +102,7 @@ Name: "{group}\Uninstall {#AppName} {#AppVersion}"; Filename: {uninstallexe}
 
 [Run]
 Filename: "{app}\Resources\{#ManualENName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF User Manual (EN)"; Flags: shellexec postinstall skipifsilent nowait
-Filename: "{app}\Resources\{#ManualFRName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF User Manual (FR)"; Flags: shellexec postinstall skipifsilent nowait unchecked
+Filename: "{app}\Resources\{#ManualFRName}"; WorkingDir: "{app}\Resources"; Description: "Ouvrir le Manuel PDF de l'Utilisateur (FR)"; Flags: shellexec postinstall skipifsilent nowait unchecked
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 ; code shared by discoDSP https://www.kvraudio.com/forum/viewtopic.php?t=501615

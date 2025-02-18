@@ -3,11 +3,10 @@
 # Developers: Gaël Lane Lépine, Olivier Belanger, Samuel Béland
 
 #==============================================================================
-export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <plugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --speakerview-compat <speakerview-compat-app-path> --speakerview-mobile <speakerview-mobile-app-path> --desc-plugins <audio-descriptors-plugins-pkg-path> --pass <dev-id-password>"
+export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <plugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --speakerview-compat <speakerview-compat-app-path> --speakerview-mobile <speakerview-mobile-app-path> --pass <dev-id-password>"
 export BIN_PATH=""
 export PASS=""
 export PLUGINS_PKG=""
-export AUDIO_DESCRIPTORS_PKG=""
 export BLACKHOLE_PKGS_DIR=""
 export SPEAKERVIEW_APP=""
 export SPEAKERVIEW_COMPATIBILITY_APP=""
@@ -65,11 +64,6 @@ case $key in
 	shift
 	shift
 	;;
-	--desc-plugins)
-	AUDIO_DESCRIPTORS_PKG="$2"
-	shift
-	shift
-	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -110,10 +104,6 @@ elif [[ $MOVE_SG_TO_FOREGROUND_DIR == "" ]];then
 	echo "Missing param --movetoforeground"
 	echo "$USAGE"
 	exit 1
-elif [[ $AUDIO_DESCRIPTORS_PKG == "" ]];then
-    echo "Missing param --desc-plugins"
-    echo "$USAGE"
-    exit 1
 fi
 
 #==============================================================================
@@ -128,12 +118,6 @@ echo "SpatGris version is $VERSION"
 
 PLUGINS_VERSION=$(echo $PLUGINS_PKG | awk -F 'ControlGris_' '{print $NF}' | awk -F '.pkg' '{print $1}')
 echo "ControlGris version is $PLUGINS_VERSION"
-
-#==============================================================================
-# get audio descriptors version
-
-AUDIO_DESCRIPTORS_VERSION=$(echo $AUDIO_DESCRIPTORS_PKG | awk -F 'AudioDescriptors_' '{print $NF}' | awk -F '.pkg' '{print $1}')
-echo "AudioDescriptors version is $AUDIO_DESCRIPTORS_VERSION"
 
 #==============================================================================
 # get SpeakerView version
@@ -222,9 +206,6 @@ function build_package() {
 	echo "Copying plugins..."
 	cp -r $PLUGINS_PKG "$INSTALLER_DIR/Plugins.pkg"
 
-	echo "Copying AudioDescriptors plugins..."
-	cp -r $AUDIO_DESCRIPTORS_PKG "$INSTALLER_DIR/AudioDescriptorsPlugins.pkg"
-
 	cd $INSTALLER_DIR
 
 	echo "building Application.pkg"
@@ -275,13 +256,12 @@ function build_package() {
 				--timestamp \
 				"MoveSGToForeground.pkg" || exit 1
 
-	echo "adding SpatGris, SpeakerView, ControlGris and AudioDescriptors versions to installer"
+	echo "adding SpatGris, SpeakerView, ControlGris versions to installer"
 	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS $VERSION\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"SpeakerView Forward.*\"/title=\"SpeakerView Forward $SPEAKERVIEW_VERSION (Recommended)\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"SpeakerView Compatibility.*\"/title=\"SpeakerView Compatibility $SPEAKERVIEW_COMPAT_VERSION\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"SpeakerView Mobile.*\"/title=\"SpeakerView Mobile $SPEAKERVIEW_MOBILE_VERSION\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"ControlGRIS.*\"/title=\"ControlGRIS $PLUGINS_VERSION\"/" ../Distribution.xml || exit 1
-	sed -i '' "s/title=\"AudioDescriptors.*\"/title=\"AudioDescriptors $AUDIO_DESCRIPTORS_VERSION\"/" ../Distribution.xml || exit 1
 
 	echo "building $PACKAGE_NAME"
 	productbuild 	--distribution "../Distribution.xml" \
@@ -297,7 +277,6 @@ function build_package() {
 	sed -i '' "s/title=\"SpeakerView Compatibility.*\"/title=\"SpeakerView Compatibility\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"SpeakerView Mobile.*\"/title=\"SpeakerView Mobile\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"ControlGRIS.*\"/title=\"ControlGRIS\"/" ../Distribution.xml || exit 1
-	sed -i '' "s/title=\"AudioDescriptors.*\"/title=\"AudioDescriptors\"/" ../Distribution.xml || exit 1
 }
 
 #==============================================================================

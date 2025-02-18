@@ -140,11 +140,20 @@ public:
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;
+#if JUCE_ARM
+    void audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
+                                           int totalNumInputChannels,
+                                           float* const* outputChannelData,
+                                           int totalNumOutputChannels,
+                                           int numSamples,
+                                           const juce::AudioIODeviceCallbackContext& context) override;
+#else
     void audioDeviceIOCallback(const float ** inputChannelData,
                                int totalNumInputChannels,
                                float ** outputChannelData,
                                int totalNumOutputChannels,
                                int numSamples) override;
+#endif
     void audioDeviceAboutToStart(juce::AudioIODevice * device) override;
     void audioDeviceStopped() override;
     //==============================================================================

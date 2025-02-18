@@ -58,6 +58,7 @@ enum CommandId {
     colorizeInputsId,
     resetInputPosId,
     resetMeterClipping,
+    muteAllSpeakers,
 
     // Help menu
     aboutId,

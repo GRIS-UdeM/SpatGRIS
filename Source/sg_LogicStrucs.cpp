@@ -98,6 +98,7 @@ juce::String const SpeakerSetup::XmlTags::MAIN_TAG = "SPEAKER_SETUP";
 juce::String const SpeakerSetup::XmlTags::VERSION = "VERSION";
 juce::String const SpeakerSetup::XmlTags::SPAT_MODE = "SPAT_MODE";
 juce::String const SpeakerSetup::XmlTags::DIFFUSION = "DIFFUSION";
+juce::String const SpeakerSetup::XmlTags::GENERAL_MUTE = "GENERAL_MUTE";
 
 //==============================================================================
 juce::String sliceStateToString(SliceState const state)
@@ -805,6 +806,7 @@ std::unique_ptr<juce::XmlElement> SpeakerSetup::toXml() const
     result->setAttribute(XmlTags::VERSION, SPAT_GRIS_VERSION.toString());
     result->setAttribute(XmlTags::SPAT_MODE, spatModeToString(spatMode));
     result->setAttribute(XmlTags::DIFFUSION, diffusion);
+    result->setAttribute(XmlTags::GENERAL_MUTE, generalMute);
 
     jassert(ordering.size() == speakers.size());
     for (auto const outputPatch : ordering) {
@@ -827,6 +829,7 @@ tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
     tl::optional<SpeakerSetup> result{ SpeakerSetup{} };
     result->spatMode = *spatMode;
     result->diffusion = *diffusion;
+    result->generalMute = xml.getBoolAttribute(XmlTags::GENERAL_MUTE);
 
     // Speaker setup spatialization mode is either vbap or mbap.
     if (result->spatMode != SpatMode::mbap)
@@ -870,17 +873,17 @@ bool SpeakerSetup::isDomeLike() const noexcept
 //==============================================================================
 SpeakersAudioConfig SpeakerSetup::toAudioConfig(double const sampleRate) const noexcept
 {
-    SpeakersAudioConfig result{};
+    auto result{ std::make_unique<SpeakersAudioConfig>() };
 
     auto const isAtLeastOnSpeakerSolo{ std::any_of(speakers.cbegin(), speakers.cend(), [](auto const node) {
         return node.value->state == SliceState::solo;
     }) };
 
     for (auto const speaker : speakers) {
-        result.add(speaker.key, speaker.value->toConfig(isAtLeastOnSpeakerSolo, sampleRate));
+        result->add(speaker.key, speaker.value->toConfig(isAtLeastOnSpeakerSolo, sampleRate));
     }
 
-    return result;
+    return *result;
 }
 
 //==============================================================================
@@ -953,6 +956,8 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
             source.value.directOut.reset();
         }
     }
+
+    result->isStereoMuted = speakerSetup.generalMute;
 
     return result;
 }

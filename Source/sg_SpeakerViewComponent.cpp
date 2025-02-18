@@ -247,6 +247,7 @@ void SpeakerViewComponent::prepareSGInfos()
     mJsonSGInfos->setProperty("showSpeakerLevel", viewSettings.showSpeakerLevels);
     mJsonSGInfos->setProperty("showSphereOrCube", viewSettings.showSphereOrCube);
     mJsonSGInfos->setProperty("keepSpeakersOriginOriented", viewSettings.keepSpeakersOriginOriented);
+    mJsonSGInfos->setProperty("genMute", mMainContentComponent.getData().speakerSetup.generalMute);
 
     juce::Array<juce::var> triplets;
     for (auto const & triplet : mData.coldData.triplets) {
@@ -364,6 +365,11 @@ void SpeakerViewComponent::listenUDP()
                             juce::MessageManager::callAsync(
                                 [this] { mMainContentComponent.handleResetSourcesPositionsFromSpeakerView(); });
                         }
+                    } else if (property.compare(juce::String("genMute")) == 0) {
+                        auto generalMute = static_cast<bool>(value);
+                        juce::MessageManager::callAsync([this, generalMute] {
+                            mMainContentComponent.handleGeneralMuteFromSpeakerView(generalMute);
+                        });
                     } else if (property.compare(juce::String("winPos")) == 0) {
                         auto winPosValue = value;
                         juce::MessageManager::callAsync([this, winPosValue] {
