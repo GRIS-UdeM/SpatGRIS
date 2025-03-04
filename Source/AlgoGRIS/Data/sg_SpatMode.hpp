@@ -19,24 +19,32 @@
 
 #pragma once
 
-#include "sg_Macros.hpp"
-#include "sg_StrongFloat.hpp"
-
 #include <JuceHeader.h>
+
+#include "../tl/optional.hpp"
+
+// Uncomment to enable the Doppler stereo reduction.
+// #define USE_DOPPLER 1
 
 namespace gris
 {
+enum class SpatMode { invalid = -1, vbap = 0, mbap, hybrid };
+#ifdef USE_DOPPLER
+enum class StereoMode { hrtf, stereo, doppler };
+#else
+enum class StereoMode { hrtf, stereo };
+#endif
+
 //==============================================================================
-/** Strongly-typed decibels full-scale. */
-class dbfs_t final : public StrongFloat<float, dbfs_t, struct VolumeT>
-{
-public:
-    dbfs_t() = default;
-    explicit constexpr dbfs_t(type const & value) : StrongFloat(value) {}
-    SG_DEFAULT_COPY_AND_MOVE(dbfs_t)
-    //==============================================================================
-    [[nodiscard]] type toGain() const { return juce::Decibels::decibelsToGain(mValue); }
-    static dbfs_t fromGain(type const gain) { return dbfs_t{ juce::Decibels::gainToDecibels(gain) }; }
-};
+extern juce::StringArray const SPAT_MODE_STRINGS;
+extern juce::StringArray const SPAT_MODE_TOOLTIPS;
+extern juce::StringArray const STEREO_MODE_STRINGS;
+extern juce::StringArray const STEREO_MODE_TOOLTIPS;
+//==============================================================================
+juce::String const & spatModeToString(SpatMode mode);
+juce::String const & spatModeToTooltip(SpatMode mode);
+tl::optional<SpatMode> stringToSpatMode(juce::String const & string);
+juce::String const & stereoModeToString(StereoMode mode);
+tl::optional<StereoMode> stringToStereoMode(juce::String const & string);
 
 } // namespace gris

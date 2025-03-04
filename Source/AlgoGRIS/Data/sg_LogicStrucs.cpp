@@ -17,9 +17,8 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sg_LogicStrucs.hpp"
-
 #include "sg_LegacySpatFileFormat.hpp"
+#include "sg_LogicStrucs.hpp"
 
 namespace gris
 {

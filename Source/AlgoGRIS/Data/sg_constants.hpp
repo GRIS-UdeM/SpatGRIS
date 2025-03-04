@@ -22,7 +22,7 @@
 #include "sg_Dbfs.hpp"
 #include "sg_Hz.hpp"
 #include "sg_OutputPatch.hpp"
-#include "sg_SourceIndex.hpp"
+#include "AlgoGRIS/Data/StrongTypes/sg_SourceIndex.hpp"
 
 #include "lib/tl/optional.hpp"
 #include <JuceHeader.h>

@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sg_constants.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 
 #include "BinaryData.h"
 

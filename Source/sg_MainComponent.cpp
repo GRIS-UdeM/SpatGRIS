@@ -28,7 +28,7 @@
 #include "sg_MainWindow.hpp"
 #include "sg_ScopeGuard.hpp"
 #include "sg_TitledComponent.hpp"
-#include "sg_constants.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 
 namespace gris
 {

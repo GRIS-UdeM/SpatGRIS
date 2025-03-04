@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "sg_LogicStrucs.hpp"
-#include "sg_TaggedAudioBuffer.hpp"
-#include "sg_Triplet.hpp"
+#include "Data/sg_LogicStrucs.hpp"
+#include "Containers/sg_TaggedAudioBuffer.hpp"
+#include "Data/sg_Triplet.hpp"
 
 namespace gris
 {

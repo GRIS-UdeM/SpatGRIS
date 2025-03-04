@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_Narrow.hpp"
+#include "AlgoGRIS/Data/sg_Narrow.hpp"
 
 #include <JuceHeader.h>
 

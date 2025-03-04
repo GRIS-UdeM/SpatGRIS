@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_Macros.hpp"
+#include "AlgoGRIS/Data/sg_Macros.hpp"
 
 #include <utility>
 

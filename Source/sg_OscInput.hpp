@@ -19,10 +19,9 @@
 
 #pragma once
 
-#include "sg_LogBuffer.hpp"
-#include "sg_SourceIndex.hpp"
-
-#include "lib/tl/optional.hpp"
+#include "AlgoGRIS/Containers/sg_LogBuffer.hpp"
+#include "AlgoGRIS/Data/StrongTypes/sg_SourceIndex.hpp"
+#include "AlgoGRIS/tl/optional.hpp"
 
 namespace gris
 {

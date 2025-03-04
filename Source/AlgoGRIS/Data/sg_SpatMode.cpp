@@ -17,8 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sg_SpatMode.hpp"
-
+#include "AlgoGRIS/Data/sg_SpatMode.hpp"
 #include "sg_constants.hpp"
 
 namespace gris

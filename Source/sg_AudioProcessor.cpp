@@ -21,12 +21,12 @@
 
 #include "sg_AudioManager.hpp"
 #include "sg_MainComponent.hpp"
-#include "sg_Narrow.hpp"
+#include "AlgoGRIS/Data/sg_Narrow.hpp"
 #include "sg_PinkNoiseGenerator.hpp"
 #include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
-#include "sg_constants.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 
 #include <array>
 

@@ -20,13 +20,13 @@
 #pragma once
 
 #include "sg_AudioStructs.hpp"
-#include "sg_CartesianVector.hpp"
+#include "AlgoGRIS/Data/StrongTypes/sg_CartesianVector.hpp"
 #include "sg_Dbfs.hpp"
 #include "sg_Hz.hpp"
 #include "sg_OwnedMap.hpp"
 #include "sg_Position.hpp"
 #include "sg_Radians.hpp"
-#include "sg_SourceIndex.hpp"
+#include "AlgoGRIS/Data/StrongTypes/sg_SourceIndex.hpp"
 #include "sg_StaticMap.hpp"
 #include "sg_Triplet.hpp"
 

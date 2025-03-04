@@ -33,8 +33,8 @@
 #include "sg_mbap.hpp"
 
 #include "sg_AudioStructs.hpp"
-#include "sg_Narrow.hpp"
-#include "sg_constants.hpp"
+#include "AlgoGRIS/Data/sg_Narrow.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 
 namespace gris
 {

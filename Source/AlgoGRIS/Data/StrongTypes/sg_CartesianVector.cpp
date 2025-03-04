@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sg_CartesianVector.hpp"
+#include "AlgoGRIS/Data/StrongTypes/sg_CartesianVector.hpp"
 
 #include "sg_PolarVector.hpp"
 

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_Narrow.hpp"
+#include "../sg_Narrow.hpp"
 
 namespace gris
 {

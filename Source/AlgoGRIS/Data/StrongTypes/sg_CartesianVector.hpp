@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "sg_Macros.hpp"
-#include "sg_constants.hpp"
+#include "AlgoGRIS/Data/sg_Macros.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 
 namespace gris
 {

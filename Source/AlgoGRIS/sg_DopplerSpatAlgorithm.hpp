@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_SpatMode.hpp"
+#include "AlgoGRIS/Data/sg_SpatMode.hpp"
 
 /** Experimental : a stereo reduction algorithm based on doppler-shifting. */
 #if defined(USE_DOPPLER) || defined(DOXYGEN)

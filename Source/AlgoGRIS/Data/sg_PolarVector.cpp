@@ -17,9 +17,8 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "StrongTypes/sg_CartesianVector.hpp"
 #include "sg_PolarVector.hpp"
-
-#include "sg_CartesianVector.hpp"
 
 #define FAST_TRIGO 1
 

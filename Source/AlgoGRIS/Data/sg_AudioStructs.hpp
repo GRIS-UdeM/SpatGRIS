@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include "sg_AtomicUpdater.hpp"
-#include "sg_Radians.hpp"
+#include "../Containers/sg_AtomicUpdater.hpp"
+#include "../Containers/sg_StaticMap.hpp"
+#include "../Containers/sg_StrongArray.hpp"
+#include "StrongTypes/sg_Radians.hpp"
 #include "sg_SpatMode.hpp"
-#include "sg_StaticMap.hpp"
-#include "sg_StrongArray.hpp"
 #include "sg_constants.hpp"
 
 /** This file contains most of the structures used in an audio context. */

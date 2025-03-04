@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_StrongIndex.hpp"
+#include "../Data/StrongTypes/sg_StrongIndex.hpp"
 
 namespace gris
 {

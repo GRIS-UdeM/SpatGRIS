@@ -22,7 +22,7 @@
 #include "sg_EditableTextCustomComponent.hpp"
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
-#include "sg_Narrow.hpp"
+#include "AlgoGRIS/Data/sg_Narrow.hpp"
 
 namespace gris
 {

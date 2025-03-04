@@ -32,8 +32,8 @@
 
 #pragma once
 
-#include "sg_LogicStrucs.hpp"
-#include "sg_OwnedMap.hpp"
+#include "../Data/sg_LogicStrucs.hpp"
+#include "../Containers/sg_OwnedMap.hpp"
 
 namespace gris
 {

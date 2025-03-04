@@ -20,7 +20,7 @@
 #pragma once
 
 #include "sg_Macros.hpp"
-#include "sg_Radians.hpp"
+#include "StrongTypes/sg_Radians.hpp"
 
 namespace gris
 {

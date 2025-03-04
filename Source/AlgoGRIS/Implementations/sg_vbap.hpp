@@ -26,10 +26,10 @@
 
 #pragma once
 
-#include "sg_AudioStructs.hpp"
-#include "sg_CartesianVector.hpp"
-#include "sg_LogicStrucs.hpp"
-#include "sg_constants.hpp"
+#include "../Data/StrongTypes/sg_CartesianVector.hpp"
+#include "../Data/sg_AudioStructs.hpp"
+#include "../Data/sg_LogicStrucs.hpp"
+#include "../Data/sg_constants.hpp"
 
 #include <JuceHeader.h>
 

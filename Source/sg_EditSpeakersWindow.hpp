@@ -20,7 +20,7 @@
 #pragma once
 
 #include "sg_Box.hpp"
-#include "sg_LogicStrucs.hpp"
+#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
 
 #include <JuceHeader.h>
 

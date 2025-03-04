@@ -29,7 +29,7 @@
 #include "sg_InfoPanel.hpp"
 #include "sg_LayoutComponent.hpp"
 #include "sg_LogBuffer.hpp"
-#include "sg_LogicStrucs.hpp"
+#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
 #include "sg_OscInput.hpp"
 #include "sg_OscMonitor.hpp"
 #include "sg_OwnedMap.hpp"
@@ -42,7 +42,7 @@
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
-#include "sg_constants.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 
 namespace gris
 {

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_CartesianVector.hpp"
+#include "StrongTypes/sg_CartesianVector.hpp"
 #include "sg_PolarVector.hpp"
 
 namespace gris

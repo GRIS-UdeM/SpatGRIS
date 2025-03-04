@@ -26,8 +26,8 @@
 
 #include "sg_vbap.hpp"
 
-#include "sg_LogicStrucs.hpp"
-#include "sg_Narrow.hpp"
+#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
+#include "AlgoGRIS/Data/sg_Narrow.hpp"
 
 #include <cstdlib>
 
