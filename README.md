@@ -1,3 +1,7 @@
+<p align="left">
+  <img width="150" src="https://github.com/user-attachments/assets/8ce74895-e944-4414-8dd6-b536112f78ee">
+  <img width="450" src="https://github.com/user-attachments/assets/4cd12fd2-1bab-4139-95a2-73bbfadde332">
+</p>
 
 # SpatGRIS
 
@@ -9,7 +13,7 @@ SpatGRIS supports any speaker setup, including 2D layouts like quad, 5.1 or octo
 
 It can handle up to 256 inputs and outputs simultaneously and features 3D and 2D views that help visualizing sources motions and monitor sound activity.
 
-SpatGRIS is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) at Université de Montréal and is in active development. Updates are published on a regular basis.
+SpatGRIS is currently being developed at the [Groupe de Recherche en Immersion Spatiale (GRIS)](https://gris.musique.umontreal.ca/) and the [Société des Arts Technologiques (SAT)](https://sat.qc.ca/en/). Updates are published on a regular basis.
 
 - [Using a virtual audio device](#using-a-virtual-audio-device)
 - [Building](#building)
