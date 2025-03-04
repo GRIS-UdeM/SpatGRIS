@@ -48,7 +48,7 @@ jobs:
         run: cd JUCE && ./Projucer --resave ../SpatGRIS.jucer
 
       - name: Compile SpatGRIS
-        run: cd Builds/LinuxMakefile && make CXX=clang++-18 CONFIG=Release -j 8
+        run: cd Builds/LinuxMakefile && make CXX=clang++-18 CONFIG=Release -j$(nproc)
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
