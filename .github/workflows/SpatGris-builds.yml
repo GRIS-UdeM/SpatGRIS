@@ -19,8 +19,10 @@ jobs:
           apt-get update
           apt-get install -y curl unzip sudo wget lsb-release software-properties-common make build-essential tzdata
 
-      - name: Check out repository code
+      - name: Check out repository code with submodules
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: download JUCE
         run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-linux.zip --output JUCE.zip
@@ -59,8 +61,10 @@ jobs:
   Build-macOS:
     runs-on: macos-13
     steps:
-      - name: Check out repository code
+      - name: Check out repository code with submodules
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: download JUCE
         run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-osx.zip --output JUCE.zip
@@ -94,8 +98,10 @@ jobs:
   Build-Windows:
     runs-on: windows-latest
     steps:
-      - name: Check out repository code
+      - name: Check out repository code with submodules
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: download JUCE
         run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-windows.zip --output JUCE.zip
