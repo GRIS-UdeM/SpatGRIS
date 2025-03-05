@@ -19,15 +19,15 @@
 
 #pragma once
 
+#include "../Containers/sg_OwnedMap.hpp"
+#include "../Containers/sg_StaticMap.hpp"
+#include "StrongTypes/sg_CartesianVector.hpp"
+#include "StrongTypes/sg_SourceIndex.hpp"
+#include "StrongTypes/sg_Dbfs.hpp"
+#include "StrongTypes/sg_Hz.hpp"
+#include "StrongTypes/sg_Radians.hpp"
 #include "sg_AudioStructs.hpp"
-#include "AlgoGRIS/Data/StrongTypes/sg_CartesianVector.hpp"
-#include "sg_Dbfs.hpp"
-#include "sg_Hz.hpp"
-#include "sg_OwnedMap.hpp"
 #include "sg_Position.hpp"
-#include "sg_Radians.hpp"
-#include "AlgoGRIS/Data/StrongTypes/sg_SourceIndex.hpp"
-#include "sg_StaticMap.hpp"
 #include "sg_Triplet.hpp"
 
 namespace gris

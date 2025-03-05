@@ -19,12 +19,11 @@
 
 #pragma once
 
-#include "sg_Dbfs.hpp"
-#include "sg_Hz.hpp"
-#include "sg_OutputPatch.hpp"
-#include "AlgoGRIS/Data/StrongTypes/sg_SourceIndex.hpp"
-
-#include "lib/tl/optional.hpp"
+#include "../tl/optional.hpp"
+#include "StrongTypes/sg_Dbfs.hpp"
+#include "StrongTypes/sg_Hz.hpp"
+#include "StrongTypes/sg_OutputPatch.hpp"
+#include "StrongTypes/sg_SourceIndex.hpp"
 #include <JuceHeader.h>
 
 namespace gris

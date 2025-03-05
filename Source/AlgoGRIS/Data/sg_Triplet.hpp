@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_OutputPatch.hpp"
+#include "StrongTypes/sg_OutputPatch.hpp"
 
 namespace gris
 {

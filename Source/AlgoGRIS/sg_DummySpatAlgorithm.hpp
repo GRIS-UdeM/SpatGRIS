@@ -20,9 +20,9 @@
 #pragma once
 
 #include "sg_AbstractSpatAlgorithm.hpp"
-#include "sg_StaticMap.hpp"
-#include "sg_StrongArray.hpp"
-#include "sg_TaggedAudioBuffer.hpp"
+#include "Containers/sg_StaticMap.hpp"
+#include "Containers/sg_StrongArray.hpp"
+#include "Containers/sg_TaggedAudioBuffer.hpp"
 
 namespace gris
 {

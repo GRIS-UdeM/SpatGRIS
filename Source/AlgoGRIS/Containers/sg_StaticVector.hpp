@@ -19,10 +19,8 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/sg_Narrow.hpp"
-
+#include "../Data/sg_Narrow.hpp"
 #include <JuceHeader.h>
-
 #include <array>
 #include <type_traits>
 

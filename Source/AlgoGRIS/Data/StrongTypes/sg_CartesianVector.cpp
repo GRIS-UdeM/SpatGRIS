@@ -17,10 +17,8 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "AlgoGRIS/Data/StrongTypes/sg_CartesianVector.hpp"
-
-#include "sg_PolarVector.hpp"
-
+#include "sg_CartesianVector.hpp"
+#include "../sg_PolarVector.hpp"
 #include <algorithm>
 
 namespace gris

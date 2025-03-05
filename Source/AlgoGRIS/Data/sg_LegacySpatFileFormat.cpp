@@ -20,7 +20,7 @@
 #include "sg_LegacySpatFileFormat.hpp"
 
 #include "sg_LegacyLbapPosition.hpp"
-#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
+#include "sg_LogicStrucs.hpp"
 
 namespace gris
 {

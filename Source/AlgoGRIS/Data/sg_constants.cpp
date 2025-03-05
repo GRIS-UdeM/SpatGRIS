@@ -17,8 +17,9 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "AlgoGRIS/Data/sg_constants.hpp"
+#include "sg_constants.hpp"
 
+//TODO VB: get this out of algogris
 #include "BinaryData.h"
 
 namespace gris

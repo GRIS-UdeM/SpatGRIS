@@ -19,6 +19,10 @@
 
 #pragma once
 
+#include "AlgoGRIS/Containers/sg_LogBuffer.hpp"
+#include "AlgoGRIS/Containers/sg_OwnedMap.hpp"
+#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 #include "sg_AboutWindow.hpp"
 #include "sg_AddRemoveSourcesWindow.hpp"
 #include "sg_AudioProcessor.hpp"
@@ -28,11 +32,8 @@
 #include "sg_FlatViewWindow.hpp"
 #include "sg_InfoPanel.hpp"
 #include "sg_LayoutComponent.hpp"
-#include "sg_LogBuffer.hpp"
-#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
 #include "sg_OscInput.hpp"
 #include "sg_OscMonitor.hpp"
-#include "sg_OwnedMap.hpp"
 #include "sg_PlayerWindow.hpp"
 #include "sg_PrepareToRecordWindow.hpp"
 #include "sg_SettingsWindow.hpp"
@@ -42,7 +43,6 @@
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
-#include "AlgoGRIS/Data/sg_constants.hpp"
 
 namespace gris
 {

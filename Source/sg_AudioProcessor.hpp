@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "sg_AbstractSpatAlgorithm.hpp"
-#include "sg_AudioStructs.hpp"
-#include "sg_TaggedAudioBuffer.hpp"
+#include "AlgoGRIS/sg_AbstractSpatAlgorithm.hpp"
+#include "AlgoGRIS/Data/sg_AudioStructs.hpp"
+#include "AlgoGRIS/Containers/sg_TaggedAudioBuffer.hpp"
 
 #include <JuceHeader.h>
 

@@ -20,11 +20,11 @@
 #include "sg_MainComponent.hpp"
 
 #include "sg_AudioManager.hpp"
-#include "sg_CommandId.hpp"
+#include "AlgoGRIS/Data/sg_CommandId.hpp"
 #include "sg_ControlPanel.hpp"
 #include "sg_FatalError.hpp"
 #include "sg_GrisLookAndFeel.hpp"
-#include "sg_LegacyLbapPosition.hpp"
+#include "AlgoGRIS/Data/sg_LegacyLbapPosition.hpp"
 #include "sg_MainWindow.hpp"
 #include "sg_ScopeGuard.hpp"
 #include "sg_TitledComponent.hpp"

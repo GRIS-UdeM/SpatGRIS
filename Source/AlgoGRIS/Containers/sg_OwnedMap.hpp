@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/sg_Macros.hpp"
-#include "sg_StrongIndex.hpp"
+#include "../Data/sg_Macros.hpp"
+#include "../Data/StrongTypes/sg_StrongIndex.hpp"
 
 #include <bitset>
 

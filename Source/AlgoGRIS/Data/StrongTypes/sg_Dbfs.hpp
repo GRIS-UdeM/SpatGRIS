@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/sg_Macros.hpp"
+#include "../sg_Macros.hpp"
 #include "sg_StrongFloat.hpp"
 
 #include <JuceHeader.h>
