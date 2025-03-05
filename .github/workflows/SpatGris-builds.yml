@@ -17,7 +17,7 @@ jobs:
           export DEBIAN_FRONTEND=noninteractive
           export TZ=Etc/UTC
           apt-get update
-          apt-get install -y curl unzip sudo wget lsb-release software-properties-common make build-essential tzdata
+          apt-get install -y git curl unzip sudo wget lsb-release software-properties-common make build-essential tzdata
 
       - name: Check out repository code with submodules
         uses: actions/checkout@v2
