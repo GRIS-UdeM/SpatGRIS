@@ -1,0 +1,3 @@
+[submodule "submodules/AlgoGRIS"]
+	path = submodules/AlgoGRIS
+	url = git@github.com:GRIS-UdeM/AlgoGRIS.git
