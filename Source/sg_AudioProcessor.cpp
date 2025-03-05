@@ -172,6 +172,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
 //==============================================================================
 AudioProcessor::~AudioProcessor()
 {
-    AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice()->close();
+    if (auto const audioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() })
+        audioDevice->close();
 }
 } // namespace gris
