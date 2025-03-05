@@ -4,7 +4,7 @@
                    Master_Interpolation="0.1" Show_Numbers="0" Show_Speakers="1"
                    Show_Triplets="0" Use_Alpha="0" Show_Speaker_Level="0"
                    Show_Sphere="0" CamAngleX="89.66667938232422" CamAngleY="20.66667175292969"
-                   CamDistance="22.00703048706055">
+                   CamDistance="22.00703048706055" Keep_Speakers_Origin_Orientated="1">
   <Input Index="1" R="1.0" G="0.0" B="0.0" DirectOut="0"/>
   <Input Index="2" R="1.0" G="0.09411764889955521" B="0.0" DirectOut="0"/>
   <Input Index="3" R="0.0117647061124444" G="0.03529411926865578" B="1.0"

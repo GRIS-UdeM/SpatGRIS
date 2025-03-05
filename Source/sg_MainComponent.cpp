@@ -823,6 +823,18 @@ void MainContentComponent::handleOpenManualFR()
         juce::Process::openDocument("file:" + MANUAL_FILE_FR.getFullPathName(), juce::String());
     }
 }
+//==============================================================================
+void MainContentComponent::handleShowSpeakerOrientation()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    {
+        juce::ScopedWriteLock const lock{ mLock };
+
+        auto & var{ mData.appData.viewSettings.keepSpeakersOriginOriented };
+        var = !var;
+    }
+    refreshViewportConfig();
+}
 
 //==============================================================================
 void MainContentComponent::masterGainChanged(dbfs_t const gain)
@@ -1220,7 +1232,8 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
                                              CommandId::aboutId,
                                              CommandId::openManualENId,
                                              CommandId::openManualFRId,
-                                             CommandId::playerPlayStopId };
+                                             CommandId::playerPlayStopId,
+                                             CommandId::keepSpeakersOriginOrientatedId};
 
     commands.addArray(ids.data(), narrow<int>(ids.size()));
 
@@ -1393,6 +1406,10 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Play Stop", "Play or Stop Player Playback", generalCategory, 0);
         result.addDefaultKeypress(juce::KeyPress::spaceKey, juce::ModifierKeys::noModifiers);
         return;
+    case CommandId::keepSpeakersOriginOrientatedId:
+        result.setInfo("Keep Speakers Orientated Towards Origin", "Toggle the Speakers Orientation", generalCategory, 0);
+        result.setTicked(mData.appData.viewSettings.keepSpeakersOriginOriented);
+        return;
     }
 
     // probably a template
@@ -1501,6 +1518,9 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::playerPlayStopId:
             handlePlayerPlayStop();
+            break;
+        case CommandId::keepSpeakersOriginOrientatedId:
+            handleShowSpeakerOrientation();
             break;
         default:
             // open a template
@@ -1629,6 +1649,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, CommandId::showSourceNumbersId);
         menu.addCommandItem(commandManager, CommandId::showSpeakerNumbersId);
         menu.addCommandItem(commandManager, CommandId::showSpeakersId);
+        menu.addCommandItem(commandManager, CommandId::keepSpeakersOriginOrientatedId);
         if (mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
             menu.addCommandItem(commandManager, CommandId::showTripletsId);
         } else {

@@ -53,6 +53,7 @@ enum CommandId {
     showSourceActivityId,
     showSpeakerActivityId,
     showSphereId,
+    keepSpeakersOriginOrientatedId,
 
     colorizeInputsId,
     resetInputPosId,
