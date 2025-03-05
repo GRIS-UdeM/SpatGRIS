@@ -19,9 +19,6 @@
 
 #include "sg_constants.hpp"
 
-//TODO VB: get this out of algogris
-#include "BinaryData.h"
-
 namespace gris
 {
 SpatGrisVersion const SPAT_GRIS_VERSION{ SpatGrisVersion::fromString(JUCE_STRINGIFY(JUCE_APP_VERSION)) };
