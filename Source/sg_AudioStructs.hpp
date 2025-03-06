@@ -120,6 +120,7 @@ using SpeakersAudioConfig = StaticMap<output_patch_t, SpeakerAudioConfig, MAX_NU
 struct AudioConfig {
     SpatMode spatMode{};
     bool isStereo{};
+    bool isStereoMuted{};
     float masterGain{};
     float spatGainsInterpolation{};
 

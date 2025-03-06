@@ -45,7 +45,7 @@ function speakerview_mobile_selected() {
 		<line choice="ca.umontreal.musique.gris.speakerview.mobile.pkg"/>
         <line choice="ca.umontreal.musique.gris.controlgris.pkg"/>
     </choices-outline>
-    
+
     <choice id="ca.umontreal.musique.gris.spatgris.pkg" visible="true" title="SpatGRIS">
         <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
     </choice>

@@ -987,6 +987,31 @@ void MainContentComponent::numSourcesChanged(int const numSources)
 }
 
 //==============================================================================
+void MainContentComponent::generalMuteButtonPressed()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto const newSliceState{ mControlPanel->getGeneralMuteButtonState() == GeneralMuteButton::State::allUnmuted
+                             ? SliceState::muted
+                             : SliceState::normal };
+    auto const newGeneralMuteButtonState{ mControlPanel->getGeneralMuteButtonState()
+                                                  == GeneralMuteButton::State::allUnmuted
+                                              ? GeneralMuteButton::State::allMuted
+                                              : GeneralMuteButton::State::allUnmuted };
+    auto const generalMute{ newGeneralMuteButtonState == GeneralMuteButton::State::allMuted };
+
+    mControlPanel->setGeneralMuteButtonState(newGeneralMuteButtonState);
+    for (auto const outputPatch : mData.speakerSetup.ordering) {
+        mData.speakerSetup.speakers[outputPatch].state = newSliceState;
+    }
+    mData.speakerSetup.generalMute = generalMute;
+
+    refreshAudioProcessor();
+    refreshSpeakerSlices();
+}
+
+//==============================================================================
 void MainContentComponent::recordButtonPressed()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1175,7 +1200,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 30> ids{ CommandId::newProjectId,
+    constexpr std::array<CommandId, 31> ids{ CommandId::newProjectId,
                                              CommandId::openProjectId,
                                              CommandId::saveProjectId,
                                              CommandId::saveProjectAsId,
@@ -1199,6 +1224,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
                                              CommandId::colorizeInputsId,
                                              CommandId::resetInputPosId,
                                              CommandId::resetMeterClipping,
+                                             CommandId::muteAllSpeakers,
                                              CommandId::openSettingsWindowId,
                                              CommandId::quitId,
                                              CommandId::aboutId,
@@ -1352,6 +1378,10 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Reset Meter Clipping", "Reset clipping for all meters.", generalCategory, 0);
         result.addDefaultKeypress('M', juce::ModifierKeys::altModifier);
         return;
+    case CommandId::muteAllSpeakers:
+        result.setInfo("Mute/Unmute All Speakers", "Mute or unmute all speakers.", generalCategory, 0);
+        result.addDefaultKeypress('Q', juce::ModifierKeys::altModifier);
+        return;
     case CommandId::openSettingsWindowId:
         result.setInfo("Settings...", "Open the settings window.", generalCategory, 0);
         result.addDefaultKeypress(',', juce::ModifierKeys::commandModifier);
@@ -1367,7 +1397,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Open Documentation (EN)", "Open the manual in pdf viewer.", generalCategory, 0);
         return;
     case CommandId::openManualFRId:
-        result.setInfo("Open Documentation (FR)", "Open the manual in pdf viewer.", generalCategory, 0);
+        result.setInfo("Ouvrir Documentation (FR)", "Ouvrir le manuel dans le lecteur pdf.", generalCategory, 0);
         return;
     case CommandId::playerPlayStopId:
         result.setInfo("Play Stop", "Play or Stop Player Playback", generalCategory, 0);
@@ -1460,6 +1490,9 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::resetMeterClipping:
             handleResetMeterClipping();
+            break;
+        case CommandId::muteAllSpeakers:
+            generalMuteButtonPressed();
             break;
         case CommandId::openSettingsWindowId:
             handleShowPreferences();
@@ -1618,6 +1651,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, CommandId::colorizeInputsId);
         menu.addCommandItem(commandManager, CommandId::resetInputPosId);
         menu.addCommandItem(commandManager, CommandId::resetMeterClipping);
+        menu.addCommandItem(commandManager, CommandId::muteAllSpeakers);
     } else if (menuName == "Help") {
         menu.addCommandItem(commandManager, CommandId::aboutId);
         menu.addCommandItem(commandManager, CommandId::openManualENId);
@@ -1847,14 +1881,13 @@ void MainContentComponent::refreshSpeakerSlices()
         [](SpeakersData::ConstNode const & node) { return node.value->state == SliceState::solo; }) };
 
     if (mData.appData.stereoMode) {
-        mSpeakersLayout
-            ->addSection(mStereoSliceComponents.add(
-                std::make_unique<StereoSliceComponent>("L", mLookAndFeel, mSmallLookAndFeel)))
-            .withChildMinSize();
-        mSpeakersLayout
-            ->addSection(mStereoSliceComponents.add(
-                std::make_unique<StereoSliceComponent>("R", mLookAndFeel, mSmallLookAndFeel)))
-            .withChildMinSize();
+        auto const slicesState{ mData.speakerSetup.generalMute ? SliceState::muted : SliceState::normal };
+        auto newLeftSlice{ std::make_unique<StereoSliceComponent>("L", mLookAndFeel, mSmallLookAndFeel) };
+        auto newRightSlice{ std::make_unique<StereoSliceComponent>("R", mLookAndFeel, mSmallLookAndFeel) };
+        newLeftSlice->setState(slicesState, false);
+        newRightSlice->setState(slicesState, false);
+        mSpeakersLayout->addSection(mStereoSliceComponents.add(std::move(newLeftSlice))).withChildMinSize();
+        mSpeakersLayout->addSection(mStereoSliceComponents.add(std::move(newRightSlice))).withChildMinSize();
     } else {
         for (auto const outputPatch : mData.speakerSetup.ordering) {
             auto newSlice{
@@ -2604,6 +2637,12 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
         newSpatMode = SpatMode::hybrid;
     }
 
+    if (mData.speakerSetup.generalMute) {
+        for (auto& speaker : mData.speakerSetup.speakers) {
+            speaker.value->state = SliceState::muted;
+        }
+    }
+
     setSpatMode(newSpatMode);
     mIsLoadingSpeakerSetupOrProjectFile = false;
 
@@ -3203,6 +3242,19 @@ void MainContentComponent::handleShowSphereOrCubeFromSpeakerView(bool value)
     auto & var{ mData.appData.viewSettings.showSphereOrCube };
     var = value;
     refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::handleGeneralMuteFromSpeakerView(bool value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.speakerSetup.generalMute };
+
+    if (var != value) {
+        generalMuteButtonPressed();
+    }
 }
 
 //==============================================================================

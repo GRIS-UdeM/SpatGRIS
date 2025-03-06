@@ -472,6 +472,7 @@ ControlPanel::ControlPanel(MainContentComponent & mainContentComponent, GrisLook
 
     mLayout.addSection(mGainsSubPanel).withChildMinSize().withPadding(PADDING);
     mLayout.addSection(mSpatSettingsSubPanel).withChildMinSize().withTopPadding(PADDING).withBottomPadding(PADDING);
+    mLayout.addSection(mGeneralMuteButton).withChildMinSize().withLeftPadding(PADDING);
     mLayout.addSection(nullptr).withRelativeSize(1.0f);
     mLayout.addSection(mRecordButton).withChildMinSize().withLeftPadding(PADDING).withRightPadding(30);
     mLayout.resized();
@@ -529,6 +530,13 @@ void ControlPanel::setCubeAttenuationBypass(AttenuationBypassSate value)
 }
 
 //==============================================================================
+void ControlPanel::setGeneralMuteButtonState(GeneralMuteButton::State state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mGeneralMuteButton.setState(state);
+}
+
+//==============================================================================
 void ControlPanel::setRecordButtonState(RecordButton::State const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -550,6 +558,12 @@ void ControlPanel::updateMaxOutputPatch(output_patch_t const maxOutputPatch, Ste
 }
 
 //==============================================================================
+GeneralMuteButton::State ControlPanel::getGeneralMuteButtonState()
+{
+    return mGeneralMuteButton.getGeneralMuteButtonState();
+}
+
+//==============================================================================
 void ControlPanel::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -560,8 +574,21 @@ void ControlPanel::resized()
 void ControlPanel::forceLayoutUpdate()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto const generalMuteState{ mMainContentComponent.getData().speakerSetup.generalMute
+                                     ? GeneralMuteButton::State::allMuted
+                                     : GeneralMuteButton::State::allUnmuted };
+
     resized();
     mLayout.resized();
+    mGeneralMuteButton.setState(generalMuteState);
+}
+
+//==============================================================================
+void ControlPanel::generalMuteButtonPressed()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mMainContentComponent.generalMuteButtonPressed();
 }
 
 //==============================================================================

@@ -3,7 +3,7 @@
 # Developers: Gaël Lane Lépine, Olivier Belanger, Samuel Béland
 
 #==============================================================================
-export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --speakerview-compat <speakerview-compat-app-path> --speakerview-mobile <speakerview-mobile-app-path> --pass <dev-id-password>"
+export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <plugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --speakerview-compat <speakerview-compat-app-path> --speakerview-mobile <speakerview-mobile-app-path> --pass <dev-id-password>"
 export BIN_PATH=""
 export PASS=""
 export PLUGINS_PKG=""
@@ -74,35 +74,35 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 if [[ "$BIN_PATH" == "" ]];then
 	echo "Missing param --path"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ "$PASS" == "" ]];then
 	echo "Missing param --pass"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $PLUGINS_PKG == "" ]];then
 	echo "Missing param --plugins"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $BLACKHOLE_PKGS_DIR == "" ]];then
 	echo "Missing param --backhole"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $SPEAKERVIEW_APP == "" ]];then
 	echo "Missing param --speakerview"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $SPEAKERVIEW_COMPATIBILITY_APP == "" ]];then
 	echo "Missing param --speakerview-compat"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $SPEAKERVIEW_MOBILE_APP == "" ]];then
 	echo "Missing param --speakerview-mobile"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 elif [[ $MOVE_SG_TO_FOREGROUND_DIR == "" ]];then
 	echo "Missing param --movetoforeground"
-	echo -e "$USAGE"
+	echo "$USAGE"
 	exit 1
 fi
 
@@ -188,7 +188,7 @@ function build_package() {
 
 	echo "copying application..."
 	cp -r $BIN_PATH $APPLICATIONS_DIR/ || exit 1
-	
+
 	echo "copying SpeakerView Forward application..."
 	cp -r $SPEAKERVIEW_APP $SPEAKERVIEW_APPLICATIONS_DIR/ || exit 1
 
@@ -256,7 +256,7 @@ function build_package() {
 				--timestamp \
 				"MoveSGToForeground.pkg" || exit 1
 
-	echo "adding SpatGris, SpeakerView and ControlGris versions to installer"
+	echo "adding SpatGris, SpeakerView, ControlGris versions to installer"
 	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS $VERSION\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"SpeakerView Forward.*\"/title=\"SpeakerView Forward $SPEAKERVIEW_VERSION (Recommended)\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"SpeakerView Compatibility.*\"/title=\"SpeakerView Compatibility $SPEAKERVIEW_COMPAT_VERSION\"/" ../Distribution.xml || exit 1
@@ -356,6 +356,7 @@ function cleanup() {
 	echo "cleaning up resources..."
 	rm -rf $INSTALLER_DIR
 	rm -fr Plugins.pkg
+	rm -rf AudioDescriptorsPlugins.pkg
 }
 
 #==============================================================================

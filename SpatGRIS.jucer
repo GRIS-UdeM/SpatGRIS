@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.3.4"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.3.7"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
               jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
@@ -22,12 +22,12 @@
             xcodeResource="1"/>
       <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
             file="Source/SinkinSans-400Regular.otf" xcodeResource="1"/>
+      <FILE id="LuKwvo" name="SpatGRIS_3.3.7_Manual_EN.pdf" compile="0" resource="1"
+            file="Resources/SpatGRIS_3.3.7_Manual_EN.pdf" xcodeResource="1"/>
+      <FILE id="QYglW0" name="SpatGRIS_3.3.7_Manuel_FR.pdf" compile="0" resource="1"
+            file="Resources/SpatGRIS_3.3.7_Manuel_FR.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
-      <FILE id="VqnRG5" name="SpatGRIS_3.3.4_Manual_EN.pdf" compile="0" resource="1"
-            file="Resources/SpatGRIS_3.3.4_Manual_EN.pdf" xcodeResource="1"/>
-      <FILE id="oUPpzB" name="SpatGRIS_3.3.4_Manual_FR.pdf" compile="0" resource="1"
-            file="Resources/SpatGRIS_3.3.4_Manual_FR.pdf" xcodeResource="1"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
       <GROUP id="{D059D036-0ECD-ACF5-4465-BDC1A866C55E}" name="Audio">
@@ -218,6 +218,10 @@
                   file="Source/sg_ControlPanel.cpp"/>
             <FILE id="Q33KJr" name="sg_ControlPanel.hpp" compile="0" resource="0"
                   file="Source/sg_ControlPanel.hpp"/>
+            <FILE id="ewzh9t" name="sg_GeneralMuteButton.cpp" compile="1" resource="0"
+                  file="Source/sg_GeneralMuteButton.cpp"/>
+            <FILE id="vpLQIF" name="sg_GeneralMuteButton.h" compile="0" resource="0"
+                  file="Source/sg_GeneralMuteButton.h"/>
             <FILE id="Vvls6a" name="sg_InfoPanel.cpp" compile="1" resource="0"
                   file="Source/sg_InfoPanel.cpp"/>
             <FILE id="f7lFiY" name="sg_InfoPanel.hpp" compile="0" resource="0"

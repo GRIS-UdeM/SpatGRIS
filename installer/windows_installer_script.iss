@@ -6,8 +6,8 @@
 #define SpeakerViewDir "SpeakerView\Forward"
 #define SpeakerViewCompatDir "SpeakerView\Compatibility"
 #define SpeakerViewMobileDir "SpeakerView\Mobile"
-#define ManualENName "SpatGRIS_3.3.4_Manual_EN.pdf"
-#define ManualFRName "SpatGRIS_3.3.4_Manual_FR.pdf"
+#define ManualENName "SpatGRIS_3.3.7_Manual_EN.pdf"
+#define ManualFRName "SpatGRIS_3.3.7_Manuel_FR.pdf"
 #define RootDir ".."
 
 #define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
@@ -102,7 +102,7 @@ Name: "{group}\Uninstall {#AppName} {#AppVersion}"; Filename: {uninstallexe}
 
 [Run]
 Filename: "{app}\Resources\{#ManualENName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF User Manual (EN)"; Flags: shellexec postinstall skipifsilent nowait
-Filename: "{app}\Resources\{#ManualFRName}"; WorkingDir: "{app}\Resources"; Description: "Open PDF User Manual (FR)"; Flags: shellexec postinstall skipifsilent nowait unchecked
+Filename: "{app}\Resources\{#ManualFRName}"; WorkingDir: "{app}\Resources"; Description: "Ouvrir le Manuel PDF de l'Utilisateur (FR)"; Flags: shellexec postinstall skipifsilent nowait unchecked
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 ; code shared by discoDSP https://www.kvraudio.com/forum/viewtopic.php?t=501615
