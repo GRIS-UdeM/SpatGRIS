@@ -18,6 +18,7 @@
 */
 
 #include "sg_SourceSliceComponent.hpp"
+#include "sg_AudioManager.hpp"
 
 namespace gris
 {
@@ -125,7 +126,13 @@ void SourceSliceComponent::sourceIdButtonSourceIndexChanged(SourceIdButton * but
     JUCE_ASSERT_MESSAGE_THREAD;
     jassert(button == &mIdButton);
 
-    mOwner.setSourceNewSourceIndex(mSourceIndex, newSourceIndex);
+    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+    if (currentAudioDevice != nullptr) {
+        int numAvailableInputs{ currentAudioDevice->getActiveInputChannels().getHighestBit() + 1 };
+        if (newSourceIndex.get() <= numAvailableInputs) {
+            mOwner.setSourceNewSourceIndex(mSourceIndex, newSourceIndex);
+        }
+    }
 }
 
 //==============================================================================
