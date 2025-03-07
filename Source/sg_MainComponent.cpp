@@ -2496,6 +2496,18 @@ void MainContentComponent::removeSource(source_index_t const sourceIndex)
 }
 
 //==============================================================================
+void MainContentComponent::reorderSources(juce::Array<source_index_t> newOrder)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & order{ mData.project.ordering };
+    jassert(newOrder.size() == order.size());
+    order = std::move(newOrder);
+    refreshSourceSlices();
+}
+
+//==============================================================================
 source_index_t MainContentComponent::getMaxProjectSourceIndex() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
