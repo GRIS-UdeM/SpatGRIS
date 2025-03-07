@@ -19,9 +19,9 @@
 
 #pragma once
 
+#include "AlgoGRIS/Data/sg_SpatMode.hpp"
 #include "sg_LayoutComponent.hpp"
 #include "sg_SmallToggleButton.hpp"
-#include "sg_SpatMode.hpp"
 
 namespace gris
 {

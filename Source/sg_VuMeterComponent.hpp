@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_Dbfs.hpp"
+#include "AlgoGRIS/Data/StrongTypes/sg_Dbfs.hpp"
 #include "sg_MinSizedComponent.hpp"
 
 namespace gris

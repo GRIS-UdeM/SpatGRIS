@@ -21,7 +21,7 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
-#include "sg_constants.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 
 namespace gris
 {

@@ -19,12 +19,9 @@
 
 #pragma once
 
+#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
+#include "AlgoGRIS/tl/optional.hpp"
 #include "sg_Box.hpp"
-#include "sg_LogicStrucs.hpp"
-
-#include <JuceHeader.h>
-
-#include "lib/tl/optional.hpp"
 
 namespace gris
 {

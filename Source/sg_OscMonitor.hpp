@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_LogBuffer.hpp"
+#include "AlgoGRIS/Containers/sg_LogBuffer.hpp"
 
 namespace gris
 {

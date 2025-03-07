@@ -20,7 +20,7 @@
 #include "sg_AudioManager.hpp"
 
 #include "sg_AudioProcessor.hpp"
-#include "sg_constants.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 
 // #define SIMULATE_NO_AUDIO_DEVICES
 

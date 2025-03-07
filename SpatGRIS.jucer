@@ -4,7 +4,8 @@
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
               jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
-              addUsingNamespaceToJuceHeader="0" defines="JUCE_DISPLAY_SPLASH_SCREEN=0&#10;JUCE_MODAL_LOOPS_PERMITTED=1">
+              addUsingNamespaceToJuceHeader="0" defines="JUCE_DISPLAY_SPLASH_SCREEN=0&#10;JUCE_MODAL_LOOPS_PERMITTED=1"
+              headerPath="../../submodules/">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="FbCRQM" name="FreeFarsi-Mono.otf" compile="0" resource="1"
@@ -31,44 +32,6 @@
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
       <GROUP id="{D059D036-0ECD-ACF5-4465-BDC1A866C55E}" name="Audio">
-        <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
-          <GROUP id="{F536EC3E-463E-F7C1-C73E-F95B29576CC6}" name="implementations">
-            <FILE id="jD7XJF" name="sg_mbap.cpp" compile="1" resource="0" file="Source/sg_mbap.cpp"/>
-            <FILE id="TjPFps" name="sg_mbap.hpp" compile="0" resource="0" file="Source/sg_mbap.hpp"/>
-            <FILE id="ZA3ukj" name="sg_vbap.cpp" compile="1" resource="0" file="Source/sg_vbap.cpp"/>
-            <FILE id="QvxuHw" name="sg_vbap.hpp" compile="0" resource="0" file="Source/sg_vbap.hpp"/>
-          </GROUP>
-          <FILE id="V5pGbX" name="sg_AbstractSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_AbstractSpatAlgorithm.cpp"/>
-          <FILE id="M5gvQ0" name="sg_AbstractSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_AbstractSpatAlgorithm.hpp"/>
-          <FILE id="E8j6Aa" name="sg_DopplerSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_DopplerSpatAlgorithm.cpp"/>
-          <FILE id="ufofep" name="sg_DopplerSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_DopplerSpatAlgorithm.hpp"/>
-          <FILE id="pkCGrx" name="sg_DummySpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_DummySpatAlgorithm.hpp"/>
-          <FILE id="E45aKk" name="sg_HrtfSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_HrtfSpatAlgorithm.cpp"/>
-          <FILE id="tzcPNu" name="sg_HrtfSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_HrtfSpatAlgorithm.hpp"/>
-          <FILE id="bcGZDB" name="sg_HybridSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_HybridSpatAlgorithm.cpp"/>
-          <FILE id="ncBTxz" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_HybridSpatAlgorithm.hpp"/>
-          <FILE id="wYF40j" name="sg_MbapSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_MbapSpatAlgorithm.cpp"/>
-          <FILE id="u2DKQo" name="sg_MbapSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_MbapSpatAlgorithm.hpp"/>
-          <FILE id="qEq08c" name="sg_StereoSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_StereoSpatAlgorithm.cpp"/>
-          <FILE id="KcGDRK" name="sg_StereoSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_StereoSpatAlgorithm.hpp"/>
-          <FILE id="rBZVVV" name="sg_VbapSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_VbapSpatAlgorithm.cpp"/>
-          <FILE id="x1azHH" name="sg_VbapSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_VbapSpatAlgorithm.hpp"/>
-        </GROUP>
         <FILE id="LDaWEl" name="sg_AudioManager.cpp" compile="1" resource="0"
               file="Source/sg_AudioManager.cpp"/>
         <FILE id="J3qMTp" name="sg_AudioManager.hpp" compile="0" resource="0"
@@ -81,77 +44,6 @@
               file="Source/sg_PinkNoiseGenerator.cpp"/>
         <FILE id="BBFEaw" name="sg_PinkNoiseGenerator.hpp" compile="0" resource="0"
               file="Source/sg_PinkNoiseGenerator.hpp"/>
-        <FILE id="HLaIjn" name="sg_TaggedAudioBuffer.hpp" compile="0" resource="0"
-              file="Source/sg_TaggedAudioBuffer.hpp"/>
-      </GROUP>
-      <GROUP id="{CAE9BD57-C46F-25A5-8F7E-772337A1A370}" name="Containers">
-        <FILE id="jjvsce" name="sg_AtomicUpdater.hpp" compile="0" resource="0"
-              file="Source/sg_AtomicUpdater.hpp"/>
-        <FILE id="AGM16k" name="sg_LogBuffer.cpp" compile="1" resource="0"
-              file="Source/sg_LogBuffer.cpp"/>
-        <FILE id="TC2Gn9" name="sg_LogBuffer.hpp" compile="0" resource="0"
-              file="Source/sg_LogBuffer.hpp"/>
-        <FILE id="iccVyO" name="sg_OwnedMap.hpp" compile="0" resource="0" file="Source/sg_OwnedMap.hpp"/>
-        <FILE id="WOH8r9" name="sg_StaticMap.hpp" compile="0" resource="0"
-              file="Source/sg_StaticMap.hpp"/>
-        <FILE id="YQPfqZ" name="sg_StaticVector.hpp" compile="0" resource="0"
-              file="Source/sg_StaticVector.hpp"/>
-        <FILE id="iHp2Hz" name="sg_StrongArray.hpp" compile="0" resource="0"
-              file="Source/sg_StrongArray.hpp"/>
-        <FILE id="e4ZtRa" name="sg_ThreadSafeBuffer.hpp" compile="0" resource="0"
-              file="Source/sg_ThreadSafeBuffer.hpp"/>
-      </GROUP>
-      <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="Data">
-        <GROUP id="{92A881EF-457B-1766-C06E-A7FB79588252}" name="StrongTypes">
-          <FILE id="E4mLq0" name="sg_CartesianVector.cpp" compile="1" resource="0"
-                file="Source/sg_CartesianVector.cpp"/>
-          <FILE id="HvvvpO" name="sg_CartesianVector.hpp" compile="0" resource="0"
-                file="Source/sg_CartesianVector.hpp"/>
-          <FILE id="MXdkPU" name="sg_Dbfs.hpp" compile="0" resource="0" file="Source/sg_Dbfs.hpp"/>
-          <FILE id="vs0AcL" name="sg_Degrees.hpp" compile="0" resource="0" file="Source/sg_Degrees.hpp"/>
-          <FILE id="JR2blQ" name="sg_Hz.hpp" compile="0" resource="0" file="Source/sg_Hz.hpp"/>
-          <FILE id="ndGd6W" name="sg_Meters.hpp" compile="0" resource="0" file="Source/sg_Meters.hpp"/>
-          <FILE id="FJ5LAM" name="sg_OutputPatch.hpp" compile="0" resource="0"
-                file="Source/sg_OutputPatch.hpp"/>
-          <FILE id="Iu4xEV" name="sg_Radians.hpp" compile="0" resource="0" file="Source/sg_Radians.hpp"/>
-          <FILE id="GTVH9C" name="sg_SourceIndex.hpp" compile="0" resource="0"
-                file="Source/sg_SourceIndex.hpp"/>
-          <FILE id="lHTMHQ" name="sg_StrongFloat.hpp" compile="0" resource="0"
-                file="Source/sg_StrongFloat.hpp"/>
-          <FILE id="zHS1fK" name="sg_StrongIndex.hpp" compile="0" resource="0"
-                file="Source/sg_StrongIndex.hpp"/>
-        </GROUP>
-        <FILE id="wUn028" name="sg_CommandId.hpp" compile="0" resource="0"
-              file="Source/sg_CommandId.hpp"/>
-        <FILE id="nytjRj" name="sg_AudioStructs.cpp" compile="1" resource="0"
-              file="Source/sg_AudioStructs.cpp"/>
-        <FILE id="wHT3Fd" name="sg_AudioStructs.hpp" compile="0" resource="0"
-              file="Source/sg_AudioStructs.hpp"/>
-        <FILE id="BXo4A3" name="sg_constants.cpp" compile="1" resource="0"
-              file="Source/sg_constants.cpp"/>
-        <FILE id="PtMCmg" name="sg_constants.hpp" compile="0" resource="0"
-              file="Source/sg_constants.hpp"/>
-        <FILE id="tAYDcC" name="sg_LegacyLbapPosition.cpp" compile="1" resource="0"
-              file="Source/sg_LegacyLbapPosition.cpp"/>
-        <FILE id="uZ0v3u" name="sg_LegacyLbapPosition.hpp" compile="0" resource="0"
-              file="Source/sg_LegacyLbapPosition.hpp"/>
-        <FILE id="juSHq9" name="sg_LegacySpatFileFormat.cpp" compile="1" resource="0"
-              file="Source/sg_LegacySpatFileFormat.cpp"/>
-        <FILE id="PsDU6h" name="sg_LegacySpatFileFormat.hpp" compile="0" resource="0"
-              file="Source/sg_LegacySpatFileFormat.hpp"/>
-        <FILE id="L27PCp" name="sg_LogicStrucs.cpp" compile="1" resource="0"
-              file="Source/sg_LogicStrucs.cpp"/>
-        <FILE id="jBuzCp" name="sg_LogicStrucs.hpp" compile="0" resource="0"
-              file="Source/sg_LogicStrucs.hpp"/>
-        <FILE id="doKWB5" name="sg_PolarVector.cpp" compile="1" resource="0"
-              file="Source/sg_PolarVector.cpp"/>
-        <FILE id="EabVg1" name="sg_PolarVector.hpp" compile="0" resource="0"
-              file="Source/sg_PolarVector.hpp"/>
-        <FILE id="aSBfLv" name="sg_Position.cpp" compile="1" resource="0" file="Source/sg_Position.cpp"/>
-        <FILE id="L1Dsq4" name="sg_Position.hpp" compile="0" resource="0" file="Source/sg_Position.hpp"/>
-        <FILE id="JfFIDv" name="sg_SpatMode.cpp" compile="1" resource="0" file="Source/sg_SpatMode.cpp"/>
-        <FILE id="j4AzQ7" name="sg_SpatMode.hpp" compile="0" resource="0" file="Source/sg_SpatMode.hpp"/>
-        <FILE id="jvuP1o" name="sg_Triplet.hpp" compile="0" resource="0" file="Source/sg_Triplet.hpp"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="Misc">
         <FILE id="uE7qMG" name="sg_FatalError.cpp" compile="1" resource="0"
@@ -326,6 +218,124 @@
             file="Source/sg_SpeakerViewComponent.cpp"/>
       <FILE id="rQi0F2" name="sg_SpeakerViewComponent.hpp" compile="0" resource="0"
             file="Source/sg_SpeakerViewComponent.hpp"/>
+    </GROUP>
+    <GROUP id="{755DB51A-2CFD-1B50-3D92-CF35F1E89E3D}" name="submodules">
+      <GROUP id="{1FBCD2DD-9050-30FD-E1BE-E07C1F83877B}" name="AlgoGRIS">
+        <GROUP id="{2C918F81-A70B-9039-CE92-61A6A36D601B}" name="Containers">
+          <FILE id="Jld2g6" name="sg_AtomicUpdater.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Containers/sg_AtomicUpdater.hpp"/>
+          <FILE id="OzQN2z" name="sg_LogBuffer.cpp" compile="1" resource="0"
+                file="submodules/AlgoGRIS/Containers/sg_LogBuffer.cpp"/>
+          <FILE id="KmJwQp" name="sg_LogBuffer.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Containers/sg_LogBuffer.hpp"/>
+          <FILE id="GNDcTV" name="sg_OwnedMap.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Containers/sg_OwnedMap.hpp"/>
+          <FILE id="SanmLx" name="sg_StaticMap.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Containers/sg_StaticMap.hpp"/>
+          <FILE id="Poyqnh" name="sg_StaticVector.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Containers/sg_StaticVector.hpp"/>
+          <FILE id="WQIl7Q" name="sg_StrongArray.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Containers/sg_StrongArray.hpp"/>
+          <FILE id="mw4d16" name="sg_TaggedAudioBuffer.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Containers/sg_TaggedAudioBuffer.hpp"/>
+          <FILE id="TCCgjN" name="sg_ThreadSafeBuffer.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Containers/sg_ThreadSafeBuffer.hpp"/>
+        </GROUP>
+        <GROUP id="{F06AD0AF-66F3-5081-9D32-27A52D671522}" name="Data">
+          <GROUP id="{D3926613-7955-ABD2-3F4E-23A19DD64242}" name="StrongTypes">
+            <FILE id="AfaS8j" name="sg_CartesianVector.cpp" compile="1" resource="0"
+                  file="submodules/AlgoGRIS/Data/StrongTypes/sg_CartesianVector.cpp"/>
+            <FILE id="uhmsjj" name="sg_CartesianVector.hpp" compile="0" resource="0"
+                  file="submodules/AlgoGRIS/Data/StrongTypes/sg_CartesianVector.hpp"/>
+            <FILE id="NVVuUr" name="sg_Dbfs.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Data/StrongTypes/sg_Dbfs.hpp"/>
+            <FILE id="rao5Rb" name="sg_Degrees.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Data/StrongTypes/sg_Degrees.hpp"/>
+            <FILE id="OIT85i" name="sg_Hz.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Data/StrongTypes/sg_Hz.hpp"/>
+            <FILE id="DzkFuc" name="sg_Meters.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Data/StrongTypes/sg_Meters.hpp"/>
+            <FILE id="iA10lf" name="sg_OutputPatch.hpp" compile="0" resource="0"
+                  file="submodules/AlgoGRIS/Data/StrongTypes/sg_OutputPatch.hpp"/>
+            <FILE id="TZxQJr" name="sg_Radians.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Data/StrongTypes/sg_Radians.hpp"/>
+            <FILE id="kZVN2l" name="sg_SourceIndex.hpp" compile="0" resource="0"
+                  file="submodules/AlgoGRIS/Data/StrongTypes/sg_SourceIndex.hpp"/>
+            <FILE id="XWVnfw" name="sg_StrongFloat.hpp" compile="0" resource="0"
+                  file="submodules/AlgoGRIS/Data/StrongTypes/sg_StrongFloat.hpp"/>
+            <FILE id="zapZD3" name="sg_StrongIndex.hpp" compile="0" resource="0"
+                  file="submodules/AlgoGRIS/Data/StrongTypes/sg_StrongIndex.hpp"/>
+          </GROUP>
+          <FILE id="MbMaMp" name="sg_AudioStructs.cpp" compile="1" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_AudioStructs.cpp"/>
+          <FILE id="wFGV6U" name="sg_AudioStructs.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_AudioStructs.hpp"/>
+          <FILE id="ztaZei" name="sg_CommandId.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_CommandId.hpp"/>
+          <FILE id="fW3CcM" name="sg_constants.cpp" compile="1" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_constants.cpp"/>
+          <FILE id="rAQhTC" name="sg_constants.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_constants.hpp"/>
+          <FILE id="ydRP1u" name="sg_LegacyLbapPosition.cpp" compile="1" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_LegacyLbapPosition.cpp"/>
+          <FILE id="LNlmhw" name="sg_LegacyLbapPosition.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_LegacyLbapPosition.hpp"/>
+          <FILE id="vX1bvT" name="sg_LegacySpatFileFormat.cpp" compile="1" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_LegacySpatFileFormat.cpp"/>
+          <FILE id="E6AjYf" name="sg_LegacySpatFileFormat.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_LegacySpatFileFormat.hpp"/>
+          <FILE id="yWrt6y" name="sg_LogicStrucs.cpp" compile="1" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_LogicStrucs.cpp"/>
+          <FILE id="oj8x2r" name="sg_LogicStrucs.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_LogicStrucs.hpp"/>
+          <FILE id="uPZ0MB" name="sg_Macros.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Data/sg_Macros.hpp"/>
+          <FILE id="Ezhmv9" name="sg_Narrow.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Data/sg_Narrow.hpp"/>
+          <FILE id="Cx5kAI" name="sg_PolarVector.cpp" compile="1" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_PolarVector.cpp"/>
+          <FILE id="G484dD" name="sg_PolarVector.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/Data/sg_PolarVector.hpp"/>
+          <FILE id="bJyEYJ" name="sg_Position.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/Data/sg_Position.cpp"/>
+          <FILE id="ktFL1Z" name="sg_Position.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Data/sg_Position.hpp"/>
+          <FILE id="zy56EL" name="sg_SpatMode.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/Data/sg_SpatMode.cpp"/>
+          <FILE id="T8MTdF" name="sg_SpatMode.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Data/sg_SpatMode.hpp"/>
+          <FILE id="KelaeM" name="sg_Triplet.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Data/sg_Triplet.hpp"/>
+        </GROUP>
+        <GROUP id="{D2AC16F0-08E2-A466-6D4F-628BC7B71C89}" name="Implementations">
+          <FILE id="MwCnVm" name="sg_mbap.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/Implementations/sg_mbap.cpp"/>
+          <FILE id="ilAA0T" name="sg_mbap.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Implementations/sg_mbap.hpp"/>
+          <FILE id="vMtmVH" name="sg_vbap.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/Implementations/sg_vbap.cpp"/>
+          <FILE id="A6XBb2" name="sg_vbap.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Implementations/sg_vbap.hpp"/>
+        </GROUP>
+        <GROUP id="{669A6AC7-28C1-4F01-2E77-766F5DC333A1}" name="tl">
+          <FILE id="KbUZyi" name="COPYING" compile="0" resource="1" file="submodules/AlgoGRIS/tl/COPYING"/>
+          <FILE id="ofOTuj" name="optional.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/tl/optional.hpp"/>
+          <FILE id="DMwDgc" name="README.md" compile="0" resource="1" file="submodules/AlgoGRIS/tl/README.md"/>
+        </GROUP>
+        <FILE id="b6Dypz" name="sg_AbstractSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_AbstractSpatAlgorithm.cpp"/>
+        <FILE id="KtoN5h" name="sg_AbstractSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_AbstractSpatAlgorithm.hpp"/>
+        <FILE id="niApm2" name="sg_DopplerSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_DopplerSpatAlgorithm.cpp"/>
+        <FILE id="kGpi2Z" name="sg_DopplerSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_DopplerSpatAlgorithm.hpp"/>
+        <FILE id="JR7V5l" name="sg_DummySpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_DummySpatAlgorithm.hpp"/>
+        <FILE id="hbjxkS" name="sg_HrtfSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_HrtfSpatAlgorithm.cpp"/>
+        <FILE id="X5DiSM" name="sg_HrtfSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_HrtfSpatAlgorithm.hpp"/>
+        <FILE id="WH2cPI" name="sg_HybridSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_HybridSpatAlgorithm.cpp"/>
+        <FILE id="GTiaFP" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_HybridSpatAlgorithm.hpp"/>
+        <FILE id="ha7T9L" name="sg_MbapSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_MbapSpatAlgorithm.cpp"/>
+        <FILE id="U3nQ6z" name="sg_MbapSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_MbapSpatAlgorithm.hpp"/>
+        <FILE id="UNTm3p" name="sg_StereoSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_StereoSpatAlgorithm.cpp"/>
+        <FILE id="lkUoxb" name="sg_StereoSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_StereoSpatAlgorithm.hpp"/>
+        <FILE id="GvU5R3" name="sg_VbapSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_VbapSpatAlgorithm.cpp"/>
+        <FILE id="YcX6NU" name="sg_VbapSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_VbapSpatAlgorithm.hpp"/>
+      </GROUP>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

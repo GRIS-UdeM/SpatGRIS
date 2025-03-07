@@ -19,9 +19,9 @@
 
 #pragma once
 
+#include "AlgoGRIS/Data/StrongTypes/sg_SourceIndex.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 #include "sg_SmallToggleButton.hpp"
-#include "sg_SourceIndex.hpp"
-#include "sg_constants.hpp"
 
 namespace gris
 {

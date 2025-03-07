@@ -19,8 +19,8 @@
 
 #include "sg_PinkNoiseGenerator.hpp"
 
-#include "sg_Dbfs.hpp"
-#include "sg_Narrow.hpp"
+#include "AlgoGRIS/Data/StrongTypes/sg_Dbfs.hpp"
+#include "AlgoGRIS/Data/sg_Narrow.hpp"
 
 namespace
 {
