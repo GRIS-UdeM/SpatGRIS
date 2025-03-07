@@ -967,7 +967,7 @@ void MainContentComponent::numSourcesChanged(int const numSources)
 
             // Get first available source index
             for (source_index_t i{ 1 }; mData.project.ordering.contains(i); ++i) {
-                *index = i.get();
+                index = i.get();
             }
 
             addSource(sourceIndex, *index);
