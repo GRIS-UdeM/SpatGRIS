@@ -232,6 +232,7 @@ public:
 
     source_index_t addSource(std::optional<source_index_t> sourceToCopy, std::optional<int> index);
     void removeSource(source_index_t sourceIndex);
+    void reorderSources(juce::Array<source_index_t> newOrder);
     [[nodiscard]] source_index_t getMaxProjectSourceIndex() const;
     [[nodiscard]] source_index_t getFirstAvailableProjectSourceIndex() const;
 
