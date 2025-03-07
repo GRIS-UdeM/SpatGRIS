@@ -2493,8 +2493,6 @@ void MainContentComponent::removeSource(source_index_t const sourceIndex)
 
     mData.project.ordering.removeFirstMatchingValue(sourceIndex);
     mData.project.sources.remove(sourceIndex);
-
-    refreshSpeakers();
 }
 
 //==============================================================================
