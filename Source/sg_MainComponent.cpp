@@ -2037,6 +2037,8 @@ void MainContentComponent::projectSourceIndexChanged(source_index_t oldSourceInd
     auto & order{ mData.project.ordering };
     order.set(order.indexOf(oldSourceIndex), newSourceIndex);
 
+    mData.project.ordering.sort();
+
     refreshSourceSlices();
     refreshSpeakerSlices();
 }
