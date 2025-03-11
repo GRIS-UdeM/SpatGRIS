@@ -66,20 +66,25 @@ jobs:
         with:
           submodules: recursive
 
-      - name: download JUCE
-        run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-osx.zip --output JUCE.zip
+      - name: Install dependencies
+        run: brew install jack
 
-      - name: unpack JUCE
-        run: unzip JUCE.zip
+      - name: Debug CMake Path
+        run: ls -R submodules/AlgoGRIS/submodules/JUCE/extras/Projucer
 
-      - name: List directory contents
-        run: ls -R
+      - name: Build Projucer
+        run: |
+          cd submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX
+          xcodebuild -project Projucer.xcodeproj \
+            -configuration Release \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
 
-      - name: set global JUCE search paths
-        run: JUCE/Projucer.app/Contents/MacOS/Projucer --set-global-search-path osx defaultJuceModulePath /Users/runner/work/SpatGRIS/SpatGRIS/JUCE/modules
-
-      - name: generate Xcode project
-        run: JUCE/Projucer.app/Contents/MacOS/Projucer --resave SpatGRIS.jucer
+      - name: Generate Xcode project
+        run: |
+          chmod +x submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX/build/Release/Projucer.app/Contents/MacOS/Projucer
+          submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX/build/Release/Projucer.app/Contents/MacOS/Projucer --resave SpatGRIS.jucer
 
       - name: build
         run: |
@@ -93,7 +98,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SpatGRIS-Build-macOS
-          path: Builds/MacOSX/build/*
+          path: Builds/MacOSX/build/Release/SpatGRIS.app
 
   Build-Windows:
     runs-on: windows-latest

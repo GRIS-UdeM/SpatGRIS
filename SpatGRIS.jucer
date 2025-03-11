@@ -5,7 +5,7 @@
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="latest"
               jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
               addUsingNamespaceToJuceHeader="0" defines="JUCE_DISPLAY_SPLASH_SCREEN=0&#10;JUCE_MODAL_LOOPS_PERMITTED=1"
-              headerPath="../../submodules/">
+              headerPath="../../submodules/&#10;/opt/homebrew/include/&#10;/usr/local/include/">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="FbCRQM" name="FreeFarsi-Mono.otf" compile="0" resource="1"
@@ -50,8 +50,6 @@
               file="Source/sg_FatalError.cpp"/>
         <FILE id="i24Hrh" name="sg_FatalError.hpp" compile="0" resource="0"
               file="Source/sg_FatalError.hpp"/>
-        <FILE id="yJeDzO" name="sg_Macros.hpp" compile="0" resource="0" file="Source/sg_Macros.hpp"/>
-        <FILE id="sooBmS" name="sg_Narrow.hpp" compile="0" resource="0" file="Source/sg_Narrow.hpp"/>
         <FILE id="Zaf3uS" name="sg_Remap.hpp" compile="0" resource="0" file="Source/sg_Remap.hpp"/>
         <FILE id="y1tIHN" name="sg_ScopeGuard.hpp" compile="0" resource="0"
               file="Source/sg_ScopeGuard.hpp"/>
@@ -352,20 +350,20 @@
                        osxArchitecture="Native" fastMath="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL">
@@ -376,20 +374,20 @@
                        linkTimeOptimisation="1" recommendedWarnings="GCC"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
+        <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="YxmFrL">
@@ -400,38 +398,38 @@
                        warningsAreErrors="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_osc"/>
-        <MODULEPATH id="juce_opengl"/>
-        <MODULEPATH id="juce_gui_extra"/>
-        <MODULEPATH id="juce_gui_basics"/>
-        <MODULEPATH id="juce_graphics"/>
-        <MODULEPATH id="juce_events"/>
-        <MODULEPATH id="juce_data_structures"/>
-        <MODULEPATH id="juce_core"/>
-        <MODULEPATH id="juce_audio_utils"/>
-        <MODULEPATH id="juce_audio_processors"/>
-        <MODULEPATH id="juce_audio_formats"/>
-        <MODULEPATH id="juce_audio_devices"/>
-        <MODULEPATH id="juce_audio_basics"/>
-        <MODULEPATH id="juce_dsp"/>
+        <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
   </MODULES>
   <JUCEOPTIONS JUCE_ASIO="1" JUCE_JACK="1" JUCE_WEB_BROWSER="0"/>
   <LIVE_SETTINGS>
