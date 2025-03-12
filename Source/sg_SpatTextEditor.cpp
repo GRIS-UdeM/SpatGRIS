@@ -95,8 +95,12 @@ void SpatTextEditor::resized()
 //==============================================================================
 int SpatTextEditor::getMinWidth() const noexcept
 {
-    return std::max(mLabel.getFont().getStringWidth(mLabel.getText()), BOX_WIDTH);
+    juce::GlyphArrangement ga;
+    ga.addLineOfText(mLabel.getFont(), mLabel.getText(), 0, 0);
+
+    return std::max(static_cast<int>(ga.getBoundingBox(0, -1, true).getWidth()), BOX_WIDTH);
 }
+
 
 //==============================================================================
 int SpatTextEditor::getMinHeight() const noexcept

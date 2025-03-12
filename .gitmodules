@@ -1,3 +1,6 @@
 [submodule "submodules/AlgoGRIS"]
 	path = submodules/AlgoGRIS
 	url = git@github.com:GRIS-UdeM/AlgoGRIS.git
+[submodule "submodules/jack2"]
+	path = submodules/jack2
+	url = git@github.com:jackaudio/jack2.git

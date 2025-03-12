@@ -37,15 +37,15 @@ public:
     float mFontSize = 10.f;
 #endif
 
-    juce::Typeface::Ptr sinkinSans = juce::Typeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, BinaryData::SinkinSans400Regular_otfSize);
-    juce::Font mSmallerFont { juce::FontOptions().withTypeface(sinkinSans).withHeight(mFontSize - 3) };
-    juce::Font mSmallFont { juce::FontOptions().withTypeface(sinkinSans).withHeight(mFontSize - 1) };
-    juce::Font mFont { juce::FontOptions().withTypeface(sinkinSans.get()).withHeight(mFontSize) };
-    juce::Font mBigFont { juce::FontOptions().withTypeface(sinkinSans.get()).withHeight(mFontSize + 3) };
-    juce::Font mBiggerFont { juce::FontOptions().withTypeface(sinkinSans.get()).withHeight(mFontSize + 6) };
+    juce::FontOptions const sinkinSansOptions { juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, BinaryData::SinkinSans400Regular_otfSize))};
+    juce::Font mSmallerFont { sinkinSansOptions.withHeight(mFontSize - 3) };
+    juce::Font mSmallFont   { sinkinSansOptions.withHeight(mFontSize - 1) };
+    juce::Font mFont        { sinkinSansOptions.withHeight(mFontSize) };
+    juce::Font mBigFont     { sinkinSansOptions.withHeight(mFontSize + 3) };
+    juce::Font mBiggerFont  { sinkinSansOptions.withHeight(mFontSize + 6) };
 
-    juce::Typeface::Ptr freeFarsiMono = juce::Typeface::createSystemTypefaceFor(BinaryData::FreeFarsiMono_otf, BinaryData::FreeFarsiMono_otfSize);
-    juce::Font mMonoFont { juce::FontOptions().withTypeface(freeFarsiMono.get()).withHeight(mFontSize + 8) };
+    juce::FontOptions freeFarsiMonoOptions {juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::FreeFarsiMono_otf, BinaryData::FreeFarsiMono_otfSize))};
+    juce::Font mMonoFont    { freeFarsiMonoOptions.withHeight(mFontSize + 8) };
 
     //==============================================================================
     juce::Colour mBackGroundAndFieldColour;
