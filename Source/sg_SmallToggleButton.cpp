@@ -53,7 +53,7 @@ SmallToggleButton::SmallToggleButton(bool const isToggle,
     mLabel.setInterceptsMouseClicks(false, false);
     initColors(mLabel);
 
-    mLabel.setFont( juce::FontOptions().withHeight(.8f));
+    mLabel.setFont(juce::FontOptions().withHeight(.8f));
 }
 
 //==============================================================================

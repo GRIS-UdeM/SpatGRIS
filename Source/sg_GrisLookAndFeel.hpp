@@ -31,11 +31,7 @@ namespace gris
 class GrisLookAndFeel : public juce::LookAndFeel_V3
 {
 public:
-#if WIN32
-    float mFontSize = 16.f;
-#else
-    float mFontSize = 10.f;
-#endif
+    float constexpr static mFontSize = 10.f;
 
     juce::FontOptions const sinkinSansOptions { juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, BinaryData::SinkinSans400Regular_otfSize))};
     juce::Font mSmallerFont { sinkinSansOptions.withHeight(mFontSize - 3) };

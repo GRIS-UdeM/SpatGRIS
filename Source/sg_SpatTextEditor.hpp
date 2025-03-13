@@ -25,7 +25,7 @@ namespace gris
 {
 class GrisLookAndFeel;
 
-//==============================================================================
+// TODO: this class is not used anywhere, should we remove it?
 class SpatTextEditor final
     : public MinSizedComponent
     , public juce::TextEditor::Listener

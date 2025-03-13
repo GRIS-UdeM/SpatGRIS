@@ -69,10 +69,6 @@ AudioManager::AudioManager(juce::String const & deviceType,
     }
 #endif
 
-    //TODO VB: check that we don't need that?
-//    mRecordersThread.setPriority(9);
-//    mPlayerThread.setPriority(9);
-
     mAudioDeviceManager.addAudioCallback(this);
 }
 
@@ -96,7 +92,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     if (mStereoRouting) {
         mStereoOutputBuffer.clear();
     }
-    // TODO: should not process if setreo mode is hrtf
+    // TODO: should not process if stereo mode is hrtf
     mOutputBuffer.silence();
 
     std::for_each_n(outputChannelData, totalNumOutputChannels, [numSamples](float * const data) {
@@ -361,7 +357,6 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
         }
     }
 
-    //TODO VB: check that this is ok?
     mPlayerThread.startThread(juce::Thread::Priority::highest);
     reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
                            currentAudioDevice->getCurrentSampleRate());
@@ -715,8 +710,6 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return false;
     }
 
-    //TODO VB: need to confirm what priority "9" means here -- I think we might
-    //need to use somethng related to juce::Thread::RealtimeOptions
     mRecordersThread.startThread(juce::Thread::Priority::highest);
 
     return true;

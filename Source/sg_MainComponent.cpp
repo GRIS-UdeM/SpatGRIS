@@ -95,6 +95,12 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     , mSmallLookAndFeel(smallGrisLookAndFeel)
     , mMainWindow(mainWindow)
 {
+
+#if JUCE_DEBUG
+    juce::UnitTestRunner testRunner;
+    testRunner.runAllTests();
+#endif
+
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
