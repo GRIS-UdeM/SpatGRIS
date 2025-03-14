@@ -993,8 +993,8 @@ void MainContentComponent::generalMuteButtonPressed()
     juce::ScopedReadLock const lock{ mLock };
 
     auto const newSliceState{ mControlPanel->getGeneralMuteButtonState() == GeneralMuteButton::State::allUnmuted
-                             ? SliceState::muted
-                             : SliceState::normal };
+                                  ? SliceState::muted
+                                  : SliceState::normal };
     auto const newGeneralMuteButtonState{ mControlPanel->getGeneralMuteButtonState()
                                                   == GeneralMuteButton::State::allUnmuted
                                               ? GeneralMuteButton::State::allMuted
@@ -2650,7 +2650,7 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
     }
 
     if (mData.speakerSetup.generalMute) {
-        for (auto& speaker : mData.speakerSetup.speakers) {
+        for (auto & speaker : mData.speakerSetup.speakers) {
             speaker.value->state = SliceState::muted;
         }
     }

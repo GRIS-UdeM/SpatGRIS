@@ -19,9 +19,9 @@
 
 #pragma once
 
+#include "sg_GeneralMuteButton.h"
 #include "sg_LayoutComponent.hpp"
 #include "sg_LogicStrucs.hpp"
-#include "sg_GeneralMuteButton.h"
 #include "sg_RecordButton.hpp"
 #include "sg_SpatSlider.hpp"
 #include "sg_SubPanelComponent.hpp"
