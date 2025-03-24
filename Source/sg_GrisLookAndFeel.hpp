@@ -30,21 +30,20 @@ namespace gris
 /** Custom Look And Feel */
 class GrisLookAndFeel : public juce::LookAndFeel_V3
 {
-    float mFontSize;
+public:
+    float constexpr static mFontSize = 10.f;
 
-    juce::Font mFont = juce::Font(
-        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
-    juce::Font mBigFont = juce::Font(
-        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
-    juce::Font mBiggerFont = juce::Font(
-        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
-    juce::Font mMonoFont
-        = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::FreeFarsiMono_otf,
-                                                                   narrow<size_t>(BinaryData::FreeFarsiMono_otfSize)));
+    juce::FontOptions const sinkinSansOptions { juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, BinaryData::SinkinSans400Regular_otfSize))};
+    juce::Font mSmallerFont { sinkinSansOptions.withHeight(mFontSize - 3) };
+    juce::Font mSmallFont   { sinkinSansOptions.withHeight(mFontSize - 1) };
+    juce::Font mFont        { sinkinSansOptions.withHeight(mFontSize) };
+    juce::Font mBigFont     { sinkinSansOptions.withHeight(mFontSize + 3) };
+    juce::Font mBiggerFont  { sinkinSansOptions.withHeight(mFontSize + 6) };
 
+    juce::FontOptions freeFarsiMonoOptions {juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::FreeFarsiMono_otf, BinaryData::FreeFarsiMono_otfSize))};
+    juce::Font mMonoFont    { freeFarsiMonoOptions.withHeight(mFontSize + 8) };
+
+    //==============================================================================
     juce::Colour mBackGroundAndFieldColour;
     juce::Colour mWinBackGroundAndFieldColour;
     juce::Colour mLightColour;
@@ -63,14 +62,6 @@ class GrisLookAndFeel : public juce::LookAndFeel_V3
     juce::Colour mSubColor;
     juce::Colour mInactiveColor;
 
-public:
-    //==============================================================================
-    juce::Font mSmallFont = juce::Font(
-        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
-    juce::Font mSmallerFont = juce::Font(
-        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
     //==============================================================================
     GrisLookAndFeel();
     ~GrisLookAndFeel() override = default;

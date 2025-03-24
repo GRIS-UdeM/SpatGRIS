@@ -7,6 +7,41 @@ on:
     branches: ['*']
 
 jobs:
+  Build-Ubuntu-Latest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install required packages
+        run: |
+          export TZ=Etc/UTC
+          sudo apt-get update
+          sudo apt-get install -y git curl unzip sudo wget lsb-release software-properties-common make build-essential tzdata
+
+      - name: Check out repository code with submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install dependencies # taken from https://github.com/juce-framework/JUCE/blob/develop/docs/Linux%20Dependencies.md
+        run: |
+          sudo apt-get install -y ladspa-sdk freeglut3-dev libasound2-dev libcurl4-openssl-dev libfreetype6-dev \
+              libxcomposite-dev libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-jackd2-dev \
+              libfontconfig1-dev libx11-dev libxext-dev libxrender-dev libwebkit2gtk-4.1-dev libglu1-mesa-dev
+
+      - name: Build Projucer
+        run: make -C submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/LinuxMakefile CONFIG=Release -j$(nproc)
+
+      - name: Generate Makefile
+        run: submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/LinuxMakefile/build/Projucer --resave SpatGRIS.jucer
+
+      - name: Compile SpatGRIS
+        run: make -C Builds/LinuxMakefile CONFIG=Release -j$(nproc)
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpatGRIS-Build-Ubuntu-Latest
+          path: Builds/LinuxMakefile/build/SpatGRIS*
+
   Build-Ubuntu-20-04:
     runs-on: ubuntu-latest
     container:
@@ -24,12 +59,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: download JUCE
-        run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-linux.zip --output JUCE.zip
-
-      - name: unpack JUCE
-        run: unzip JUCE.zip
-
       - name: Install latest Clang
         run: |
           wget https://apt.llvm.org/llvm.sh
@@ -37,26 +66,26 @@ jobs:
           ./llvm.sh 18
           apt-get install -y clang-18
 
-      - name: Install dependencies
+      - name: Install dependencies # taken from https://github.com/juce-framework/JUCE/blob/develop/docs/Linux%20Dependencies.md
         run: |
-          apt-get install -y ladspa-sdk freeglut3-dev libasound2-dev libcurl4-openssl-dev \
-            libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxrandr-dev \
-            mesa-common-dev libjack-dev
+          apt-get install -y ladspa-sdk freeglut3-dev libasound2-dev libcurl4-openssl-dev libfreetype6-dev \
+              libxcomposite-dev libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-jackd2-dev \
+              libfontconfig1-dev libx11-dev libxext-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev
 
-      - name: set global JUCE search paths
-        run: JUCE/Projucer --set-global-search-path linux defaultJuceModulePath /__w/SpatGRIS/SpatGRIS/JUCE/modules
+      - name: Build Projucer
+        run: make -C submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/LinuxMakefile CXX=clang++-18 -j$(nproc)
 
-      - name: generate makefile
-        run: cd JUCE && ./Projucer --resave ../SpatGRIS.jucer
+      - name: Generate Makefile
+        run: submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/LinuxMakefile/build/Projucer --resave SpatGRIS.jucer
 
       - name: Compile SpatGRIS
-        run: cd Builds/LinuxMakefile && make CXX=clang++-18 CONFIG=Release -j$(nproc)
+        run: make -C  Builds/LinuxMakefile CXX=clang++-18 -j$(nproc)
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SpatGRIS-Build-Linux
-          path: Builds/LinuxMakefile/build/*
+          name: SpatGRIS-Build-Ubuntu-20-04
+          path: Builds/LinuxMakefile/build/SpatGRIS*
 
   Build-macOS:
     runs-on: macos-13
@@ -66,20 +95,22 @@ jobs:
         with:
           submodules: recursive
 
-      - name: download JUCE
-        run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-osx.zip --output JUCE.zip
+      - name: Debug CMake Path
+        run: ls -R submodules/AlgoGRIS/submodules/JUCE/extras/Projucer
 
-      - name: unpack JUCE
-        run: unzip JUCE.zip
+      - name: Build Projucer
+        run: |
+          cd submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX
+          xcodebuild -project Projucer.xcodeproj \
+            -configuration Release \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
 
-      - name: List directory contents
-        run: ls -R
-
-      - name: set global JUCE search paths
-        run: JUCE/Projucer.app/Contents/MacOS/Projucer --set-global-search-path osx defaultJuceModulePath /Users/runner/work/SpatGRIS/SpatGRIS/JUCE/modules
-
-      - name: generate Xcode project
-        run: JUCE/Projucer.app/Contents/MacOS/Projucer --resave SpatGRIS.jucer
+      - name: Generate Xcode project
+        run: |
+          chmod +x submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX/build/Release/Projucer.app/Contents/MacOS/Projucer
+          submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX/build/Release/Projucer.app/Contents/MacOS/Projucer --resave SpatGRIS.jucer
 
       - name: build
         run: |
@@ -93,7 +124,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SpatGRIS-Build-macOS
-          path: Builds/MacOSX/build/*
+          path: Builds/MacOSX/build/Release/*
 
   Build-Windows:
     runs-on: windows-latest
@@ -103,31 +134,25 @@ jobs:
         with:
           submodules: recursive
 
-      - name: download JUCE
-        run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-windows.zip --output JUCE.zip
-
-      - name: unpack JUCE
-        run: Expand-Archive -Path JUCE.zip -DestinationPath .
-
-      - name: download ASIO SDK
+      - name: Download ASIO SDK
         run: curl -L https://www.steinberg.net/asiosdk --output ASIOSDK.zip
 
-      - name: unpack ASIO SDK
+      - name: Unpack ASIO SDK
         run: Expand-Archive -Path ASIOSDK.zip -DestinationPath .
-
-      - name: set global JUCE search paths
-        run: JUCE/Projucer --set-global-search-path windows defaultJuceModulePath ${{ github.workspace }}\JUCE\modules
-
-      - name: generate Visual Studio project
-        run: JUCE/Projucer --resave SpatGRIS.jucer
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - name: List directory contents
-        run: ls -R
+      - name: Build Projucer
+        run: |
+          cd submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/VisualStudio2022
+          msbuild Projucer.sln /p:Configuration=Release /p:Platform=x64 /p:WarningsAsErrors=False
 
-      - name: build
+      - name: Generate Visual Studio project
+        run: |
+          submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/VisualStudio2022/x64/Release/App/Projucer.exe --resave SpatGRIS.jucer
+
+      - name: Build SpatGRIS
         run: msbuild Builds/VisualStudio2022/SpatGRIS_App.vcxproj -p:Configuration=Release -p:Platform=x64 -p:IncludePath=../../asiosdk_2.3.3_2019-06-14/common/
 
       - name: Upload build artifacts

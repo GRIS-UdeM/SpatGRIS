@@ -91,7 +91,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lookAndFeel)
     , mListSpeakerBox(lookAndFeel, "Configuration Speakers")
-    , mFont(14.0f)
+    , mFont(juce::FontOptions().withHeight (14.f))
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

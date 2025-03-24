@@ -69,28 +69,16 @@ AudioManager::AudioManager(juce::String const & deviceType,
     }
 #endif
 
-#if ! JUCE_ARM
-    mRecordersThread.setPriority(9);
-    mPlayerThread.setPriority(9);
-#endif
     mAudioDeviceManager.addAudioCallback(this);
 }
 
 //==============================================================================
-#if JUCE_ARM
 void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
                                                      int totalNumInputChannels,
                                                      float* const* outputChannelData,
                                                      int totalNumOutputChannels,
                                                      int numSamples,
                                                      [[maybe_unused]] const juce::AudioIODeviceCallbackContext& context)
-#else
-void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
-                                         int const totalNumInputChannels,
-                                         float ** const outputChannelData,
-                                         int const totalNumOutputChannels,
-                                         int const numSamples)
-#endif
 {
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
@@ -104,7 +92,7 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     if (mStereoRouting) {
         mStereoOutputBuffer.clear();
     }
-    // TODO: should not process if setreo mode is hrtf
+    // TODO: should not process if stereo mode is hrtf
     mOutputBuffer.silence();
 
     std::for_each_n(outputChannelData, totalNumOutputChannels, [numSamples](float * const data) {
@@ -369,11 +357,7 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
         }
     }
 
-#if JUCE_ARM
     mPlayerThread.startThread(juce::Thread::Priority::highest);
-#else
-    mPlayerThread.startThread();
-#endif
     reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
                            currentAudioDevice->getCurrentSampleRate());
     return true;
@@ -726,13 +710,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return false;
     }
 
-#if JUCE_ARM
-    //TODO VB: need to confirm what priority "9" means here -- I think we might
-    //need to use somethng related to juce::Thread::RealtimeOptions
     mRecordersThread.startThread(juce::Thread::Priority::highest);
-#else
-    mRecordersThread.startThread();
-#endif
 
     return true;
 }
