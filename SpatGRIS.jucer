@@ -134,10 +134,6 @@
                   file="Source/sg_SpatSlider.cpp"/>
             <FILE id="SqVuzN" name="sg_SpatSlider.hpp" compile="0" resource="0"
                   file="Source/sg_SpatSlider.hpp"/>
-            <FILE id="OcgQR2" name="sg_SpatTextEditor.cpp" compile="1" resource="0"
-                  file="Source/sg_SpatTextEditor.cpp"/>
-            <FILE id="L27uyO" name="sg_SpatTextEditor.hpp" compile="0" resource="0"
-                  file="Source/sg_SpatTextEditor.hpp"/>
             <FILE id="j2IMjp" name="sg_SubPanelComponent.cpp" compile="1" resource="0"
                   file="Source/sg_SubPanelComponent.cpp"/>
             <FILE id="HOKrJx" name="sg_SubPanelComponent.hpp" compile="0" resource="0"
