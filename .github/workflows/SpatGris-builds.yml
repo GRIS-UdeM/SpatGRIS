@@ -49,6 +49,7 @@ jobs:
     steps:
       - name: Install required packages
         run: |
+          export DEBIAN_FRONTEND=noninteractive
           export TZ=Etc/UTC
           apt-get update
           apt-get install -y git curl unzip sudo wget lsb-release software-properties-common make build-essential tzdata
