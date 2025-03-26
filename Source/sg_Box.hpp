@@ -29,7 +29,14 @@ class GrisLookAndFeel;
 class AbstractSliceComponent;
 class MainContentComponent;
 
-//==============================================================================
+/** @brief A custom component class for displaying content within a viewport.
+ *
+ *  The Box class is juce::Component that has a title and wraps another Component. It is used to display content
+ *  within a scrollable viewport. The class manages a content component and a viewport, and
+ *  provides methods to access these components. It also handles resizing and painting of the
+ *  component. The Box class is useful for displaying large content that may not fit within the
+ *  visible area of the parent component, allowing the user to scroll through the content.
+ */
 class Box final : public juce::Component
 {
     GrisLookAndFeel & mLookAndFeel;

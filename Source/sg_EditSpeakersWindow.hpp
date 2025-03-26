@@ -30,6 +30,40 @@ class MainContentComponent;
 class GrisLookAndFeel;
 
 //==============================================================================
+// Helper struct to trigger static_assert for unsupported types
+template<typename T>
+struct always_false : std::false_type {
+};
+
+struct LabelTextEditorWrapper {
+    LabelTextEditorWrapper(GrisLookAndFeel & lookAndFeel);
+    ~LabelTextEditorWrapper() { label.setLookAndFeel(nullptr); }
+
+    template<typename T>
+    T getText()
+    {
+        auto const text{ editor.getText() };
+
+        if constexpr (std::is_same_v<T, juce::String>)
+            return text;
+        else if constexpr (std::is_same_v<T, int>)
+            return text.getIntValue();
+        else if constexpr (std::is_same_v<T, float>)
+            return text.getFloatValue();
+        else if constexpr (std::is_same_v<T, double>)
+            return text.getDoubleValue();
+        else
+            static_assert(always_false<T>::value, "Unsupported type");
+
+        return {};
+    }
+
+    juce::Label label;
+    juce::TextEditor editor;
+};
+
+
+//==============================================================================
 class EditSpeakersWindow final
     : public juce::DocumentWindow
     , public juce::TableListBoxModel
@@ -69,14 +103,10 @@ private:
     juce::TextButton mSaveAsSpeakerSetupButton;
     juce::TextButton mSaveSpeakerSetupButton;
 
-    juce::Label mNumOfSpeakersLabel;
-    juce::TextEditor mNumOfSpeakersTextEditor;
-    juce::Label mZenithLabel;
-    juce::TextEditor mZenithTextEditor;
-    juce::Label mRadiusLabel;
-    juce::TextEditor mRadiusTextEditor;
-    juce::Label mOffsetAngleLabel;
-    juce::TextEditor mOffsetAngleTextEditor;
+    LabelTextEditorWrapper mSpeakerWidget;
+    LabelTextEditorWrapper mElevationWidget;
+    LabelTextEditorWrapper mRadiusWidget;
+    LabelTextEditorWrapper mAngleWidget;
     juce::TextButton mAddRingButton;
 
     juce::ToggleButton mPinkNoiseToggleButton;
