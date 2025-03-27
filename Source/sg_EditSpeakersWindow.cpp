@@ -102,67 +102,69 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     : DocumentWindow(name, lookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lookAndFeel)
-    , mListSpeakerBox(lookAndFeel, "Configuration Speakers")
+    , mViewportWraper(lookAndFeel, "Configuration Speakers")
     , mFont(juce::FontOptions().withHeight (14.f))
-    , mSpeakerWidget(lookAndFeel)
-    , mElevationWidget(lookAndFeel)
-    , mRadiusWidget(lookAndFeel)
-    , mAngleWidget(lookAndFeel)
+    , mRingSpeakers(lookAndFeel)
+    , mRingElevation(lookAndFeel)
+    , mRingRadius(lookAndFeel)
+    , mRingOffsetAngle(lookAndFeel)
+    , mPolyFaces(lookAndFeel)
+    , mPolyX(lookAndFeel)
+    , mPolyY(lookAndFeel)
+    , mPolyZ(lookAndFeel)
+    , mPolyRadius(lookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mAddSpeakerButton.setButtonText("Add Speaker");
-    mAddSpeakerButton.addListener(this);
-    mAddSpeakerButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    mAddSpeakerButton.setLookAndFeel(&mLookAndFeel);
-    mListSpeakerBox.getContent()->addAndMakeVisible(mAddSpeakerButton);
+    auto setupButton = [this](juce::TextButton & b, juce::StringRef text) {
+        b.setButtonText(text);
+        b.addListener(this);
+        b.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+        b.setLookAndFeel(&mLookAndFeel);
+        mViewportWraper.getContent()->addAndMakeVisible(b);
+    };
 
-    mSaveAsSpeakerSetupButton.setButtonText("Save As...");
-    mSaveAsSpeakerSetupButton.addListener(this);
-    mSaveAsSpeakerSetupButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    mSaveAsSpeakerSetupButton.setLookAndFeel(&mLookAndFeel);
-    mListSpeakerBox.getContent()->addAndMakeVisible(mSaveAsSpeakerSetupButton);
+    setupButton(mAddSpeakerButton, "Add Speaker");
+    setupButton(mSaveAsSpeakerSetupButton, "Save As...");
+    setupButton(mSaveSpeakerSetupButton, "Save");
 
-    mSaveSpeakerSetupButton.setButtonText("Save");
-    mSaveSpeakerSetupButton.addListener(this);
-    mSaveSpeakerSetupButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    mSaveSpeakerSetupButton.setLookAndFeel(&mLookAndFeel);
-    mListSpeakerBox.getContent()->addAndMakeVisible(mSaveSpeakerSetupButton);
-
-    // Generate ring of speakers.
-    auto setupWidget = [this](LabelTextEditorWrapper & w,
-                              juce::StringRef labelText,
-                              juce::StringRef tooltip,
-                              juce::StringRef editorText,
-                              int maxLength,
-                              juce::StringRef allowedCharacters) {
+    auto setupLandE = [this](LabelTextEditorWrapper & w,
+                             juce::StringRef labelText,
+                             juce::StringRef tooltip,
+                             juce::StringRef editorText,
+                             int maxLength,
+                             juce::StringRef allowedCharacters) {
         w.label.setText(labelText, juce::NotificationType::dontSendNotification);
-        mListSpeakerBox.getContent()->addAndMakeVisible(w.label);
+        mViewportWraper.getContent()->addAndMakeVisible(w.label);
 
         w.editor.setTooltip(tooltip);
         w.editor.setText(editorText, false);
         w.editor.setInputRestrictions(maxLength, allowedCharacters);
         w.editor.addListener(this);
-        mListSpeakerBox.getContent()->addAndMakeVisible(w.editor);
+        mViewportWraper.getContent()->addAndMakeVisible(w.editor);
     };
 
-    setupWidget(mSpeakerWidget, "# of speakers", "Number of speakers in the ring", "8", 3, "0123456789");
-    setupWidget(mElevationWidget, "Elevation", "Elevation angle of the ring", "0.0", 6, "-0123456789.");
-    setupWidget(mRadiusWidget, "Distance", "Distance of the speakers from the center.", "1.0", 6, "0123456789.");
-    setupWidget(mAngleWidget, "Offset Angle", "Offset angle of the first speaker.", "0.0", 6, "-0123456789.");
+    // Generate ring of speakers.
+    setupLandE(mRingSpeakers, "# of speakers", "Number of speakers in the ring.", "8", 3, "0123456789");
+    setupLandE(mRingElevation, "Elevation", "Elevation angle of the ring.", "0.0", 6, "-0123456789.");
+    setupLandE(mRingRadius, "Distance", "Distance of the speakers from the center.", "1.0", 6, "0123456789.");
+    setupLandE(mRingOffsetAngle, "Offset Angle", "Offset angle of the first speaker.", "0.0", 6, "-0123456789.");
+    setupButton(mAddRingButton, "Add Ring");
 
-    mAddRingButton.setButtonText("Add Ring");
-    mAddRingButton.addListener(this);
-    mAddRingButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    mAddRingButton.setLookAndFeel(&mLookAndFeel);
-    mListSpeakerBox.getContent()->addAndMakeVisible(mAddRingButton);
+    // Polyhedron of speakers.
+    setupLandE(mPolyFaces, "# of faces", "Number of faces/speakers for the polyhedron.", "12", 2, "0123456789");
+    setupLandE(mPolyX, "X", "X position for the center of the polyhedron.", "-.5", 6, "-0123456789.");
+    setupLandE(mPolyY, "Y", "Y position for the center of the polyhedron.", ".5", 6, "-0123456789.");
+    setupLandE(mPolyZ, "Z", "Z position for the center of the polyhedron.", ".5", 6, "-0123456789.");
+    setupLandE(mPolyRadius, "Radius", "Radius for the polyhedron.", ".3", 6, "0123456789.");
+    setupButton(mAddPolyButton, "Add Polyhedron");
 
     // Pink noise controls.
     mPinkNoiseToggleButton.setButtonText("Reference Pink Noise");
     mPinkNoiseToggleButton.addListener(this);
     mPinkNoiseToggleButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mPinkNoiseToggleButton.setLookAndFeel(&mLookAndFeel);
-    mListSpeakerBox.getContent()->addAndMakeVisible(mPinkNoiseToggleButton);
+    mViewportWraper.getContent()->addAndMakeVisible(mPinkNoiseToggleButton);
 
     mPinkNoiseGainSlider.setTextValueSuffix(" dB");
     mPinkNoiseGainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -177,14 +179,14 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mPinkNoiseGainSlider.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mPinkNoiseGainSlider.setLookAndFeel(&mLookAndFeel);
     mPinkNoiseGainSlider.addListener(this);
-    mListSpeakerBox.getContent()->addAndMakeVisible(mPinkNoiseGainSlider);
+    mViewportWraper.getContent()->addAndMakeVisible(mPinkNoiseGainSlider);
 
     // Sound diffusion controls
     mDiffusionLabel.setText("Global Sound Diffusion", juce::NotificationType::dontSendNotification);
     mDiffusionLabel.setFont(mLookAndFeel.getFont());
     mDiffusionLabel.setLookAndFeel(&mLookAndFeel);
     mDiffusionLabel.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
-    mListSpeakerBox.getContent()->addAndMakeVisible(mDiffusionLabel);
+    mViewportWraper.getContent()->addAndMakeVisible(mDiffusionLabel);
 
     mDiffusionSlider.setTooltip("Adjuts the spreading range of sources sound");
     mDiffusionSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -199,20 +201,20 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mDiffusionSlider.addListener(this);
     mDiffusionSlider.setEnabled(mMainContentComponent.getData().project.spatMode == SpatMode::mbap
                                 || mMainContentComponent.getData().project.spatMode == SpatMode::hybrid);
-    mListSpeakerBox.getContent()->addAndMakeVisible(mDiffusionSlider);
+    mViewportWraper.getContent()->addAndMakeVisible(mDiffusionSlider);
 
-    mListSpeakerBox.getContent()->addAndMakeVisible(mSpeakersTableListBox);
+    mViewportWraper.getContent()->addAndMakeVisible(mSpeakersTableListBox);
 
-    mListSpeakerBox.repaint();
-    mListSpeakerBox.resized();
+    mViewportWraper.repaint();
+    mViewportWraper.resized();
 
-    mListSpeakerBox.addMouseListener(this, true);
+    mViewportWraper.addMouseListener(this, true);
 
     setResizable(true, true);
     setUsingNativeTitleBar(true);
     setAlwaysOnTop(true);
 
-    setContentNonOwned(&mListSpeakerBox, false);
+    setContentNonOwned(&mViewportWraper, false);
     auto const & controlsComponent{ *mainContentComponent.getControlsComponent() };
 
     static constexpr auto WIDTH = 850;
@@ -320,14 +322,14 @@ void EditSpeakersWindow::initComp()
 
     mNumRows = mMainContentComponent.getData().speakerSetup.speakers.size();
 
-    mListSpeakerBox.setBounds(0, 0, getWidth(), getHeight());
-    mListSpeakerBox.correctSize(getWidth() - 8, getHeight());
+    mViewportWraper.setBounds(0, 0, getWidth(), getHeight());
+    mViewportWraper.correctSize(getWidth() - 8, getHeight());
     mSpeakersTableListBox.setSize(getWidth(), 400);
 
     mSpeakersTableListBox.updateContent();
 
-    mListSpeakerBox.repaint();
-    mListSpeakerBox.resized();
+    mViewportWraper.repaint();
+    mViewportWraper.resized();
     resized();
 }
 
@@ -505,7 +507,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     } else if (button == &mAddRingButton) {
         // Add ring button
         output_patch_t newOutputPatch;
-        auto const numSpeakersToAdd{ mSpeakerWidget.getText<int>() };
+        auto const numSpeakersToAdd{ mRingSpeakers.getText<int>() };
 
         if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakersToAdd > MAX_NUM_SPEAKERS) {
             return;
@@ -525,11 +527,52 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             mNumRows = speakers.size();
 
             degrees_t azimuth{ -360.0f / narrow<float>(numSpeakersToAdd) * narrow<float>(i)
-                               - mAngleWidget.getText<float>() + 90.0f };
+                               - mRingOffsetAngle.getText<float>() + 90.0f };
             azimuth = azimuth.centered();
-            auto const elev{ mElevationWidget.getText<float>() };
+            auto const elev{ mRingElevation.getText<float>() };
             degrees_t const zenith{ elev < 135.f ? std::clamp(elev, 0.0f, 90.0f) : std::clamp(elev, 270.0f, 360.0f) };
-            auto const radius{ mRadiusWidget.getText<float>() };
+            auto const radius{ mRingRadius.getText<float>() };
+
+            mMainContentComponent.setSpeakerPosition(newOutputPatch,
+                                                     PolarVector{ radians_t{ azimuth }, radians_t{ zenith }, radius });
+        }
+        mMainContentComponent.refreshSpeakers();
+        updateWinContent();
+        // TableList needs different sorting parameters to trigger the sorting function.
+        mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
+        // This is the real sorting!
+        mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
+        selectSpeaker(newOutputPatch);
+        mShouldComputeSpeakers = true;
+    } else if (button == &mAddPolyButton) {
+        jassertfalse;
+        // Add ring button
+        output_patch_t newOutputPatch;
+        auto const numSpeakersToAdd{ mRingSpeakers.getText<int>() };
+
+        if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakersToAdd > MAX_NUM_SPEAKERS) {
+            return;
+        }
+
+        for (int i{}; i < numSpeakersToAdd; i++) {
+            tl::optional<output_patch_t> outputPatch{};
+            tl::optional<int> index{};
+
+            if (selectedRow) {
+                outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
+                index = *selectedRow;
+                *selectedRow += 1;
+            }
+
+            newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
+            mNumRows = speakers.size();
+
+            degrees_t azimuth{ -360.0f / narrow<float>(numSpeakersToAdd) * narrow<float>(i)
+                               - mRingOffsetAngle.getText<float>() + 90.0f };
+            azimuth = azimuth.centered();
+            auto const elev{ mRingElevation.getText<float>() };
+            degrees_t const zenith{ elev < 135.f ? std::clamp(elev, 0.0f, 90.0f) : std::clamp(elev, 270.0f, 360.0f) };
+            auto const radius{ mRingRadius.getText<float>() };
 
             mMainContentComponent.setSpeakerPosition(newOutputPatch,
                                                      PolarVector{ radians_t{ azimuth }, radians_t{ zenith }, radius });
@@ -592,16 +635,16 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
     auto const intValue {textEditor.getText().getIntValue()};
     auto const floatValue{ textEditor.getText().getFloatValue() };
 
-    if (&textEditor == &mSpeakerWidget.editor) {
+    if (&textEditor == &mRingSpeakers.editor) {
         auto const value{ std::clamp(intValue, 2, 64) };
         textEditor.setText(juce::String{ value }, false);
         mShouldComputeSpeakers = true;
-    } else if (&textEditor == &mElevationWidget.editor) {
+    } else if (&textEditor == &mRingElevation.editor) {
         auto const value{ floatValue < 135.f ? std::clamp(floatValue, 0.0f, 90.0f)
                                              : std::clamp(floatValue, 270.0f, 360.0f) };
         textEditor.setText(juce::String{ value, 1 }, false);
         mShouldComputeSpeakers = true;
-    } else if (&textEditor == &mRadiusWidget.editor) {
+    } else if (&textEditor == &mRingRadius.editor) {
         juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
         auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
         auto const minRadius{ spatMode == SpatMode::mbap ? 0.001f : 1.0f };
@@ -609,7 +652,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
         auto const value{ std::clamp(floatValue, minRadius, maxRadius) };
         textEditor.setText(juce::String{ value, 1 }, false);
         mShouldComputeSpeakers = true;
-    } else if (&textEditor == &mAngleWidget.editor) {
+    } else if (&textEditor == &mRingOffsetAngle.editor) {
         auto const value{ std::clamp(floatValue, -360.0f, 360.0f) };
         textEditor.setText(juce::String{ value, 1 }, false);
         mShouldComputeSpeakers = true;
@@ -728,28 +771,48 @@ void EditSpeakersWindow::resized()
     mDiffusionLabel.setBounds(getWidth() - 247, getHeight() - 70, 160, 24);
     mDiffusionSlider.setBounds(getWidth() - 88, getHeight() - 95, 60, 60);
 #else
+    //viewport
     auto bounds{ getLocalBounds() };
-    // this is like the viewport
-    mSpeakersTableListBox.setSize(getWidth(), getHeight() - 195);
+    mViewportWraper.setBounds(bounds);
+    mViewportWraper.correctSize(getWidth() - 10, getHeight() - 30);
 
-    mListSpeakerBox.setSize(getWidth(), getHeight());
-    mListSpeakerBox.correctSize(getWidth() - 10, getHeight() - 30);
+    //speaker table
+    auto const secondRowH{ 24 };
+    auto const bottomPanelH{ 195 + secondRowH };
+    mSpeakersTableListBox.setSize(getWidth(), getHeight() - bottomPanelH);
 
-    mAddSpeakerButton.setBounds(5, getHeight() - 180, 100, 22);
-    mSaveAsSpeakerSetupButton.setBounds(getWidth() - 210, getHeight() - 180, 100, 22);
-    mSaveSpeakerSetupButton.setBounds(getWidth() - 105, getHeight() - 180, 100, 22);
+    //first row of bottom panel with add speaker, save as, and save buttons
+    auto const firstRowH {22};
+    auto const firstRowY{ getHeight() - 180 };
+    mAddSpeakerButton.setBounds(5, firstRowY, 100, firstRowH);
+    mSaveAsSpeakerSetupButton.setBounds(getWidth() - 210, firstRowY, 100, firstRowH);
+    mSaveSpeakerSetupButton.setBounds(getWidth() - 105, firstRowY, 100, firstRowH);
 
-    auto const positionWidget = [y = getHeight() - 140](LabelTextEditorWrapper& w, int x, int ew) {
-        w.label.setBounds(x, y, 80, 24);
-        w.editor.setBounds(x + 80, y, ew, 24);
+    //second row of bottom panel with rings of speakers
+    
+    auto const secondRowY{ getHeight() - 140 };
+    auto const positionWidget = [](LabelTextEditorWrapper & w, int x, int y, int lw, int ew) {
+        w.label.setBounds(x, y, lw, secondRowH);
+        w.editor.setBounds(x + lw, y, ew, secondRowH);
     };
 
-    positionWidget(mSpeakerWidget, 5, 40);
-    positionWidget(mElevationWidget, 120, 60);
-    positionWidget(mRadiusWidget, 255, 60);
-    positionWidget(mAngleWidget, 400, 60);
+    positionWidget(mRingSpeakers, 5, secondRowY, 80, 40);
+    positionWidget(mRingElevation, 120, secondRowY, 80, 60);
+    positionWidget(mRingRadius, 255, secondRowY, 80, 60);
+    positionWidget(mRingOffsetAngle, 400, secondRowY, 80, 60);
+    mAddRingButton.setBounds(getWidth() - 105, secondRowY, 100, 24);
 
-    mAddRingButton.setBounds(getWidth() - 105, getHeight() - 140, 100, 24);
+    //third row of bottom panel with polyhedron controls
+    auto const thirdRowY { secondRowY + secondRowH + 2};
+    positionWidget(mPolyFaces, 5, thirdRowY, 80, 40);
+    auto startingX {120};
+    auto const shortlabelW {30};
+    auto const shortEditorW{ 40 };
+    positionWidget(mPolyX, startingX, thirdRowY, shortlabelW, shortEditorW);
+    positionWidget(mPolyY, startingX += shortlabelW + shortEditorW, thirdRowY, shortlabelW, shortEditorW);
+    positionWidget(mPolyZ, startingX += shortlabelW + shortEditorW, thirdRowY, shortlabelW, shortEditorW);
+    positionWidget(mPolyRadius, startingX += shortlabelW + shortEditorW, thirdRowY, 80, 40);
+    mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, 24);
 
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, 24);
     mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, 60);

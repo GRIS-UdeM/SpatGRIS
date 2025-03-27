@@ -31,11 +31,8 @@ class MainContentComponent;
 
 /** @brief A custom component class for displaying content within a viewport.
  *
- *  The Box class is juce::Component that has a title and wraps another Component. It is used to display content
- *  within a scrollable viewport. The class manages a content component and a viewport, and
- *  provides methods to access these components. It also handles resizing and painting of the
- *  component. The Box class is useful for displaying large content that may not fit within the
- *  visible area of the parent component, allowing the user to scroll through the content.
+ * This is really like a viewport and component wrapper. The Box class inherits from juce::Component, it has a title,
+ * and wraps another Component and a viewport. It is used to display content within a scrollable viewport.
  */
 class Box final : public juce::Component
 {
@@ -56,7 +53,6 @@ public:
     //==============================================================================
     [[nodiscard]] Component * getContent() { return &this->mContent; }
     [[nodiscard]] Component const * getContent() const { return &this->mContent; }
-    [[nodiscard]] juce::Viewport * getViewport() { return &mViewport; }
 
     void resized() override { this->mViewport.setSize(this->getWidth(), this->getHeight()); }
     void correctSize(int width, int height);

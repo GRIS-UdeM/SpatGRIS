@@ -97,17 +97,26 @@ private:
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
 
-    Box mListSpeakerBox;
+    Box mViewportWraper;
 
     juce::TextButton mAddSpeakerButton;
     juce::TextButton mSaveAsSpeakerSetupButton;
     juce::TextButton mSaveSpeakerSetupButton;
 
-    LabelTextEditorWrapper mSpeakerWidget;
-    LabelTextEditorWrapper mElevationWidget;
-    LabelTextEditorWrapper mRadiusWidget;
-    LabelTextEditorWrapper mAngleWidget;
+    //add ring of speakers
+    LabelTextEditorWrapper mRingSpeakers;
+    LabelTextEditorWrapper mRingElevation;
+    LabelTextEditorWrapper mRingRadius;
+    LabelTextEditorWrapper mRingOffsetAngle;
     juce::TextButton mAddRingButton;
+
+    // add polyhedron of speakers
+    LabelTextEditorWrapper mPolyFaces;
+    LabelTextEditorWrapper mPolyX;
+    LabelTextEditorWrapper mPolyY;
+    LabelTextEditorWrapper mPolyZ;
+    LabelTextEditorWrapper mPolyRadius;
+    juce::TextButton mAddPolyButton;
 
     juce::ToggleButton mPinkNoiseToggleButton;
     juce::Slider mPinkNoiseGainSlider;
