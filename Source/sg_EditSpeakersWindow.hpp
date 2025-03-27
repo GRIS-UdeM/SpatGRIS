@@ -28,8 +28,9 @@ namespace gris
 class EditableTextCustomComponent;
 class MainContentComponent;
 class GrisLookAndFeel;
-
 //==============================================================================
+// LabelTextEditorWrapper
+
 // Helper struct to trigger static_assert for unsupported types
 template<typename T>
 struct always_false : std::false_type {
@@ -61,7 +62,6 @@ struct LabelTextEditorWrapper {
     juce::Label label;
     juce::TextEditor editor;
 };
-
 
 //==============================================================================
 class EditSpeakersWindow final
@@ -159,11 +159,11 @@ private:
     SpeakerData const & getSpeakerData(int rowNum) const;
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     void computeSpeakers();
+    void addSpeakerGroup(std::function<Position(int)> getSpeakerPosition);
     //==============================================================================
     // VIRTUALS
     [[nodiscard]] int getNumRows() override { return this->mNumRows; }
     void buttonClicked(juce::Button * button) override;
-    void textEditorTextChanged(juce::TextEditor & editor) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void textEditorFocusLost(juce::TextEditor &) override;
     void closeButtonPressed() override;
@@ -172,7 +172,7 @@ private:
     void sortOrderChanged(int newSortColumnId, bool isForwards) override;
     void resized() override;
     void paintRowBackground(juce::Graphics & g, int rowNumber, int width, int height, bool rowIsSelected) override;
-    void paintCell(juce::Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
+    void paintCell(juce::Graphics &, int, int, int , int, bool ) override {}
     [[nodiscard]] Component * refreshComponentForCell(int rowNumber,
                                                       int columnId,
                                                       bool isRowSelected,

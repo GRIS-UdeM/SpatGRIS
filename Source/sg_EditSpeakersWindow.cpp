@@ -23,6 +23,7 @@
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 #include "AlgoGRIS/Data/sg_Narrow.hpp"
+#include <numbers>
 
 namespace gris
 {
@@ -152,11 +153,11 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupButton(mAddRingButton, "Add Ring");
 
     // Polyhedron of speakers.
-    setupLandE(mPolyFaces, "# of faces", "Number of faces/speakers for the polyhedron.", "12", 2, "0123456789");
-    setupLandE(mPolyX, "X", "X position for the center of the polyhedron.", "-.5", 6, "-0123456789.");
-    setupLandE(mPolyY, "Y", "Y position for the center of the polyhedron.", ".5", 6, "-0123456789.");
-    setupLandE(mPolyZ, "Z", "Z position for the center of the polyhedron.", ".5", 6, "-0123456789.");
-    setupLandE(mPolyRadius, "Radius", "Radius for the polyhedron.", ".3", 6, "0123456789.");
+    setupLandE(mPolyFaces, "# of faces", "Number of faces/speakers for the polyhedron.", "6", 2, "0123456789");
+    setupLandE(mPolyX, "X", "X position for the center of the polyhedron.", "0", 6, "-0123456789.");
+    setupLandE(mPolyY, "Y", "Y position for the center of the polyhedron.", "0", 6, "-0123456789.");
+    setupLandE(mPolyZ, "Z", "Z position for the center of the polyhedron.", "0", 6, "-0123456789.");
+    setupLandE(mPolyRadius, "Radius", "Radius for the polyhedron.", "1", 6, "0123456789.");
     setupButton(mAddPolyButton, "Add Polyhedron");
 
     // Pink noise controls.
@@ -455,6 +456,77 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 }
 
 //==============================================================================
+void EditSpeakersWindow::addSpeakerGroup(std::function<Position(int)> getSpeakerPosition)
+{
+    static auto const GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
+        auto const selectedRow{ tableListBox.getSelectedRow() };
+        if (selectedRow < 0) {
+            return tl::nullopt;
+        }
+        return selectedRow;
+    };
+
+    auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
+    auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
+    auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
+    auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
+
+    output_patch_t newOutputPatch;
+    auto const numSpeakersToAdd{ mPolyFaces.getText<int>() };
+
+    if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakersToAdd > MAX_NUM_SPEAKERS) {
+        return;
+    }
+
+    for (int i{}; i < numSpeakersToAdd; i++) {
+        tl::optional<output_patch_t> outputPatch{};
+        tl::optional<int> index{};
+
+        if (selectedRow) {
+            outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
+            index = *selectedRow;
+            *selectedRow += 1;
+        }
+
+        newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
+        mNumRows = speakers.size();
+
+        mMainContentComponent.setSpeakerPosition(newOutputPatch, getSpeakerPosition(i));
+    }
+    mMainContentComponent.refreshSpeakers();
+    updateWinContent();
+    // TableList needs different sorting parameters to trigger the sorting function.
+    mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
+    // This is the real sorting!
+    mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
+    selectSpeaker(newOutputPatch);
+    mShouldComputeSpeakers = true;
+}
+
+//==============================================================================
+// Polyhedra-supporting structures
+using Vec3 = std::array<float, 3>;
+
+// Predefined unit polyhedron coordinates
+const std::vector<Vec3> tetrahedron = { { 1, 1, 1 }, { -1, -1, 1 }, { -1, 1, -1 }, { 1, -1, -1 } };
+
+const std::vector<Vec3> cube = { { 1, 1, 1 },  { 1, 1, -1 },  { 1, -1, 1 },  { 1, -1, -1 },
+                                 { -1, 1, 1 }, { -1, 1, -1 }, { -1, -1, 1 }, { -1, -1, -1 } };
+
+const std::vector<Vec3> octahedron = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+
+const std::vector<Vec3> icosahedron = {
+    { 1, 1, 1 },           { 1, 1, -1 },          { 1, -1, 1 },         { 1, -1, -1 },        { -1, 1, 1 },
+    { -1, 1, -1 },         { -1, -1, 1 },         { -1, -1, -1 },       { 0, 1.618, 0.618 },  { 0, 1.618, -0.618 },
+    { 0, -1.618, 0.618 },  { 0, -1.618, -0.618 }, { 0.618, 0, 1.618 },  { 0.618, 0, -1.618 }, { -0.618, 0, 1.618 },
+    { -0.618, 0, -1.618 }, { 1.618, 0.618, 0 },   { 1.618, -0.618, 0 }, { -1.618, 0.618, 0 }, { -1.618, -0.618, 0 }
+};
+
+const std::vector<Vec3> dodecahedron
+    = { { 0, 1, 1.618 },  { 0, 1, -1.618 },  { 0, -1, 1.618 }, { 0, -1, -1.618 }, { 1, 1.618, 0 },  { 1, -1.618, 0 },
+        { -1, 1.618, 0 }, { -1, -1.618, 0 }, { 1.618, 0, 1 },  { 1.618, 0, -1 },  { -1.618, 0, 1 }, { -1.618, 0, -1 } };
+
+//==============================================================================
 void EditSpeakersWindow::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -469,7 +541,6 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
-    auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 
     // mMainContentComponent.setShowTriplets(false);
@@ -505,86 +576,62 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         computeSpeakers();
         mMainContentComponent.saveEditedSpeakerSetup();
     } else if (button == &mAddRingButton) {
-        // Add ring button
-        output_patch_t newOutputPatch;
-        auto const numSpeakersToAdd{ mRingSpeakers.getText<int>() };
-
-        if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakersToAdd > MAX_NUM_SPEAKERS) {
-            return;
-        }
-
-        for (int i{}; i < numSpeakersToAdd; i++) {
-            tl::optional<output_patch_t> outputPatch{};
-            tl::optional<int> index{};
-
-            if (selectedRow) {
-                outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
-                index = *selectedRow;
-                *selectedRow += 1;
-            }
-
-            newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
-            mNumRows = speakers.size();
-
-            degrees_t azimuth{ -360.0f / narrow<float>(numSpeakersToAdd) * narrow<float>(i)
+        auto getPosition = [this](int i) -> Position {
+            degrees_t azimuth{ -360.0f / mRingSpeakers.getText<float>() * narrow<float>(i)
                                - mRingOffsetAngle.getText<float>() + 90.0f };
-            azimuth = azimuth.centered();
             auto const elev{ mRingElevation.getText<float>() };
             degrees_t const zenith{ elev < 135.f ? std::clamp(elev, 0.0f, 90.0f) : std::clamp(elev, 270.0f, 360.0f) };
             auto const radius{ mRingRadius.getText<float>() };
+            return Position{ PolarVector{ radians_t{ azimuth.centered() }, radians_t{ zenith }, radius } };
+        };
 
-            mMainContentComponent.setSpeakerPosition(newOutputPatch,
-                                                     PolarVector{ radians_t{ azimuth }, radians_t{ zenith }, radius });
-        }
-        mMainContentComponent.refreshSpeakers();
-        updateWinContent();
-        // TableList needs different sorting parameters to trigger the sorting function.
-        mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
-        // This is the real sorting!
-        mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
-        selectSpeaker(newOutputPatch);
-        mShouldComputeSpeakers = true;
+        addSpeakerGroup(getPosition);
     } else if (button == &mAddPolyButton) {
-        jassertfalse;
-        // Add ring button
-        output_patch_t newOutputPatch;
-        auto const numSpeakersToAdd{ mRingSpeakers.getText<int>() };
+        auto getPosition = [this](int i) -> Position {
+            auto const numFaces = mPolyFaces.getText<int>();
+            auto const radius = mPolyRadius.getText<float>();
+            auto const centerX = mPolyX.getText<float>();
+            auto const centerY = mPolyY.getText<float>();
+            auto const centerZ = mPolyZ.getText<float>();
 
-        if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakersToAdd > MAX_NUM_SPEAKERS) {
-            return;
-        }
+            CartesianVector speakerPosition;
+            const std::vector<Vec3> * vertices;
 
-        for (int i{}; i < numSpeakersToAdd; i++) {
-            tl::optional<output_patch_t> outputPatch{};
-            tl::optional<int> index{};
-
-            if (selectedRow) {
-                outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
-                index = *selectedRow;
-                *selectedRow += 1;
+            switch (numFaces) {
+            case 4:
+                vertices = &tetrahedron;
+                break;
+            case 6:
+                vertices = &octahedron;
+                break;
+            case 8:
+                vertices = &cube;
+                break;
+            case 12:
+                vertices = &dodecahedron;
+                break;
+            case 20:
+                vertices = &icosahedron;
+                break;
+            default:
+                jassertfalse;
+                return Position{ { 0, 0, 0 } };
             }
 
-            newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
-            mNumRows = speakers.size();
+            if (i < 0 || i >= vertices->size()) {
+                jassertfalse;
+                return Position{ { 0, 0, 0 } };
+            }
 
-            degrees_t azimuth{ -360.0f / narrow<float>(numSpeakersToAdd) * narrow<float>(i)
-                               - mRingOffsetAngle.getText<float>() + 90.0f };
-            azimuth = azimuth.centered();
-            auto const elev{ mRingElevation.getText<float>() };
-            degrees_t const zenith{ elev < 135.f ? std::clamp(elev, 0.0f, 90.0f) : std::clamp(elev, 270.0f, 360.0f) };
-            auto const radius{ mRingRadius.getText<float>() };
+            const auto & v = (*vertices)[i];
+            float norm = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+            speakerPosition
+                = { centerX + radius * v[0] / norm, centerY + radius * v[1] / norm, centerZ + radius * v[2] / norm };
 
-            mMainContentComponent.setSpeakerPosition(newOutputPatch,
-                                                     PolarVector{ radians_t{ azimuth }, radians_t{ zenith }, radius });
-        }
-        mMainContentComponent.refreshSpeakers();
-        updateWinContent();
-        // TableList needs different sorting parameters to trigger the sorting function.
-        mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
-        // This is the real sorting!
-        mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
-        selectSpeaker(newOutputPatch);
-        mShouldComputeSpeakers = true;
+            return Position{ { speakerPosition.x, speakerPosition.y, speakerPosition.z } };
+        };
+
+        addSpeakerGroup(getPosition);
     } else if (button == &mPinkNoiseToggleButton) {
         // Pink noise button
         tl::optional<dbfs_t> newPinkNoiseLevel{};
@@ -611,12 +658,6 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     }
 
     computeSpeakers();
-}
-
-//==============================================================================
-void EditSpeakersWindow::textEditorTextChanged(juce::TextEditor & /*editor*/)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
 }
 
 //==============================================================================
@@ -1167,18 +1208,6 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
             g.fillAll(mLookAndFeel.getBackgroundColour().withBrightness(0.7f));
         }
     }
-}
-
-//==============================================================================
-// This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom components.
-void EditSpeakersWindow::paintCell(juce::Graphics & /*g*/,
-                                   int const /*rowNumber*/,
-                                   int const /*columnId*/,
-                                   int const /*width */,
-                                   int const /*height*/,
-                                   bool /*rowIsSelected*/)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
 }
 
 //==============================================================================
