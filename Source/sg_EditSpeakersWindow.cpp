@@ -167,20 +167,13 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupButton(mAddRingButton, "Add Ring");
 
     // Polyhedron of speakers.
-    setupWrapper(&mPolyFaces,
-                 "# of faces",
-                 "Number of faces/speakers for the polyhedron.",
-                 {},
-                 {},
-                 {},
-                 { "4", "6", "8", "12", "20" });
-
+    setupWrapper(&mPolyFaces, "# of faces", "Number of faces/speakers for the polyhedron.", {}, {}, {}, { "4", "6", "8", "12", "20" });
     setupWrapper(&mPolyX, "X", "X position for the center of the polyhedron, in the [-1.667, 1.667] range", "0", 6, "-0123456789.");
     setupWrapper(&mPolyY, "Y", "Y position for the center of the polyhedron.", "0", 6, "-0123456789.");
     setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0", 6, "-0123456789.");
     setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", "1", 6, "0123456789.");
-    setupWrapper(&mPolyAzimuthOffset, "Azimuth offset", "Azimuth offset for the polyhedron shape, in degrees.", "30", 6, "0123456789.");
-    setupWrapper(&mPolyElevOffset, "Elevation offset", "Azimuth offset for the polyhedron shape, in degrees.", "30", 6, "0123456789.");
+    setupWrapper(&mPolyAzimuthOffset, "Azimuth offset", "Azimuth rotation for the polyhedron shape, in degrees.", "30", 6, "0123456789.");
+    setupWrapper(&mPolyElevOffset, "Elevation offset", "Azimuth rotation for the polyhedron shape, in degrees.", "30", 6, "0123456789.");
     setupButton(mAddPolyButton, "Add Polyhedron");
 
     // Pink noise controls.
@@ -710,6 +703,14 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
     auto const intValue {textEditor.getText().getIntValue()};
     auto const floatValue{ textEditor.getText().getFloatValue() };
 
+    const auto clampPolyXYZ = [&textEditor, &floatValue, radius{ mPolyRadius.getText<float>()}]()
+        {
+            if ((floatValue - radius < -MBAP_EXTENDED_RADIUS))
+                textEditor.setText(juce::String(radius - MBAP_EXTENDED_RADIUS));
+            else if (floatValue + radius > MBAP_EXTENDED_RADIUS)
+                textEditor.setText(juce::String(MBAP_EXTENDED_RADIUS - radius));
+        };
+
     if (&textEditor == &mRingSpeakers.editor) {
         auto const value{ std::clamp(intValue, 2, 64) };
         textEditor.setText(juce::String{ value }, false);
@@ -731,6 +732,31 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
         auto const value{ std::clamp(floatValue, -360.0f, 360.0f) };
         textEditor.setText(juce::String{ value, 1 }, false);
         mShouldComputeSpeakers = true;
+    } else if (&textEditor == &mPolyX.editor){
+        clampPolyXYZ();
+    } else if (&textEditor == &mPolyY.editor) {
+        clampPolyXYZ();
+    } else if (&textEditor == &mPolyZ.editor) {
+        clampPolyXYZ();
+    } else if (&textEditor == &mPolyRadius.editor) {
+        const auto x{ mPolyX.getText<float>() };
+        const auto y{ mPolyY.getText<float>() };
+        const auto z{ mPolyZ.getText<float>() };
+
+        if (x - floatValue < -MBAP_EXTENDED_RADIUS)
+            textEditor.setText(juce::String(x - MBAP_EXTENDED_RADIUS));
+        else if (x + floatValue > MBAP_EXTENDED_RADIUS)
+            textEditor.setText(juce::String(MBAP_EXTENDED_RADIUS - x));
+
+        else if (y - floatValue < -MBAP_EXTENDED_RADIUS)
+            textEditor.setText(juce::String(y - MBAP_EXTENDED_RADIUS));
+        else if (y + floatValue > MBAP_EXTENDED_RADIUS)
+            textEditor.setText(juce::String(MBAP_EXTENDED_RADIUS - y));
+
+        else if (z - floatValue < -MBAP_EXTENDED_RADIUS)
+            textEditor.setText(juce::String(z - MBAP_EXTENDED_RADIUS));
+        else if (z + floatValue > MBAP_EXTENDED_RADIUS)
+            textEditor.setText(juce::String(MBAP_EXTENDED_RADIUS - z));
     }
 
     computeSpeakers();
