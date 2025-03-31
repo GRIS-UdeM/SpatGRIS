@@ -84,13 +84,16 @@ static Position getLegalSpeakerPosition(Position const & position,
 }
 
 //==============================================================================
-LabelTextEditorWrapper::LabelTextEditorWrapper(GrisLookAndFeel & lookAndFeel)
+LabelWrapper::LabelWrapper(GrisLookAndFeel & lookAndFeel)
 {
     label.setJustificationType(juce::Justification::right);
     label.setFont(lookAndFeel.getFont());
     label.setLookAndFeel(&lookAndFeel);
     label.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
+}
 
+LabelTextEditorWrapper::LabelTextEditorWrapper(GrisLookAndFeel & lookAndFeel) : LabelWrapper(lookAndFeel)
+{
     editor.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
     editor.setLookAndFeel(&lookAndFeel);
 }
@@ -103,7 +106,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     : DocumentWindow(name, lookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lookAndFeel)
-    , mViewportWraper(lookAndFeel, "Configuration Speakers")
+    , mViewportWrapper(lookAndFeel, "Configuration Speakers")
     , mFont(juce::FontOptions().withHeight (14.f))
     , mRingSpeakers(lookAndFeel)
     , mRingElevation(lookAndFeel)
@@ -114,6 +117,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mPolyY(lookAndFeel)
     , mPolyZ(lookAndFeel)
     , mPolyRadius(lookAndFeel)
+    , mPolyAzimuthOffset(lookAndFeel)
+    , mPolyElevOffset(lookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -122,42 +127,60 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
         b.addListener(this);
         b.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
         b.setLookAndFeel(&mLookAndFeel);
-        mViewportWraper.getContent()->addAndMakeVisible(b);
+        mViewportWrapper.getContent()->addAndMakeVisible(b);
     };
 
     setupButton(mAddSpeakerButton, "Add Speaker");
     setupButton(mSaveAsSpeakerSetupButton, "Save As...");
     setupButton(mSaveSpeakerSetupButton, "Save");
 
-    auto setupLandE = [this](LabelTextEditorWrapper & w,
-                             juce::StringRef labelText,
-                             juce::StringRef tooltip,
-                             juce::StringRef editorText,
-                             int maxLength,
-                             juce::StringRef allowedCharacters) {
-        w.label.setText(labelText, juce::NotificationType::dontSendNotification);
-        mViewportWraper.getContent()->addAndMakeVisible(w.label);
+    auto setupWrapper = [this](LabelWrapper * w,
+                               juce::StringRef labelText,
+                               juce::StringRef tooltip,
+                               juce::StringRef editorText,
+                               int maxLength,
+                               juce::StringRef allowedCharacters,
+                               juce::StringArray comboItemList = {}) {
+        w->label.setText(labelText, juce::NotificationType::dontSendNotification);
+        mViewportWrapper.getContent()->addAndMakeVisible(w->label);
 
-        w.editor.setTooltip(tooltip);
-        w.editor.setText(editorText, false);
-        w.editor.setInputRestrictions(maxLength, allowedCharacters);
-        w.editor.addListener(this);
-        mViewportWraper.getContent()->addAndMakeVisible(w.editor);
+        if (auto * lew{ dynamic_cast<LabelTextEditorWrapper *>(w) }) {
+            lew->editor.setTooltip(tooltip);
+            lew->editor.setText(editorText, false);
+            lew->editor.setInputRestrictions(maxLength, allowedCharacters);
+            lew->editor.addListener(this);
+
+            mViewportWrapper.getContent()->addAndMakeVisible(lew->editor);
+        } else if (auto * lcw{ dynamic_cast<LabelComboBoxWrapper *>(w) }) {
+            lcw->comboBox.addItemList(comboItemList, 1);
+            lcw->comboBox.setSelectedId(1);
+            lcw->comboBox.setTooltip(tooltip);
+            mViewportWrapper.getContent()->addAndMakeVisible(lcw->comboBox);
+        }
     };
 
     // Generate ring of speakers.
-    setupLandE(mRingSpeakers, "# of speakers", "Number of speakers in the ring.", "8", 3, "0123456789");
-    setupLandE(mRingElevation, "Elevation", "Elevation angle of the ring.", "0.0", 6, "-0123456789.");
-    setupLandE(mRingRadius, "Distance", "Distance of the speakers from the center.", "1.0", 6, "0123456789.");
-    setupLandE(mRingOffsetAngle, "Offset Angle", "Offset angle of the first speaker.", "0.0", 6, "-0123456789.");
+    setupWrapper(&mRingSpeakers, "# of speakers", "Number of speakers in the ring.", "8", 3, "0123456789");
+    setupWrapper(&mRingElevation, "Elevation", "Elevation angle of the ring.", "0.0", 6, "-0123456789.");
+    setupWrapper(&mRingRadius, "Distance", "Distance of the speakers from the center.", "1.0", 6, "0123456789.");
+    setupWrapper(&mRingOffsetAngle, "Offset Angle", "Offset angle of the first speaker.", "0.0", 6, "-0123456789.");
     setupButton(mAddRingButton, "Add Ring");
 
     // Polyhedron of speakers.
-    setupLandE(mPolyFaces, "# of faces", "Number of faces/speakers for the polyhedron.", "6", 2, "0123456789");
-    setupLandE(mPolyX, "X", "X position for the center of the polyhedron.", "0", 6, "-0123456789.");
-    setupLandE(mPolyY, "Y", "Y position for the center of the polyhedron.", "0", 6, "-0123456789.");
-    setupLandE(mPolyZ, "Z", "Z position for the center of the polyhedron.", "0", 6, "-0123456789.");
-    setupLandE(mPolyRadius, "Radius", "Radius for the polyhedron.", "1", 6, "0123456789.");
+    setupWrapper(&mPolyFaces,
+                 "# of faces",
+                 "Number of faces/speakers for the polyhedron.",
+                 {},
+                 {},
+                 {},
+                 { "4", "6", "8", "12", "20" });
+
+    setupWrapper(&mPolyX, "X", "X position for the center of the polyhedron, in the [-1.667, 1.667] range", "0", 6, "-0123456789.");
+    setupWrapper(&mPolyY, "Y", "Y position for the center of the polyhedron.", "0", 6, "-0123456789.");
+    setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0", 6, "-0123456789.");
+    setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", "1", 6, "0123456789.");
+    setupWrapper(&mPolyAzimuthOffset, "Azimuth offset", "Azimuth offset for the polyhedron shape, in degrees.", "30", 6, "0123456789.");
+    setupWrapper(&mPolyElevOffset, "Elevation offset", "Azimuth offset for the polyhedron shape, in degrees.", "30", 6, "0123456789.");
     setupButton(mAddPolyButton, "Add Polyhedron");
 
     // Pink noise controls.
@@ -165,7 +188,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mPinkNoiseToggleButton.addListener(this);
     mPinkNoiseToggleButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mPinkNoiseToggleButton.setLookAndFeel(&mLookAndFeel);
-    mViewportWraper.getContent()->addAndMakeVisible(mPinkNoiseToggleButton);
+    mViewportWrapper.getContent()->addAndMakeVisible(mPinkNoiseToggleButton);
 
     mPinkNoiseGainSlider.setTextValueSuffix(" dB");
     mPinkNoiseGainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -180,14 +203,14 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mPinkNoiseGainSlider.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mPinkNoiseGainSlider.setLookAndFeel(&mLookAndFeel);
     mPinkNoiseGainSlider.addListener(this);
-    mViewportWraper.getContent()->addAndMakeVisible(mPinkNoiseGainSlider);
+    mViewportWrapper.getContent()->addAndMakeVisible(mPinkNoiseGainSlider);
 
     // Sound diffusion controls
     mDiffusionLabel.setText("Global Sound Diffusion", juce::NotificationType::dontSendNotification);
     mDiffusionLabel.setFont(mLookAndFeel.getFont());
     mDiffusionLabel.setLookAndFeel(&mLookAndFeel);
     mDiffusionLabel.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
-    mViewportWraper.getContent()->addAndMakeVisible(mDiffusionLabel);
+    mViewportWrapper.getContent()->addAndMakeVisible(mDiffusionLabel);
 
     mDiffusionSlider.setTooltip("Adjuts the spreading range of sources sound");
     mDiffusionSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -202,20 +225,20 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mDiffusionSlider.addListener(this);
     mDiffusionSlider.setEnabled(mMainContentComponent.getData().project.spatMode == SpatMode::mbap
                                 || mMainContentComponent.getData().project.spatMode == SpatMode::hybrid);
-    mViewportWraper.getContent()->addAndMakeVisible(mDiffusionSlider);
+    mViewportWrapper.getContent()->addAndMakeVisible(mDiffusionSlider);
 
-    mViewportWraper.getContent()->addAndMakeVisible(mSpeakersTableListBox);
+    mViewportWrapper.getContent()->addAndMakeVisible(mSpeakersTableListBox);
 
-    mViewportWraper.repaint();
-    mViewportWraper.resized();
+    mViewportWrapper.repaint();
+    mViewportWrapper.resized();
 
-    mViewportWraper.addMouseListener(this, true);
+    mViewportWrapper.addMouseListener(this, true);
 
     setResizable(true, true);
     setUsingNativeTitleBar(true);
     setAlwaysOnTop(true);
 
-    setContentNonOwned(&mViewportWraper, false);
+    setContentNonOwned(&mViewportWrapper, false);
     auto const & controlsComponent{ *mainContentComponent.getControlsComponent() };
 
     static constexpr auto WIDTH = 850;
@@ -323,14 +346,14 @@ void EditSpeakersWindow::initComp()
 
     mNumRows = mMainContentComponent.getData().speakerSetup.speakers.size();
 
-    mViewportWraper.setBounds(0, 0, getWidth(), getHeight());
-    mViewportWraper.correctSize(getWidth() - 8, getHeight());
+    mViewportWrapper.setBounds(0, 0, getWidth(), getHeight());
+    mViewportWrapper.correctSize(getWidth() - 8, getHeight());
     mSpeakersTableListBox.setSize(getWidth(), 400);
 
     mSpeakersTableListBox.updateContent();
 
-    mViewportWraper.repaint();
-    mViewportWraper.resized();
+    mViewportWrapper.repaint();
+    mViewportWrapper.resized();
     resized();
 }
 
@@ -456,7 +479,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 }
 
 //==============================================================================
-void EditSpeakersWindow::addSpeakerGroup(std::function<Position(int)> getSpeakerPosition)
+void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition)
 {
     static auto const GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
         auto const selectedRow{ tableListBox.getSelectedRow() };
@@ -472,13 +495,12 @@ void EditSpeakersWindow::addSpeakerGroup(std::function<Position(int)> getSpeaker
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 
     output_patch_t newOutputPatch;
-    auto const numSpeakersToAdd{ mPolyFaces.getText<int>() };
 
-    if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakersToAdd > MAX_NUM_SPEAKERS) {
+    if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakers > MAX_NUM_SPEAKERS) {
         return;
     }
 
-    for (int i{}; i < numSpeakersToAdd; i++) {
+    for (int i{}; i < numSpeakers; i++) {
         tl::optional<output_patch_t> outputPatch{};
         tl::optional<int> index{};
 
@@ -502,29 +524,6 @@ void EditSpeakersWindow::addSpeakerGroup(std::function<Position(int)> getSpeaker
     selectSpeaker(newOutputPatch);
     mShouldComputeSpeakers = true;
 }
-
-//==============================================================================
-// Polyhedra-supporting structures
-using Vec3 = std::array<float, 3>;
-
-// Predefined unit polyhedron coordinates
-const std::vector<Vec3> tetrahedron = { { 1, 1, 1 }, { -1, -1, 1 }, { -1, 1, -1 }, { 1, -1, -1 } };
-
-const std::vector<Vec3> cube = { { 1, 1, 1 },  { 1, 1, -1 },  { 1, -1, 1 },  { 1, -1, -1 },
-                                 { -1, 1, 1 }, { -1, 1, -1 }, { -1, -1, 1 }, { -1, -1, -1 } };
-
-const std::vector<Vec3> octahedron = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
-
-const std::vector<Vec3> icosahedron = {
-    { 1, 1, 1 },           { 1, 1, -1 },          { 1, -1, 1 },         { 1, -1, -1 },        { -1, 1, 1 },
-    { -1, 1, -1 },         { -1, -1, 1 },         { -1, -1, -1 },       { 0, 1.618, 0.618 },  { 0, 1.618, -0.618 },
-    { 0, -1.618, 0.618 },  { 0, -1.618, -0.618 }, { 0.618, 0, 1.618 },  { 0.618, 0, -1.618 }, { -0.618, 0, 1.618 },
-    { -0.618, 0, -1.618 }, { 1.618, 0.618, 0 },   { 1.618, -0.618, 0 }, { -1.618, 0.618, 0 }, { -1.618, -0.618, 0 }
-};
-
-const std::vector<Vec3> dodecahedron
-    = { { 0, 1, 1.618 },  { 0, 1, -1.618 },  { 0, -1, 1.618 }, { 0, -1, -1.618 }, { 1, 1.618, 0 },  { 1, -1.618, 0 },
-        { -1, 1.618, 0 }, { -1, -1.618, 0 }, { 1.618, 0, 1 },  { 1.618, 0, -1 },  { -1.618, 0, 1 }, { -1.618, 0, -1 } };
 
 //==============================================================================
 void EditSpeakersWindow::buttonClicked(juce::Button * button)
@@ -585,53 +584,88 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             return Position{ PolarVector{ radians_t{ azimuth.centered() }, radians_t{ zenith }, radius } };
         };
 
-        addSpeakerGroup(getPosition);
+        addSpeakerGroup(mRingSpeakers.getText<int>(), getPosition);
     } else if (button == &mAddPolyButton) {
-        auto getPosition = [this](int i) -> Position {
-            auto const numFaces = mPolyFaces.getText<int>();
-            auto const radius = mPolyRadius.getText<float>();
-            auto const centerX = mPolyX.getText<float>();
-            auto const centerY = mPolyY.getText<float>();
-            auto const centerZ = mPolyZ.getText<float>();
+        const auto getPosition = [this](int i) -> Position {
+            const auto numFaces = mPolyFaces.getSelectionAsInt();
+            const auto radius = mPolyRadius.getText<float>();
+            const auto azimOffset = mPolyAzimuthOffset.getText<float>() * PI.get() / 180.0f; // Convert to radians
+            const auto elevOffset = mPolyElevOffset.getText<float>() * PI.get() / 180.0f;    // Convert to radians
+            const auto centerX = mPolyX.getText<float>();
+            const auto centerY = mPolyY.getText<float>();
+            const auto centerZ = mPolyZ.getText<float>();
 
-            CartesianVector speakerPosition;
-            const std::vector<Vec3> * vertices;
+            using Vec3 = std::array<float, 3>;
+            const auto & vertices = [&numFaces]() -> const std::vector<Vec3> & {
+                static const std::vector<Vec3> tetrahedron
+                    = { { 1, 1, 1 }, { -1, -1, 1 }, { -1, 1, -1 }, { 1, -1, -1 } };
 
-            switch (numFaces) {
-            case 4:
-                vertices = &tetrahedron;
-                break;
-            case 6:
-                vertices = &octahedron;
-                break;
-            case 8:
-                vertices = &cube;
-                break;
-            case 12:
-                vertices = &dodecahedron;
-                break;
-            case 20:
-                vertices = &icosahedron;
-                break;
-            default:
+                static const std::vector<Vec3> cube = { { 1, 1, 1 },  { 1, 1, -1 },  { 1, -1, 1 },  { 1, -1, -1 },
+                                                        { -1, 1, 1 }, { -1, 1, -1 }, { -1, -1, 1 }, { -1, -1, -1 } };
+
+                static const std::vector<Vec3> octahedron
+                    = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+
+                static const std::vector<Vec3> icosahedron
+                    = { { 1, 1, 1 },         { 1, 1, -1 },         { 1, -1, 1 },         { 1, -1, -1 },
+                        { -1, 1, 1 },        { -1, 1, -1 },        { -1, -1, 1 },        { -1, -1, -1 },
+                        { 0, 1.618, 0.618 }, { 0, 1.618, -0.618 }, { 0, -1.618, 0.618 }, { 0, -1.618, -0.618 },
+                        { 0.618, 0, 1.618 }, { 0.618, 0, -1.618 }, { -0.618, 0, 1.618 }, { -0.618, 0, -1.618 },
+                        { 1.618, 0.618, 0 }, { 1.618, -0.618, 0 }, { -1.618, 0.618, 0 }, { -1.618, -0.618, 0 } };
+
+                static const std::vector<Vec3> dodecahedron
+                    = { { 0, 1, 1.618 }, { 0, 1, -1.618 }, { 0, -1, 1.618 }, { 0, -1, -1.618 },
+                        { 1, 1.618, 0 }, { 1, -1.618, 0 }, { -1, 1.618, 0 }, { -1, -1.618, 0 },
+                        { 1.618, 0, 1 }, { 1.618, 0, -1 }, { -1.618, 0, 1 }, { -1.618, 0, -1 } };
+
+                switch (numFaces) {
+                case 4:
+                    return tetrahedron;
+                case 6:
+                    return octahedron;
+                case 8:
+                    return cube;
+                case 12:
+                    return dodecahedron;
+                case 20:
+                    return icosahedron;
+                default:
+                    jassertfalse;
+                    return tetrahedron;
+                }
+            }();
+
+            if (i < 0 || i >= vertices.size()) {
                 jassertfalse;
                 return Position{ { 0, 0, 0 } };
             }
 
-            if (i < 0 || i >= vertices->size()) {
-                jassertfalse;
-                return Position{ { 0, 0, 0 } };
-            }
+            const auto & curVertex = vertices[i];
+            const auto norm = std::hypot(curVertex[0], curVertex[1], curVertex[2]);
 
-            const auto & v = (*vertices)[i];
-            float norm = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-            speakerPosition
-                = { centerX + radius * v[0] / norm, centerY + radius * v[1] / norm, centerZ + radius * v[2] / norm };
+            // Normalize and scale to radius
+            const auto x = radius * curVertex[0] / norm;
+            const auto y = radius * curVertex[1] / norm;
+            const auto z = radius * curVertex[2] / norm;
 
-            return Position{ { speakerPosition.x, speakerPosition.y, speakerPosition.z } };
+            // Apply azimuth rotation (around Z-axis)
+            const auto sinAzim{ std::sin(azimOffset) };
+            const auto cosAzim{ std::cos(azimOffset) };
+            const auto xAzim = x * cosAzim - y * sinAzim;
+            const auto yAzim = x * sinAzim + y * cosAzim;
+
+            // Apply elevation rotation (around Y-axis)
+            const auto sinElev{ std::sin(elevOffset) };
+            const auto cosElev{ std::cos(elevOffset) };
+            const auto xRot = xAzim * cosElev + z * sinElev;
+            const auto zRot = -xAzim * sinElev + z * cosElev;
+
+            return Position{ CartesianVector{ centerX + xRot, centerY + yAzim, centerZ + zRot } };
         };
 
-        addSpeakerGroup(getPosition);
+        const auto numFaces{ mPolyFaces.getSelectionAsInt() };
+        jassert(numFaces == 4 || numFaces == 6 || numFaces == 8 || numFaces == 12 || numFaces == 20);
+        addSpeakerGroup(numFaces, getPosition);
     } else if (button == &mPinkNoiseToggleButton) {
         // Pink noise button
         tl::optional<dbfs_t> newPinkNoiseLevel{};
@@ -814,8 +848,8 @@ void EditSpeakersWindow::resized()
 #else
     //viewport
     auto bounds{ getLocalBounds() };
-    mViewportWraper.setBounds(bounds);
-    mViewportWraper.correctSize(getWidth() - 10, getHeight() - 30);
+    mViewportWrapper.setBounds(bounds);
+    mViewportWrapper.correctSize(getWidth() - 10, getHeight() - 30);
 
     //speaker table
     auto const secondRowH{ 24 };
@@ -832,27 +866,32 @@ void EditSpeakersWindow::resized()
     //second row of bottom panel with rings of speakers
     
     auto const secondRowY{ getHeight() - 140 };
-    auto const positionWidget = [](LabelTextEditorWrapper & w, int x, int y, int lw, int ew) {
-        w.label.setBounds(x, y, lw, secondRowH);
-        w.editor.setBounds(x + lw, y, ew, secondRowH);
+    auto const positionWidget = [](LabelWrapper* w, int x, int y, int lw, int ew) {
+        w->label.setBounds(x, y, lw, secondRowH);
+        if (auto * lew{ dynamic_cast<LabelTextEditorWrapper*>(w) })
+            lew->editor.setBounds(x + lw, y, ew, secondRowH);
+        else if (auto * lcw{ dynamic_cast<LabelComboBoxWrapper *>(w) })
+            lcw->comboBox.setBounds(x + lw, y, ew, secondRowH);
     };
 
-    positionWidget(mRingSpeakers, 5, secondRowY, 80, 40);
-    positionWidget(mRingElevation, 120, secondRowY, 80, 60);
-    positionWidget(mRingRadius, 255, secondRowY, 80, 60);
-    positionWidget(mRingOffsetAngle, 400, secondRowY, 80, 60);
+    positionWidget(&mRingSpeakers, 5, secondRowY, 80, 40);
+    positionWidget(&mRingElevation, 120, secondRowY, 80, 60);
+    positionWidget(&mRingRadius, 255, secondRowY, 80, 60);
+    positionWidget(&mRingOffsetAngle, 400, secondRowY, 80, 60);
     mAddRingButton.setBounds(getWidth() - 105, secondRowY, 100, 24);
 
     //third row of bottom panel with polyhedron controls
     auto const thirdRowY { secondRowY + secondRowH + 2};
-    positionWidget(mPolyFaces, 5, thirdRowY, 80, 40);
+    positionWidget(&mPolyFaces, 5, thirdRowY, 70, 50);
     auto startingX {120};
     auto const shortlabelW {30};
     auto const shortEditorW{ 40 };
-    positionWidget(mPolyX, startingX, thirdRowY, shortlabelW, shortEditorW);
-    positionWidget(mPolyY, startingX += shortlabelW + shortEditorW, thirdRowY, shortlabelW, shortEditorW);
-    positionWidget(mPolyZ, startingX += shortlabelW + shortEditorW, thirdRowY, shortlabelW, shortEditorW);
-    positionWidget(mPolyRadius, startingX += shortlabelW + shortEditorW, thirdRowY, 80, 40);
+    positionWidget(&mPolyX, startingX, thirdRowY, shortlabelW, shortEditorW);
+    positionWidget(&mPolyY, startingX += shortlabelW + shortEditorW, thirdRowY, shortlabelW, shortEditorW);
+    positionWidget(&mPolyZ, startingX += shortlabelW + shortEditorW, thirdRowY, shortlabelW, shortEditorW);
+    positionWidget(&mPolyRadius, startingX += shortlabelW + shortEditorW, thirdRowY, 50, 40);
+    positionWidget(&mPolyAzimuthOffset, startingX += 50 + 40, thirdRowY, 90, 40);
+    positionWidget(&mPolyElevOffset, startingX += 90 + 40, thirdRowY, 100, 40);
     mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, 24);
 
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, 24);

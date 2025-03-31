@@ -36,9 +36,16 @@ template<typename T>
 struct always_false : std::false_type {
 };
 
-struct LabelTextEditorWrapper {
+struct LabelWrapper {
+    LabelWrapper(GrisLookAndFeel & lookAndFeel);
+    virtual ~LabelWrapper() { label.setLookAndFeel(nullptr); }
+    juce::Label label;
+};
+
+struct LabelTextEditorWrapper : public LabelWrapper
+{
     LabelTextEditorWrapper(GrisLookAndFeel & lookAndFeel);
-    ~LabelTextEditorWrapper() { label.setLookAndFeel(nullptr); }
+    ~LabelTextEditorWrapper() { editor.setLookAndFeel(nullptr); }
 
     template<typename T>
     T getText()
@@ -59,8 +66,15 @@ struct LabelTextEditorWrapper {
         return {};
     }
 
-    juce::Label label;
     juce::TextEditor editor;
+};
+
+struct LabelComboBoxWrapper : public LabelWrapper
+{
+    using LabelWrapper::LabelWrapper;
+
+    int getSelectionAsInt(){ return comboBox.getText().getIntValue(); }
+    juce::ComboBox comboBox{};
 };
 
 //==============================================================================
@@ -97,7 +111,7 @@ private:
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
 
-    Box mViewportWraper;
+    Box mViewportWrapper;
 
     juce::TextButton mAddSpeakerButton;
     juce::TextButton mSaveAsSpeakerSetupButton;
@@ -111,11 +125,14 @@ private:
     juce::TextButton mAddRingButton;
 
     // add polyhedron of speakers
-    LabelTextEditorWrapper mPolyFaces;
+    LabelComboBoxWrapper mPolyFaces;
     LabelTextEditorWrapper mPolyX;
     LabelTextEditorWrapper mPolyY;
     LabelTextEditorWrapper mPolyZ;
     LabelTextEditorWrapper mPolyRadius;
+    LabelTextEditorWrapper mPolyAzimuthOffset;
+    LabelTextEditorWrapper mPolyElevOffset;
+
     juce::TextButton mAddPolyButton;
 
     juce::ToggleButton mPinkNoiseToggleButton;
@@ -159,7 +176,7 @@ private:
     SpeakerData const & getSpeakerData(int rowNum) const;
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     void computeSpeakers();
-    void addSpeakerGroup(std::function<Position(int)> getSpeakerPosition);
+    void addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition);
     //==============================================================================
     // VIRTUALS
     [[nodiscard]] int getNumRows() override { return this->mNumRows; }
