@@ -98,6 +98,11 @@ LabelTextEditorWrapper::LabelTextEditorWrapper(GrisLookAndFeel & lookAndFeel) : 
     editor.setLookAndFeel(&lookAndFeel);
 }
 
+LabelComboBoxWrapper::LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel) : LabelWrapper(lookAndFeel)
+{
+    comboBox.setLookAndFeel(&lookAndFeel);
+}
+
 //==============================================================================
 EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                        GrisLookAndFeel & lookAndFeel,
@@ -168,13 +173,14 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 
     // Polyhedron of speakers.
     setupWrapper(&mPolyFaces, "# of faces", "Number of faces/speakers for the polyhedron.", {}, {}, {}, { "4", "6", "8", "12", "20" });
-    setupWrapper(&mPolyX, "X", "X position for the center of the polyhedron, in the [-1.667, 1.667] range", "0", 6, "-0123456789.");
-    setupWrapper(&mPolyY, "Y", "Y position for the center of the polyhedron.", "0", 6, "-0123456789.");
-    setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0", 6, "-0123456789.");
-    setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", "1", 6, "0123456789.");
-    setupWrapper(&mPolyAzimuthOffset, "Azimuth offset", "Azimuth rotation for the polyhedron shape, in degrees.", "30", 6, "0123456789.");
-    setupWrapper(&mPolyElevOffset, "Elevation offset", "Azimuth rotation for the polyhedron shape, in degrees.", "30", 6, "0123456789.");
+    setupWrapper(&mPolyX, "X", "X position for the center of the polyhedron, in the [-1.667, 1.667] range", "0", 4, "-0123456789.");
+    setupWrapper(&mPolyY, "Y", "Y position for the center of the polyhedron.", "0", 4, "-0123456789.");
+    setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0", 4, "-0123456789.");
+    setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", "1", 4, "0123456789.");
+    setupWrapper(&mPolyAzimuthOffset, "Azimuth offset", "Azimuth rotation for the polyhedron shape, in degrees.", "0", 3, "0123456789");
+    setupWrapper(&mPolyElevOffset, "Elevation offset", "Azimuth rotation for the polyhedron shape, in degrees.", "0", 3, "0123456789");
     setupButton(mAddPolyButton, "Add Polyhedron");
+    togglePolyhedraExtraWidgets();
 
     // Pink noise controls.
     mPinkNoiseToggleButton.setButtonText("Reference Pink Noise");
@@ -569,8 +575,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mMainContentComponent.saveEditedSpeakerSetup();
     } else if (button == &mAddRingButton) {
         auto getPosition = [this](int i) -> Position {
-            degrees_t azimuth{ -360.0f / mRingSpeakers.getText<float>() * narrow<float>(i)
-                               - mRingOffsetAngle.getText<float>() + 90.0f };
+            const auto numSpeakers{ mRingSpeakers.getText<float>() };
+            degrees_t azimuth{ -360.0f / numSpeakers * narrow<float>(i) - mRingOffsetAngle.getText<float>() + 90.0f };
             auto const elev{ mRingElevation.getText<float>() };
             degrees_t const zenith{ elev < 135.f ? std::clamp(elev, 0.0f, 90.0f) : std::clamp(elev, 270.0f, 360.0f) };
             auto const radius{ mRingRadius.getText<float>() };
@@ -700,16 +706,19 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const intValue {textEditor.getText().getIntValue()};
-    auto const floatValue{ textEditor.getText().getFloatValue() };
+    const auto intValue {textEditor.getText().getIntValue()};
+    const auto floatValue{ textEditor.getText().getFloatValue() };
+    const auto spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
 
-    const auto clampPolyXYZ = [&textEditor, &floatValue, radius{ mPolyRadius.getText<float>()}]()
-        {
-            if ((floatValue - radius < -MBAP_EXTENDED_RADIUS))
-                textEditor.setText(juce::String(radius - MBAP_EXTENDED_RADIUS));
-            else if (floatValue + radius > MBAP_EXTENDED_RADIUS)
-                textEditor.setText(juce::String(MBAP_EXTENDED_RADIUS - radius));
-        };
+    // technically in dome/vbap mode the polyhedra is clamped right on the radius, so this calculation is moot, but
+    // leaving the option here for a variable dome radius, in case it's ever useful in the future.
+    const auto maxPolyRadius{ spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS : NORMAL_RADIUS };
+    const auto clampPolyXYZ = [&textEditor, &floatValue, radius{ mPolyRadius.getText<float>() }, &maxPolyRadius]() {
+        if ((floatValue - radius < -maxPolyRadius))
+            textEditor.setText(juce::String(radius - maxPolyRadius));
+        else if (floatValue + radius > maxPolyRadius)
+            textEditor.setText(juce::String(maxPolyRadius - radius));
+    };
 
     if (&textEditor == &mRingSpeakers.editor) {
         auto const value{ std::clamp(intValue, 2, 64) };
@@ -722,9 +731,8 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
         mShouldComputeSpeakers = true;
     } else if (&textEditor == &mRingRadius.editor) {
         juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
-        auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
-        auto const minRadius{ spatMode == SpatMode::mbap ? 0.001f : 1.0f };
-        auto const maxRadius{ spatMode == SpatMode::mbap ? SQRT3 : 1.0f };
+        auto const minRadius{ spatMode == SpatMode::mbap ? 0.001f : NORMAL_RADIUS };
+        auto const maxRadius{ spatMode == SpatMode::mbap ? SQRT3 : NORMAL_RADIUS };
         auto const value{ std::clamp(floatValue, minRadius, maxRadius) };
         textEditor.setText(juce::String{ value, 1 }, false);
         mShouldComputeSpeakers = true;
@@ -743,23 +751,32 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
         const auto y{ mPolyY.getText<float>() };
         const auto z{ mPolyZ.getText<float>() };
 
-        if (x - floatValue < -MBAP_EXTENDED_RADIUS)
-            textEditor.setText(juce::String(x - MBAP_EXTENDED_RADIUS));
-        else if (x + floatValue > MBAP_EXTENDED_RADIUS)
-            textEditor.setText(juce::String(MBAP_EXTENDED_RADIUS - x));
+        if (x - floatValue < -maxPolyRadius)
+            textEditor.setText(juce::String(x - maxPolyRadius));
+        else if (x + floatValue > maxPolyRadius)
+            textEditor.setText(juce::String(maxPolyRadius - x));
 
-        else if (y - floatValue < -MBAP_EXTENDED_RADIUS)
-            textEditor.setText(juce::String(y - MBAP_EXTENDED_RADIUS));
-        else if (y + floatValue > MBAP_EXTENDED_RADIUS)
-            textEditor.setText(juce::String(MBAP_EXTENDED_RADIUS - y));
+        else if (y - floatValue < -maxPolyRadius)
+            textEditor.setText(juce::String(y - maxPolyRadius));
+        else if (y + floatValue > maxPolyRadius)
+            textEditor.setText(juce::String(maxPolyRadius - y));
 
-        else if (z - floatValue < -MBAP_EXTENDED_RADIUS)
-            textEditor.setText(juce::String(z - MBAP_EXTENDED_RADIUS));
-        else if (z + floatValue > MBAP_EXTENDED_RADIUS)
-            textEditor.setText(juce::String(MBAP_EXTENDED_RADIUS - z));
+        else if (z - floatValue < -maxPolyRadius)
+            textEditor.setText(juce::String(z - maxPolyRadius));
+        else if (z + floatValue > maxPolyRadius)
+            textEditor.setText(juce::String(maxPolyRadius - z));
     }
 
     computeSpeakers();
+}
+
+void EditSpeakersWindow::togglePolyhedraExtraWidgets()
+{
+    const auto showExtendedPolyWidgets = mMainContentComponent.getData().speakerSetup.spatMode != SpatMode::vbap;
+    mPolyX.setVisible(showExtendedPolyWidgets);
+    mPolyY.setVisible(showExtendedPolyWidgets);
+    mPolyZ.setVisible(showExtendedPolyWidgets);
+    mPolyRadius.setVisible(showExtendedPolyWidgets);
 }
 
 //==============================================================================
@@ -772,6 +789,8 @@ void EditSpeakersWindow::updateWinContent()
     mDiffusionSlider.setValue(mMainContentComponent.getData().speakerSetup.diffusion);
     mDiffusionSlider.setEnabled(mMainContentComponent.getData().project.spatMode == SpatMode::mbap
                                 || mMainContentComponent.getData().project.spatMode == SpatMode::hybrid);
+
+togglePolyhedraExtraWidgets();
 }
 
 //==============================================================================
@@ -845,33 +864,6 @@ void EditSpeakersWindow::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-#if 0
-    //this is like the viewport
-    mSpeakersTableListBox.setSize(getWidth(), getHeight() - 195);
-
-    mListSpeakerBox.setSize(getWidth(), getHeight());
-    mListSpeakerBox.correctSize(getWidth() - 10, getHeight() - 30);
-
-    mAddSpeakerButton.setBounds(5, getHeight() - 180, 100, 22);
-    mSaveAsSpeakerSetupButton.setBounds(getWidth() - 210, getHeight() - 180, 100, 22);
-    mSaveSpeakerSetupButton.setBounds(getWidth() - 105, getHeight() - 180, 100, 22);
-
-    auto const positionLandE = [y = getHeight() - 140](juce::Label & l, juce::TextEditor & e, int x, int ew) {
-        l.setBounds(x, y, 80, 24);
-        e.setBounds(x + 80, y, ew, 24);
-    };
-
-    positionLandE(mNumOfSpeakersLabel, mNumOfSpeakersTextEditor, 5, 40);
-    positionLandE(mZenithLabel, mZenithTextEditor,               120, 60);
-    positionLandE(mRadiusLabel, mRadiusTextEditor,               255, 60);
-    positionLandE(mOffsetAngleLabel, mOffsetAngleTextEditor,     400, 60);
-
-    mAddRingButton.setBounds(getWidth() - 105, getHeight() - 140, 100, 24);
-    mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, 24);
-    mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, 60);
-    mDiffusionLabel.setBounds(getWidth() - 247, getHeight() - 70, 160, 24);
-    mDiffusionSlider.setBounds(getWidth() - 88, getHeight() - 95, 60, 60);
-#else
     //viewport
     auto bounds{ getLocalBounds() };
     mViewportWrapper.setBounds(bounds);
@@ -890,7 +882,6 @@ void EditSpeakersWindow::resized()
     mSaveSpeakerSetupButton.setBounds(getWidth() - 105, firstRowY, 100, firstRowH);
 
     //second row of bottom panel with rings of speakers
-    
     auto const secondRowY{ getHeight() - 140 };
     auto const positionWidget = [](LabelWrapper* w, int x, int y, int lw, int ew) {
         w->label.setBounds(x, y, lw, secondRowH);
@@ -906,7 +897,7 @@ void EditSpeakersWindow::resized()
     positionWidget(&mRingOffsetAngle, 400, secondRowY, 80, 60);
     mAddRingButton.setBounds(getWidth() - 105, secondRowY, 100, 24);
 
-    //third row of bottom panel with polyhedron controls
+    //third row of bottom panel with polyhedra controls
     auto const thirdRowY { secondRowY + secondRowH + 2};
     positionWidget(&mPolyFaces, 5, thirdRowY, 70, 50);
     auto startingX {120};
@@ -924,7 +915,6 @@ void EditSpeakersWindow::resized()
     mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, 60);
     mDiffusionLabel.setBounds(getWidth() - 247, getHeight() - 70, 160, 24);
     mDiffusionSlider.setBounds(getWidth() - 88, getHeight() - 95, 60, 60);
-#endif
 }
 
 //==============================================================================

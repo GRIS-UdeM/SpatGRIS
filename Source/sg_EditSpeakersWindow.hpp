@@ -39,6 +39,8 @@ struct always_false : std::false_type {
 struct LabelWrapper {
     LabelWrapper(GrisLookAndFeel & lookAndFeel);
     virtual ~LabelWrapper() { label.setLookAndFeel(nullptr); }
+    virtual void setVisible(bool visible) { label.setVisible(visible); }
+
     juce::Label label;
 };
 
@@ -66,14 +68,26 @@ struct LabelTextEditorWrapper : public LabelWrapper
         return {};
     }
 
+    void setVisible(bool visible) override
+    {
+        LabelWrapper::setVisible(visible);
+        editor.setVisible(visible);
+    }
+
     juce::TextEditor editor;
 };
 
 struct LabelComboBoxWrapper : public LabelWrapper
 {
-    using LabelWrapper::LabelWrapper;
+    LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel);
 
     int getSelectionAsInt(){ return comboBox.getText().getIntValue(); }
+    void setVisible(bool visible) override
+    {
+        LabelWrapper::setVisible(visible);
+        comboBox.setVisible(visible);
+    }
+
     juce::ComboBox comboBox{};
 };
 
@@ -165,6 +179,11 @@ public:
     void initComp();
     void selectRow(tl::optional<int> value);
     void selectSpeaker(tl::optional<output_patch_t> outputPatch);
+
+    void togglePolyhedraExtraWidgets();
+
+    /** This is called in a variety of places, including in MainContentComponent::refreshSpeakers()
+    *   when the spatMode changes.*/
     void updateWinContent();
 
 private:
