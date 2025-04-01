@@ -38,11 +38,7 @@ static auto constexpr elevationHalfPoint{ 135.f };
 //==============================================================================
 // LabelTextEditorWrapper
 
-// Helper struct to trigger static_assert for unsupported types
-//template<typename T>
-//struct always_false : std::false_type {
-//};
-
+// Helper to trigger static_assert for unsupported types
 template<typename T> using always_false = std::false_type;
 
 struct LabelWrapper {
@@ -59,7 +55,7 @@ struct LabelTextEditorWrapper : public LabelWrapper
     ~LabelTextEditorWrapper() { editor.setLookAndFeel(nullptr); }
 
     template<typename T>
-    T getText()
+    T getTextAs()
     {
         auto const text{ editor.getText() };
 

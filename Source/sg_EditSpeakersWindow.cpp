@@ -576,34 +576,34 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mMainContentComponent.saveEditedSpeakerSetup();
     } else if (button == &mAddRingButton) {
         auto getPosition = [this](int i) -> Position {
-            const auto numSpeakers{ mRingSpeakers.getText<float>() };
+            const auto numSpeakers{ mRingSpeakers.getTextAs<float>() };
 
             // Calculate the azimuth angle by distributing speakers evenly in a circle
             // -360.0f / numSpeakers * i -> Spreads the speakers evenly around the circle
             // -mRingOffsetAngle.getText<float>() -> Applies an offset to shift the ring
             // +90.0f -> Aligns the 0-degree point with the correct reference direction
-            degrees_t azimuth{ -360.0f / numSpeakers * narrow<float>(i) - mRingOffsetAngle.getText<float>() + 90.0f };
+            degrees_t azimuth{ -360.0f / numSpeakers * narrow<float>(i) - mRingOffsetAngle.getTextAs<float>() + 90.0f };
 
             // If elevation is below the 135° elevationHalfPoint, treat it as part of the lower hemisphere (0° to 90°),
             // otherwise, assume it's in the upper hemisphere (270° to 360°).
-            auto const elev{ mRingElevation.getText<float>() };
+            auto const elev{ mRingElevation.getTextAs<float>() };
             degrees_t const zenith{ elev < elevationHalfPoint ? std::clamp(elev, 0.0f, 90.0f)
                                                               : std::clamp(elev, 270.0f, 360.0f) };
 
-            auto const radius{ mRingRadius.getText<float>() };
+            auto const radius{ mRingRadius.getTextAs<float>() };
             return Position{ PolarVector{ radians_t{ azimuth.centered() }, radians_t{ zenith }, radius } };
         };
 
-        addSpeakerGroup(mRingSpeakers.getText<int>(), getPosition);
+        addSpeakerGroup(mRingSpeakers.getTextAs<int>(), getPosition);
     } else if (button == &mAddPolyButton) {
         const auto getPosition = [this](int i) -> Position {
             const auto numFaces = mPolyFaces.getSelectionAsInt();
-            const auto radius = mPolyRadius.getText<float>();
-            const auto azimOffset = mPolyAzimuthOffset.getText<float>() * PI.get() / 180.0f; // Convert to radians
-            const auto elevOffset = mPolyElevOffset.getText<float>() * PI.get() / 180.0f;    // Convert to radians
-            const auto centerX = mPolyX.getText<float>();
-            const auto centerY = mPolyY.getText<float>();
-            const auto centerZ = mPolyZ.getText<float>();
+            const auto radius = mPolyRadius.getTextAs<float>();
+            const auto azimOffset = mPolyAzimuthOffset.getTextAs<float>() * PI.get() / 180.0f; // Convert to radians
+            const auto elevOffset = mPolyElevOffset.getTextAs<float>() * PI.get() / 180.0f;    // Convert to radians
+            const auto centerX = mPolyX.getTextAs<float>();
+            const auto centerY = mPolyY.getTextAs<float>();
+            const auto centerZ = mPolyZ.getTextAs<float>();
 
             using Vec3 = std::array<float, 3>;
             const auto vertices = [&numFaces]() -> std::span<const Vec3> {
@@ -729,7 +729,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
     // technically in dome/vbap mode the polyhedra is clamped right on the radius, so this calculation is moot, but
     // leaving the option here for a variable dome radius, in case it's ever useful in the future.
     const auto maxPolyRadius{ spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS : NORMAL_RADIUS };
-    const auto clampPolyXYZ = [&textEditor, &floatValue, radius{ mPolyRadius.getText<float>() }, &maxPolyRadius]() {
+    const auto clampPolyXYZ = [&textEditor, &floatValue, radius{ mPolyRadius.getTextAs<float>() }, &maxPolyRadius]() {
         if ((floatValue - radius < -maxPolyRadius))
             textEditor.setText(juce::String(radius - maxPolyRadius));
         else if (floatValue + radius > maxPolyRadius)
@@ -763,9 +763,9 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
     } else if (&textEditor == &mPolyZ.editor) {
         clampPolyXYZ();
     } else if (&textEditor == &mPolyRadius.editor) {
-        const auto x{ mPolyX.getText<float>() };
-        const auto y{ mPolyY.getText<float>() };
-        const auto z{ mPolyZ.getText<float>() };
+        const auto x{ mPolyX.getTextAs<float>() };
+        const auto y{ mPolyY.getTextAs<float>() };
+        const auto z{ mPolyZ.getTextAs<float>() };
 
         if (x - floatValue < -maxPolyRadius)
             textEditor.setText(juce::String(x - maxPolyRadius));
