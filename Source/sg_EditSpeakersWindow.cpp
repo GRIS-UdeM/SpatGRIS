@@ -24,6 +24,7 @@
 #include "sg_MainComponent.hpp"
 #include "AlgoGRIS/Data/sg_Narrow.hpp"
 #include <numbers>
+#include <span>
 
 namespace gris
 {
@@ -149,18 +150,18 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
         w->label.setText(labelText, juce::NotificationType::dontSendNotification);
         mViewportWrapper.getContent()->addAndMakeVisible(w->label);
 
-        if (auto * lew{ dynamic_cast<LabelTextEditorWrapper *>(w) }) {
-            lew->editor.setTooltip(tooltip);
-            lew->editor.setText(editorText, false);
-            lew->editor.setInputRestrictions(maxLength, allowedCharacters);
-            lew->editor.addListener(this);
+        if (auto * labelTextEditor{ dynamic_cast<LabelTextEditorWrapper *>(w) }) {
+            labelTextEditor->editor.setTooltip(tooltip);
+            labelTextEditor->editor.setText(editorText, false);
+            labelTextEditor->editor.setInputRestrictions(maxLength, allowedCharacters);
+            labelTextEditor->editor.addListener(this);
 
-            mViewportWrapper.getContent()->addAndMakeVisible(lew->editor);
-        } else if (auto * lcw{ dynamic_cast<LabelComboBoxWrapper *>(w) }) {
-            lcw->comboBox.addItemList(comboItemList, 1);
-            lcw->comboBox.setSelectedId(1);
-            lcw->comboBox.setTooltip(tooltip);
-            mViewportWrapper.getContent()->addAndMakeVisible(lcw->comboBox);
+            mViewportWrapper.getContent()->addAndMakeVisible(labelTextEditor->editor);
+        } else if (auto * labelComboBox{ dynamic_cast<LabelComboBoxWrapper *>(w) }) {
+            labelComboBox->comboBox.addItemList(comboItemList, 1);
+            labelComboBox->comboBox.setSelectedId(1);
+            labelComboBox->comboBox.setTooltip(tooltip);
+            mViewportWrapper.getContent()->addAndMakeVisible(labelComboBox->comboBox);
         }
     };
 
@@ -480,7 +481,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 //==============================================================================
 void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition)
 {
-    static auto const GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
+    static auto constexpr GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
         auto const selectedRow{ tableListBox.getSelectedRow() };
         if (selectedRow < 0) {
             return tl::nullopt;
@@ -493,7 +494,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 
-    output_patch_t newOutputPatch;
+    output_patch_t newOutputPatch{};
 
     if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakers > MAX_NUM_SPEAKERS) {
         return;
@@ -576,9 +577,19 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     } else if (button == &mAddRingButton) {
         auto getPosition = [this](int i) -> Position {
             const auto numSpeakers{ mRingSpeakers.getText<float>() };
+
+            // Calculate the azimuth angle by distributing speakers evenly in a circle
+            // -360.0f / numSpeakers * i -> Spreads the speakers evenly around the circle
+            // -mRingOffsetAngle.getText<float>() -> Applies an offset to shift the ring
+            // +90.0f -> Aligns the 0-degree point with the correct reference direction
             degrees_t azimuth{ -360.0f / numSpeakers * narrow<float>(i) - mRingOffsetAngle.getText<float>() + 90.0f };
+
+            // If elevation is below the 135° elevationHalfPoint, treat it as part of the lower hemisphere (0° to 90°),
+            // otherwise, assume it's in the upper hemisphere (270° to 360°).
             auto const elev{ mRingElevation.getText<float>() };
-            degrees_t const zenith{ elev < 135.f ? std::clamp(elev, 0.0f, 90.0f) : std::clamp(elev, 270.0f, 360.0f) };
+            degrees_t const zenith{ elev < elevationHalfPoint ? std::clamp(elev, 0.0f, 90.0f)
+                                                              : std::clamp(elev, 270.0f, 360.0f) };
+
             auto const radius{ mRingRadius.getText<float>() };
             return Position{ PolarVector{ radians_t{ azimuth.centered() }, radians_t{ zenith }, radius } };
         };
@@ -595,25 +606,26 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             const auto centerZ = mPolyZ.getText<float>();
 
             using Vec3 = std::array<float, 3>;
-            const auto & vertices = [&numFaces]() -> const std::vector<Vec3> & {
-                static const std::vector<Vec3> tetrahedron
-                    = { { 1.f, 1.f, 1.f }, { -1.f, -1.f, 1.f }, { -1.f, 1.f, -1.f }, { 1.f, -1.f, -1.f } };
+            const auto vertices = [&numFaces]() -> std::span<const Vec3> {
+                static constexpr std::array<Vec3, 4> tetrahedron
+                    = { Vec3{ 1.f, 1.f, 1.f }, { -1.f, -1.f, 1.f }, { -1.f, 1.f, -1.f }, { 1.f, -1.f, -1.f } };
 
-                static const std::vector<Vec3> cube
-                    = { { 1.f, 1.f, 1.f },  { 1.f, 1.f, -1.f },  { 1.f, -1.f, 1.f },  { 1.f, -1.f, -1.f },
-                        { -1.f, 1.f, 1.f }, { -1.f, 1.f, -1.f }, { -1.f, -1.f, 1.f }, { -1.f, -1.f, -1.f } };
+                static constexpr std::array<Vec3, 6> cube
+                    = { Vec3{ 1.f, 0.f, 0.f }, { -1.f, 0.f, 0.f }, { 0.f, 1.f, 0.f },
+                        { 0.f, -1.f, 0.f },    { 0.f, 0.f, 1.f },  { 0.f, 0.f, -1.f } };
 
-                static const std::vector<Vec3> octahedron
-                    = { { 1.f, 0.f, 0.f },  { -1.f, 0.f, 0.f }, { 0.f, 1.f, 0.f },
-                        { 0.f, -1.f, 0.f }, { 0.f, 0.f, 1.f },  { 0.f, 0.f, -1.f } };
+                static constexpr std::array<Vec3, 8> octahedron
+                    = { Vec3{ 1.f, 1.f, 1.f }, { 1.f, 1.f, -1.f },  { 1.f, -1.f, 1.f },  { 1.f, -1.f, -1.f },
+                        { -1.f, 1.f, 1.f },    { -1.f, 1.f, -1.f }, { -1.f, -1.f, 1.f }, { -1.f, -1.f, -1.f } };
 
-                static const std::vector<Vec3> dodecahedron
-                    = { { 0.f, 1.f, 1.618f }, { 0.f, 1.f, -1.618f }, { 0.f, -1.f, 1.618f }, { 0.f, -1.f, -1.618f },
-                        { 1.f, 1.618f, 0.f }, { 1.f, -1.618f, 0.f }, { -1.f, 1.618f, 0.f }, { -1.f, -1.618f, 0.f },
-                        { 1.618f, 0.f, 1.f }, { 1.618f, 0.f, -1.f }, { -1.618f, 0.f, 1.f }, { -1.618f, 0.f, -1.f } };
+                static constexpr std::array<Vec3, 12> dodecahedron = {
+                    Vec3{ 0.f, 1.f, 1.618f }, { 0.f, 1.f, -1.618f }, { 0.f, -1.f, 1.618f }, { 0.f, -1.f, -1.618f },
+                    { 1.f, 1.618f, 0.f },     { 1.f, -1.618f, 0.f }, { -1.f, 1.618f, 0.f }, { -1.f, -1.618f, 0.f },
+                    { 1.618f, 0.f, 1.f },     { 1.618f, 0.f, -1.f }, { -1.618f, 0.f, 1.f }, { -1.618f, 0.f, -1.f }
+                };
 
-                static const std::vector<Vec3> icosahedron
-                    = { { 1.f, 1.f, 1.f },         { 1.f, 1.f, -1.f },       { 1.f, -1.f, 1.f },
+                static constexpr std::array<Vec3, 20> icosahedron
+                    = { Vec3{ 1.f, 1.f, 1.f },     { 1.f, 1.f, -1.f },       { 1.f, -1.f, 1.f },
                         { 1.f, -1.f, -1.f },       { -1.f, 1.f, 1.f },       { -1.f, 1.f, -1.f },
                         { -1.f, -1.f, 1.f },       { -1.f, -1.f, -1.f },     { 0.f, 1.618f, 0.618f },
                         { 0.f, 1.618f, -0.618f },  { 0.f, -1.618f, 0.618f }, { 0.f, -1.618f, -0.618f },
@@ -623,18 +635,18 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
                 switch (numFaces) {
                 case 4:
-                    return tetrahedron;
+                    return std::span{ tetrahedron };
                 case 6:
-                    return octahedron;
+                    return std::span{ cube };
                 case 8:
-                    return cube;
+                    return std::span{ octahedron };
                 case 12:
-                    return dodecahedron;
+                    return std::span{ dodecahedron };
                 case 20:
-                    return icosahedron;
+                    return std::span{ icosahedron };
                 default:
                     jassertfalse;
-                    return tetrahedron;
+                    return std::span{ tetrahedron };
                 }
             }();
 
@@ -729,7 +741,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
         textEditor.setText(juce::String{ value }, false);
         mShouldComputeSpeakers = true;
     } else if (&textEditor == &mRingElevation.editor) {
-        auto const value{ floatValue < 135.f ? std::clamp(floatValue, 0.0f, 90.0f)
+        auto const value{ floatValue < elevationHalfPoint ? std::clamp(floatValue, 0.0f, 90.0f)
                                              : std::clamp(floatValue, 270.0f, 360.0f) };
         textEditor.setText(juce::String{ value, 1 }, false);
         mShouldComputeSpeakers = true;
@@ -908,11 +920,16 @@ void EditSpeakersWindow::resized()
     auto const shortlabelW {30};
     auto const shortEditorW{ 40 };
     positionWidget(&mPolyX, startingX, thirdRowY, shortlabelW, shortEditorW);
-    positionWidget(&mPolyY, startingX += shortlabelW + shortEditorW, thirdRowY, shortlabelW, shortEditorW);
-    positionWidget(&mPolyZ, startingX += shortlabelW + shortEditorW, thirdRowY, shortlabelW, shortEditorW);
-    positionWidget(&mPolyRadius, startingX += shortlabelW + shortEditorW, thirdRowY, 50, 40);
-    positionWidget(&mPolyAzimuthOffset, startingX += 50 + 40, thirdRowY, 90, 40);
-    positionWidget(&mPolyElevOffset, startingX += 90 + 40, thirdRowY, 100, 40);
+    startingX += shortlabelW + shortEditorW;
+    positionWidget(&mPolyY, startingX, thirdRowY, shortlabelW, shortEditorW);
+    startingX += shortlabelW + shortEditorW;
+    positionWidget(&mPolyZ, startingX, thirdRowY, shortlabelW, shortEditorW);
+    startingX += shortlabelW + shortEditorW;
+    positionWidget(&mPolyRadius, startingX, thirdRowY, 50, 40);
+    startingX += 50 + 40;
+    positionWidget(&mPolyAzimuthOffset, startingX, thirdRowY, 90, 40);
+    startingX += 90 + 40;
+    positionWidget(&mPolyElevOffset, startingX, thirdRowY, 100, 40);
     mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, 24);
 
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, 24);

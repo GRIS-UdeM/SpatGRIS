@@ -28,16 +28,25 @@ namespace gris
 class EditableTextCustomComponent;
 class MainContentComponent;
 class GrisLookAndFeel;
+
+
+/** used to snap the elevation when calculating ring positions. 135.f is short-hand for the mid point
+    between 90° (max elevation going up) and 270° (max elevation going down): 90 + (360 − 270)/2 = 135.
+*/
+static auto constexpr elevationHalfPoint{ 135.f };
+
 //==============================================================================
 // LabelTextEditorWrapper
 
 // Helper struct to trigger static_assert for unsupported types
-template<typename T>
-struct always_false : std::false_type {
-};
+//template<typename T>
+//struct always_false : std::false_type {
+//};
+
+template<typename T> using always_false = std::false_type;
 
 struct LabelWrapper {
-    LabelWrapper(GrisLookAndFeel & lookAndFeel);
+    explicit LabelWrapper(GrisLookAndFeel & lookAndFeel);
     virtual ~LabelWrapper() { label.setLookAndFeel(nullptr); }
     virtual void setVisible(bool visible) { label.setVisible(visible); }
 
@@ -46,7 +55,7 @@ struct LabelWrapper {
 
 struct LabelTextEditorWrapper : public LabelWrapper
 {
-    LabelTextEditorWrapper(GrisLookAndFeel & lookAndFeel);
+    explicit LabelTextEditorWrapper(GrisLookAndFeel & lookAndFeel);
     ~LabelTextEditorWrapper() { editor.setLookAndFeel(nullptr); }
 
     template<typename T>
@@ -79,7 +88,7 @@ struct LabelTextEditorWrapper : public LabelWrapper
 
 struct LabelComboBoxWrapper : public LabelWrapper
 {
-    LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel);
+    explicit LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel);
 
     int getSelectionAsInt(){ return comboBox.getText().getIntValue(); }
     void setVisible(bool visible) override
