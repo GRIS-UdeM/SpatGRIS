@@ -36,6 +36,12 @@ class GrisLookAndFeel;
 static auto constexpr elevationHalfPoint{ 135.f };
 
 //==============================================================================
+
+// Helper struct to trigger static_assert for unsupported types
+template<typename T>
+struct always_false : std::false_type {
+};
+
 struct LabelWrapper {
     explicit LabelWrapper(GrisLookAndFeel & lookAndFeel);
     virtual ~LabelWrapper() { label.setLookAndFeel(nullptr); }
@@ -63,7 +69,7 @@ struct LabelTextEditorWrapper : public LabelWrapper
         else if constexpr (std::is_same_v<T, double>)
             return text.getDoubleValue();
         else
-            static_assert(std::false_type::value, "Unsupported type");
+            static_assert(always_false<T>::value, "Unsupported type");
 
         return {};
     }
