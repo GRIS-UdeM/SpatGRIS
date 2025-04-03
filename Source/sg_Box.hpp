@@ -29,7 +29,11 @@ class GrisLookAndFeel;
 class AbstractSliceComponent;
 class MainContentComponent;
 
-//==============================================================================
+/** @brief A custom component class for displaying content within a viewport.
+ *
+ * This is really like a viewport and component wrapper. The Box class inherits from juce::Component, it has a title,
+ * and wraps another Component and a viewport. It is used to display content within a scrollable viewport.
+ */
 class Box final : public juce::Component
 {
     GrisLookAndFeel & mLookAndFeel;
@@ -49,7 +53,6 @@ public:
     //==============================================================================
     [[nodiscard]] Component * getContent() { return &this->mContent; }
     [[nodiscard]] Component const * getContent() const { return &this->mContent; }
-    [[nodiscard]] juce::Viewport * getViewport() { return &mViewport; }
 
     void resized() override { this->mViewport.setSize(this->getWidth(), this->getHeight()); }
     void correctSize(int width, int height);

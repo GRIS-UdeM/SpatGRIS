@@ -29,6 +29,74 @@ class EditableTextCustomComponent;
 class MainContentComponent;
 class GrisLookAndFeel;
 
+
+/** used to snap the elevation when calculating ring positions. 135.f is short-hand for the mid point
+    between 90° (max elevation going up) and 270° (max elevation going down): 90 + (360 − 270)/2 = 135.
+*/
+static auto constexpr elevationHalfPoint{ 135.f };
+
+//==============================================================================
+
+// Helper struct to trigger static_assert for unsupported types
+template<typename T>
+struct always_false : std::false_type {
+};
+
+struct LabelWrapper {
+    explicit LabelWrapper(GrisLookAndFeel & lookAndFeel);
+    virtual ~LabelWrapper() { label.setLookAndFeel(nullptr); }
+    virtual void setVisible(bool visible) { label.setVisible(visible); }
+
+    juce::Label label;
+};
+
+struct LabelTextEditorWrapper : public LabelWrapper
+{
+    explicit LabelTextEditorWrapper(GrisLookAndFeel & lookAndFeel);
+    ~LabelTextEditorWrapper() { editor.setLookAndFeel(nullptr); }
+
+    template<typename T>
+    T getTextAs()
+    {
+        auto const text{ editor.getText() };
+
+        if constexpr (std::is_same_v<T, juce::String>)
+            return text;
+        else if constexpr (std::is_same_v<T, int>)
+            return text.getIntValue();
+        else if constexpr (std::is_same_v<T, float>)
+            return text.getFloatValue();
+        else if constexpr (std::is_same_v<T, double>)
+            return text.getDoubleValue();
+        else
+            static_assert(always_false<T>::value, "Unsupported type");
+
+        return {};
+    }
+
+    void setVisible(bool visible) override
+    {
+        LabelWrapper::setVisible(visible);
+        editor.setVisible(visible);
+    }
+
+    juce::TextEditor editor;
+};
+
+struct LabelComboBoxWrapper : public LabelWrapper
+{
+    explicit LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel);
+
+    int getSelectionAsInt(){ return comboBox.getText().getIntValue(); }
+    void setVisible(bool visible) override
+    {
+        LabelWrapper::setVisible(visible);
+        comboBox.setVisible(visible);
+    }
+
+    juce::ComboBox comboBox{};
+};
+
 //==============================================================================
 class EditSpeakersWindow final
     : public juce::DocumentWindow
@@ -63,21 +131,29 @@ private:
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
 
-    Box mListSpeakerBox;
+    Box mViewportWrapper;
 
     juce::TextButton mAddSpeakerButton;
     juce::TextButton mSaveAsSpeakerSetupButton;
     juce::TextButton mSaveSpeakerSetupButton;
 
-    juce::Label mNumOfSpeakersLabel;
-    juce::TextEditor mNumOfSpeakersTextEditor;
-    juce::Label mZenithLabel;
-    juce::TextEditor mZenithTextEditor;
-    juce::Label mRadiusLabel;
-    juce::TextEditor mRadiusTextEditor;
-    juce::Label mOffsetAngleLabel;
-    juce::TextEditor mOffsetAngleTextEditor;
+    //add ring of speakers
+    LabelTextEditorWrapper mRingSpeakers;
+    LabelTextEditorWrapper mRingElevation;
+    LabelTextEditorWrapper mRingRadius;
+    LabelTextEditorWrapper mRingOffsetAngle;
     juce::TextButton mAddRingButton;
+
+    // add polyhedron of speakers
+    LabelComboBoxWrapper mPolyFaces;
+    LabelTextEditorWrapper mPolyX;
+    LabelTextEditorWrapper mPolyY;
+    LabelTextEditorWrapper mPolyZ;
+    LabelTextEditorWrapper mPolyRadius;
+    LabelTextEditorWrapper mPolyAzimuthOffset;
+    LabelTextEditorWrapper mPolyElevOffset;
+
+    juce::TextButton mAddPolyButton;
 
     juce::ToggleButton mPinkNoiseToggleButton;
     juce::Slider mPinkNoiseGainSlider;
@@ -109,6 +185,11 @@ public:
     void initComp();
     void selectRow(tl::optional<int> value);
     void selectSpeaker(tl::optional<output_patch_t> outputPatch);
+
+    void togglePolyhedraExtraWidgets();
+
+    /** This is called in a variety of places, including in MainContentComponent::refreshSpeakers()
+    *   when the spatMode changes.*/
     void updateWinContent();
 
 private:
@@ -120,11 +201,11 @@ private:
     SpeakerData const & getSpeakerData(int rowNum) const;
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     void computeSpeakers();
+    void addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition);
     //==============================================================================
     // VIRTUALS
     [[nodiscard]] int getNumRows() override { return this->mNumRows; }
     void buttonClicked(juce::Button * button) override;
-    void textEditorTextChanged(juce::TextEditor & editor) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void textEditorFocusLost(juce::TextEditor &) override;
     void closeButtonPressed() override;
@@ -133,7 +214,7 @@ private:
     void sortOrderChanged(int newSortColumnId, bool isForwards) override;
     void resized() override;
     void paintRowBackground(juce::Graphics & g, int rowNumber, int width, int height, bool rowIsSelected) override;
-    void paintCell(juce::Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
+    void paintCell(juce::Graphics &, int, int, int , int, bool ) override {}
     [[nodiscard]] Component * refreshComponentForCell(int rowNumber,
                                                       int columnId,
                                                       bool isRowSelected,

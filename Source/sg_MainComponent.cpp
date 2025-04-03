@@ -3098,7 +3098,7 @@ void MainContentComponent::handleShowSpeakerTripletsFromSpeakerView(bool value)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const readLock{ mLock };
 
-    if (!mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
+    if (!mAudioProcessor->getSpatAlgorithm() || !mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
         return;
     }
 
