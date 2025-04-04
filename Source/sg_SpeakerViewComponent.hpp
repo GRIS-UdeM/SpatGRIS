@@ -50,7 +50,7 @@ private:
 
     std::string mJsonSources;
     std::string mJsonSpeakers;
-    std::unique_ptr<juce::DynamicObject> mJsonSGInfos;
+    std::string mJsonSGInfos;
 
     bool mKillSpeakerViewProcess{};
 
@@ -86,14 +86,13 @@ public:
 
 private:
     //==============================================================================
+    void prepareSourcesJson();
+    void prepareSpeakersJson();
     void prepareSGInfos();
     bool isHiResTimerThread();
     void listenUDP();
     void sendUDP();
     void emptyUDPReceiverBuffer();
-
-    void writeSourcesJson();
-    void writeSpeakersJson();
 
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerViewComponent)

@@ -27,7 +27,7 @@
 
 namespace gris
 {
-static void appendFloat(std::string & str, float val)
+static void appendNumber(std::string & str, float val)
 {
     // otherwise we get some 4.37e-38 ...
     if (std::abs(val) < 1e-6f)
@@ -44,6 +44,19 @@ static void appendFloat(std::string & str, float val)
     str += std::to_string(val);
 #endif
 }
+static void appendNumber(std::string & str, int val)
+{
+#if __cpp_lib_to_chars >= 201611L
+    char buf[16];
+    auto res = std::to_chars(buf, buf + 16, val);
+    jassert(res.ec == std::errc{});
+    str.append(buf, res.ptr);
+#else
+    str += std::to_string(val);
+#endif
+}
+
+
 //==============================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
     : mMainContentComponent(mainContentComponent)
@@ -141,7 +154,7 @@ void SpeakerViewComponent::shouldKillSpeakerViewProcess(bool shouldKill)
 }
 
 //==============================================================================
-void SpeakerViewComponent::writeSourcesJson()
+void SpeakerViewComponent::prepareSourcesJson()
 {
     mJsonSources.clear();
     mJsonSources.reserve(4096);
@@ -170,27 +183,27 @@ void SpeakerViewComponent::writeSourcesJson()
         auto const & pos{ sourceData->position.getCartesian() };
         auto const & color{ sourceData->colour };
         mJsonSources += "[";
-        mJsonSources += std::to_string(source.key.get());
+        appendNumber(mJsonSources, source.key.get());
         mJsonSources += ",[";
-        appendFloat(mJsonSources, pos.x);
+        appendNumber(mJsonSources, pos.x);
         mJsonSources += ",";
-        appendFloat(mJsonSources, pos.y);
+        appendNumber(mJsonSources, pos.y);
         mJsonSources += ",";
-        appendFloat(mJsonSources, pos.z);
+        appendNumber(mJsonSources, pos.z);
         mJsonSources += "],[";
-        appendFloat(mJsonSources, color.getFloatRed());
+        appendNumber(mJsonSources, color.getFloatRed());
         mJsonSources += ",";
-        appendFloat(mJsonSources, color.getFloatGreen());
+        appendNumber(mJsonSources, color.getFloatGreen());
         mJsonSources += ",";
-        appendFloat(mJsonSources, color.getFloatBlue());
+        appendNumber(mJsonSources, color.getFloatBlue());
         mJsonSources += ",";
-        appendFloat(mJsonSources, color.getFloatAlpha());
+        appendNumber(mJsonSources, color.getFloatAlpha());
         mJsonSources += "],";
-        mJsonSources += std::to_string(static_cast<int>(sourceData->hybridSpatMode));
+        appendNumber(mJsonSources, static_cast<int>(sourceData->hybridSpatMode));
         mJsonSources += ",";
-        appendFloat(mJsonSources, sourceData->azimuthSpan);
+        appendNumber(mJsonSources, sourceData->azimuthSpan);
         mJsonSources += ",";
-        appendFloat(mJsonSources, sourceData->zenithSpan);
+        appendNumber(mJsonSources, sourceData->zenithSpan);
         mJsonSources += "],";
 
         processedSources++;
@@ -201,7 +214,7 @@ void SpeakerViewComponent::writeSourcesJson()
 }
 
 //==============================================================================
-void SpeakerViewComponent::writeSpeakersJson()
+void SpeakerViewComponent::prepareSpeakersJson()
 {
     auto const & viewSettings{ mData.warmData.viewSettings };
 
@@ -237,19 +250,19 @@ void SpeakerViewComponent::writeSpeakersJson()
             auto const & pos{ speaker.value.position.getCartesian() };
 
             mJsonSpeakers += "[";
-            mJsonSpeakers += std::to_string(speaker.key.get());
+            appendNumber(mJsonSpeakers, speaker.key.get());
             mJsonSpeakers += ",[";
-            appendFloat(mJsonSpeakers, pos.x);
+            appendNumber(mJsonSpeakers, pos.x);
             mJsonSpeakers += ",";
-            appendFloat(mJsonSpeakers, pos.y);
+            appendNumber(mJsonSpeakers, pos.y);
             mJsonSpeakers += ",";
-            appendFloat(mJsonSpeakers, pos.z);
+            appendNumber(mJsonSpeakers, pos.z);
             mJsonSpeakers += "],";
             mJsonSpeakers += speaker.value.isSelected ? "1" : "0";
             mJsonSpeakers += ",";
             mJsonSpeakers += speaker.value.isDirectOutOnly ? "1" : "0";
             mJsonSpeakers += ",";
-            appendFloat(mJsonSpeakers, getAlpha());
+            appendNumber(mJsonSpeakers, getAlpha());
             mJsonSpeakers += "],";
 
             processedSpeakers++;
@@ -268,8 +281,8 @@ void SpeakerViewComponent::hiResTimerCallback()
 
     listenUDP();
 
-    writeSourcesJson();
-    writeSpeakersJson();
+    prepareSourcesJson();
+    prepareSpeakersJson();
     prepareSGInfos();
 
     sendUDP();
@@ -281,37 +294,57 @@ void SpeakerViewComponent::prepareSGInfos()
     auto * topLevelComp = mMainContentComponent.getTopLevelComponent();
     auto const & spatMode{ static_cast<int>(mData.warmData.spatMode) };
     auto const & viewSettings{ mData.warmData.viewSettings };
-    mJsonSGInfos.reset(new juce::DynamicObject());
+    auto appendProperty = [&str=mJsonSGInfos] <typename P> (std::string_view name, const P& prop) {
+      str += '"';
+      str += name;
+      str += "\":";
+      if constexpr(std::is_same_v<bool, P>) {
+        str += prop ? "true" : "false";
+      }
+      else if constexpr(std::is_same_v<juce::String, P>) {
+        str += '"';
+        str += prop.toStdString();
+        str += '"';
+      }
+      else if constexpr(std::is_arithmetic_v<P>){
+        appendNumber(str, prop);
+      } else {
+        static_assert(P::is_not_a_known_type);
+      }
+      str += ",";
+    };
 
-    mJsonSGInfos->setProperty("killSV", mKillSpeakerViewProcess);
-    mJsonSGInfos->setProperty("spkStpName", mData.warmData.title);
-    mJsonSGInfos->setProperty("SGHasFocus", topLevelComp->hasKeyboardFocus(true));
-    mJsonSGInfos->setProperty("KeepSVOnTop", viewSettings.keepSpeakerViewWindowOnTop);
-    mJsonSGInfos->setProperty("SVGrabFocus", mMainContentComponent.speakerViewShouldGrabFocus());
-    mJsonSGInfos->setProperty("showHall", viewSettings.showHall);
-    mJsonSGInfos->setProperty("spatMode", spatMode); // -1, 0, 1, 2
-    mJsonSGInfos->setProperty("showSourceNumber", viewSettings.showSourceNumbers);
-    mJsonSGInfos->setProperty("showSpeakerNumber", viewSettings.showSpeakerNumbers);
-    mJsonSGInfos->setProperty("showSpeakers", viewSettings.showSpeakers);
-    mJsonSGInfos->setProperty("showSpeakerTriplets", viewSettings.showSpeakerTriplets);
-    mJsonSGInfos->setProperty("showSourceActivity", viewSettings.showSourceActivity);
-    mJsonSGInfos->setProperty("showSpeakerLevel", viewSettings.showSpeakerLevels);
-    mJsonSGInfos->setProperty("showSphereOrCube", viewSettings.showSphereOrCube);
-    mJsonSGInfos->setProperty("genMute", mMainContentComponent.getData().speakerSetup.generalMute);
+    mJsonSGInfos.clear();
+    mJsonSGInfos.reserve(4096);
+    mJsonSGInfos += "{";
+
+    appendProperty("killSV", mKillSpeakerViewProcess);
+    appendProperty("spkStpName", mData.warmData.title);
+    appendProperty("SGHasFocus", topLevelComp->hasKeyboardFocus(true));
+    appendProperty("KeepSVOnTop", viewSettings.keepSpeakerViewWindowOnTop);
+    appendProperty("SVGrabFocus", mMainContentComponent.speakerViewShouldGrabFocus());
+    appendProperty("showHall", viewSettings.showHall);
+    appendProperty("spatMode", spatMode); // -1, 0, 1, 2
+    appendProperty("showSourceNumber", viewSettings.showSourceNumbers);
+    appendProperty("showSpeakerNumber", viewSettings.showSpeakerNumbers);
+    appendProperty("showSpeakers", viewSettings.showSpeakers);
+    appendProperty("showSpeakerTriplets", viewSettings.showSpeakerTriplets);
+    appendProperty("showSourceActivity", viewSettings.showSourceActivity);
+    appendProperty("showSpeakerLevel", viewSettings.showSpeakerLevels);
+    appendProperty("showSphereOrCube", viewSettings.showSphereOrCube);
+    appendProperty("genMute", mMainContentComponent.getData().speakerSetup.generalMute);
+
+    mJsonSGInfos += "\"spkTriplets\":[";
 
     juce::Array<juce::var> triplets;
     for (auto const & triplet : mData.coldData.triplets) {
-        juce::Array<juce::var> tripletsData;
-
-        tripletsData.add(triplet.id1.get());
-        tripletsData.add(triplet.id2.get());
-        tripletsData.add(triplet.id3.get());
-
-        triplets.add(tripletsData);
+        appendNumber(mJsonSGInfos, triplet.id1.get());
+        appendNumber(mJsonSGInfos, triplet.id2.get());
+        appendNumber(mJsonSGInfos, triplet.id3.get());
     }
+    mJsonSGInfos += "]";
 
-    mJsonSGInfos->setProperty("spkTriplets", triplets);
-
+    mJsonSGInfos += "}";
     if (mMainContentComponent.speakerViewShouldGrabFocus()) {
         juce::MessageManager::callAsync([this] { mMainContentComponent.resetSpeakerViewShouldGrabFocus(); });
     }
@@ -470,15 +503,13 @@ void SpeakerViewComponent::sendUDP()
         jassert(!(numBytesWrittenSpeakers < 0));
     }
 
-    if (mJsonSGInfos != nullptr) {
-        juce::var jsonSGInfos(mJsonSGInfos.release());
-        juce::String jsonSGInfosStr = juce::JSON::toString(jsonSGInfos);
+    if (!mJsonSGInfos.empty()) {
         if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
             [[maybe_unused]] int numBytesWrittenSGInfos
                 = udpSenderSocket.write(remoteHostname,
                                         DEFAULT_UDP_INPUT_PORT,
-                                        jsonSGInfosStr.toStdString().c_str(),
-                                        static_cast<int>(jsonSGInfosStr.toStdString().length()));
+                                        mJsonSGInfos.c_str(),
+                                        static_cast<int>(mJsonSGInfos.size()));
             jassert(!(numBytesWrittenSGInfos < 0));
         }
     }
