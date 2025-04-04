@@ -25,7 +25,7 @@
 #include "sg_Warnings.hpp"
 
 #include <JuceHeader.h>
-
+#include <vector>
 namespace gris
 {
 struct SpeakerData;
@@ -48,8 +48,8 @@ private:
     juce::DatagramSocket mUdpReceiverSocket;
     static constexpr int mMaxBufferSize = 1024;
 
-    juce::Array<juce::var> mJsonSources;
-    juce::Array<juce::var> mJsonSpeakers;
+    std::string mJsonSources;
+    std::string mJsonSpeakers;
     std::unique_ptr<juce::DynamicObject> mJsonSGInfos;
 
     bool mKillSpeakerViewProcess{};
@@ -91,6 +91,9 @@ private:
     void listenUDP();
     void sendUDP();
     void emptyUDPReceiverBuffer();
+
+    void writeSourcesJson();
+    void writeSpeakersJson();
 
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerViewComponent)
