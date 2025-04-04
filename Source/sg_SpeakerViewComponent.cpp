@@ -482,20 +482,14 @@ void SpeakerViewComponent::listenUDP()
 //==============================================================================
 void SpeakerViewComponent::sendUDP()
 {
-    juce::DatagramSocket udpSenderSocket;
-    juce::String remoteHostname = "127.0.0.1";
-
-    udpSenderSocket.bindToPort(DEFAULT_UDP_INPUT_PORT, remoteHostname);
-
-    if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
+ {
         [[maybe_unused]] int numBytesWrittenSources = udpSenderSocket.write(remoteHostname,
                                                                             DEFAULT_UDP_INPUT_PORT,
                                                                             mJsonSources.c_str(),
                                                                             static_cast<int>(mJsonSources.size()));
         jassert(!(numBytesWrittenSources < 0));
     }
-
-    if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
+{
         [[maybe_unused]] int numBytesWrittenSpeakers = udpSenderSocket.write(remoteHostname,
                                                                              DEFAULT_UDP_INPUT_PORT,
                                                                              mJsonSpeakers.c_str(),
@@ -503,8 +497,7 @@ void SpeakerViewComponent::sendUDP()
         jassert(!(numBytesWrittenSpeakers < 0));
     }
 
-    if (!mJsonSGInfos.empty()) {
-        if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
+    if (!mJsonSGInfos.empty()) {{
             [[maybe_unused]] int numBytesWrittenSGInfos
                 = udpSenderSocket.write(remoteHostname,
                                         DEFAULT_UDP_INPUT_PORT,
