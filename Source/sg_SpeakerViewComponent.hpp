@@ -52,6 +52,9 @@ private:
     std::string mJsonSpeakers;
     std::string mJsonSGInfos;
 
+    const juce::String remoteHostname = "127.0.0.1";
+    juce::DatagramSocket udpSenderSocket;
+
     bool mKillSpeakerViewProcess{};
 
 public:
