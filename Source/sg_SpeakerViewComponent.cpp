@@ -23,8 +23,27 @@
 
 #include <algorithm>
 
+#include <charconv>
+
 namespace gris
 {
+static void appendFloat(std::string & str, float val)
+{
+    // otherwise we get some 4.37e-38 ...
+    if (std::abs(val) < 1e-6f)
+        val = 0.f;
+
+#if __cpp_lib_to_chars >= 201611L
+    static constexpr auto precision = 3;
+    static constexpr auto format = std::chars_format::general;
+    char buf[16];
+    auto res = std::to_chars(buf, buf + 16, val, format, precision);
+    jassert(res.ec == std::errc{});
+    str.append(buf, res.ptr);
+#else
+    str += std::to_string(val);
+#endif
+}
 //==============================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
     : mMainContentComponent(mainContentComponent)
@@ -122,20 +141,13 @@ void SpeakerViewComponent::shouldKillSpeakerViewProcess(bool shouldKill)
 }
 
 //==============================================================================
-void SpeakerViewComponent::hiResTimerCallback()
+void SpeakerViewComponent::writeSourcesJson()
 {
-    mHighResTimerThreadID = juce::Thread::getCurrentThreadId();
-
-    juce::ScopedLock const lock{ mLock };
-
-    listenUDP();
-
-    auto const & viewSettings{ mData.warmData.viewSettings };
-
-    // Prepare json sources data
     mJsonSources.clear();
-    mJsonSources.add(juce::var("sources"));
+    mJsonSources.reserve(4096);
+    mJsonSources += "[\"sources\",";
 
+    int processedSources = 0;
     for (auto & source : mData.hotSourcesDataUpdaters) {
         auto & exchanger{ source.value };
         auto *& ticket{ mData.coldData.mostRecentSourcesData[source.key] };
@@ -149,7 +161,7 @@ void SpeakerViewComponent::hiResTimerCallback()
         }
         /* Order is :
             srcNum
-            pos[x, y, z]
+            pos[x, y, z]  (note: SG is XZ-Y, Godot is XYZ. Conversion happens in SpeakerView)
             color[r, g, b, a]
             hybridSpatMode
             azimuth
@@ -157,27 +169,46 @@ void SpeakerViewComponent::hiResTimerCallback()
         */
         auto const & pos{ sourceData->position.getCartesian() };
         auto const & color{ sourceData->colour };
-        auto const & hybridSpatMode{ static_cast<int>(sourceData->hybridSpatMode) };
-        auto const & azimuth{ sourceData->azimuthSpan };
-        auto const & elevation{ sourceData->zenithSpan };
+        mJsonSources += "[";
+        mJsonSources += std::to_string(source.key.get());
+        mJsonSources += ",[";
+        appendFloat(mJsonSources, pos.x);
+        mJsonSources += ",";
+        appendFloat(mJsonSources, pos.y);
+        mJsonSources += ",";
+        appendFloat(mJsonSources, pos.z);
+        mJsonSources += "],[";
+        appendFloat(mJsonSources, color.getFloatRed());
+        mJsonSources += ",";
+        appendFloat(mJsonSources, color.getFloatGreen());
+        mJsonSources += ",";
+        appendFloat(mJsonSources, color.getFloatBlue());
+        mJsonSources += ",";
+        appendFloat(mJsonSources, color.getFloatAlpha());
+        mJsonSources += "],";
+        mJsonSources += std::to_string(static_cast<int>(sourceData->hybridSpatMode));
+        mJsonSources += ",";
+        appendFloat(mJsonSources, sourceData->azimuthSpan);
+        mJsonSources += ",";
+        appendFloat(mJsonSources, sourceData->zenithSpan);
+        mJsonSources += "],";
 
-        juce::Array<juce::var> jsonSource;
-        jsonSource.add(juce::var(source.key.get())); // srcNum
-        // SG is XZ-Y, Godot is XYZ. Conversion happens in SpeakerView
-        jsonSource.add(juce::var(juce::Array<juce::var>({ pos.x, pos.y, pos.z }))); // pos
-        jsonSource.add(juce::var(juce::Array<juce::var>(color.getFloatRed(),
-                                                        color.getFloatGreen(),
-                                                        color.getFloatBlue(),
-                                                        color.getFloatAlpha()))); // color
-        jsonSource.add(juce::var(hybridSpatMode)); // 0=Dome ou 1=Cube              // hybridSpatMode
-        jsonSource.add(juce::var(azimuth));        // azimuth
-        jsonSource.add(juce::var(elevation));      // elevation
-        mJsonSources.add(jsonSource);
+        processedSources++;
     }
+    if (processedSources > 0)
+        mJsonSources.pop_back(); // Remove the last ,
+    mJsonSources += "]";
+}
 
-    // Prepare json speakers data
+//==============================================================================
+void SpeakerViewComponent::writeSpeakersJson()
+{
+    auto const & viewSettings{ mData.warmData.viewSettings };
+
+    int processedSpeakers = 0;
     mJsonSpeakers.clear();
-    mJsonSpeakers.add(juce::var("speakers"));
+    mJsonSpeakers.reserve(4096);
+    mJsonSpeakers += "[\"speakers\",";
     if (viewSettings.showSpeakers) {
         for (auto const & speaker : mData.warmData.speakers) {
             static constexpr auto DEFAULT_ALPHA = 0.75f;
@@ -204,21 +235,41 @@ void SpeakerViewComponent::hiResTimerCallback()
             */
 
             auto const & pos{ speaker.value.position.getCartesian() };
-            auto const & isSelected{ speaker.value.isSelected };
-            auto const & isDirectOutOnly{ speaker.value.isDirectOutOnly };
-            auto const & alpha{ getAlpha() };
 
-            juce::Array<juce::var> jsonSpeaker;
-            jsonSpeaker.add(juce::var(speaker.key.get()));                               // spkNum
-            jsonSpeaker.add(juce::var(juce::Array<juce::var>({ pos.x, pos.y, pos.z }))); // pos
-            jsonSpeaker.add(juce::var(isSelected));                                      // isSelected
-            jsonSpeaker.add(juce::var(isDirectOutOnly));                                 // isDirectOutOnly
-            jsonSpeaker.add(juce::var(alpha));                                           // alpha
-            mJsonSpeakers.add(jsonSpeaker);
+            mJsonSpeakers += "[";
+            mJsonSpeakers += std::to_string(speaker.key.get());
+            mJsonSpeakers += ",[";
+            appendFloat(mJsonSpeakers, pos.x);
+            mJsonSpeakers += ",";
+            appendFloat(mJsonSpeakers, pos.y);
+            mJsonSpeakers += ",";
+            appendFloat(mJsonSpeakers, pos.z);
+            mJsonSpeakers += "],";
+            mJsonSpeakers += speaker.value.isSelected ? "1" : "0";
+            mJsonSpeakers += ",";
+            mJsonSpeakers += speaker.value.isDirectOutOnly ? "1" : "0";
+            mJsonSpeakers += ",";
+            appendFloat(mJsonSpeakers, getAlpha());
+            mJsonSpeakers += "],";
+
+            processedSpeakers++;
         }
     }
+    if (processedSpeakers > 0)
+        mJsonSpeakers.pop_back(); // Remove the last ,
+    mJsonSpeakers += "]";
+}
 
-    // Prepare json SpatGris infos
+void SpeakerViewComponent::hiResTimerCallback()
+{
+    mHighResTimerThreadID = juce::Thread::getCurrentThreadId();
+
+    juce::ScopedLock const lock{ mLock };
+
+    listenUDP();
+
+    writeSourcesJson();
+    writeSpeakersJson();
     prepareSGInfos();
 
     sendUDP();
@@ -262,9 +313,7 @@ void SpeakerViewComponent::prepareSGInfos()
     mJsonSGInfos->setProperty("spkTriplets", triplets);
 
     if (mMainContentComponent.speakerViewShouldGrabFocus()) {
-        juce::MessageManager::callAsync([this] {
-            mMainContentComponent.resetSpeakerViewShouldGrabFocus();
-        });
+        juce::MessageManager::callAsync([this] { mMainContentComponent.resetSpeakerViewShouldGrabFocus(); });
     }
 }
 
@@ -405,23 +454,19 @@ void SpeakerViewComponent::sendUDP()
 
     udpSenderSocket.bindToPort(DEFAULT_UDP_INPUT_PORT, remoteHostname);
 
-    juce::String jsonSourcesStr = juce::JSON::toString(juce::var(mJsonSources));
     if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
-        [[maybe_unused]] int numBytesWrittenSources
-            = udpSenderSocket.write(remoteHostname,
-                                    DEFAULT_UDP_INPUT_PORT,
-                                    jsonSourcesStr.toStdString().c_str(),
-                                    static_cast<int>(jsonSourcesStr.toStdString().length()));
+        [[maybe_unused]] int numBytesWrittenSources = udpSenderSocket.write(remoteHostname,
+                                                                            DEFAULT_UDP_INPUT_PORT,
+                                                                            mJsonSources.c_str(),
+                                                                            static_cast<int>(mJsonSources.size()));
         jassert(!(numBytesWrittenSources < 0));
     }
 
-    juce::String jsonSpeakersStr = juce::JSON::toString(juce::var(mJsonSpeakers));
     if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
-        [[maybe_unused]] int numBytesWrittenSpeakers
-            = udpSenderSocket.write(remoteHostname,
-                                    DEFAULT_UDP_INPUT_PORT,
-                                    jsonSpeakersStr.toStdString().c_str(),
-                                    static_cast<int>(jsonSpeakersStr.toStdString().length()));
+        [[maybe_unused]] int numBytesWrittenSpeakers = udpSenderSocket.write(remoteHostname,
+                                                                             DEFAULT_UDP_INPUT_PORT,
+                                                                             mJsonSpeakers.c_str(),
+                                                                             static_cast<int>(mJsonSpeakers.size()));
         jassert(!(numBytesWrittenSpeakers < 0));
     }
 
