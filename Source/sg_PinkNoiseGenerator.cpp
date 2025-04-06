@@ -41,10 +41,21 @@ void fillWithPinkNoise(float * const * samples, int const numSamples, int const 
 {
     static constexpr auto FAC{ 1.0f / (static_cast<float>(RAND_MAX) / 2.0f) };
     static constexpr dbfs_t CORRECTION_DB{ -18.2f };
+    static int pulseCounter = 0;
+    static constexpr int SAMPLE_RATE = 48000;
+    static constexpr int PULSE_INTERVAL = SAMPLE_RATE; // 1 second
+    static bool pulseOn = true;
+
 
     static auto const CORRECTION{ CORRECTION_DB.toGain() };
 
-    for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
+    for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex)
+         {
+           ++pulseCounter;
+          if (pulseCounter >= PULSE_INTERVAL) {
+        pulseOn = !pulseOn;
+       pulseCounter = 0;
+       } 
         auto const rnd{ narrow<float>(rand()) * FAC - 1.0f };
         pinkNoiseC0 = pinkNoiseC0 * 0.99886f + rnd * 0.0555179f;
         pinkNoiseC1 = pinkNoiseC1 * 0.99332f + rnd * 0.0750759f;
@@ -57,9 +68,12 @@ void fillWithPinkNoise(float * const * samples, int const numSamples, int const 
         sampleValue *= gain * CORRECTION;
         pinkNoiseC6 = rnd * 0.115926f;
 
-        for (int channelIndex{}; channelIndex < numChannels; channelIndex++) {
-            samples[channelIndex][sampleIndex] += sampleValue;
-        }
+       if (pulseOn) {
+         for (int channelIndex{}; channelIndex < numChannels; channelIndex++) {
+             samples[channelIndex][sampleIndex] += sampleValue;
+             }
+          }
+
     }
 }
 
