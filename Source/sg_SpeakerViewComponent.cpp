@@ -315,12 +315,13 @@ void SpeakerViewComponent::listenUDP()
                             });
                         }
                     } else if (property.compare(juce::String("keepSVTop")) == 0) {
-                        auto keepSVOnTopValue = static_cast<bool>(value);
+                 
+                        auto keepSVOnTopValue = value.isBool() ? static_cast<bool>(value) : value.toString().compareIgnoreCase("true") == 0;
                         juce::MessageManager::callAsync([this, keepSVOnTopValue] {
                             mMainContentComponent.handleKeepSVOnTopFromSpeakerView(keepSVOnTopValue);
                         });
                     } else if (property.compare(juce::String("showHall")) == 0) {
-                        auto showHallValue = static_cast<bool>(value);
+                        auto showHallValue = value.isBool() ? static_cast<bool>(value) : value.toString().compareIgnoreCase("true") == 0;
                         juce::MessageManager::callAsync([this, showHallValue] {
                             mMainContentComponent.handleShowHallFromSpeakerView(showHallValue);
                         });
