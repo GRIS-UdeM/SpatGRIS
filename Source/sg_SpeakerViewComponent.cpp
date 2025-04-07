@@ -33,6 +33,9 @@ static void appendNumber(std::string & str, float val)
     if (std::abs(val) < 1e-6f)
         val = 0.f;
 
+    // We are not using to_chars directly as it may not be available
+    // on every platform (e.g. older macOS).
+    // See notes here: https://en.cppreference.com/w/cpp/utility/to_chars
 #if __cpp_lib_to_chars >= 201611L
     static constexpr auto precision = 3;
     static constexpr auto format = std::chars_format::general;
@@ -44,6 +47,7 @@ static void appendNumber(std::string & str, float val)
     str += std::to_string(val);
 #endif
 }
+
 static void appendNumber(std::string & str, int val)
 {
 #if __cpp_lib_to_chars >= 201611L
@@ -336,11 +340,17 @@ void SpeakerViewComponent::prepareSGInfos()
 
     mJsonSGInfos += "\"spkTriplets\":[";
 
-    juce::Array<juce::var> triplets;
-    for (auto const & triplet : mData.coldData.triplets) {
-        appendNumber(mJsonSGInfos, triplet.id1.get());
-        appendNumber(mJsonSGInfos, triplet.id2.get());
-        appendNumber(mJsonSGInfos, triplet.id3.get());
+    if(!mData.coldData.triplets.isEmpty()) {
+        for (auto const & triplet : mData.coldData.triplets) {
+            mJsonSGInfos += '[';
+            appendNumber(mJsonSGInfos, triplet.id1.get());
+            mJsonSGInfos += ',';
+            appendNumber(mJsonSGInfos, triplet.id2.get());
+            mJsonSGInfos += ',';
+            appendNumber(mJsonSGInfos, triplet.id3.get());
+            mJsonSGInfos += "],";
+        }
+        mJsonSGInfos.pop_back(); // Remove the last ,
     }
     mJsonSGInfos += "]";
 
