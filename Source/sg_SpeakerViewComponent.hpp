@@ -36,6 +36,12 @@ class MainContentComponent;
 class SpeakerModel;
 
 //==============================================================================
+/**
+ * @brief Manages network interaction with the SpeakerView process.
+ * 
+ * The communication is based on JSON over raw UDP sockets.
+ * The protocol is documented in [doc/SpeakerView.md](SpeakerView.md) at the root of the repository.
+ */
 class SpeakerViewComponent final : public juce::HighResolutionTimer
 {
 private:

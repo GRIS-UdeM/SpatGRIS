@@ -95,3 +95,31 @@ SpatGRIS communicates with SpeakerView using the following messages:
 ```
 
 
+## Communication example
+
+It is possible for any software to communicate with a SpeakerView instance through the appropriate UDP messages.
+
+Here is a simple example:
+
+1. Start SpeakerView with the correct command-line arguments:
+
+```bash
+./SpeakerView.x86_64 -- launchedBySG=true
+```
+
+2. Using netcat or any other software, send the messages documented above:
+
+```bash
+#!/bin/bash
+
+while true; do
+  printf '{"killSV":false,"spkStpName":"default_speaker_setup","SGHasFocus":false,"KeepSVOnTop":false,"SVGrabFocus":false,"showHall":false,"spatMode":0,"showSourceNumber":false,"showSpeakerNumber":false,"showSpeakers":true,"showSpeakerTriplets":false,"showSourceActivity":false,"showSpeakerLevel":false,"showSphereOrCube":false,"genMute":false,"spkTriplets":[]}' \
+    | nc -u -q 0 127.0.0.1 18022 
+
+  printf '["speakers",[1,[-0.37,0.92,0],false,false,0.75],[2,[0.37,-0.92,0],false,false,0.75],[3,[-0.37,-0.92,0],false,false,0.75]]' \
+    | nc -u -q 0 127.0.0.1 18022
+
+  printf '["sources"]' \
+    | nc -u -q 0 127.0.0.1 18022
+done
+```
