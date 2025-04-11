@@ -96,7 +96,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     , mMainWindow(mainWindow)
 {
 
-#if JUCE_DEBUG
+#if JUCE_DEBUG && RUN_UNIT_TEST
     juce::UnitTestRunner testRunner;
     testRunner.runAllTests();
 #endif
@@ -1920,7 +1920,9 @@ void MainContentComponent::setLegacySourcePosition(source_index_t const sourceIn
     juce::ScopedWriteLock const lock{ mLock };
 
     if (!mData.project.sources.contains(sourceIndex)) {
-        jassertfalse;
+        // There used to be an assert here, but by design we want to allow SpatGRIS to have more or less sources than
+        // ControlGRIS, to allow N number of ControlGRIS/controller instances to connect to M number of
+        // SpatGRIS/spatializer instances.
         return;
     }
 
@@ -1971,7 +1973,9 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
     juce::ScopedWriteLock const lock{ getLock() };
 
     if (!mData.project.sources.contains(sourceIndex)) {
-        jassertfalse;
+        // There used to be an assert here, but by design we want to allow SpatGRIS to have more or less sources than
+        // ControlGRIS, to allow N number of ControlGRIS/controller instances to connect to M number of
+        // SpatGRIS/spatializer instances.
         return;
     }
 
@@ -2012,7 +2016,9 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
     juce::ScopedWriteLock const lock{ mLock };
 
     if (!mData.project.sources.contains(sourceIndex)) {
-        jassertfalse;
+        // There used to be an assert here, but by design we want to allow SpatGRIS to have more or less sources than
+        // ControlGRIS, to allow N number of ControlGRIS/controller instances to connect to M number of
+        // SpatGRIS/spatializer instances.
         return;
     }
 

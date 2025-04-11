@@ -26,7 +26,7 @@
 #include "AlgoGRIS/Data/sg_constants.hpp"
 #include "sg_AudioManager.hpp"
 #include "sg_MainComponent.hpp"
-#include "sg_PinkNoiseGenerator.hpp"
+#include "AlgoGRIS/sg_PinkNoiseGenerator.hpp"
 
 #include <array>
 
@@ -150,7 +150,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
             stereoBuffer.applyGain(0.0f);
         } else {
             auto const & masterGain{ mAudioData.config->masterGain };
-            if (masterGain != 0.0f) {
+            if (! juce::approximatelyEqual (masterGain, 0.0f)) {
                 stereoBuffer.applyGain(masterGain);
             }
             auto * stereoPeaksTicket{ mAudioData.stereoPeaksUpdater.acquire() };

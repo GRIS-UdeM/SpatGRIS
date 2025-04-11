@@ -47,15 +47,15 @@ std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
 AudioManager::AudioManager(juce::String const & deviceType,
                            juce::String const & inputDevice,
                            juce::String const & outputDevice,
-                           double const sampleRate,
-                           int const bufferSize,
+                           double const pSampleRate,
+                           int const pBufferSize,
                            tl::optional<StereoRouting> const & stereoRouting)
     : mStereoRouting(stereoRouting)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
 #ifndef SIMULATE_NO_AUDIO_DEVICES
-    auto const success{ tryInitAudioDevice(deviceType, inputDevice, outputDevice, sampleRate, bufferSize) };
+    auto const success{ tryInitAudioDevice(deviceType, inputDevice, outputDevice, pSampleRate, pBufferSize) };
 
     if (!success) {
         mAudioDeviceManager.initialiseWithDefaultDevices(MAX_NUM_SOURCES, MAX_NUM_SPEAKERS);
@@ -131,9 +131,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     }
 
     // do the actual processing
-    if (mAudioProcessor != nullptr) {
-        mAudioProcessor->processAudio(mInputBuffer, mOutputBuffer, mStereoOutputBuffer);
-    }
+    mAudioProcessor->processAudio(mInputBuffer, mOutputBuffer, mStereoOutputBuffer);
 
     // copy buffers to output
     if (mStereoRouting) {

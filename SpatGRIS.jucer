@@ -40,10 +40,6 @@
               file="Source/sg_AudioProcessor.cpp"/>
         <FILE id="GgeC27" name="sg_AudioProcessor.hpp" compile="0" resource="0"
               file="Source/sg_AudioProcessor.hpp"/>
-        <FILE id="s7fPrx" name="sg_PinkNoiseGenerator.cpp" compile="1" resource="0"
-              file="Source/sg_PinkNoiseGenerator.cpp"/>
-        <FILE id="BBFEaw" name="sg_PinkNoiseGenerator.hpp" compile="0" resource="0"
-              file="Source/sg_PinkNoiseGenerator.hpp"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="Misc">
         <FILE id="uE7qMG" name="sg_FatalError.cpp" compile="1" resource="0"
@@ -329,6 +325,10 @@
               file="submodules/AlgoGRIS/sg_VbapSpatAlgorithm.cpp"/>
         <FILE id="YcX6NU" name="sg_VbapSpatAlgorithm.hpp" compile="0" resource="0"
               file="submodules/AlgoGRIS/sg_VbapSpatAlgorithm.hpp"/>
+        <FILE id="x4FvZF" name="sg_PinkNoiseGenerator.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_PinkNoiseGenerator.cpp"/>
+        <FILE id="EOhom9" name="sg_PinkNoiseGenerator.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_PinkNoiseGenerator.hpp"/>
       </GROUP>
     </GROUP>
   </MAINGROUP>
