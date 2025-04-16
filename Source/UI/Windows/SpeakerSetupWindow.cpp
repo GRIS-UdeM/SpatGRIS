@@ -28,5 +28,17 @@ SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lnf)
 {
+    setContentNonOwned (&mValueTreesDemo, true);
+    setResizable (true, true);
+    setUsingNativeTitleBar (true);
+    setAlwaysOnTop (true);
+
+    static constexpr auto WIDTH = 850;
+    static constexpr auto HEIGHT = 600;
+    static constexpr auto TITLE_BAR_HEIGHT = 30;
+    const auto& controlsComponent { *mainContentComponent.getControlsComponent () };
+    setBounds (controlsComponent.getScreenX (), controlsComponent.getScreenY () + TITLE_BAR_HEIGHT, WIDTH, HEIGHT);
+
+    DocumentWindow::setVisible (true);
 }
 }

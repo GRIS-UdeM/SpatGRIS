@@ -605,7 +605,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
         auto const windowName = juce::String { "Speaker Setup Edition - " }
             + spatModeToString (mData.speakerSetup.spatMode) + " - "
             + juce::File { mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension ();
-        mSpeakerSetupWindow = std::make_unique<SpeakerSetupWindow>();
+        mSpeakerSetupWindow = std::make_unique<SpeakerSetupWindow>(windowName, mLookAndFeel, *this);
         //mEditSpeakersWindow->initComp ();
     }
 #endif
@@ -2831,14 +2831,26 @@ void MainContentComponent::timerCallback()
 
     mInfoPanel->setCpuLoad(cpuRunningAverage);
 
+#if 1
     if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
         mIsProcessForeground = juce::Process::isForegroundProcess();
-        if (mEditSpeakersWindow != nullptr && mIsProcessForeground) {
-            mEditSpeakersWindow->setAlwaysOnTop(true);
-        } else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
-            mEditSpeakersWindow->setAlwaysOnTop(false);
+        if (mSpeakerSetupWindow != nullptr && mIsProcessForeground) {
+            mSpeakerSetupWindow->setAlwaysOnTop(true);
+        } else if (mSpeakerSetupWindow != nullptr && !mIsProcessForeground) {
+            mSpeakerSetupWindow->setAlwaysOnTop(false);
         }
     }
+#else
+    if (mIsProcessForeground != juce::Process::isForegroundProcess ()) {
+        mIsProcessForeground = juce::Process::isForegroundProcess ();
+        if (mEditSpeakersWindow != nullptr && mIsProcessForeground) {
+            mEditSpeakersWindow->setAlwaysOnTop (true);
+        }
+        else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
+            mEditSpeakersWindow->setAlwaysOnTop (false);
+        }
+    }
+#endif
 }
 
 //==============================================================================
