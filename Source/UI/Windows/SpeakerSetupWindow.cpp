@@ -16,16 +16,17 @@
 */
 
 #include "SpeakerSetupWindow.hpp"
-
+#include "../../sg_GrisLookAndFeel.hpp"
+#include "../../sg_MainComponent.hpp"
 
 namespace gris
 {
-//SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
-//                                       GrisLookAndFeel & lnf,
-//                                       MainContentComponent & mainContentComponent)
-//    : DocumentWindow(name, lnf.getBackgroundColour(), allButtons)
-//    , mMainContentComponent(mainContentComponent)
-//    , mLookAndFeel(lnf)
-//{
-//}
+SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
+                                       GrisLookAndFeel & lnf,
+                                       MainContentComponent & mainContentComponent)
+    : DocumentWindow(name, lnf.getBackgroundColour(), allButtons)
+    , mMainContentComponent(mainContentComponent)
+    , mLookAndFeel(lnf)
+{
+}
 }
