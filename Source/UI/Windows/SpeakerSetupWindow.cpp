@@ -79,9 +79,9 @@ SpeakerTreeItemComponent::SpeakerTreeItemComponent (const ValueTree& v)
 {
     setInterceptsMouseClicks (false, true);
 
-    setupEditor (x, juce::String::toDecimalStringWithSignificantFigures (static_cast<float>(v["X"]), 2));
-    setupEditor (y, juce::String::toDecimalStringWithSignificantFigures (static_cast<float>(v["Y"]), 2));
-    setupEditor (z, juce::String::toDecimalStringWithSignificantFigures (static_cast<float>(v["Z"]), 2));
+    setupEditor (x, juce::String::formatted ("%.2f", static_cast<float>(v["X"])));
+    setupEditor (y, juce::String::formatted ("%.2f", static_cast<float>(v["Y"])));
+    setupEditor (z, juce::String::formatted ("%.2f", static_cast<float>(v["Z"])));
     setupEditor (azim, "need convert");
     setupEditor (elev, "need convert");
     setupEditor (distance, "is this radius?");
