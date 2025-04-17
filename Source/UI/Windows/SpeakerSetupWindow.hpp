@@ -37,33 +37,7 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup);
 class SpeakerTreeItemComponent : public juce::Component
 {
 public:
-    SpeakerTreeItemComponent (const ValueTree& v)
-        : vt (v)
-    {
-        setInterceptsMouseClicks (false, true);
-
-        const auto setupEditor = [this](juce::Label& editor, juce::StringRef text)
-            {
-                editor.setText (text, dontSendNotification);
-                editor.setEditable (true);
-                addAndMakeVisible (editor);
-            };
-
-        //TODO: the text here needs to be the value of the thing lol, not the name of it. We need the name in a header though
-        setupEditor (id, v.getType().toString());
-        setupEditor (x, "X");
-        setupEditor (y, "Y");
-        setupEditor (z, "Z");
-        setupEditor (azim, "Azimuth");
-        setupEditor (elev, "Elevation");
-        setupEditor (distance, "Elevation");
-        setupEditor (gain, "Elevation");
-        setupEditor (highpass, "Elevation");
-
-        //there 2 are not editors
-        setupEditor (direct, "Elevation");
-        setupEditor (del, "Elevation");
-    }
+    SpeakerTreeItemComponent (const ValueTree& v);
 
     void resized () override
     {
@@ -74,25 +48,37 @@ public:
             component->setBounds (bounds.removeFromLeft (colW));
     }
 
-private:
+protected:
+    void setupEditor(juce::Label & editor, juce::StringRef text)
+    {
+        editor.setText(text, dontSendNotification);
+        editor.setEditable(true);
+        addAndMakeVisible(editor);
+    };
+
     juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del;
 
     ValueTree vt;
+
 };
+
+//==============================================================================
 
 class SpeakerGroupComponent : public SpeakerTreeItemComponent
 {
 public:
-    SpeakerGroupComponent (const ValueTree& v) : SpeakerTreeItemComponent (v) {}
+    SpeakerGroupComponent (const ValueTree& v);
 };
+
+//==============================================================================
 
 class SpeakerComponent : public SpeakerTreeItemComponent
 {
 public:
-    SpeakerComponent (const ValueTree& v) : SpeakerTreeItemComponent (v) {}
+    SpeakerComponent (const ValueTree& v);
 };
 
-//================
+//==============================================================================
 
 class SpeakerSetupLine final
     : public TreeViewItem
@@ -236,34 +222,7 @@ class SpeakerSetupContainer final : public Component,
     private Timer
 {
 public:
-    SpeakerSetupContainer ()
-    {
-#if JUCE_LINUX
-        const auto vtFile = juce::File("/home/vberthiaume/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
-#else
-        const auto vtFile = juce::File("C:/Users/barth/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
-#endif
-        const auto vt {juce::ValueTree::fromXml (vtFile.loadFileAsString())};
-
-        //NOW HERE -- WE NEED TO CONVERT THIS BS SPEAKERVIEW FORMAT TO A NEW ONE LFG
-        addAndMakeVisible (treeView);
-
-        treeView.setTitle (vtFile.getFileName());
-        treeView.setDefaultOpenness (true);
-        treeView.setMultiSelectEnabled (true);
-
-        rootItem.reset (new SpeakerSetupLine (vt, undoManager));
-        treeView.setRootItem (rootItem.get ());
-
-        addAndMakeVisible (undoButton);
-        addAndMakeVisible (redoButton);
-        undoButton.onClick = [this] { undoManager.undo (); };
-        redoButton.onClick = [this] { undoManager.redo (); };
-
-        startTimer (500);
-
-        setSize (500, 500);
-    }
+    SpeakerSetupContainer ();
 
     ~SpeakerSetupContainer () override
     {

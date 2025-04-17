@@ -21,6 +21,92 @@
 
 namespace gris
 {
+//TODO VB: put somewhere central
+void copyValueTreeProperties (const juce::ValueTree& source, juce::ValueTree& dest)
+{
+    for (int i = 0; i < source.getNumProperties (); ++i) {
+        const auto propertyName = source.getPropertyName (i);
+        const auto propertyValue = source.getProperty (propertyName);
+        dest.setProperty (propertyName, propertyValue, nullptr);
+    }
+};
+
+//TODO VB: this will need unit tests -- and can this be constexpr
+juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
+{
+    //<SPEAKER_SETUP VERSION = "3.1.14" SPAT_MODE = "Dome" DIFFUSION = "0.0" GENERAL_MUTE = "0">
+    // 
+    //  <SPEAKER_1 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
+    //      <POSITION X = "-4.371138828673793e-8" Y = "1.0" Z = "-4.371138828673793e-8" / >
+    //  </SPEAKER_1>
+    //  <SPEAKER_2 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
+    //      <POSITION X = "0.0980171337723732" Y = "0.9951847195625305" Z = "-4.371138828673793e-8" / >
+
+    if (oldSpeakerSetup.getType ().toString () != "SPEAKER_SETUP")
+    {
+        jassertfalse;
+        return {};
+    }
+
+    const auto version = "4.0.0";
+    auto newVt = juce::ValueTree ("SPEAKER_SETUP");
+
+    //copy and update the root node
+    copyValueTreeProperties (oldSpeakerSetup, newVt);
+    newVt.setProperty ("VERSION", version, nullptr);
+
+    //then do the same with the children
+    for (const auto& speaker : oldSpeakerSetup)
+    {
+        auto newSpeaker = juce::ValueTree { "SPEAKER" };
+        const auto speakerId = speaker.getType ().toString ().removeCharacters ("SPEAKER_");
+        newSpeaker.setProperty ("ID", speakerId, nullptr);
+
+        //copy properties for the speaker and its position child into the newSpeaker
+        copyValueTreeProperties (speaker, newSpeaker);
+        copyValueTreeProperties (speaker.getChild (0), newSpeaker);
+
+        newVt.appendChild (newSpeaker, nullptr);
+    }
+
+    return newVt;
+}
+
+//==============================================================================
+
+SpeakerTreeItemComponent::SpeakerTreeItemComponent (const ValueTree& v)
+    : vt (v)
+{
+    setInterceptsMouseClicks (false, true);
+
+    setupEditor (x, juce::String::toDecimalStringWithSignificantFigures (static_cast<float>(v["X"]), 2));
+    setupEditor (y, juce::String::toDecimalStringWithSignificantFigures (static_cast<float>(v["Y"]), 2));
+    setupEditor (z, juce::String::toDecimalStringWithSignificantFigures (static_cast<float>(v["Z"]), 2));
+    setupEditor (azim, "need convert");
+    setupEditor (elev, "need convert");
+    setupEditor (distance, "is this radius?");
+    setupEditor (del, "DELETE");
+}
+
+//==============================================================================
+
+SpeakerGroupComponent::SpeakerGroupComponent(const ValueTree & v) : SpeakerTreeItemComponent(v)
+{
+    setupEditor (id, v.getType ().toString ());
+}
+
+//==============================================================================
+
+SpeakerComponent::SpeakerComponent(const ValueTree & v) : SpeakerTreeItemComponent(v)
+{
+    setupEditor (id, v["ID"].toString());
+    setupEditor (gain, v["GAIN"].toString());
+    setupEditor (highpass, "wtf is this");
+    setupEditor (direct, v["DIRECT_OUT_ONLY"].toString ());
+}
+
+//==============================================================================
+
 SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
                                        GrisLookAndFeel & lnf,
                                        MainContentComponent & mainContentComponent)
@@ -48,51 +134,33 @@ void SpeakerSetupWindow::closeButtonPressed ()
     mMainContentComponent.closeSpeakersConfigurationWindow ();
 }
 
-//TODO VB: this will need unit tests -- and can this be constexpr
-juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
+//==============================================================================
+
+SpeakerSetupContainer::SpeakerSetupContainer ()
 {
-    //<SPEAKER_SETUP VERSION = "3.1.14" SPAT_MODE = "Dome" DIFFUSION = "0.0" GENERAL_MUTE = "0">
-    // 
-    //  <SPEAKER_1 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
-    //      <POSITION X = "-4.371138828673793e-8" Y = "1.0" Z = "-4.371138828673793e-8" / >
-    //  </SPEAKER_1>
-    //  <SPEAKER_2 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
-    //      <POSITION X = "0.0980171337723732" Y = "0.9951847195625305" Z = "-4.371138828673793e-8" / >
+#if JUCE_LINUX
+    const auto vtFile = juce::File ("/home/vberthiaume/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
+#else
+    const auto vtFile = juce::File ("C:/Users/barth/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
+#endif
+    const auto vt { convertSpeakerSetup (juce::ValueTree::fromXml (vtFile.loadFileAsString ())) };
 
-    if (oldSpeakerSetup.getType ().toString () != "SPEAKER_SETUP")
-    {
-        jassertfalse;
-        return {};
-    }
+    addAndMakeVisible (treeView);
 
-    const auto version = "4.0.0";
+    treeView.setTitle (vtFile.getFileName ());
+    treeView.setDefaultOpenness (true);
+    treeView.setMultiSelectEnabled (true);
 
-    auto newVt = juce::ValueTree("SPEAKER_SETUP");
+    rootItem.reset (new SpeakerSetupLine (vt, undoManager));
+    treeView.setRootItem (rootItem.get ());
 
-    // Copy all properties from oldSpeakerSetup to newVt
-    for (int i = 0; i < oldSpeakerSetup.getNumProperties(); ++i) {
-        const auto propertyName = oldSpeakerSetup.getPropertyName(i);
-        const auto propertyValue = oldSpeakerSetup.getProperty(propertyName);
-        newVt.setProperty(propertyName, propertyValue, nullptr);
-    }
+    addAndMakeVisible (undoButton);
+    addAndMakeVisible (redoButton);
+    undoButton.onClick = [this] { undoManager.undo (); };
+    redoButton.onClick = [this] { undoManager.redo (); };
 
-    // Update the version property
-    newVt.setProperty("VERSION", version, nullptr);
+    startTimer (500);
 
-
-    //then deal with the children
-    for (const auto& speaker : oldSpeakerSetup)
-    {
-        newVt.appendChild (juce::ValueTree {"SPEAKER"}, nullptr);
-        const auto id = speaker.getType().toString().removeCharacters ("SPEAKER");
-    }
-    
-
-    
-
-
-
-    return newVt;
+    setSize (500, 500);
 }
-
 }
