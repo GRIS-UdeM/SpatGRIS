@@ -85,7 +85,7 @@ SpeakerTreeItemComponent::SpeakerTreeItemComponent (const ValueTree& v)
     setupEditor (azim, "need convert");
     setupEditor (elev, "need convert");
     setupEditor (distance, "is this radius?");
-    setupEditor (del, "DELETE");
+    setupEditor (del, "DEL");
 }
 
 //==============================================================================
@@ -101,7 +101,7 @@ SpeakerComponent::SpeakerComponent(const ValueTree & v) : SpeakerTreeItemCompone
 {
     setupEditor (id, v["ID"].toString());
     setupEditor (gain, v["GAIN"].toString());
-    setupEditor (highpass, "wtf is this");
+    setupEditor (highpass, "wtf?");
     setupEditor (direct, v["DIRECT_OUT_ONLY"].toString ());
 }
 

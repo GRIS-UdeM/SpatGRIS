@@ -59,7 +59,6 @@ protected:
     juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del;
 
     ValueTree vt;
-
 };
 
 //==============================================================================
@@ -135,9 +134,10 @@ public:
         return "Drag Demo";
     }
 
-    bool isInterestedInDragSource (const DragAndDropTarget::SourceDetails& dragSourceDetails) override
+    bool isInterestedInDragSource (const DragAndDropTarget::SourceDetails& /*dragSourceDetails*/) override
     {
-        return dragSourceDetails.description == "Drag Demo";
+        //TODO VB: using this as a shortcut to identify groups, we need another way
+        return mightContainSubItems();
     }
 
     void itemDropped (const DragAndDropTarget::SourceDetails&, int insertIndex) override
