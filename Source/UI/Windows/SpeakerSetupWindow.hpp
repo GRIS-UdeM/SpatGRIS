@@ -37,6 +37,8 @@ class SpeakerTreeItemComponent : public juce::Component
 public:
     SpeakerTreeItemComponent ()
     {
+        setInterceptsMouseClicks (false, true);
+
         const auto setupEditor = [this](juce::Label& editor, juce::StringRef text)
             {
                 editor.setText (text, dontSendNotification);
@@ -98,7 +100,7 @@ public:
 
     String getUniqueName () const override
     {
-        return tree["name"].toString ();
+        return tree.getType().toString ();
     }
 
     bool mightContainSubItems () override
@@ -106,6 +108,7 @@ public:
         return tree.getNumChildren () > 0;
     }
 
+#if 1
     std::unique_ptr<Component> createItemComponent () override
     {
         if (mightContainSubItems ())
@@ -113,6 +116,18 @@ public:
         else
             return std::make_unique<SpeakerComponent> ();
     }
+#else
+    void paintItem(Graphics & g, int width, int height) override
+    {
+        if (isSelected())
+            g.fillAll(getUIColourIfAvailable(LookAndFeel_V4::ColourScheme::UIColour::highlightedFill, Colours::teal));
+
+        g.setColour(getUIColourIfAvailable(LookAndFeel_V4::ColourScheme::UIColour::defaultText, Colours::black));
+        g.setFont(15.0f);
+
+        g.drawText(tree.getType().toString(), 4, 0, width - 4, height, Justification::centredLeft, true);
+    }
+#endif
 
     void itemOpennessChanged (bool isNowOpen) override
     {

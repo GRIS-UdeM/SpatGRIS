@@ -40,7 +40,6 @@ SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
     setBounds (controlsComponent.getScreenX (), controlsComponent.getScreenY () + TITLE_BAR_HEIGHT, WIDTH, HEIGHT);
 
     setVisible (true);
-    toFront (true);
 }
 
 void SpeakerSetupWindow::closeButtonPressed ()
