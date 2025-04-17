@@ -35,7 +35,8 @@ inline Colour getUIColourIfAvailable (LookAndFeel_V4::ColourScheme::UIColour uiC
 class SpeakerTreeItemComponent : public juce::Component
 {
 public:
-    SpeakerTreeItemComponent ()
+    SpeakerTreeItemComponent (const ValueTree& v)
+        : vt (v)
     {
         setInterceptsMouseClicks (false, true);
 
@@ -47,7 +48,7 @@ public:
             };
 
         //TODO: the text here needs to be the value of the thing lol, not the name of it. We need the name in a header though
-        setupEditor (id, "Speaker ID");
+        setupEditor (id, v.getType().toString());
         setupEditor (x, "X");
         setupEditor (y, "Y");
         setupEditor (z, "Z");
@@ -73,48 +74,52 @@ public:
 
 private:
     juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del;
+
+    ValueTree vt;
 };
 
 class SpeakerGroupComponent : public SpeakerTreeItemComponent
 {
 public:
+    SpeakerGroupComponent (const ValueTree& v) : SpeakerTreeItemComponent (v) {}
 };
 
 class SpeakerComponent : public SpeakerTreeItemComponent
 {
 public:
+    SpeakerComponent (const ValueTree& v) : SpeakerTreeItemComponent (v) {}
 };
 
 //================
 
-class ValueTreeItem final
+class SpeakerSetupLine final
     : public TreeViewItem
     , private ValueTree::Listener
 {
 public:
-    ValueTreeItem (const ValueTree& v, UndoManager& um)
-        : tree (v), undoManager (um)
+    SpeakerSetupLine (const ValueTree& v, UndoManager& um)
+        : valueTree (v), undoManager (um)
     {
-        tree.addListener (this);
+        valueTree.addListener (this);
     }
 
     String getUniqueName () const override
     {
-        return tree.getType().toString ();
+        return valueTree.getType().toString ();
     }
 
     bool mightContainSubItems () override
     {
-        return tree.getNumChildren () > 0;
+        return valueTree.getNumChildren () > 0;
     }
 
 #if 1
     std::unique_ptr<Component> createItemComponent () override
     {
         if (mightContainSubItems ())
-            return std::make_unique<SpeakerGroupComponent>();
+            return std::make_unique<SpeakerGroupComponent>(valueTree);
         else
-            return std::make_unique<SpeakerComponent> ();
+            return std::make_unique<SpeakerComponent> (valueTree);
     }
 #else
     void paintItem(Graphics & g, int width, int height) override
@@ -125,7 +130,7 @@ public:
         g.setColour(getUIColourIfAvailable(LookAndFeel_V4::ColourScheme::UIColour::defaultText, Colours::black));
         g.setFont(15.0f);
 
-        g.drawText(tree.getType().toString(), 4, 0, width - 4, height, Justification::centredLeft, true);
+        g.drawText(treeView.getType().toString(), 4, 0, width - 4, height, Justification::centredLeft, true);
     }
 #endif
 
@@ -152,7 +157,7 @@ public:
         OwnedArray<ValueTree> selectedTrees;
         getSelectedTreeViewItems (*getOwnerView (), selectedTrees);
 
-        moveItems (*getOwnerView (), selectedTrees, tree, insertIndex, undoManager);
+        moveItems (*getOwnerView (), selectedTrees, valueTree, insertIndex, undoManager);
     }
 
     static void moveItems (TreeView& treeView, const OwnedArray<ValueTree>& items,
@@ -184,20 +189,20 @@ public:
         auto numSelected = treeView.getNumSelectedItems ();
 
         for (int i = 0; i < numSelected; ++i)
-            if (auto* vti = dynamic_cast<ValueTreeItem*> (treeView.getSelectedItem (i)))
-                items.add (new ValueTree (vti->tree));
+            if (auto* vti = dynamic_cast<SpeakerSetupLine*> (treeView.getSelectedItem (i)))
+                items.add (new ValueTree (vti->valueTree));
     }
 
 private:
-    ValueTree tree;
+    ValueTree valueTree;
     UndoManager& undoManager;
 
     void refreshSubItems ()
     {
         clearSubItems ();
 
-        for (int i = 0; i < tree.getNumChildren (); ++i)
-            addSubItem (new ValueTreeItem (tree.getChild (i), undoManager));
+        for (int i = 0; i < valueTree.getNumChildren (); ++i)
+            addSubItem (new SpeakerSetupLine (valueTree.getChild (i), undoManager));
     }
 
     void valueTreePropertyChanged (ValueTree&, const Identifier&) override
@@ -212,7 +217,7 @@ private:
 
     void treeChildrenChanged (const ValueTree& parentTree)
     {
-        if (parentTree == tree)
+        if (parentTree == valueTree)
         {
             refreshSubItems ();
             treeHasChanged ();
@@ -220,26 +225,33 @@ private:
         }
     }
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ValueTreeItem)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerSetupLine)
 };
 
 //==============================================================================
-class ValueTreesDemo final : public Component,
+class SpeakerSetupContainer final : public Component,
     public DragAndDropContainer,
     private Timer
 {
 public:
-    ValueTreesDemo ()
+    SpeakerSetupContainer ()
     {
-        addAndMakeVisible (tree);
+#if JUCE_LINUX
+        const auto vtFile = juce::File("/home/vberthiaume/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
+#else
+        const auto vtFile = juce::File("C:/Users/barth/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
+#endif
+        const auto vt {juce::ValueTree::fromXml (vtFile.loadFileAsString())};
 
-        tree.setTitle ("ValueTree");
-        tree.setDefaultOpenness (true);
-        tree.setMultiSelectEnabled (true);
-        const auto vt {juce::ValueTree::fromXml (juce::File("C:/Users/barth/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml").loadFileAsString())};
-        DBG (vt.toXmlString());
-        rootItem.reset (new ValueTreeItem (vt, undoManager));
-        tree.setRootItem (rootItem.get ());
+        //NOW HERE -- WE NEED TO CONVERT THIS BS SPEAKERVIEW FORMAT TO A NEW ONE LFG
+        addAndMakeVisible (treeView);
+
+        treeView.setTitle (vtFile.getFileName());
+        treeView.setDefaultOpenness (true);
+        treeView.setMultiSelectEnabled (true);
+
+        rootItem.reset (new SpeakerSetupLine (vt, undoManager));
+        treeView.setRootItem (rootItem.get ());
 
         addAndMakeVisible (undoButton);
         addAndMakeVisible (redoButton);
@@ -251,9 +263,9 @@ public:
         setSize (500, 500);
     }
 
-    ~ValueTreesDemo () override
+    ~SpeakerSetupContainer () override
     {
-        tree.setRootItem (nullptr);
+        treeView.setRootItem (nullptr);
     }
 
     void paint (Graphics& g) override
@@ -271,13 +283,13 @@ public:
         redoButton.setBounds (buttons.removeFromLeft (100));
 
         r.removeFromBottom (4);
-        tree.setBounds (r);
+        treeView.setBounds (r);
     }
 
     void deleteSelectedItems ()
     {
         OwnedArray<ValueTree> selectedItems;
-        ValueTreeItem::getSelectedTreeViewItems (tree, selectedItems);
+        SpeakerSetupLine::getSelectedTreeViewItems (treeView, selectedItems);
 
         for (auto* v : selectedItems)
         {
@@ -310,10 +322,10 @@ public:
     }
 
 private:
-    TreeView tree;
+    TreeView treeView;
     TextButton undoButton { "Undo" }, redoButton { "Redo" };
 
-    std::unique_ptr<ValueTreeItem> rootItem;
+    std::unique_ptr<SpeakerSetupLine> rootItem;
     UndoManager undoManager;
 
     void timerCallback () override
@@ -321,7 +333,7 @@ private:
         undoManager.beginNewTransaction ();
     }
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ValueTreesDemo)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerSetupContainer)
 };
 
 //========================================================================
@@ -342,6 +354,6 @@ public:
 private:
     MainContentComponent& mMainContentComponent;
     GrisLookAndFeel& mLookAndFeel;
-    ValueTreesDemo mValueTreesDemo;
+    SpeakerSetupContainer mValueTreesDemo;
 };
 }
