@@ -48,4 +48,51 @@ void SpeakerSetupWindow::closeButtonPressed ()
     mMainContentComponent.closeSpeakersConfigurationWindow ();
 }
 
+//TODO VB: this will need unit tests -- and can this be constexpr
+juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
+{
+    //<SPEAKER_SETUP VERSION = "3.1.14" SPAT_MODE = "Dome" DIFFUSION = "0.0" GENERAL_MUTE = "0">
+    // 
+    //  <SPEAKER_1 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
+    //      <POSITION X = "-4.371138828673793e-8" Y = "1.0" Z = "-4.371138828673793e-8" / >
+    //  </SPEAKER_1>
+    //  <SPEAKER_2 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
+    //      <POSITION X = "0.0980171337723732" Y = "0.9951847195625305" Z = "-4.371138828673793e-8" / >
+
+    if (oldSpeakerSetup.getType ().toString () != "SPEAKER_SETUP")
+    {
+        jassertfalse;
+        return {};
+    }
+
+    const auto version = "4.0.0";
+
+    auto newVt = juce::ValueTree("SPEAKER_SETUP");
+
+    // Copy all properties from oldSpeakerSetup to newVt
+    for (int i = 0; i < oldSpeakerSetup.getNumProperties(); ++i) {
+        const auto propertyName = oldSpeakerSetup.getPropertyName(i);
+        const auto propertyValue = oldSpeakerSetup.getProperty(propertyName);
+        newVt.setProperty(propertyName, propertyValue, nullptr);
+    }
+
+    // Update the version property
+    newVt.setProperty("VERSION", version, nullptr);
+
+
+    //then deal with the children
+    for (const auto& speaker : oldSpeakerSetup)
+    {
+        newVt.appendChild (juce::ValueTree {"SPEAKER"}, nullptr);
+        const auto id = speaker.getType().toString().removeCharacters ("SPEAKER");
+    }
+    
+
+    
+
+
+
+    return newVt;
+}
+
 }

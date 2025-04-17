@@ -32,6 +32,8 @@ inline Colour getUIColourIfAvailable (LookAndFeel_V4::ColourScheme::UIColour uiC
     return fallback;
 }
 
+juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup);
+
 class SpeakerTreeItemComponent : public juce::Component
 {
 public:
