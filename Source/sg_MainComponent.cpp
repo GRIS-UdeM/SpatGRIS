@@ -197,7 +197,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mVerticalLayout.setItemPosition(1, trueSize);
 
         mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
-        handleShowSpeakerViewWindow();
+        //TODO VB: put back
+        //handleShowSpeakerViewWindow();
     };
 
     //==============================================================================
@@ -266,6 +267,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     // init buffers properly
     audioParametersChanged();
+
+    //TODO VB: remove
+    handleShowSpeakerEditWindow();
 }
 
 //==============================================================================
@@ -514,6 +518,7 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+#if USE_OLD_SPEAKER_WINDOW
     auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastSpeakerSetup } }.getDocumentElement() };
     jassert(savedElement);
     if (!savedElement) {
@@ -560,6 +565,9 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
     } else {
         speakerSetupKeepChanges();
     }
+#else
+    mSpeakerSetupWindow.reset();
+#endif
 }
 
 //==============================================================================
@@ -591,7 +599,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-#if 0
+#if USE_OLD_SPEAKER_WINDOW
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String{ "Speaker Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
@@ -2831,6 +2839,7 @@ void MainContentComponent::timerCallback()
 
     mInfoPanel->setCpuLoad(cpuRunningAverage);
 
+    //TODO VB: i DON'T THINK I NEED THAT?
 #if 1
     if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
         mIsProcessForeground = juce::Process::isForegroundProcess();

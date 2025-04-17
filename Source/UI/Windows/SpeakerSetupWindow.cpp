@@ -39,6 +39,14 @@ SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
     const auto& controlsComponent { *mainContentComponent.getControlsComponent () };
     setBounds (controlsComponent.getScreenX (), controlsComponent.getScreenY () + TITLE_BAR_HEIGHT, WIDTH, HEIGHT);
 
-    DocumentWindow::setVisible (true);
+    setVisible (true);
+    toFront (true);
 }
+
+void SpeakerSetupWindow::closeButtonPressed ()
+{
+    mMainContentComponent.setPinkNoiseGain (tl::nullopt);
+    mMainContentComponent.closeSpeakersConfigurationWindow ();
+}
+
 }

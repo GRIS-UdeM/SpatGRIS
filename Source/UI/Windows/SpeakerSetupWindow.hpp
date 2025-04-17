@@ -32,8 +32,62 @@ inline Colour getUIColourIfAvailable (LookAndFeel_V4::ColourScheme::UIColour uiC
     return fallback;
 }
 
-class ValueTreeItem final : public TreeViewItem,
-    private ValueTree::Listener
+class SpeakerTreeItemComponent : public juce::Component
+{
+public:
+    SpeakerTreeItemComponent ()
+    {
+        const auto setupEditor = [this](juce::Label& editor, juce::StringRef text)
+            {
+                editor.setText (text, dontSendNotification);
+                editor.setEditable (true);
+                addAndMakeVisible (editor);
+            };
+
+        //TODO: the text here needs to be the value of the thing lol, not the name of it. We need the name in a header though
+        setupEditor (id, "Speaker ID");
+        setupEditor (x, "X");
+        setupEditor (y, "Y");
+        setupEditor (z, "Z");
+        setupEditor (azim, "Azimuth");
+        setupEditor (elev, "Elevation");
+        setupEditor (distance, "Elevation");
+        setupEditor (gain, "Elevation");
+        setupEditor (highpass, "Elevation");
+
+        //there 2 are not editors
+        setupEditor (direct, "Elevation");
+        setupEditor (del, "Elevation");
+    }
+
+    void resized () override
+    {
+        auto bounds {getLocalBounds()};
+        constexpr auto colW {60};
+
+        for (auto* component : { &id, &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
+            component->setBounds (bounds.removeFromLeft (colW));
+    }
+
+private:
+    juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del;
+};
+
+class SpeakerGroupComponent : public SpeakerTreeItemComponent
+{
+public:
+};
+
+class SpeakerComponent : public SpeakerTreeItemComponent
+{
+public:
+};
+
+//================
+
+class ValueTreeItem final
+    : public TreeViewItem
+    , private ValueTree::Listener
 {
 public:
     ValueTreeItem (const ValueTree& v, UndoManager& um)
@@ -52,19 +106,12 @@ public:
         return tree.getNumChildren () > 0;
     }
 
-    void paintItem (Graphics& g, int width, int height) override
+    std::unique_ptr<Component> createItemComponent () override
     {
-        if (isSelected ())
-            g.fillAll (getUIColourIfAvailable (LookAndFeel_V4::ColourScheme::UIColour::highlightedFill,
-                                               Colours::teal));
-
-        g.setColour (getUIColourIfAvailable (LookAndFeel_V4::ColourScheme::UIColour::defaultText,
-                                             Colours::black));
-        g.setFont (15.0f);
-
-        g.drawText (tree["name"].toString (),
-                    4, 0, width - 4, height,
-                    Justification::centredLeft, true);
+        if (mightContainSubItems ())
+            return std::make_unique<SpeakerGroupComponent>();
+        else
+            return std::make_unique<SpeakerComponent> ();
     }
 
     void itemOpennessChanged (bool isNowOpen) override
@@ -174,7 +221,9 @@ public:
         tree.setTitle ("ValueTree");
         tree.setDefaultOpenness (true);
         tree.setMultiSelectEnabled (true);
-        rootItem.reset (new ValueTreeItem (createRootValueTree (), undoManager));
+        const auto vt {juce::ValueTree::fromXml (juce::File("C:/Users/barth/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml").loadFileAsString())};
+        DBG (vt.toXmlString());
+        rootItem.reset (new ValueTreeItem (vt, undoManager));
         tree.setRootItem (rootItem.get ());
 
         addAndMakeVisible (undoButton);
@@ -208,37 +257,6 @@ public:
 
         r.removeFromBottom (4);
         tree.setBounds (r);
-    }
-
-    static ValueTree createTree (const String& desc)
-    {
-        ValueTree t ("Item");
-        t.setProperty ("name", desc, nullptr);
-        return t;
-    }
-
-    static ValueTree createRootValueTree ()
-    {
-        auto vt = createTree ("This demo displays a ValueTree as a treeview.");
-        vt.appendChild (createTree ("You can drag around the nodes to rearrange them"), nullptr);
-        vt.appendChild (createTree ("..and press 'delete' or 'backspace' to delete them"), nullptr);
-        vt.appendChild (createTree ("Then, you can use the undo/redo buttons to undo these changes"), nullptr);
-
-        int n = 1;
-        vt.appendChild (createRandomTree (n, 0), nullptr);
-
-        return vt;
-    }
-
-    static ValueTree createRandomTree (int& counter, int depth)
-    {
-        auto t = createTree ("Item " + String (counter++));
-
-        if (depth < 3)
-            for (int i = 1 + Random::getSystemRandom ().nextInt (7); --i >= 0;)
-                t.appendChild (createRandomTree (counter, depth + 1), nullptr);
-
-        return t;
     }
 
     void deleteSelectedItems ()
@@ -278,8 +296,7 @@ public:
 
 private:
     TreeView tree;
-    TextButton undoButton { "Undo" },
-        redoButton { "Redo" };
+    TextButton undoButton { "Undo" }, redoButton { "Redo" };
 
     std::unique_ptr<ValueTreeItem> rootItem;
     UndoManager undoManager;
@@ -291,9 +308,6 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ValueTreesDemo)
 };
-
-
-
 
 //========================================================================
 
@@ -308,13 +322,7 @@ public:
                          GrisLookAndFeel& lookAndFeel,
                          MainContentComponent& mainContentComponent);
 
-    //void resized() override
-    //{
-    //    auto r = getLocalBounds();
-    //    r.removeFromTop(getTitleBarHeight());
-    //    r.removeFromBottom(10/*getBottomBorderSize()*/);
-    //    mValueTreesDemo.setBounds(r);
-    //}
+    void closeButtonPressed () override;
 
 private:
     MainContentComponent& mMainContentComponent;
