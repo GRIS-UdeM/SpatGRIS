@@ -42,5 +42,5 @@ const juce::Identifier SPEAKER_SETUP("SPEAKER_SETUP");
 const juce::Identifier SPEAKER_GROUP("SPEAKER_GROUP");
 const juce::Identifier SPEAKER("SPEAKER");
 const juce::Identifier NAME("NAME");
-const juce::Identifier VERSION (VERSION);
+const juce::Identifier VERSION("VERSION");
 } // namespace gris

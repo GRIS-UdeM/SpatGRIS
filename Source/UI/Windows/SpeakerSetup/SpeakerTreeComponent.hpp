@@ -16,7 +16,7 @@
 */
 
 #pragma once
-#include <JuceHeader.h>
+#include "../../ValueTreeUtilities.hpp"
 
 namespace gris
 {

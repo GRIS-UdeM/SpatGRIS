@@ -78,6 +78,4 @@ void SpeakerSetupWindow::closeButtonPressed ()
     mMainContentComponent.closeSpeakersConfigurationWindow ();
 }
 
-
-
 } // namespace gris

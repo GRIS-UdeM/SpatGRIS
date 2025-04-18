@@ -105,7 +105,7 @@ private:
     juce::TreeView treeView;
     juce::TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton { "Sort" };
 
-    std::unique_ptr<SpeakerSetupLine> rootItem;
+    std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
     juce::UndoManager undoManager;
 
     void timerCallback () override

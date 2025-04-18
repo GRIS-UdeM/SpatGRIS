@@ -33,15 +33,17 @@ SpeakerSetupContainer::SpeakerSetupContainer ()
     treeView.setDefaultOpenness (true);
     treeView.setMultiSelectEnabled (true);
 
-    rootItem.reset (new SpeakerSetupLine (vt, undoManager));
-    treeView.setRootItem (rootItem.get ());
+    // at this point vt is the whole speaker setup, but I think the lines should only care about groups or speakers, so
+    // only giving them the main group for now?
+    mainSpeakerGroupLine.reset (new SpeakerSetupLine (vt.getChild(0), undoManager));
+    treeView.setRootItem (mainSpeakerGroupLine.get ());
 
     addAndMakeVisible (undoButton);
     addAndMakeVisible (redoButton);
     addAndMakeVisible (sortButton);
     undoButton.onClick = [this] { undoManager.undo (); };
     redoButton.onClick = [this] { undoManager.redo (); };
-    sortButton.onClick = [this] { rootItem->sort (); };
+    sortButton.onClick = [this] { mainSpeakerGroupLine->sort (); };
 
     startTimer (500);
 

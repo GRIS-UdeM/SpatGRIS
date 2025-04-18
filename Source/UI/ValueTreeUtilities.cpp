@@ -1,11 +1,18 @@
 /*
-  ==============================================================================
+ This file is part of SpatGRIS.
 
-    ValueTreeUtilities.cpp
-    Created: 18 Apr 2025 10:55:33am
-    Author:  barth
+ SpatGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-  ==============================================================================
+ SpatGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "ValueTreeUtilities.hpp"
@@ -35,19 +42,35 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
 
     if (oldSpeakerSetup.getType ()!= SPEAKER_SETUP)
     {
+        //this function should  probably return an optional and here it should be empty
         jassertfalse;
         return {};
     }
 
+    //create new value tree
     auto newVt = juce::ValueTree (SPEAKER_SETUP);
 
     //copy and update the root node
     copyValueTreeProperties (oldSpeakerSetup, newVt);
     newVt.setProperty (VERSION, CURRENT_SPEAKERSETUP_VERSION, nullptr);
 
-    //then do the same with the children
+    //TODO VB: we need to init this speaker group with a position and everything
+    //create and append the main speaker group node
+    auto mainSpeakerGroup = juce::ValueTree (SPEAKER_GROUP);
+    mainSpeakerGroup.setProperty(NAME, "Main", nullptr);
+    newVt.appendChild (mainSpeakerGroup, nullptr);
+
+    //then add all speakers to the main group
     for (const auto& speaker : oldSpeakerSetup)
     {
+        if (! speaker.getType ().toString().contains ("SPEAKER_")
+            || speaker.getChild(0).getType().toString() != "POSITION")
+        {
+            //corrupted file??
+            jassertfalse;
+            continue;   //should we continue or return here?
+        }
+
         auto newSpeaker = juce::ValueTree { SPEAKER };
         const auto speakerId = speaker.getType ().toString ().removeCharacters ("SPEAKER_");
         newSpeaker.setProperty ("ID", speakerId, nullptr);
@@ -56,7 +79,7 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
         copyValueTreeProperties (speaker, newSpeaker);
         copyValueTreeProperties (speaker.getChild (0), newSpeaker);
 
-        newVt.appendChild (newSpeaker, nullptr);
+        mainSpeakerGroup.appendChild (newSpeaker, nullptr);
     }
 
     //DBG (newVt.toXmlString());

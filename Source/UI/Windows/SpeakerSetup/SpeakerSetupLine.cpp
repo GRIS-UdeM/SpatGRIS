@@ -18,4 +18,9 @@
 #include "SpeakerSetupLine.hpp"
 namespace gris
 {
+SpeakerSetupLine::SpeakerSetupLine (const juce::ValueTree& v, juce::UndoManager& um)
+    : valueTree (v), undoManager (um)
+{
+    valueTree.addListener (this);
+}
 }

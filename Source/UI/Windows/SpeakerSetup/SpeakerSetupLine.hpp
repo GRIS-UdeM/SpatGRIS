@@ -26,11 +26,7 @@ class SpeakerSetupLine final
     , private juce::ValueTree::Listener
 {
 public:
-    SpeakerSetupLine (const juce::ValueTree& v, juce::UndoManager& um)
-        : valueTree (v), undoManager (um)
-    {
-        valueTree.addListener (this);
-    }
+    SpeakerSetupLine (const juce::ValueTree& v, juce::UndoManager& um);
 
     juce::String getUniqueName () const override
     {
@@ -39,12 +35,11 @@ public:
 
     bool mightContainSubItems () override
     {
-        return valueTree.getNumChildren () > 0;
+        return valueTree.getType() == SPEAKER_GROUP;
     }
 
     void sort ();
 
-#if 1
     std::unique_ptr<juce::Component> createItemComponent () override
     {
         if (mightContainSubItems ())
@@ -52,18 +47,6 @@ public:
         else
             return std::make_unique<SpeakerComponent> (valueTree);
     }
-#else
-    void paintItem (Graphics& g, int width, int height) override
-    {
-        if (isSelected ())
-            g.fillAll (getUIColourIfAvailable (LookAndFeel_V4::ColourScheme::UIColour::highlightedFill, Colours::teal));
-
-        g.setColour (getUIColourIfAvailable (LookAndFeel_V4::ColourScheme::UIColour::defaultText, Colours::black));
-        g.setFont (15.0f);
-
-        g.drawText (treeView.getType ().toString (), 4, 0, width - 4, height, Justification::centredLeft, true);
-    }
-#endif
 
     void itemOpennessChanged (bool isNowOpen) override
     {
@@ -75,7 +58,7 @@ public:
 
     juce::var getDragSourceDescription () override
     {
-        return "Drag Demo";
+        return valueTree.getType ().toString();
     }
 
     bool isInterestedInDragSource (const juce::DragAndDropTarget::SourceDetails& /*dragSourceDetails*/) override
