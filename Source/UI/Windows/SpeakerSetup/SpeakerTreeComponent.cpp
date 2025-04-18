@@ -18,4 +18,34 @@
 #include "SpeakerTreeComponent.hpp"
 namespace gris
 {
+SpeakerTreeComponent::SpeakerTreeComponent (const juce::ValueTree& v)
+    : vt (v)
+{
+    setInterceptsMouseClicks (false, true);
+
+    setupEditor (x, juce::String::formatted ("%.2f", static_cast<float>(v["X"])));
+    setupEditor (y, juce::String::formatted ("%.2f", static_cast<float>(v["Y"])));
+    setupEditor (z, juce::String::formatted ("%.2f", static_cast<float>(v["Z"])));
+    setupEditor (azim, "need convert");
+    setupEditor (elev, "need convert");
+    setupEditor (distance, "is this radius?");
+    setupEditor (del, "DEL");
+}
+
+//==============================================================================
+
+SpeakerGroupComponent::SpeakerGroupComponent (const juce::ValueTree& v) : SpeakerTreeComponent (v)
+{
+    setupEditor (id, v.getType ().toString ());
+}
+
+//==============================================================================
+
+SpeakerComponent::SpeakerComponent (const juce::ValueTree& v) : SpeakerTreeComponent (v)
+{
+    setupEditor (id, v["ID"].toString ());
+    setupEditor (gain, v["GAIN"].toString ());
+    setupEditor (highpass, "wtf?");
+    setupEditor (direct, v["DIRECT_OUT_ONLY"].toString ());
+}
 }

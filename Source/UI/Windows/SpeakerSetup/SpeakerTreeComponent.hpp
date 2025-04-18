@@ -16,6 +16,50 @@
 */
 
 #pragma once
+#include <JuceHeader.h>
+
 namespace gris
 {
+class SpeakerTreeComponent : public juce::Component
+{
+public:
+    SpeakerTreeComponent (const juce::ValueTree& v);
+
+    void resized () override
+    {
+        auto bounds { getLocalBounds () };
+        constexpr auto colW { 60 };
+
+        for (auto* component : { &id, &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
+            component->setBounds (bounds.removeFromLeft (colW));
+    }
+
+protected:
+    void setupEditor (juce::Label& editor, juce::StringRef text)
+    {
+        editor.setText (text, juce::dontSendNotification);
+        editor.setEditable (true);
+        addAndMakeVisible (editor);
+    };
+
+    juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del;
+
+    juce::ValueTree vt;
+};
+
+//==============================================================================
+
+class SpeakerGroupComponent : public SpeakerTreeComponent
+{
+public:
+    SpeakerGroupComponent (const juce::ValueTree& v);
+};
+
+//==============================================================================
+
+class SpeakerComponent : public SpeakerTreeComponent
+{
+public:
+    SpeakerComponent (const juce::ValueTree& v);
+};
 }
