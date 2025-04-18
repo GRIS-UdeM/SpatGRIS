@@ -35,6 +35,7 @@ int compareElements (const juce::ValueTree& first, const juce::ValueTree& second
 }
 };
 
+//NOW HERE: SO THIS SORT NEEDS TO RECURSE THROUGH THE SPEAKER GROUPS IF THERE ARE ANY
 void SpeakerSetupLine::sort()
 {
     juce::Array<juce::ValueTree> speakers;

@@ -49,4 +49,53 @@ SpeakerSetupContainer::SpeakerSetupContainer ()
 
     setSize (500, 500);
 }
+void SpeakerSetupContainer::resized ()
+{
+    auto r = getLocalBounds ().reduced (8);
+
+    auto buttons = r.removeFromBottom (22);
+    undoButton.setBounds (buttons.removeFromLeft (100));
+    buttons.removeFromLeft (6);
+    redoButton.setBounds (buttons.removeFromLeft (100));
+    buttons.removeFromLeft (6);
+    sortButton.setBounds (buttons.removeFromLeft (100));
+
+    r.removeFromBottom (4);
+    treeView.setBounds (r);
+}
+
+void SpeakerSetupContainer::deleteSelectedItems ()
+{
+    juce::OwnedArray<juce::ValueTree> selectedItems;
+    SpeakerSetupLine::getSelectedTreeViewItems (treeView, selectedItems);
+
+    for (auto* v : selectedItems)
+    {
+        if (v->getParent ().isValid ())
+            v->getParent ().removeChild (*v, &undoManager);
+    }
+}
+
+bool SpeakerSetupContainer::keyPressed (const juce::KeyPress& key)
+{
+    if (key == juce::KeyPress::deleteKey || key == juce::KeyPress::backspaceKey)
+    {
+        deleteSelectedItems ();
+        return true;
+    }
+
+    if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier, 0))
+    {
+        undoManager.undo ();
+        return true;
+    }
+
+    if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier, 0))
+    {
+        undoManager.redo ();
+        return true;
+    }
+
+    return Component::keyPressed (key);
+}
 }

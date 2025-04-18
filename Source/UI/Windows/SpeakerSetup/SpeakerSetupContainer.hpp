@@ -22,7 +22,6 @@
 
 namespace gris
 {
-
 inline juce::Colour getUIColourIfAvailable (juce::LookAndFeel_V4::ColourScheme::UIColour uiColour,
                                             juce::Colour fallback = juce::Colour (0xff4d4d4d)) noexcept
 {
@@ -51,55 +50,11 @@ public:
         g.fillAll (getUIColourIfAvailable (juce::LookAndFeel_V4::ColourScheme::UIColour::windowBackground));
     }
 
-    void resized () override
-    {
-        auto r = getLocalBounds ().reduced (8);
+    void resized () override;
 
-        auto buttons = r.removeFromBottom (22);
-        undoButton.setBounds (buttons.removeFromLeft (100));
-        buttons.removeFromLeft (6);
-        redoButton.setBounds (buttons.removeFromLeft (100));
-        buttons.removeFromLeft (6);
-        sortButton.setBounds (buttons.removeFromLeft (100));
+    void deleteSelectedItems ();
 
-        r.removeFromBottom (4);
-        treeView.setBounds (r);
-    }
-
-    void deleteSelectedItems ()
-    {
-        juce::OwnedArray<juce::ValueTree> selectedItems;
-        SpeakerSetupLine::getSelectedTreeViewItems (treeView, selectedItems);
-
-        for (auto* v : selectedItems)
-        {
-            if (v->getParent ().isValid ())
-                v->getParent ().removeChild (*v, &undoManager);
-        }
-    }
-
-    bool keyPressed (const juce::KeyPress& key) override
-    {
-        if (key == juce::KeyPress::deleteKey || key == juce::KeyPress::backspaceKey)
-        {
-            deleteSelectedItems ();
-            return true;
-        }
-
-        if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier, 0))
-        {
-            undoManager.undo ();
-            return true;
-        }
-
-        if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier, 0))
-        {
-            undoManager.redo ();
-            return true;
-        }
-
-        return Component::keyPressed (key);
-    }
+    bool keyPressed (const juce::KeyPress& key) override;
 
 private:
     juce::TreeView treeView;
