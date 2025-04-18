@@ -20,10 +20,27 @@
 
 namespace gris
 {
-juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup);
+/**
+ * Copies all properties (and no children or children properties) from the source to the destination ValueTree.
+ *
+ * @param source The source ValueTree containing the properties to copy.
+ * @param dest The destination ValueTree where the properties will be copied to.
+ */
+void copyValueTreeProperties(const juce::ValueTree & source, juce::ValueTree & dest);
 
-const juce::Identifier SPEAKER_SETUP ("SPEAKER_SETUP");
-const juce::Identifier SPEAKER_GROUP ("SPEAKER_GROUP");
-const juce::Identifier SPEAKER ("SPEAKER");
-const juce::Identifier NAME ("NAME");
-}
+/**
+ * Converts an old speaker setup ValueTree to the CURRENT_SPEAKERSETUP_VERSION.
+ *
+ * @param oldSpeakerSetup The ValueTree representing the old speaker setup.
+ * @return A new ValueTree representing the converted speaker setup.
+ */
+juce::ValueTree convertSpeakerSetup(const juce::ValueTree & oldSpeakerSetup);
+
+// Speaker setup identifiers
+const auto CURRENT_SPEAKERSETUP_VERSION = "4.0.0";
+const juce::Identifier SPEAKER_SETUP("SPEAKER_SETUP");
+const juce::Identifier SPEAKER_GROUP("SPEAKER_GROUP");
+const juce::Identifier SPEAKER("SPEAKER");
+const juce::Identifier NAME("NAME");
+const juce::Identifier VERSION (VERSION);
+} // namespace gris

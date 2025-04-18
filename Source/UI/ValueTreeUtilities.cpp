@@ -12,7 +12,7 @@
 
 namespace gris
 {
-//TODO VB: put somewhere central
+
 void copyValueTreeProperties (const juce::ValueTree& source, juce::ValueTree& dest)
 {
     for (int i = 0; i < source.getNumProperties (); ++i) {
@@ -33,18 +33,17 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
     //  <SPEAKER_2 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
     //      <POSITION X = "0.0980171337723732" Y = "0.9951847195625305" Z = "-4.371138828673793e-8" / >
 
-    if (oldSpeakerSetup.getType ().toString () != "SPEAKER_SETUP")
+    if (oldSpeakerSetup.getType ()!= SPEAKER_SETUP)
     {
         jassertfalse;
         return {};
     }
 
-    const auto version = "4.0.0";
-    auto newVt = juce::ValueTree ("SPEAKER_SETUP");
+    auto newVt = juce::ValueTree (SPEAKER_SETUP);
 
     //copy and update the root node
     copyValueTreeProperties (oldSpeakerSetup, newVt);
-    newVt.setProperty ("VERSION", version, nullptr);
+    newVt.setProperty (VERSION, CURRENT_SPEAKERSETUP_VERSION, nullptr);
 
     //then do the same with the children
     for (const auto& speaker : oldSpeakerSetup)
