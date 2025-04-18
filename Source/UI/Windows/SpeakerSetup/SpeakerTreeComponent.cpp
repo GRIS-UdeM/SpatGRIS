@@ -26,8 +26,8 @@ SpeakerTreeComponent::SpeakerTreeComponent (const juce::ValueTree& v)
     setupEditor (x, juce::String::formatted ("%.2f", static_cast<float>(v["X"])));
     setupEditor (y, juce::String::formatted ("%.2f", static_cast<float>(v["Y"])));
     setupEditor (z, juce::String::formatted ("%.2f", static_cast<float>(v["Z"])));
-    setupEditor (azim, "need convert");
-    setupEditor (elev, "need convert");
+    setupEditor (azim, "convert");
+    setupEditor (elev, "convert");
     setupEditor (distance, "radius?");
     setupEditor (del, "DEL");
 }

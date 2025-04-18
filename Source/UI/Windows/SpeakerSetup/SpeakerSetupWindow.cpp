@@ -35,19 +35,39 @@ int compareElements (const juce::ValueTree& first, const juce::ValueTree& second
 }
 };
 
-//NOW HERE: SO THIS SORT NEEDS TO RECURSE THROUGH THE SPEAKER GROUPS IF THERE ARE ANY
-void SpeakerSetupLine::sort()
-{
-    juce::Array<juce::ValueTree> speakers;
-    for (int i = 0; i < valueTree.getNumChildren (); ++i)
-        speakers.add (valueTree.getChild (i));
 
+void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
+{
+    if (! vt.isValid())
+        vt = valueTree;
+
+    juce::Array<juce::ValueTree> speakerGroups;
+    juce::Array<juce::ValueTree> speakers;
+
+    for (auto child : vt) {
+        if (child.getType() == SPEAKER_GROUP) {
+            speakerGroups.add(child);
+        } else if (child.getType() == SPEAKER) {
+            speakers.add(child);
+        } else {
+            jassertfalse;   //what child is this?
+        }
+    }
+
+    //first recurse for speaker groups
+    for (auto speakerGroup : speakerGroups)
+        sort (speakerGroup);
+
+    //sort speakers
     Comparator comparison;
     speakers.sort (comparison);
 
-    valueTree.removeAllChildren (&undoManager);
+    vt.removeAllChildren (&undoManager);
+    for (const auto& group : speakerGroups)
+        vt.appendChild (group, &undoManager);
+
     for (const auto& speaker : speakers)
-        valueTree.appendChild (speaker, &undoManager);
+        vt.appendChild (speaker, &undoManager);
 }
 
 //==============================================================================

@@ -38,7 +38,7 @@ public:
         return valueTree.getType() == SPEAKER_GROUP;
     }
 
-    void sort ();
+    void sort (juce::ValueTree vt = {});
 
     std::unique_ptr<juce::Component> createItemComponent () override
     {
