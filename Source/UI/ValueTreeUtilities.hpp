@@ -16,27 +16,14 @@
 */
 
 #pragma once
-#include "SpeakerSetupContainer.hpp"
-#include "SpeakerTreeComponent.hpp"
+#include <JuceHeader.h>
 
 namespace gris
 {
-class MainContentComponent;
-class GrisLookAndFeel;
+juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup);
 
-class SpeakerSetupWindow final : public juce::DocumentWindow
-{
-public:
-    SpeakerSetupWindow () = delete;
-    SpeakerSetupWindow (juce::String const& name,
-                         GrisLookAndFeel& lookAndFeel,
-                         MainContentComponent& mainContentComponent);
-
-    void closeButtonPressed () override;
-
-private:
-    MainContentComponent& mMainContentComponent;
-    GrisLookAndFeel& mLookAndFeel;
-    SpeakerSetupContainer mValueTreesDemo;
-};
+const juce::Identifier SPEAKER_SETUP ("SPEAKER_SETUP");
+const juce::Identifier SPEAKER_GROUP ("SPEAKER_GROUP");
+const juce::Identifier SPEAKER ("SPEAKER");
+const juce::Identifier NAME ("NAME");
 }

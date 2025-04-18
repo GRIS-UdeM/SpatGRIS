@@ -18,6 +18,7 @@
 #pragma once
 
 #include "SpeakerSetupLine.hpp"
+#include "../../ValueTreeUtilities.hpp"
 
 namespace gris
 {
