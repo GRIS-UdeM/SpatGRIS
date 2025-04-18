@@ -36,7 +36,7 @@ SpeakerTreeComponent::SpeakerTreeComponent (const juce::ValueTree& v)
 
 SpeakerGroupComponent::SpeakerGroupComponent (const juce::ValueTree& v) : SpeakerTreeComponent (v)
 {
-    setupEditor (id, v[NAME].toString ());
+    setupEditor (id, v[ID].toString ());
 }
 
 //==============================================================================

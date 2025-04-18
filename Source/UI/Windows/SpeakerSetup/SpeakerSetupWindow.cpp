@@ -25,16 +25,12 @@ namespace gris
 
 struct Comparator
 {
-int compareElements (const juce::ValueTree& first, const juce::ValueTree& second)
-{
-    if (static_cast<int> (first["ID"]) < static_cast<int> (second["ID"]))
-        return -1;
-    if (static_cast<int> (first["ID"]) > static_cast<int> (second["ID"]))
-        return 1;
-    return 0;
-}
+    int compareElements (const juce::ValueTree& first, const juce::ValueTree& second)
+    {
+        jassert (first.hasProperty (ID) && second.hasProperty (ID));
+        return first[ID].toString ().compareNatural (second[ID].toString ());
+    }
 };
-
 
 void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
 {
@@ -42,31 +38,25 @@ void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
         vt = valueTree;
 
     juce::Array<juce::ValueTree> speakerGroups;
-    juce::Array<juce::ValueTree> speakers;
+    juce::Array<juce::ValueTree> allChildren;
 
     for (auto child : vt) {
-        if (child.getType() == SPEAKER_GROUP) {
+        if (child.getType() == SPEAKER_GROUP)
             speakerGroups.add(child);
-        } else if (child.getType() == SPEAKER) {
-            speakers.add(child);
-        } else {
-            jassertfalse;   //what child is this?
-        }
+
+        allChildren.add(child);
     }
 
-    //first recurse for speaker groups
+    //first recurse into speaker groups
     for (auto speakerGroup : speakerGroups)
         sort (speakerGroup);
 
-    //sort speakers
+    //then actually sort all children
     Comparator comparison;
-    speakers.sort (comparison);
+    allChildren.sort (comparison);
 
     vt.removeAllChildren (&undoManager);
-    for (const auto& group : speakerGroups)
-        vt.appendChild (group, &undoManager);
-
-    for (const auto& speaker : speakers)
+    for (const auto& speaker : allChildren)
         vt.appendChild (speaker, &undoManager);
 }
 

@@ -57,17 +57,17 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
     //TODO VB: we need to init this speaker group with a position and everything
     //create and append the main speaker group node
     auto mainSpeakerGroup = juce::ValueTree (SPEAKER_GROUP);
-    mainSpeakerGroup.setProperty(NAME, "Main", nullptr);
+    mainSpeakerGroup.setProperty(ID, "Main", nullptr);
     newVt.appendChild (mainSpeakerGroup, nullptr);
 
     //adding a couple of random group now to test this feature
 #if 1
     auto randomSpeakerGroup1 = juce::ValueTree (SPEAKER_GROUP);
-    randomSpeakerGroup1.setProperty (NAME, "Audiodice 2", nullptr);
+    randomSpeakerGroup1.setProperty (ID, "Audiodice 2", nullptr);
     mainSpeakerGroup.appendChild (randomSpeakerGroup1, nullptr);
 
     auto randomSpeakerGroup = juce::ValueTree (SPEAKER_GROUP);
-    randomSpeakerGroup.setProperty (NAME, "Audiodice 1", nullptr);
+    randomSpeakerGroup.setProperty (ID, "Audiodice 1", nullptr);
     mainSpeakerGroup.appendChild (randomSpeakerGroup, nullptr);
 #endif
 

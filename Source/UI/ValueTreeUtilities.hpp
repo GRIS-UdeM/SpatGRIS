@@ -41,6 +41,6 @@ const auto CURRENT_SPEAKERSETUP_VERSION = "4.0.0";
 const juce::Identifier SPEAKER_SETUP("SPEAKER_SETUP");
 const juce::Identifier SPEAKER_GROUP("SPEAKER_GROUP");
 const juce::Identifier SPEAKER("SPEAKER");
-const juce::Identifier NAME("NAME");
 const juce::Identifier VERSION("VERSION");
+const juce::Identifier ID ("ID");
 } // namespace gris
