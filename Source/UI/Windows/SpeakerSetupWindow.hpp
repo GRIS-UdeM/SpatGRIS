@@ -100,6 +100,8 @@ public:
         return valueTree.getNumChildren () > 0;
     }
 
+    void sort();
+
 #if 1
     std::unique_ptr<Component> createItemComponent () override
     {
@@ -242,6 +244,8 @@ public:
         undoButton.setBounds (buttons.removeFromLeft (100));
         buttons.removeFromLeft (6);
         redoButton.setBounds (buttons.removeFromLeft (100));
+        buttons.removeFromLeft (6);
+        sortButton.setBounds (buttons.removeFromLeft (100));
 
         r.removeFromBottom (4);
         treeView.setBounds (r);
@@ -284,7 +288,7 @@ public:
 
 private:
     TreeView treeView;
-    TextButton undoButton { "Undo" }, redoButton { "Redo" };
+    TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton {"Sort"};
 
     std::unique_ptr<SpeakerSetupLine> rootItem;
     UndoManager undoManager;

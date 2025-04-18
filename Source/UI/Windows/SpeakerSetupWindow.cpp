@@ -107,6 +107,34 @@ SpeakerComponent::SpeakerComponent(const ValueTree & v) : SpeakerTreeItemCompone
 
 //==============================================================================
 
+struct Comparator
+{
+int compareElements (const juce::ValueTree& first, const juce::ValueTree& second)
+{
+    if (static_cast<int> (first["ID"]) < static_cast<int> (second["ID"]))
+        return -1;
+    if (static_cast<int> (first["ID"]) > static_cast<int> (second["ID"]))
+        return 1;
+    return 0;
+}
+};
+
+void SpeakerSetupLine::sort()
+{
+    juce::Array<juce::ValueTree> speakers;
+    for (int i = 0; i < valueTree.getNumChildren (); ++i)
+        speakers.add (valueTree.getChild (i));
+
+    Comparator comparison;
+    speakers.sort (comparison);
+
+    valueTree.removeAllChildren (&undoManager);
+    for (const auto& speaker : speakers)
+        valueTree.appendChild (speaker, &undoManager);
+}
+
+//==============================================================================
+
 SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
                                        GrisLookAndFeel & lnf,
                                        MainContentComponent & mainContentComponent)
@@ -156,11 +184,14 @@ SpeakerSetupContainer::SpeakerSetupContainer ()
 
     addAndMakeVisible (undoButton);
     addAndMakeVisible (redoButton);
+    addAndMakeVisible (sortButton);
     undoButton.onClick = [this] { undoManager.undo (); };
     redoButton.onClick = [this] { undoManager.redo (); };
+    sortButton.onClick = [this] { rootItem->sort (); };
 
     startTimer (500);
 
     setSize (500, 500);
 }
-}
+
+} // namespace gris
