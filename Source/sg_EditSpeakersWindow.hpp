@@ -129,6 +129,7 @@ private:
     static auto constexpr DEFAULT_COL_WIDTH = 70;
 
     MainContentComponent & mMainContentComponent;
+    const SpatGrisData& spatGrisData;
     GrisLookAndFeel & mLookAndFeel;
 
     Box mViewportWrapper;
@@ -175,8 +176,7 @@ public:
     //==============================================================================
     EditSpeakersWindow(juce::String const & name,
                        GrisLookAndFeel & lookAndFeel,
-                       MainContentComponent & mainContentComponent,
-                       juce::String const & configName);
+                       MainContentComponent & mainContentComponent);
     //==============================================================================
     EditSpeakersWindow() = delete;
     ~EditSpeakersWindow() override;

@@ -107,10 +107,10 @@ LabelComboBoxWrapper::LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel) : Labe
 //==============================================================================
 EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                        GrisLookAndFeel & lookAndFeel,
-                                       MainContentComponent & mainContentComponent,
-                                       juce::String const & /*configName*/)
+                                       MainContentComponent & mainContentComponent)
     : DocumentWindow(name, lookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
+    , spatGrisData(mainContentComponent.getData())
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel, "Configuration Speakers")
     , mFont(juce::FontOptions().withHeight (14.f))
@@ -218,13 +218,13 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                          juce::MathConstants<float>::pi * 2.7f,
                                          true);
     mDiffusionSlider.setRange(0.0f, 1.0f, 0.01f);
-    mDiffusionSlider.setValue(mMainContentComponent.getData().speakerSetup.diffusion);
+    mDiffusionSlider.setValue(spatGrisData.speakerSetup.diffusion);
     mDiffusionSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
     mDiffusionSlider.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mDiffusionSlider.setLookAndFeel(&mLookAndFeel);
     mDiffusionSlider.addListener(this);
-    mDiffusionSlider.setEnabled(mMainContentComponent.getData().project.spatMode == SpatMode::mbap
-                                || mMainContentComponent.getData().project.spatMode == SpatMode::hybrid);
+    mDiffusionSlider.setEnabled(spatGrisData.project.spatMode == SpatMode::mbap
+                                || spatGrisData.project.spatMode == SpatMode::hybrid);
     mViewportWrapper.getContent()->addAndMakeVisible(mDiffusionSlider);
 
     mViewportWrapper.getContent()->addAndMakeVisible(mSpeakersTableListBox);
@@ -344,7 +344,7 @@ void EditSpeakersWindow::initComp()
 
     mSpeakersTableListBox.setMultipleSelectionEnabled(true);
 
-    mNumRows = mMainContentComponent.getData().speakerSetup.speakers.size();
+    mNumRows = spatGrisData.speakerSetup.speakers.size();
 
     mViewportWrapper.setBounds(0, 0, getWidth(), getHeight());
     mViewportWrapper.correctSize(getWidth() - 8, getHeight());
@@ -434,7 +434,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
         return;
     }
 
-    auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
+    auto const & speakers{ spatGrisData.speakerSetup.speakers };
     std::vector<std::pair<float, output_patch_t>> valuesToSort{};
     valuesToSort.reserve(narrow<size_t>(speakers.size()));
     std::transform(speakers.cbegin(),
@@ -491,7 +491,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
 
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
-    auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
+    auto const & speakers{ spatGrisData.speakerSetup.speakers };
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 
     output_patch_t newOutputPatch{};
@@ -691,7 +691,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     } else if (button->getName().getIntValue() < DIRECT_OUT_BUTTON_ID_OFFSET) {
         // Delete button
         auto const row{ button->getName().getIntValue() };
-        auto const speakerId{ mMainContentComponent.getData().speakerSetup.ordering[row] };
+        auto const speakerId{ spatGrisData.speakerSetup.ordering[row] };
         mMainContentComponent.removeSpeaker(speakerId);
         updateWinContent();
         mSpeakersTableListBox.deselectAllRows();
@@ -724,7 +724,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
 
     const auto intValue {textEditor.getText().getIntValue()};
     const auto floatValue{ textEditor.getText().getFloatValue() };
-    const auto spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
+    const auto spatMode{ spatGrisData.speakerSetup.spatMode };
 
     // technically in dome/vbap mode the polyhedra is clamped right on the radius, so this calculation is moot, but
     // leaving the option here for a variable dome radius, in case it's ever useful in the future.
@@ -788,7 +788,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
 
 void EditSpeakersWindow::togglePolyhedraExtraWidgets()
 {
-    const auto showExtendedPolyWidgets = mMainContentComponent.getData().speakerSetup.spatMode != SpatMode::vbap;
+    const auto showExtendedPolyWidgets = spatGrisData.speakerSetup.spatMode != SpatMode::vbap;
     mPolyX.setVisible(showExtendedPolyWidgets);
     mPolyY.setVisible(showExtendedPolyWidgets);
     mPolyZ.setVisible(showExtendedPolyWidgets);
@@ -800,11 +800,11 @@ void EditSpeakersWindow::updateWinContent()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mNumRows = mMainContentComponent.getData().speakerSetup.speakers.size();
+    mNumRows = spatGrisData.speakerSetup.speakers.size();
     mSpeakersTableListBox.updateContent();
-    mDiffusionSlider.setValue(mMainContentComponent.getData().speakerSetup.diffusion);
-    mDiffusionSlider.setEnabled(mMainContentComponent.getData().project.spatMode == SpatMode::mbap
-                                || mMainContentComponent.getData().project.spatMode == SpatMode::hybrid);
+    mDiffusionSlider.setValue(spatGrisData.speakerSetup.diffusion);
+    mDiffusionSlider.setEnabled(spatGrisData.project.spatMode == SpatMode::mbap
+                                || spatGrisData.project.spatMode == SpatMode::hybrid);
 
 togglePolyhedraExtraWidgets();
 }
@@ -845,7 +845,7 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const output
 {
     auto const getSelectedRow = [this](output_patch_t const id) {
         juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
-        auto const & displayOrder{ mMainContentComponent.getData().speakerSetup.ordering };
+        auto const & displayOrder{ spatGrisData.speakerSetup.ordering };
         jassert(displayOrder.contains(id));
         return displayOrder.indexOf(id);
     };
@@ -943,7 +943,7 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const & data{ mMainContentComponent.getData() };
+    auto const & data{ spatGrisData };
     jassert(data.speakerSetup.speakers.size() > rowNumber);
     auto const outputPatch{ getSpeakerOutputPatchForRow(rowNumber) };
     auto const & speaker{ data.speakerSetup.speakers[outputPatch] };
@@ -988,7 +988,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock lock{ mMainContentComponent.getLock() };
 
-    auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
+    auto const spatMode{ spatGrisData.speakerSetup.spatMode };
 
     auto const isEditable = [&](int const col, SpeakerData const & speaker) {
         switch (col) {
@@ -1015,7 +1015,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
         return false;
     };
 
-    auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
+    auto const & speakers{ spatGrisData.speakerSetup.speakers };
 
     if (speakers.size() > rowNumber) {
         auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
@@ -1234,7 +1234,7 @@ SpeakerData const & EditSpeakersWindow::getSpeakerData(int const rowNum) const
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const outputPatch{ getSpeakerOutputPatchForRow(rowNum) };
-    return mMainContentComponent.getData().speakerSetup.speakers[outputPatch];
+    return spatGrisData.speakerSetup.speakers[outputPatch];
 }
 
 //==============================================================================
@@ -1242,7 +1242,7 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const & data{ mMainContentComponent.getData() };
+    auto const & data{ spatGrisData };
     jassert(row >= 0 && row < data.speakerSetup.ordering.size());
     auto const result{ data.speakerSetup.ordering[row] };
     jassert(data.speakerSetup.speakers.contains(result));
@@ -1269,7 +1269,7 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
     JUCE_ASSERT_MESSAGE_THREAD;
 
     juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
-    auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
+    auto const & speakers{ spatGrisData.speakerSetup.speakers };
     if (rowNumber >= speakers.size()) {
         return;
     }
@@ -1296,7 +1296,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 
     juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
     auto const outputPatch{ getSpeakerOutputPatchForRow(rowNumber) };
-    auto const & data{ mMainContentComponent.getData() };
+    auto const & data{ spatGrisData };
     auto const & speaker{ data.speakerSetup.speakers[outputPatch] };
 
     if (columnId == Cols::DIRECT_TOGGLE) {
@@ -1328,7 +1328,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 
     enum class EditionType { notEditable, editable, valueDraggable, reorderDraggable };
 
-    auto const & spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
+    auto const & spatMode{ spatGrisData.speakerSetup.spatMode };
 
     auto const getEditionType = [=]() -> EditionType {
         switch (columnId) {
@@ -1443,7 +1443,7 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
         return;
     }
 
-    auto order = mMainContentComponent.getData().speakerSetup.ordering;
+    auto order = spatGrisData.speakerSetup.ordering;
     order.swap(selectedRow, newIndex);
 
     mMainContentComponent.reorderSpeakers(order);
