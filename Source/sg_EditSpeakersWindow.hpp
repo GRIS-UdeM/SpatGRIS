@@ -22,6 +22,7 @@
 #include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
 #include "AlgoGRIS/tl/optional.hpp"
 #include "sg_Box.hpp"
+#include "UI/Windows/SpeakerSetup/SpeakerSetupContainer.hpp"
 
 namespace gris
 {
@@ -162,6 +163,7 @@ private:
     juce::Label mDiffusionLabel;
     juce::Slider mDiffusionSlider;
 
+    SpeakerSetupContainer mSpeakerSetupContainer;
     juce::TableListBox mSpeakersTableListBox;
     juce::Font mFont;
 

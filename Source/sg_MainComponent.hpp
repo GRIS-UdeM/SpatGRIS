@@ -45,7 +45,7 @@
 #include "sg_TitledComponent.hpp"
 #include "UI/Windows/SpeakerSetup/SpeakerSetupWindow.hpp"
 
-#define USE_OLD_SPEAKER_WINDOW 0
+#define USE_OLD_SPEAKER_WINDOW 1
 
 namespace gris
 {

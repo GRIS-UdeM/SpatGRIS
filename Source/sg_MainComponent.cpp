@@ -604,8 +604,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
         auto const windowName = juce::String{ "Speaker Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
                                 + juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension();
-        mEditSpeakersWindow
-            = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
+        mEditSpeakersWindow = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this);
         mEditSpeakersWindow->initComp();
     }
 #else
@@ -614,7 +613,6 @@ void MainContentComponent::handleShowSpeakerEditWindow()
             + spatModeToString (mData.speakerSetup.spatMode) + " - "
             + juce::File { mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension ();
         mSpeakerSetupWindow = std::make_unique<SpeakerSetupWindow>(windowName, mLookAndFeel, *this);
-        //mEditSpeakersWindow->initComp ();
     }
 #endif
 }

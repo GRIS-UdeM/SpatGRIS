@@ -112,7 +112,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mMainContentComponent(mainContentComponent)
     , spatGrisData(mainContentComponent.getData())
     , mLookAndFeel(lookAndFeel)
-    , mViewportWrapper(lookAndFeel, "Configuration Speakers")
+    , mViewportWrapper(lookAndFeel)
     , mFont(juce::FontOptions().withHeight (14.f))
     , mRingSpeakers(lookAndFeel)
     , mRingElevation(lookAndFeel)
@@ -227,7 +227,11 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                 || spatGrisData.project.spatMode == SpatMode::hybrid);
     mViewportWrapper.getContent()->addAndMakeVisible(mDiffusionSlider);
 
+#if 0
     mViewportWrapper.getContent()->addAndMakeVisible(mSpeakersTableListBox);
+#else
+    mViewportWrapper.getContent ()->addAndMakeVisible (mSpeakerSetupContainer);
+#endif
 
     mViewportWrapper.repaint();
     mViewportWrapper.resized();
@@ -806,7 +810,7 @@ void EditSpeakersWindow::updateWinContent()
     mDiffusionSlider.setEnabled(spatGrisData.project.spatMode == SpatMode::mbap
                                 || spatGrisData.project.spatMode == SpatMode::hybrid);
 
-togglePolyhedraExtraWidgets();
+    togglePolyhedraExtraWidgets();
 }
 
 //==============================================================================
@@ -889,6 +893,7 @@ void EditSpeakersWindow::resized()
     auto const secondRowH{ 24 };
     auto const bottomPanelH{ 195 + secondRowH };
     mSpeakersTableListBox.setSize(getWidth(), getHeight() - bottomPanelH);
+    mSpeakerSetupContainer.setSize (getWidth (), getHeight () - bottomPanelH);
 
     //first row of bottom panel with add speaker, save as, and save buttons
     auto const firstRowH {22};

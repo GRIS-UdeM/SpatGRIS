@@ -37,6 +37,6 @@ public:
 private:
     MainContentComponent& mMainContentComponent;
     GrisLookAndFeel& mLookAndFeel;
-    SpeakerSetupContainer mValueTreesDemo;
+    SpeakerSetupContainer mSpeakerSetupContainer;
 };
 }

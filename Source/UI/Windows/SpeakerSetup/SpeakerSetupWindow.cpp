@@ -28,7 +28,7 @@ SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lnf)
 {
-    setContentNonOwned (&mValueTreesDemo, true);
+    setContentNonOwned (&mSpeakerSetupContainer, true);
     setResizable (true, true);
     setUsingNativeTitleBar (true);
     setAlwaysOnTop (true);
