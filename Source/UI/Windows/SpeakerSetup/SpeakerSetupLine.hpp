@@ -28,97 +28,35 @@ class SpeakerSetupLine final
 public:
     SpeakerSetupLine (const juce::ValueTree& v, juce::UndoManager& um);
 
-    juce::String getUniqueName () const override
-    {
-        return valueTree.getType ().toString ();
-    }
+    juce::String getUniqueName() const override { return valueTree.getType().toString(); }
 
-    bool mightContainSubItems () override
-    {
-        return valueTree.getType() == SPEAKER_GROUP;
-    }
+    bool mightContainSubItems() override { return valueTree.getType() == SPEAKER_GROUP; }
 
-    void sort (juce::ValueTree vt = {});
+    std::unique_ptr<juce::Component> createItemComponent () override;
 
-    std::unique_ptr<juce::Component> createItemComponent () override
-    {
-        if (mightContainSubItems ())
-            return std::make_unique<SpeakerGroupComponent> (valueTree);
-        else
-            return std::make_unique<SpeakerComponent> (valueTree);
-    }
+    void itemOpennessChanged (bool isNowOpen) override;
 
-    void itemOpennessChanged (bool isNowOpen) override
-    {
-        if (isNowOpen && getNumSubItems () == 0)
-            refreshSubItems ();
-        else
-            clearSubItems ();
-    }
-
-    juce::var getDragSourceDescription () override
-    {
-        return valueTree.getType ().toString();
-    }
+    juce::var getDragSourceDescription () override { return valueTree.getType ().toString(); }
 
     bool isInterestedInDragSource (const juce::DragAndDropTarget::SourceDetails& /*dragSourceDetails*/) override
     {
-        //TODO VB: using this as a shortcut to identify groups, we need another way
         return mightContainSubItems ();
     }
 
-    void itemDropped (const juce::DragAndDropTarget::SourceDetails&, int insertIndex) override
-    {
-        juce::OwnedArray<juce::ValueTree> selectedTrees;
-        getSelectedTreeViewItems (*getOwnerView (), selectedTrees);
-
-        moveItems (*getOwnerView (), selectedTrees, valueTree, insertIndex, undoManager);
-    }
+    void itemDropped (const juce::DragAndDropTarget::SourceDetails&, int insertIndex) override;
 
     static void moveItems (juce::TreeView& treeView, const juce::OwnedArray<juce::ValueTree>& items,
-                           juce::ValueTree newParent, int insertIndex, juce::UndoManager& undoManager)
-    {
-        if (items.size () > 0)
-        {
-            std::unique_ptr<juce::XmlElement> oldOpenness (treeView.getOpennessState (false));
+                           juce::ValueTree newParent, int insertIndex, juce::UndoManager& undoManager);
 
-            for (auto* v : items)
-            {
-                if (v->getParent ().isValid () && newParent != *v && ! newParent.isAChildOf (*v))
-                {
-                    if (v->getParent () == newParent && newParent.indexOf (*v) < insertIndex)
-                        --insertIndex;
+    static void getSelectedTreeViewItems (juce::TreeView& treeView, juce::OwnedArray<juce::ValueTree>& items);
 
-                    v->getParent ().removeChild (*v, &undoManager);
-                    newParent.addChild (*v, insertIndex, &undoManager);
-                }
-            }
-
-            if (oldOpenness != nullptr)
-                treeView.restoreOpennessState (*oldOpenness, false);
-        }
-    }
-
-    static void getSelectedTreeViewItems (juce::TreeView& treeView, juce::OwnedArray<juce::ValueTree>& items)
-    {
-        auto numSelected = treeView.getNumSelectedItems ();
-
-        for (int i = 0; i < numSelected; ++i)
-            if (auto* vti = dynamic_cast<SpeakerSetupLine*> (treeView.getSelectedItem (i)))
-                items.add (new juce::ValueTree (vti->valueTree));
-    }
+    void sort (juce::ValueTree vt = {});
 
 private:
     juce::ValueTree valueTree;
     juce::UndoManager& undoManager;
 
-    void refreshSubItems ()
-    {
-        clearSubItems ();
-
-        for (int i = 0; i < valueTree.getNumChildren (); ++i)
-            addSubItem (new SpeakerSetupLine (valueTree.getChild (i), undoManager));
-    }
+    void refreshSubItems ();
 
     void valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&) override
     {
@@ -130,15 +68,7 @@ private:
     void valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int) override { treeChildrenChanged (parentTree); }
     void valueTreeParentChanged (juce::ValueTree&) override {}
 
-    void treeChildrenChanged (const juce::ValueTree& parentTree)
-    {
-        if (parentTree == valueTree)
-        {
-            refreshSubItems ();
-            treeHasChanged ();
-            setOpen (true);
-        }
-    }
+    void treeChildrenChanged (const juce::ValueTree& parentTree);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerSetupLine)
 };

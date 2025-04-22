@@ -42,7 +42,7 @@ public:
 
     ~SpeakerSetupContainer () override
     {
-        treeView.setRootItem (nullptr);
+        speakerSetupTreeView.setRootItem (nullptr);
     }
 
     void paint (juce::Graphics& g) override
@@ -51,14 +51,20 @@ public:
     }
 
     void resized () override;
-
+        
     void deleteSelectedItems ();
 
     bool keyPressed (const juce::KeyPress& key) override;
 
+    void saveSpeakerSetup();
+
 private:
-    juce::TreeView treeView;
-    juce::TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton { "Sort" };
+    //TODO VB: this file needs to be passed/dealt with in SpeakerSetupWindow or earlier actually
+    juce::File vtFile;
+    juce::ValueTree vt;
+
+    juce::TreeView speakerSetupTreeView;
+    juce::TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton { "Sort" }, saveButton { "Save" };
 
     std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
     juce::UndoManager undoManager;

@@ -21,29 +21,32 @@ namespace gris
 SpeakerSetupContainer::SpeakerSetupContainer ()
 {
 #if JUCE_LINUX
-    const auto vtFile = juce::File ("/home/vberthiaume/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
+    vtFile = juce::File ("/home/vberthiaume/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
 #else
-    const auto vtFile = juce::File ("C:/Users/barth/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
+    vtFile = juce::File ("C:/Users/barth/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
 #endif
-    const auto vt { convertSpeakerSetup (juce::ValueTree::fromXml (vtFile.loadFileAsString ())) };
+    vt = convertSpeakerSetup (juce::ValueTree::fromXml (vtFile.loadFileAsString ()));
 
-    addAndMakeVisible (treeView);
+    addAndMakeVisible (speakerSetupTreeView);
 
-    treeView.setTitle (vtFile.getFileName ());
-    treeView.setDefaultOpenness (true);
-    treeView.setMultiSelectEnabled (true);
+    speakerSetupTreeView.setTitle (vtFile.getFileName ());
+    speakerSetupTreeView.setDefaultOpenness (true);
+    speakerSetupTreeView.setMultiSelectEnabled (true);
 
     // at this point vt is the whole speaker setup, but I think the lines should only care about groups or speakers, so
     // only giving them the main group for now?
     mainSpeakerGroupLine.reset (new SpeakerSetupLine (vt.getChild(0), undoManager));
-    treeView.setRootItem (mainSpeakerGroupLine.get ());
+    speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
     addAndMakeVisible (undoButton);
     addAndMakeVisible (redoButton);
     addAndMakeVisible (sortButton);
+    addAndMakeVisible (saveButton);
+
     undoButton.onClick = [this] { undoManager.undo (); };
     redoButton.onClick = [this] { undoManager.redo (); };
     sortButton.onClick = [this] { mainSpeakerGroupLine->sort (); };
+    saveButton.onClick = [this] { saveSpeakerSetup(); };
 
     startTimer (500);
 
@@ -59,15 +62,17 @@ void SpeakerSetupContainer::resized ()
     redoButton.setBounds (buttons.removeFromLeft (100));
     buttons.removeFromLeft (6);
     sortButton.setBounds (buttons.removeFromLeft (100));
+    buttons.removeFromLeft (6);
+    saveButton.setBounds (buttons.removeFromLeft (100));
 
     r.removeFromBottom (4);
-    treeView.setBounds (r);
+    speakerSetupTreeView.setBounds (r);
 }
 
 void SpeakerSetupContainer::deleteSelectedItems ()
 {
     juce::OwnedArray<juce::ValueTree> selectedItems;
-    SpeakerSetupLine::getSelectedTreeViewItems (treeView, selectedItems);
+    SpeakerSetupLine::getSelectedTreeViewItems (speakerSetupTreeView, selectedItems);
 
     for (auto* v : selectedItems)
     {
@@ -98,4 +103,34 @@ bool SpeakerSetupContainer::keyPressed (const juce::KeyPress& key)
 
     return Component::keyPressed (key);
 }
+
+void SpeakerSetupContainer::saveSpeakerSetup()
+{
+    const auto saveFile = [valueTree = vt](juce::File file) {
+        if (! file.replaceWithText (valueTree.toXmlString())) {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                                   "Error",
+                                                   "Failed to save the file: " + file.getFullPathName());
+        } else {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+                                                   "Success",
+                                                   "File saved successfully: " + file.getFullPathName());
+        }
+    };
+
+    const auto saveAs = false;
+    if (saveAs)
+    {
+        juce::FileChooser fileChooser("Save Speaker Setup",
+                                      juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+                                      "*.xml");
+        if (fileChooser.browseForFileToSave(true))
+            saveFile (fileChooser.getResult());
+    }
+    else
+    {
+        saveFile(vtFile);
+    }
 }
+
+} // namespace gris

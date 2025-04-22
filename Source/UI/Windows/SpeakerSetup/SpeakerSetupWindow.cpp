@@ -21,47 +21,6 @@
 
 namespace gris
 {
-
-
-struct Comparator
-{
-    int compareElements (const juce::ValueTree& first, const juce::ValueTree& second)
-    {
-        jassert (first.hasProperty (ID) && second.hasProperty (ID));
-        return first[ID].toString ().compareNatural (second[ID].toString ());
-    }
-};
-
-void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
-{
-    if (! vt.isValid())
-        vt = valueTree;
-
-    juce::Array<juce::ValueTree> speakerGroups;
-    juce::Array<juce::ValueTree> allChildren;
-
-    for (auto child : vt) {
-        if (child.getType() == SPEAKER_GROUP)
-            speakerGroups.add(child);
-
-        allChildren.add(child);
-    }
-
-    //first recurse into speaker groups
-    for (auto speakerGroup : speakerGroups)
-        sort (speakerGroup);
-
-    //then actually sort all children
-    Comparator comparison;
-    allChildren.sort (comparison);
-
-    vt.removeAllChildren (&undoManager);
-    for (const auto& speaker : allChildren)
-        vt.appendChild (speaker, &undoManager);
-}
-
-//==============================================================================
-
 SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
                                        GrisLookAndFeel & lnf,
                                        MainContentComponent & mainContentComponent)

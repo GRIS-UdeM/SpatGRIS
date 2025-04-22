@@ -23,4 +23,115 @@ SpeakerSetupLine::SpeakerSetupLine (const juce::ValueTree& v, juce::UndoManager&
 {
     valueTree.addListener (this);
 }
+
+std::unique_ptr<juce::Component> SpeakerSetupLine::createItemComponent ()
+{
+    if (mightContainSubItems ())
+        return std::make_unique<SpeakerGroupComponent> (valueTree);
+    else
+        return std::make_unique<SpeakerComponent> (valueTree);
+}
+
+void SpeakerSetupLine::itemOpennessChanged (bool isNowOpen)
+{
+    if (isNowOpen && getNumSubItems () == 0)
+        refreshSubItems ();
+    else
+        clearSubItems ();
+}
+
+void SpeakerSetupLine::itemDropped (const juce::DragAndDropTarget::SourceDetails&, int insertIndex)
+{
+    juce::OwnedArray<juce::ValueTree> selectedTrees;
+    getSelectedTreeViewItems (*getOwnerView (), selectedTrees);
+
+    moveItems (*getOwnerView (), selectedTrees, valueTree, insertIndex, undoManager);
+}
+
+void SpeakerSetupLine::moveItems (juce::TreeView& treeView, const juce::OwnedArray<juce::ValueTree>& items, juce::ValueTree newParent, int insertIndex, juce::UndoManager& undoManager)
+{
+    if (items.size () > 0)
+    {
+        std::unique_ptr<juce::XmlElement> oldOpenness (treeView.getOpennessState (false));
+
+        for (auto* v : items)
+        {
+            if (v->getParent ().isValid () && newParent != *v && ! newParent.isAChildOf (*v))
+            {
+                if (v->getParent () == newParent && newParent.indexOf (*v) < insertIndex)
+                    --insertIndex;
+
+                v->getParent ().removeChild (*v, &undoManager);
+                newParent.addChild (*v, insertIndex, &undoManager);
+            }
+        }
+
+        if (oldOpenness != nullptr)
+            treeView.restoreOpennessState (*oldOpenness, false);
+    }
+}
+
+void SpeakerSetupLine::getSelectedTreeViewItems (juce::TreeView& treeView, juce::OwnedArray<juce::ValueTree>& items)
+{
+    auto numSelected = treeView.getNumSelectedItems ();
+
+    for (int i = 0; i < numSelected; ++i)
+        if (auto* vti = dynamic_cast<SpeakerSetupLine*> (treeView.getSelectedItem (i)))
+            items.add (new juce::ValueTree (vti->valueTree));
+}
+
+struct Comparator
+{
+    int compareElements (const juce::ValueTree& first, const juce::ValueTree& second)
+    {
+        jassert (first.hasProperty (ID) && second.hasProperty (ID));
+        return first[ID].toString ().compareNatural (second[ID].toString ());
+    }
+};
+
+void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
+{
+    if (! vt.isValid ())
+        vt = valueTree;
+
+    juce::Array<juce::ValueTree> speakerGroups;
+    juce::Array<juce::ValueTree> allChildren;
+
+    for (auto child : vt) {
+        if (child.getType () == SPEAKER_GROUP)
+            speakerGroups.add (child);
+
+        allChildren.add (child);
+    }
+
+    //first recurse into speaker groups
+    for (auto speakerGroup : speakerGroups)
+        sort (speakerGroup);
+
+    //then actually sort all children
+    Comparator comparison;
+    allChildren.sort (comparison);
+
+    vt.removeAllChildren (&undoManager);
+    for (const auto& speaker : allChildren)
+        vt.appendChild (speaker, &undoManager);
+}
+
+void SpeakerSetupLine::refreshSubItems ()
+{
+    clearSubItems ();
+
+    for (int i = 0; i < valueTree.getNumChildren (); ++i)
+        addSubItem (new SpeakerSetupLine (valueTree.getChild (i), undoManager));
+}
+
+void SpeakerSetupLine::treeChildrenChanged (const juce::ValueTree& parentTree)
+{
+    if (parentTree == valueTree)
+    {
+        refreshSubItems ();
+        treeHasChanged ();
+        setOpen (true);
+    }
+}
 }

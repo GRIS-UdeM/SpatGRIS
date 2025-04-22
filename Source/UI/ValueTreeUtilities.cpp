@@ -40,12 +40,16 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
     //  <SPEAKER_2 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
     //      <POSITION X = "0.0980171337723732" Y = "0.9951847195625305" Z = "-4.371138828673793e-8" / >
 
-    if (oldSpeakerSetup.getType ()!= SPEAKER_SETUP)
+    if (oldSpeakerSetup.getType () != SPEAKER_SETUP)
     {
         //this function should  probably return an optional and here it should be empty
         jassertfalse;
         return {};
     }
+
+    // check if the version is already up to date
+    if (oldSpeakerSetup.getProperty(VERSION) == CURRENT_SPEAKERSETUP_VERSION)
+        return oldSpeakerSetup; 
 
     //create new value tree
     auto newVt = juce::ValueTree (SPEAKER_SETUP);
