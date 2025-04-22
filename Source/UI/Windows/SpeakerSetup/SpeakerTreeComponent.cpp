@@ -32,6 +32,23 @@ SpeakerTreeComponent::SpeakerTreeComponent (const juce::ValueTree& v)
     setupEditor (del, "DEL");
 }
 
+void SpeakerTreeComponent::resized ()
+{
+    auto bounds { getLocalBounds () };
+    id.setBounds (bounds.removeFromLeft (100));
+
+    constexpr auto colW { 60 };
+    for (auto* component : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
+        component->setBounds (bounds.removeFromLeft (colW));
+}
+
+void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::StringRef text)
+{
+    editor.setText (text, juce::dontSendNotification);
+    editor.setEditable (true);
+    addAndMakeVisible (editor);
+}
+
 //==============================================================================
 
 SpeakerGroupComponent::SpeakerGroupComponent (const juce::ValueTree& v) : SpeakerTreeComponent (v)

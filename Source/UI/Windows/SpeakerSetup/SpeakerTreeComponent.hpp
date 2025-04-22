@@ -25,22 +25,10 @@ class SpeakerTreeComponent : public juce::Component
 public:
     SpeakerTreeComponent (const juce::ValueTree& v);
 
-    void resized () override
-    {
-        auto bounds { getLocalBounds () };
-        constexpr auto colW { 60 };
-
-        for (auto* component : { &id, &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
-            component->setBounds (bounds.removeFromLeft (colW));
-    }
+    void resized () override;
 
 protected:
-    void setupEditor (juce::Label& editor, juce::StringRef text)
-    {
-        editor.setText (text, juce::dontSendNotification);
-        editor.setEditable (true);
-        addAndMakeVisible (editor);
-    };
+    void setupEditor (juce::Label& editor, juce::StringRef text);;
 
     juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del;
 
