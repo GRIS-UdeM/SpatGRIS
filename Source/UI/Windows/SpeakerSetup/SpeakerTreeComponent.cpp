@@ -32,79 +32,25 @@ SpeakerTreeComponent::SpeakerTreeComponent (const juce::ValueTree& v)
     setupEditor (del, "DEL");
 }
 
-#if 0
 void SpeakerTreeComponent::resized ()
 {
-    auto bounds { getLocalBounds () };
-    id.setBounds (bounds.removeFromLeft (100));
+    constexpr auto fixedLeftColWidth { 200 };
+    constexpr auto otherColWidth { 60 } ;
 
-    constexpr auto colW { 60 };
-    for (auto* component : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
-        component->setBounds (bounds.removeFromLeft (colW));
-}
-
-#elif 1
-void SpeakerTreeComponent::resized ()
-{
-    constexpr auto fixedIdWidth { 200 };
-
-    constexpr auto colW { 60 } ;
     if (auto* window = findParentComponentOfClass<juce::DocumentWindow> ())
     {
         auto bounds = getLocalBounds ();
 
-        // Get where (0,0) is in window space relative to this component
+        // position the ID colum so it is a fixed width of fixedLeftColWidth fromt the left of the document window
         const auto windowOriginInThis = window->getLocalPoint (this, juce::Point<int>{ 0, 0 });
-        const auto xOffset = fixedIdWidth - windowOriginInThis.x;
-        id.setBounds (bounds.removeFromLeft (xOffset));
+        const auto idColWidth = fixedLeftColWidth - windowOriginInThis.x;
+        id.setBounds (bounds.removeFromLeft (idColWidth));
 
+        // then position the other components with a fixed width of otherColWidth
         for (auto* component : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
-            component->setBounds (bounds.removeFromLeft (colW));
+            component->setBounds (bounds.removeFromLeft (otherColWidth));
     }
 }
-
-#else
-void SpeakerTreeComponent::resized ()
-{
-    constexpr int fixedXFromWindowLeft = 100;
-    constexpr int colW = 60;
-    constexpr int colH = 30; // or whatever height you need
-
-    // Step 1: Find where (0, 0) is in window coordinates
-    if (auto* window = findParentComponentOfClass<juce::DocumentWindow> ())
-    {
-        auto windowOriginInThis = window->getLocalPoint (this, juce::Point<int>{ 0, 0 });
-        int xOffset = fixedXFromWindowLeft - windowOriginInThis.x;
-
-        // Step 2: Apply offset so x is always fixed from window left
-        int currentX = xOffset;
-
-        x.setBounds (currentX, 0, colW, colH);
-        currentX += colW;
-        y.setBounds (currentX, 0, colW, colH);
-        currentX += colW;
-        z.setBounds (currentX, 0, colW, colH);
-        currentX += colW;
-        azim.setBounds (currentX, 0, colW, colH);
-        currentX += colW;
-        elev.setBounds (currentX, 0, colW, colH);
-        currentX += colW;
-        distance.setBounds (currentX, 0, colW, colH);
-        currentX += colW;
-        gain.setBounds (currentX, 0, colW, colH);
-        currentX += colW;
-        highpass.setBounds (currentX, 0, colW, colH);
-        currentX += colW;
-        direct.setBounds (currentX, 0, colW, colH);
-        currentX += colW;
-        del.setBounds (currentX, 0, colW, colH);
-    }
-
-    // Optional: Position `id` somewhere else if needed
-    // id.setBounds (...);
-}
-
-#endif
 
 void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::StringRef text)
 {
