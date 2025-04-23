@@ -227,7 +227,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                 || spatGrisData.project.spatMode == SpatMode::hybrid);
     mViewportWrapper.getContent()->addAndMakeVisible(mDiffusionSlider);
 
-#if 0
+#if USE_OLD_SPEAKER_SETUP_VIEW
     mViewportWrapper.getContent()->addAndMakeVisible(mSpeakersTableListBox);
 #else
     mViewportWrapper.getContent ()->addAndMakeVisible (mSpeakerSetupContainer);
@@ -257,7 +257,9 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 //==============================================================================
 EditSpeakersWindow::~EditSpeakersWindow()
 {
+#if USE_OLD_SPEAKER_SETUP_VIEW
     mSpeakersTableListBox.setModel(nullptr);
+#endif
 }
 
 //==============================================================================
@@ -265,6 +267,7 @@ void EditSpeakersWindow::initComp()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+#if USE_OLD_SPEAKER_SETUP_VIEW
     mSpeakersTableListBox.setModel(this);
 
     mSpeakersTableListBox.setColour(juce::ListBox::outlineColourId, mLookAndFeel.getWinBackgroundColour());
@@ -355,7 +358,7 @@ void EditSpeakersWindow::initComp()
     mSpeakersTableListBox.setSize(getWidth(), 400);
 
     mSpeakersTableListBox.updateContent();
-
+#endif
     mViewportWrapper.repaint();
     mViewportWrapper.resized();
     resized();
@@ -493,6 +496,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
         return selectedRow;
     };
 
+#if USE_OLD_SPEAKER_SETUP_VIEW
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
     auto const & speakers{ spatGrisData.speakerSetup.speakers };
@@ -526,6 +530,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
     // This is the real sorting!
     mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
     selectSpeaker(newOutputPatch);
+#endif
     mShouldComputeSpeakers = true;
 }
 
@@ -534,6 +539,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+#if USE_OLD_SPEAKER_SETUP_VIEW
     static auto const GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
         auto const selectedRow{ tableListBox.getSelectedRow() };
         if (selectedRow < 0) {
@@ -545,6 +551,10 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
+#else
+    //TODO VB: will need a way to get this for the group feature to work
+    jassertfalse;
+#endif
 
     // mMainContentComponent.setShowTriplets(false);
 
@@ -557,16 +567,20 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         tl::optional<output_patch_t> outputPatch{};
         tl::optional<int> index{};
 
+#if USE_OLD_SPEAKER_SETUP_VIEW
         if (selectedRow) {
             outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
             index = *selectedRow + 1;
         }
+#endif
 
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
         mMainContentComponent.refreshSpeakers();
         updateWinContent();
         selectSpeaker(newOutputPatch);
+#if USE_OLD_SPEAKER_SETUP_VIEW
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards); // TODO: necessary?
+#endif
         mShouldComputeSpeakers = true;
     } else if (button == &mSaveAsSpeakerSetupButton) {
         // Save as... speaker button
@@ -698,7 +712,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         auto const speakerId{ spatGrisData.speakerSetup.ordering[row] };
         mMainContentComponent.removeSpeaker(speakerId);
         updateWinContent();
+#if USE_OLD_SPEAKER_SETUP_VIEW
         mSpeakersTableListBox.deselectAllRows();
+#endif
         mShouldComputeSpeakers = true;
     } else {
         // Direct out
@@ -805,7 +821,12 @@ void EditSpeakersWindow::updateWinContent()
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mNumRows = spatGrisData.speakerSetup.speakers.size();
+#if USE_OLD_SPEAKER_SETUP_VIEW
     mSpeakersTableListBox.updateContent();
+#else
+    //TODO VB: this is hit multiple times when opening the window/app
+    //jassertfalse;
+#endif
     mDiffusionSlider.setValue(spatGrisData.speakerSetup.diffusion);
     mDiffusionSlider.setEnabled(spatGrisData.project.spatMode == SpatMode::mbap
                                 || spatGrisData.project.spatMode == SpatMode::hybrid);
@@ -818,6 +839,7 @@ void EditSpeakersWindow::pushSelectionToMainComponent() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+#if USE_OLD_SPEAKER_SETUP_VIEW
     auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
     if (selectedRows == mLastSelectedRows) {
         return;
@@ -832,9 +854,14 @@ void EditSpeakersWindow::pushSelectionToMainComponent() const
     }
 
     mMainContentComponent.setSelectedSpeakers(std::move(selection));
+#else
+    //TODO VB: this is hit whenever we click into the setup view
+    //jassertfalse;
+#endif
 }
 
 //==============================================================================
+#if USE_OLD_SPEAKER_SETUP_VIEW
 void EditSpeakersWindow::selectRow(tl::optional<int> const value)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -843,6 +870,7 @@ void EditSpeakersWindow::selectRow(tl::optional<int> const value)
     mSpeakersTableListBox.selectRow(value.value_or(-1));
     repaint();
 }
+#endif
 
 //==============================================================================
 void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const outputPatch)
@@ -854,7 +882,11 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const output
         return displayOrder.indexOf(id);
     };
 
+#if USE_OLD_SPEAKER_SETUP_VIEW
     selectRow(outputPatch.map(getSelectedRow));
+#else
+    jassertfalse;
+#endif
     pushSelectionToMainComponent();
 }
 
@@ -892,8 +924,11 @@ void EditSpeakersWindow::resized()
     //speaker table
     auto const secondRowH{ 24 };
     auto const bottomPanelH{ 195 + secondRowH };
+#if USE_OLD_SPEAKER_SETUP_VIEW
     mSpeakersTableListBox.setSize(getWidth(), getHeight() - bottomPanelH);
+#else
     mSpeakerSetupContainer.setSize (getWidth (), getHeight () - bottomPanelH);
+#endif
 
     //first row of bottom panel with add speaker, save as, and save buttons
     auto const firstRowH {22};
@@ -985,6 +1020,7 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
 }
 
 //==============================================================================
+#if USE_OLD_SPEAKER_SETUP_VIEW
 void EditSpeakersWindow::setText(int const columnNumber,
                                  int const rowNumber,
                                  juce::String const & newText,
@@ -1219,18 +1255,22 @@ void EditSpeakersWindow::setText(int const columnNumber,
     updateWinContent(); // necessary?
     mMainContentComponent.refreshViewportConfig();
 }
-
+#endif
 //==============================================================================
+
 bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & event)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-
+#if USE_OLD_SPEAKER_SETUP_VIEW
     auto const positionRelativeToSpeakersTableListBox{ event.getEventRelativeTo(&mSpeakersTableListBox).getPosition() };
     auto const speakersTableListBoxBounds{ mSpeakersTableListBox.getBounds() };
 
     auto const draggableWidth{ mSpeakersTableListBox.getHeader().getColumnWidth(Cols::DRAG_HANDLE) };
     return speakersTableListBoxBounds.contains(positionRelativeToSpeakersTableListBox)
            && positionRelativeToSpeakersTableListBox.getX() < draggableWidth;
+#else
+    return false;
+#endif
 }
 
 //==============================================================================
@@ -1408,7 +1448,9 @@ void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (isMouseOverDragHandle(event)) {
+#if USE_OLD_SPEAKER_SETUP_VIEW
         mDragStartY = event.getEventRelativeTo(&mSpeakersTableListBox).getPosition().getY();
+#endif
     } else {
         mDragStartY = tl::nullopt;
     }
@@ -1418,6 +1460,7 @@ void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
 //==============================================================================
 void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
 {
+#if USE_OLD_SPEAKER_SETUP_VIEW
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (!mDragStartY) {
@@ -1425,7 +1468,6 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
     }
 
     auto const eventRel{ event.getEventRelativeTo(&mSpeakersTableListBox).getPosition() };
-
     auto const rowHeight{ mSpeakersTableListBox.getRowHeight() };
     auto const yDiff{ eventRel.getY() - *mDragStartY };
     auto const rowDiff{ narrow<int>(std::round(narrow<float>(yDiff) / narrow<float>(rowHeight))) };
@@ -1459,6 +1501,7 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
 
     updateWinContent();
     mShouldComputeSpeakers = true;
+#endif
 }
 
 //==============================================================================

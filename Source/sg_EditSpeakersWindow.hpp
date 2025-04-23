@@ -24,6 +24,8 @@
 #include "sg_Box.hpp"
 #include "UI/Windows/SpeakerSetup/SpeakerSetupContainer.hpp"
 
+#define USE_OLD_SPEAKER_SETUP_VIEW 0
+
 namespace gris
 {
 class EditableTextCustomComponent;
@@ -163,8 +165,11 @@ private:
     juce::Label mDiffusionLabel;
     juce::Slider mDiffusionSlider;
 
-    SpeakerSetupContainer mSpeakerSetupContainer;
+#if USE_OLD_SPEAKER_SETUP_VIEW
     juce::TableListBox mSpeakersTableListBox;
+#else
+    SpeakerSetupContainer mSpeakerSetupContainer;
+#endif
     juce::Font mFont;
 
     int mNumRows{};
@@ -185,7 +190,9 @@ public:
     SG_DELETE_COPY_AND_MOVE(EditSpeakersWindow)
     //==============================================================================
     void initComp();
+#if USE_OLD_SPEAKER_SETUP_VIEW
     void selectRow(tl::optional<int> value);
+#endif
     void selectSpeaker(tl::optional<output_patch_t> outputPatch);
 
     void togglePolyhedraExtraWidgets();
@@ -198,7 +205,9 @@ private:
     //==============================================================================
     void pushSelectionToMainComponent() const;
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
+#if USE_OLD_SPEAKER_SETUP_VIEW
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
+#endif
     bool isMouseOverDragHandle(juce::MouseEvent const & event);
     SpeakerData const & getSpeakerData(int rowNum) const;
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;

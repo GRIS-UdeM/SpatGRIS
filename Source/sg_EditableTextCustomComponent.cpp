@@ -36,11 +36,13 @@ EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow & ed
 //==============================================================================
 void EditableTextCustomComponent::mouseDown(const juce::MouseEvent & event)
 {
+#if USE_OLD_SPEAKER_SETUP_VIEW
     if (event.mods.isRightButtonDown()) {
         mOwner.mSpeakersTableListBox.deselectAllRows();
     } else {
         mOwner.mSpeakersTableListBox.selectRowsBasedOnModifierKeys(mRow, event.mods, false);
     }
+#endif
     mLastOffset = 0;
     Label::mouseDown(event);
 }
@@ -97,7 +99,9 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
     if (increment) {
         auto const diff{ *increment * narrow<float>(mLastOffset - offset) / 2.5f };
         auto const val{ getText().getFloatValue() + diff };
+#if USE_OLD_SPEAKER_SETUP_VIEW
         mOwner.setText(mColumnId, mRow, juce::String(val), event.mods.isAltDown());
+#endif
     }
     mLastOffset = offset;
 }
@@ -105,7 +109,9 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
 //==============================================================================
 void EditableTextCustomComponent::textWasEdited()
 {
+#if USE_OLD_SPEAKER_SETUP_VIEW
     mOwner.setText(mColumnId, mRow, getText());
+#endif
     mOwner.computeSpeakers();
 }
 
