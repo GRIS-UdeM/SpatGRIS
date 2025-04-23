@@ -22,6 +22,7 @@
 #include "AlgoGRIS/Data/StrongTypes/sg_CartesianVector.hpp"
 #include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
 #include "AlgoGRIS/Data/sg_constants.hpp"
+#include "AlgoGRIS/Data/sg_SpatMode.hpp"
 #include "sg_Warnings.hpp"
 
 #include <JuceHeader.h>
@@ -29,7 +30,6 @@
 namespace gris
 {
 struct SpeakerData;
-enum class SpatMode;
 struct SourceData;
 
 class MainContentComponent;
