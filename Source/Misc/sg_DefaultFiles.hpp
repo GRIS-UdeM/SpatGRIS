@@ -50,12 +50,22 @@ struct FileTemplate
     bool operator<(FileTemplate const& other) const noexcept;
 };
 
+tl::optional<FileTemplate const&> commandIdToTemplate (juce::CommandID commandId);
+
+juce::Array<FileTemplate> extract (juce::File const& dir, juce::CommandID& commandId);
+
 //==============================================================================
 struct SpeakerSetupTemplates
 {
     juce::Array<FileTemplate> dome {};
     juce::Array<FileTemplate> cube {};
 };
+
+SpeakerSetupTemplates getSpeakerSetupTemplates ();
+
+extern SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES;
+
+//==============================================================================
 
 struct ProjectTemplates
 {
@@ -64,51 +74,8 @@ struct ProjectTemplates
     juce::Array<FileTemplate> hybrid {};
 };
 
-extern SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES;
 extern ProjectTemplates const PROJECT_TEMPLATES;
-tl::optional<FileTemplate const&> commandIdToTemplate (juce::CommandID commandId);
 
-//==============================================================================
-
-static constexpr auto SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET = 2000;
-static constexpr auto PROJECT_TEMPLATES_COMMANDS_OFFSET = 3000;
-
-//==============================================================================
-
-static juce::Array<FileTemplate> extract (juce::File const& dir, juce::CommandID& commandId)
-{
-    jassert (dir.isDirectory ());
-    juce::Array<FileTemplate> result {};
-
-    for (auto const& file : dir.findChildFiles (juce::File::TypesOfFileToFind::findFiles, false)) {
-        FileTemplate setup { file.getFileNameWithoutExtension (), commandId++, file };
-        result.add (setup);
-    }
-
-    result.sort ();
-
-    return result;
-}
-
-//==============================================================================
-
-static SpeakerSetupTemplates getSpeakerSetupTemplates ()
-{
-    auto const domeDir { SPEAKER_TEMPLATES_DIR.getChildFile ("DOME") };
-    auto const cubeDir { SPEAKER_TEMPLATES_DIR.getChildFile ("CUBE") };
-    auto commandId { SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
-
-    return SpeakerSetupTemplates { extract (domeDir, commandId), extract (cubeDir, commandId) };
-}
-
-static ProjectTemplates getProjectTemplates ()
-{
-    auto const domeDir { PROJECT_TEMPLATES_DIR.getChildFile ("DOME") };
-    auto const cubeDir { PROJECT_TEMPLATES_DIR.getChildFile ("CUBE") };
-    auto const hybridDir { PROJECT_TEMPLATES_DIR.getChildFile ("HYBRID") };
-    auto commandId { PROJECT_TEMPLATES_COMMANDS_OFFSET };
-
-    return ProjectTemplates { extract (domeDir, commandId), extract (cubeDir, commandId), extract (hybridDir, commandId) };
-}
+ProjectTemplates getProjectTemplates ();
 
 } // namespace gris
