@@ -8,37 +8,38 @@ namespace gris
 {
 
 #if defined(__linux__) || defined(WIN32)
-juce::File const CURRENT_WORKING_DIR { juce::File::getCurrentWorkingDirectory () };
-auto const RESOURCES_DIR { CURRENT_WORKING_DIR.getChildFile ("Resources") };
+    juce::File const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
+    auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
 #elif defined(__APPLE__)
-juce::File const CURRENT_WORKING_DIR = juce::File::getSpecialLocation (juce::File::currentApplicationFile);
-auto const RESOURCES_DIR { CURRENT_WORKING_DIR.getChildFile ("Contents").getChildFile ("Resources") };
+    juce::File const CURRENT_WORKING_DIR = juce::File::getSpecialLocation(juce::File::currentApplicationFile);
+    auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildFile("Resources") };
 #else
-static_assert(false, "What are you building this on?");
+    static_assert(false, "What are you building this on?");
 #endif
 
 #ifdef __APPLE__
-static auto const TEMPLATES_DIR { RESOURCES_DIR };
+    static auto const TEMPLATES_DIR{ RESOURCES_DIR };
 #else
-static auto const TEMPLATES_DIR { RESOURCES_DIR.getChildFile ("templates") };
+    static auto const TEMPLATES_DIR{ RESOURCES_DIR.getChildFile("templates") };
 #endif
 
-inline juce::File const SPEAKER_TEMPLATES_DIR{ TEMPLATES_DIR.getChildFile("Speaker setups") };
-inline juce::File const PROJECT_TEMPLATES_DIR{ TEMPLATES_DIR.getChildFile("Projects") };
-inline juce::File const SPLASH_SCREEN_FILE{ RESOURCES_DIR.getChildFile("splash_screen.png") };
-inline juce::File const DEFAULT_PROJECT_DIRECTORY{ RESOURCES_DIR.getChildFile("default_preset/") };
-inline juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_preset.xml") };
-inline juce::File const DEFAULT_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_speaker_setup.xml") };
-inline juce::File const BINAURAL_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("BINAURAL_SPEAKER_SETUP.xml") };
-inline juce::File const STEREO_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("STEREO_SPEAKER_SETUP.xml") };
-inline juce::File const DEFAULT_CUBE_PROJECT{ RESOURCES_DIR.getChildFile("templates/Projects/CUBE/default_project18(8X2-Subs2).xml") };
-inline juce::File const DEFAULT_CUBE_SPEAKER_SETUP{ RESOURCES_DIR.getChildFile("templates/Speaker setups/CUBE/Cube_default_speaker_setup.xml") };
-inline juce::File const MANUAL_FILE_EN{ RESOURCES_DIR.getChildFile("SpatGRIS_3.3.7_Manual_EN.pdf") };
-inline juce::File const MANUAL_FILE_FR{ RESOURCES_DIR.getChildFile("SpatGRIS_3.3.7_Manuel_FR.pdf") };
-inline juce::File const ICON_SMALL_FILE{ RESOURCES_DIR.getChildFile("ServerGRIS_icon_splash_small.png") };
-inline juce::File const HRTF_FOLDER_0{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(0) + "/") };
-inline juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(40) + "/") };
-inline juce::File const HRTF_FOLDER_80{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(80) + "/") };
+extern juce::File const SPEAKER_TEMPLATES_DIR;
+extern juce::File const PROJECT_TEMPLATES_DIR;
+extern juce::File const CURRENT_WORKING_DIR;
+extern juce::File const SPLASH_SCREEN_FILE;
+extern juce::File const DEFAULT_PROJECT_FILE;
+extern juce::File const DEFAULT_PROJECT_DIRECTORY;
+extern juce::File const DEFAULT_SPEAKER_SETUP_FILE;
+extern juce::File const BINAURAL_SPEAKER_SETUP_FILE;
+extern juce::File const STEREO_SPEAKER_SETUP_FILE;
+extern juce::File const DEFAULT_CUBE_PROJECT;
+extern juce::File const DEFAULT_CUBE_SPEAKER_SETUP;
+extern juce::File const MANUAL_FILE_EN;
+extern juce::File const MANUAL_FILE_FR;
+extern juce::File const ICON_SMALL_FILE;
+extern juce::File const HRTF_FOLDER_0;
+extern juce::File const HRTF_FOLDER_40;
+extern juce::File const HRTF_FOLDER_80;
 
 //==============================================================================
 struct FileTemplate
