@@ -16,9 +16,6 @@ juce::File const DEFAULT_CUBE_SPEAKER_SETUP { RESOURCES_DIR.getChildFile ("templ
 juce::File const MANUAL_FILE_EN{ RESOURCES_DIR.getChildFile("SpatGRIS_3.3.7_Manual_EN.pdf") };
 juce::File const MANUAL_FILE_FR{ RESOURCES_DIR.getChildFile("SpatGRIS_3.3.7_Manuel_FR.pdf") };
 juce::File const ICON_SMALL_FILE{ RESOURCES_DIR.getChildFile("ServerGRIS_icon_splash_small.png") };
-juce::File const HRTF_FOLDER_0{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(0) + "/") };
-juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(40) + "/") };
-juce::File const HRTF_FOLDER_80{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(80) + "/") };
 
 bool FileTemplate::operator<(FileTemplate const& other) const noexcept
 {

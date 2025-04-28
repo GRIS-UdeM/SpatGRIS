@@ -37,9 +37,6 @@ extern juce::File const DEFAULT_CUBE_SPEAKER_SETUP;
 extern juce::File const MANUAL_FILE_EN;
 extern juce::File const MANUAL_FILE_FR;
 extern juce::File const ICON_SMALL_FILE;
-extern juce::File const HRTF_FOLDER_0;
-extern juce::File const HRTF_FOLDER_40;
-extern juce::File const HRTF_FOLDER_80;
 
 //==============================================================================
 struct FileTemplate
