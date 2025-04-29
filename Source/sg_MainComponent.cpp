@@ -119,7 +119,13 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     };
 
     //==============================================================================
-    auto const initAppData = [&]() { mData.appData = mConfiguration.load(); };
+    auto const initAppData = [&]() {
+        mData.appData = mConfiguration.load();
+        if (mData.appData.lastProject.isEmpty())
+            mData.appData.lastProject = DEFAULT_PROJECT_FILE.getFullPathName();
+        if (mData.appData.lastSpeakerSetup.isEmpty ())
+            mData.appData.lastSpeakerSetup = DEFAULT_SPEAKER_SETUP_FILE.getFullPathName();
+    };
 
     //==============================================================================
     auto const initGui = [&]() {
