@@ -16,8 +16,8 @@
 */
 
 #include "SpeakerSetupWindow.hpp"
-#include "../../sg_GrisLookAndFeel.hpp"
-#include "../../sg_MainComponent.hpp"
+#include "../../../sg_GrisLookAndFeel.hpp"
+#include "../../../sg_MainComponent.hpp"
 
 namespace gris
 {
@@ -74,7 +74,7 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
 
 //==============================================================================
 
-SpeakerTreeItemComponent::SpeakerTreeItemComponent (const ValueTree& v)
+SpeakerTreeComponent::SpeakerTreeComponent (const juce::ValueTree& v)
     : vt (v)
 {
     setInterceptsMouseClicks (false, true);
@@ -90,14 +90,14 @@ SpeakerTreeItemComponent::SpeakerTreeItemComponent (const ValueTree& v)
 
 //==============================================================================
 
-SpeakerGroupComponent::SpeakerGroupComponent(const ValueTree & v) : SpeakerTreeItemComponent(v)
+SpeakerGroupComponent::SpeakerGroupComponent(const juce::ValueTree & v) : SpeakerTreeComponent(v)
 {
     setupEditor (id, v.getType ().toString ());
 }
 
 //==============================================================================
 
-SpeakerComponent::SpeakerComponent(const ValueTree & v) : SpeakerTreeItemComponent(v)
+SpeakerComponent::SpeakerComponent(const juce::ValueTree & v) : SpeakerTreeComponent(v)
 {
     setupEditor (id, v["ID"].toString());
     setupEditor (gain, v["GAIN"].toString());

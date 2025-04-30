@@ -20,13 +20,10 @@
 
 namespace gris
 {
-using namespace juce;
-
-//==============================================================================
-
-inline Colour getUIColourIfAvailable (LookAndFeel_V4::ColourScheme::UIColour uiColour, Colour fallback = Colour (0xff4d4d4d)) noexcept
+inline juce::Colour getUIColourIfAvailable(juce::LookAndFeel_V4::ColourScheme::UIColour uiColour,
+                                           juce::Colour fallback = juce::Colour(0xff4d4d4d)) noexcept
 {
-    if (auto* v4 = dynamic_cast<LookAndFeel_V4*> (&LookAndFeel::getDefaultLookAndFeel ()))
+    if (auto* v4 = dynamic_cast<juce::LookAndFeel_V4*> (&juce::LookAndFeel::getDefaultLookAndFeel ()))
         return v4->getCurrentColourScheme ().getUIColour (uiColour);
 
     return fallback;
@@ -34,10 +31,10 @@ inline Colour getUIColourIfAvailable (LookAndFeel_V4::ColourScheme::UIColour uiC
 
 juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup);
 
-class SpeakerTreeItemComponent : public juce::Component
+class SpeakerTreeComponent : public juce::Component
 {
 public:
-    SpeakerTreeItemComponent (const ValueTree& v);
+    SpeakerTreeComponent (const juce::ValueTree& v);
 
     void resized () override
     {
@@ -51,46 +48,46 @@ public:
 protected:
     void setupEditor(juce::Label & editor, juce::StringRef text)
     {
-        editor.setText(text, dontSendNotification);
+        editor.setText(text, juce::dontSendNotification);
         editor.setEditable(true);
         addAndMakeVisible(editor);
     };
 
     juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del;
 
-    ValueTree vt;
+    juce::ValueTree vt;
 };
 
 //==============================================================================
 
-class SpeakerGroupComponent : public SpeakerTreeItemComponent
+class SpeakerGroupComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerGroupComponent (const ValueTree& v);
+    SpeakerGroupComponent (const juce::ValueTree& v);
 };
 
 //==============================================================================
 
-class SpeakerComponent : public SpeakerTreeItemComponent
+class SpeakerComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerComponent (const ValueTree& v);
+    SpeakerComponent (const juce::ValueTree& v);
 };
 
 //==============================================================================
 
 class SpeakerSetupLine final
-    : public TreeViewItem
-    , private ValueTree::Listener
+    : public juce::TreeViewItem
+    , private juce::ValueTree::Listener
 {
 public:
-    SpeakerSetupLine (const ValueTree& v, UndoManager& um)
+    SpeakerSetupLine (const juce::ValueTree& v, juce::UndoManager& um)
         : valueTree (v), undoManager (um)
     {
         valueTree.addListener (this);
     }
 
-    String getUniqueName () const override
+    juce::String getUniqueName () const override
     {
         return valueTree.getType().toString ();
     }
@@ -103,7 +100,7 @@ public:
     void sort();
 
 #if 1
-    std::unique_ptr<Component> createItemComponent () override
+    std::unique_ptr<juce::Component> createItemComponent () override
     {
         if (mightContainSubItems ())
             return std::make_unique<SpeakerGroupComponent>(valueTree);
@@ -131,31 +128,31 @@ public:
             clearSubItems ();
     }
 
-    var getDragSourceDescription () override
+    juce::var getDragSourceDescription () override
     {
         return "Drag Demo";
     }
 
-    bool isInterestedInDragSource (const DragAndDropTarget::SourceDetails& /*dragSourceDetails*/) override
+    bool isInterestedInDragSource (const juce::DragAndDropTarget::SourceDetails& /*dragSourceDetails*/) override
     {
         //TODO VB: using this as a shortcut to identify groups, we need another way
         return mightContainSubItems();
     }
 
-    void itemDropped (const DragAndDropTarget::SourceDetails&, int insertIndex) override
+    void itemDropped (const juce::DragAndDropTarget::SourceDetails&, int insertIndex) override
     {
-        OwnedArray<ValueTree> selectedTrees;
+        juce::OwnedArray<juce::ValueTree> selectedTrees;
         getSelectedTreeViewItems (*getOwnerView (), selectedTrees);
 
         moveItems (*getOwnerView (), selectedTrees, valueTree, insertIndex, undoManager);
     }
 
-    static void moveItems (TreeView& treeView, const OwnedArray<ValueTree>& items,
-                           ValueTree newParent, int insertIndex, UndoManager& undoManager)
+    static void moveItems (juce::TreeView& treeView, const juce::OwnedArray<juce::ValueTree>& items,
+                           juce::ValueTree newParent, int insertIndex, juce::UndoManager& undoManager)
     {
         if (items.size () > 0)
         {
-            std::unique_ptr<XmlElement> oldOpenness (treeView.getOpennessState (false));
+            std::unique_ptr<juce::XmlElement> oldOpenness (treeView.getOpennessState (false));
 
             for (auto* v : items)
             {
@@ -174,18 +171,18 @@ public:
         }
     }
 
-    static void getSelectedTreeViewItems (TreeView& treeView, OwnedArray<ValueTree>& items)
+    static void getSelectedTreeViewItems (juce::TreeView& treeView, juce::OwnedArray<juce::ValueTree>& items)
     {
         auto numSelected = treeView.getNumSelectedItems ();
 
         for (int i = 0; i < numSelected; ++i)
             if (auto* vti = dynamic_cast<SpeakerSetupLine*> (treeView.getSelectedItem (i)))
-                items.add (new ValueTree (vti->valueTree));
+                items.add (new juce::ValueTree (vti->valueTree));
     }
 
 private:
-    ValueTree valueTree;
-    UndoManager& undoManager;
+    juce::ValueTree valueTree;
+    juce::UndoManager& undoManager;
 
     void refreshSubItems ()
     {
@@ -195,17 +192,17 @@ private:
             addSubItem (new SpeakerSetupLine (valueTree.getChild (i), undoManager));
     }
 
-    void valueTreePropertyChanged (ValueTree&, const Identifier&) override
+    void valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&) override
     {
         repaintItem ();
     }
 
-    void valueTreeChildAdded (ValueTree& parentTree, ValueTree&) override { treeChildrenChanged (parentTree); }
-    void valueTreeChildRemoved (ValueTree& parentTree, ValueTree&, int) override { treeChildrenChanged (parentTree); }
-    void valueTreeChildOrderChanged (ValueTree& parentTree, int, int) override { treeChildrenChanged (parentTree); }
-    void valueTreeParentChanged (ValueTree&) override {}
+    void valueTreeChildAdded (juce::ValueTree& parentTree, juce::ValueTree&) override { treeChildrenChanged (parentTree); }
+    void valueTreeChildRemoved (juce::ValueTree& parentTree, juce::ValueTree&, int) override { treeChildrenChanged (parentTree); }
+    void valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int) override { treeChildrenChanged (parentTree); }
+    void valueTreeParentChanged (juce::ValueTree&) override {}
 
-    void treeChildrenChanged (const ValueTree& parentTree)
+    void treeChildrenChanged (const juce::ValueTree& parentTree)
     {
         if (parentTree == valueTree)
         {
@@ -219,9 +216,9 @@ private:
 };
 
 //==============================================================================
-class SpeakerSetupContainer final : public Component,
-    public DragAndDropContainer,
-    private Timer
+class SpeakerSetupContainer final : public juce::Component,
+    public juce::DragAndDropContainer,
+    private juce::Timer
 {
 public:
     SpeakerSetupContainer ();
@@ -231,9 +228,9 @@ public:
         treeView.setRootItem (nullptr);
     }
 
-    void paint (Graphics& g) override
+    void paint (juce::Graphics& g) override
     {
-        g.fillAll (getUIColourIfAvailable (LookAndFeel_V4::ColourScheme::UIColour::windowBackground));
+        g.fillAll (getUIColourIfAvailable (juce::LookAndFeel_V4::ColourScheme::UIColour::windowBackground));
     }
 
     void resized () override
@@ -253,7 +250,7 @@ public:
 
     void deleteSelectedItems ()
     {
-        OwnedArray<ValueTree> selectedItems;
+        juce::OwnedArray<juce::ValueTree> selectedItems;
         SpeakerSetupLine::getSelectedTreeViewItems (treeView, selectedItems);
 
         for (auto* v : selectedItems)
@@ -263,21 +260,21 @@ public:
         }
     }
 
-    bool keyPressed (const KeyPress& key) override
+    bool keyPressed (const juce::KeyPress& key) override
     {
-        if (key == KeyPress::deleteKey || key == KeyPress::backspaceKey)
+        if (key == juce::KeyPress::deleteKey || key == juce::KeyPress::backspaceKey)
         {
             deleteSelectedItems ();
             return true;
         }
 
-        if (key == KeyPress ('z', ModifierKeys::commandModifier, 0))
+        if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier, 0))
         {
             undoManager.undo ();
             return true;
         }
 
-        if (key == KeyPress ('z', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
+        if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier, 0))
         {
             undoManager.redo ();
             return true;
@@ -287,11 +284,11 @@ public:
     }
 
 private:
-    TreeView treeView;
-    TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton {"Sort"};
+    juce::TreeView treeView;
+    juce::TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton {"Sort"};
 
     std::unique_ptr<SpeakerSetupLine> rootItem;
-    UndoManager undoManager;
+    juce::UndoManager undoManager;
 
     void timerCallback () override
     {

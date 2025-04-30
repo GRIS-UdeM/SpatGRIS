@@ -43,7 +43,7 @@
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
-#include "UI/Windows/SpeakerSetupWindow.hpp"
+#include "UI/Windows/SpeakerSetup/SpeakerSetupWindow.hpp"
 
 #define USE_OLD_SPEAKER_WINDOW 0
 
