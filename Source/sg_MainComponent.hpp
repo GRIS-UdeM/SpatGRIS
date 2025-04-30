@@ -43,6 +43,7 @@
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
+#include "UI/Windows/SpeakerSetupWindow.hpp"
 
 namespace gris
 {
@@ -86,7 +87,8 @@ class MainContentComponent final
     std::unique_ptr<OscInput> mOscInput{};
 
     // Windows.
-    std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow{};
+    std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow {};
+    std::unique_ptr<SpeakerSetupWindow> mSpeakerSetupWindow;
     std::unique_ptr<SettingsWindow> mPropertiesWindow{};
     std::unique_ptr<FlatViewWindow> mFlatViewWindow{};
     std::unique_ptr<AboutWindow> mAboutWindow{};

@@ -183,6 +183,10 @@
                 file="Source/sg_SettingsWindow.cpp"/>
           <FILE id="mTbg4w" name="sg_SettingsWindow.hpp" compile="0" resource="0"
                 file="Source/sg_SettingsWindow.hpp"/>
+          <FILE id="PIpvZX" name="SpeakerSetupWindow.cpp" compile="1" resource="0"
+                file="Source/UI/Windows/SpeakerSetupWindow.cpp"/>
+          <FILE id="eTUrno" name="SpeakerSetupWindow.hpp" compile="0" resource="0"
+                file="Source/UI/Windows/SpeakerSetupWindow.hpp"/>
         </GROUP>
         <FILE id="DJRXzh" name="sg_GrisLookAndFeel.cpp" compile="1" resource="0"
               file="Source/sg_GrisLookAndFeel.cpp"/>

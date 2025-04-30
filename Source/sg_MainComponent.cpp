@@ -591,6 +591,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+#if 0
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String{ "Speaker Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
@@ -599,6 +600,15 @@ void MainContentComponent::handleShowSpeakerEditWindow()
             = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
         mEditSpeakersWindow->initComp();
     }
+#else
+    if (! mSpeakerSetupWindow) {
+        auto const windowName = juce::String { "Speaker Setup Edition - " }
+            + spatModeToString (mData.speakerSetup.spatMode) + " - "
+            + juce::File { mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension ();
+        mSpeakerSetupWindow = std::make_unique<SpeakerSetupWindow>();
+        //mEditSpeakersWindow->initComp ();
+    }
+#endif
 }
 
 //==============================================================================
