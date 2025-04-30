@@ -18,13 +18,14 @@
 #include "SpeakerSetupContainer.hpp"
 namespace gris
 {
-SpeakerSetupContainer::SpeakerSetupContainer ()
+SpeakerSetupContainer::SpeakerSetupContainer (const juce::File& speakerSetupXmlFile)
+    : vtFile{ speakerSetupXmlFile }
 {
-#if JUCE_LINUX
-    vtFile = juce::File ("/home/vberthiaume/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
-#else
-    vtFile = juce::File ("C:/Users/barth/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
-#endif
+//#if JUCE_LINUX
+//    vtFile = juce::File ("/home/vberthiaume/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
+//#else
+//    vtFile = juce::File ("C:/Users/barth/Documents/git/sat/GRIS/SpatGRIS/Resources/templates/Speaker setups/DOME/Dome124(64-20-20-20)Subs2.xml");
+//#endif
     vt = convertSpeakerSetup (juce::ValueTree::fromXml (vtFile.loadFileAsString ()));
 
     addAndMakeVisible (speakerSetupTreeView);

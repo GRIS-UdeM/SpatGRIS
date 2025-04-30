@@ -113,6 +113,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , spatGrisData(mainContentComponent.getData())
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
+    , mSpeakerSetupContainer (spatGrisData.appData.lastSpeakerSetup)
     , mFont(juce::FontOptions().withHeight (14.f))
     , mRingSpeakers(lookAndFeel)
     , mRingElevation(lookAndFeel)

@@ -38,7 +38,7 @@ class SpeakerSetupContainer final : public juce::Component,
     private juce::Timer
 {
 public:
-    SpeakerSetupContainer ();
+    SpeakerSetupContainer (const juce::File& speakerSetupXmlFile);
 
     ~SpeakerSetupContainer () override
     {
@@ -59,7 +59,6 @@ public:
     void saveSpeakerSetup();
 
 private:
-    //TODO VB: this file needs to be passed/dealt with in SpeakerSetupWindow or earlier actually
     juce::File vtFile;
     juce::ValueTree vt;
 

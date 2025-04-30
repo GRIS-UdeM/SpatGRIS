@@ -40,10 +40,15 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
     //  <SPEAKER_2 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
     //      <POSITION X = "0.0980171337723732" Y = "0.9951847195625305" Z = "-4.371138828673793e-8" / >
 
+    //TODO VB: handle default speaker setup and all legacy types
     if (oldSpeakerSetup.getType () != SPEAKER_SETUP)
     {
         //this function should  probably return an optional and here it should be empty
-        jassertfalse;
+        //jassertfalse;
+        DBG (oldSpeakerSetup.toXmlString());
+        //so I don't know how many forking versions of speaker setups there are but this function deals with one of them. probably better to use that forking function and create a VT from the speaker setup data?
+        // or maybe/probably there's already a function that does this
+        //readLegacySpeakerSetup
         return {};
     }
 
