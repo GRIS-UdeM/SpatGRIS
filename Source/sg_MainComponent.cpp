@@ -1834,6 +1834,7 @@ void MainContentComponent::updatePeaks()
     for (auto const speaker : mData.speakerSetup.speakers) {
         auto const & peak{ speakerPeaks[speaker.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
+        jassert (mSpeakerSliceComponents.contains (speaker.key));
         mSpeakerSliceComponents[speaker.key].setLevel(dbPeak);
 
         auto & exchanger{ viewPortData.hotSpeakersAlphaUpdaters[speaker.key] };
