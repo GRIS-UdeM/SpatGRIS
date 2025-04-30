@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.3.7"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
-              companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="latest"
+              companyName="GRIS - UdeM" cppLanguageStandard="latest"
               jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
               addUsingNamespaceToJuceHeader="0" defines="JUCE_MODAL_LOOPS_PERMITTED=1"
               headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS">

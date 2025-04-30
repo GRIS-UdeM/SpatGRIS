@@ -16,3 +16,6 @@
 */
 
 #pragma once
+namespace gris
+{
+}

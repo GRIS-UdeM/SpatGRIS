@@ -16,3 +16,6 @@
 */
 
 #include "SpeakerTreeComponent.hpp"
+namespace gris
+{
+}

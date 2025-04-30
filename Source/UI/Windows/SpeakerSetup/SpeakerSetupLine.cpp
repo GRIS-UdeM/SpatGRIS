@@ -16,3 +16,6 @@
 */
 
 #include "SpeakerSetupLine.hpp"
+namespace gris
+{
+}
