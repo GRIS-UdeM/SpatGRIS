@@ -216,7 +216,7 @@ private:
     //==============================================================================
     // VIRTUALS
     [[nodiscard]] int getNumRows() override { return this->mNumRows; }
-    void addNewSpeakerToVt (const gris::output_patch_t& newOutputPatch, juce::ValueTree& parent);
+    void addNewSpeakerToVt (const gris::output_patch_t& newOutputPatch, juce::ValueTree& parent, bool append);
     void buttonClicked(juce::Button * button) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void textEditorFocusLost(juce::TextEditor &) override;

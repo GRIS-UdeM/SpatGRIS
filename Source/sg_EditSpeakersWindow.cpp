@@ -537,16 +537,19 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
 #else
     //TODO VB: dry this, it's also below
     auto const vtRow = mSpeakerSetupContainer.getSelectedItem ();
-    tl::optional<int> selectedRow {};
-    juce::ValueTree parent;
+    tl::optional<int> indexInCurGroup {};
+    juce::ValueTree curGroup;
     if (vtRow.isValid ())
     {
-        parent = vtRow.getParent ();
-        selectedRow = parent.indexOf (vtRow);
+        curGroup = vtRow.getParent ();
+        indexInCurGroup = curGroup.indexOf (vtRow);
     }
 
-    auto const& speakers { spatGrisData.speakerSetup.speakers };
+    juce::ValueTree newGroup("SPEAKER_GROUP");
+    newGroup.setProperty("ID", "audiodice", nullptr);
+    curGroup.addChild (newGroup, *indexInCurGroup + 1, nullptr);
 
+    auto const& speakers { spatGrisData.speakerSetup.speakers };
     output_patch_t newOutputPatch {};
 
     if (mMainContentComponent.getMaxSpeakerOutputPatch ().get () + numSpeakers > MAX_NUM_SPEAKERS)
@@ -554,23 +557,25 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
         return;
     }
 
-    for (int i {}; i < numSpeakers; i++)
+    for (int i {}; i < numSpeakers; ++i)
     {
         tl::optional<output_patch_t> outputPatch {};
         tl::optional<int> index {};
 
-        if (selectedRow)
+        //so here, indexInCurGroup is really the index of the new group inside the current group
+        //we'll need to keep that in sync with the actual number of speakers...
+        if (indexInCurGroup)
         {
-            outputPatch = getSpeakerOutputPatchForRow (*selectedRow);
-            index = *selectedRow;
-            *selectedRow += 1;
+            outputPatch = getSpeakerOutputPatchForRow (*indexInCurGroup);
+            index = *indexInCurGroup;
+            *indexInCurGroup += 1;
         }
 
         newOutputPatch = mMainContentComponent.addSpeaker (outputPatch, index);
-        addNewSpeakerToVt (newOutputPatch, parent);
         mNumRows = speakers.size ();
 
         mMainContentComponent.setSpeakerPosition (newOutputPatch, getSpeakerPosition (i));
+        addNewSpeakerToVt (newOutputPatch, newGroup, true);
     }
     mMainContentComponent.refreshSpeakers ();
     updateWinContent ();
@@ -581,7 +586,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
 #endif
 }
 
-void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch, juce::ValueTree & parent)
+void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch, juce::ValueTree & parent, bool append)
 {
     // need to compare the data before and after this, get the new speaker info, and add to the VT
     auto const & newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
@@ -598,7 +603,10 @@ void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutpu
     newSpeakerVt.setProperty("Y", position.y, nullptr);
     newSpeakerVt.setProperty("Z", position.z, nullptr);
 
-    parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, nullptr);
+    if (append)
+        parent.appendChild(newSpeakerVt, nullptr);
+    else
+        parent.addChild (newSpeakerVt, newOutputPatch.get () - 1, nullptr);
 }
 
 //==============================================================================
@@ -648,7 +656,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         //TODO VB: put this in a function, probably in speakersetupcontainer
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
-        addNewSpeakerToVt (newOutputPatch, parent);
+        addNewSpeakerToVt (newOutputPatch, parent, false);
 
         mMainContentComponent.refreshSpeakers();
         updateWinContent();
