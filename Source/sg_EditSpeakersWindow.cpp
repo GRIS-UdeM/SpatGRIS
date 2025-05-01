@@ -490,6 +490,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 //TODO VB: this seems to be a dupe from EditSpeakersWindow::buttonClicked() below?
 void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition)
 {
+#if USE_OLD_SPEAKER_SETUP_VIEW
     static auto constexpr GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
         auto const selectedRow{ tableListBox.getSelectedRow() };
         if (selectedRow < 0) {
@@ -498,7 +499,6 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
         return selectedRow;
     };
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
     auto const & speakers{ spatGrisData.speakerSetup.speakers };
@@ -532,8 +532,52 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
     // This is the real sorting!
     mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
     selectSpeaker(newOutputPatch);
-#endif
+
     mShouldComputeSpeakers = true;
+#else
+    //TODO VB: dry this, it's also below
+    auto const vtRow = mSpeakerSetupContainer.getSelectedItem ();
+    tl::optional<int> selectedRow {};
+    juce::ValueTree parent;
+    if (vtRow.isValid ())
+    {
+        parent = vtRow.getParent ();
+        selectedRow = parent.indexOf (vtRow);
+    }
+
+    auto const& speakers { spatGrisData.speakerSetup.speakers };
+
+    output_patch_t newOutputPatch {};
+
+    if (mMainContentComponent.getMaxSpeakerOutputPatch ().get () + numSpeakers > MAX_NUM_SPEAKERS)
+    {
+        return;
+    }
+
+    for (int i {}; i < numSpeakers; i++)
+    {
+        tl::optional<output_patch_t> outputPatch {};
+        tl::optional<int> index {};
+
+        if (selectedRow)
+        {
+            outputPatch = getSpeakerOutputPatchForRow (*selectedRow);
+            index = *selectedRow;
+            *selectedRow += 1;
+        }
+
+        newOutputPatch = mMainContentComponent.addSpeaker (outputPatch, index);
+        mNumRows = speakers.size ();
+
+        mMainContentComponent.setSpeakerPosition (newOutputPatch, getSpeakerPosition (i));
+    }
+    mMainContentComponent.refreshSpeakers ();
+    updateWinContent ();
+
+    selectSpeaker (newOutputPatch);
+
+    mShouldComputeSpeakers = true;
+#endif
 }
 
 //==============================================================================
@@ -554,6 +598,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 #else
+    //TODO VB: dry this, it's also above
     auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
     tl::optional<int> selectedRow{};
     juce::ValueTree parent;
@@ -584,7 +629,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
         {
             // need to compare the data before and after this, get the new speaker info, and add to the VT
-            auto & const newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
+            auto const& newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
             jassert(parent.isValid());
 
             juce::ValueTree newSpeakerVt("SPEAKER");
@@ -593,7 +638,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             newSpeakerVt.setProperty("STATE", sliceStateToString(newSpeaker.state), nullptr);
             newSpeakerVt.setProperty("GAIN", newSpeaker.gain.get(), nullptr);
             newSpeakerVt.setProperty("DIRECT_OUT_ONLY", newSpeaker.isDirectOutOnly, nullptr);
-            auto & const position{ newSpeaker.position.getCartesian() };
+            auto const& position{ newSpeaker.position.getCartesian() };
             newSpeakerVt.setProperty("X", position.x, nullptr);
             newSpeakerVt.setProperty("Y", position.y, nullptr);
             newSpeakerVt.setProperty("Z", position.z, nullptr);
