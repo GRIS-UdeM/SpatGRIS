@@ -567,6 +567,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
         }
 
         newOutputPatch = mMainContentComponent.addSpeaker (outputPatch, index);
+        addNewSpeakerToVt (newOutputPatch, parent);
         mNumRows = speakers.size ();
 
         mMainContentComponent.setSpeakerPosition (newOutputPatch, getSpeakerPosition (i));
@@ -578,6 +579,26 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
 
     mShouldComputeSpeakers = true;
 #endif
+}
+
+void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch, juce::ValueTree & parent)
+{
+    // need to compare the data before and after this, get the new speaker info, and add to the VT
+    auto const & newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
+    jassert(parent.isValid());
+
+    juce::ValueTree newSpeakerVt("SPEAKER");
+    // TODO VB: need the undo manager
+    newSpeakerVt.setProperty("ID", newOutputPatch.get(), nullptr);
+    newSpeakerVt.setProperty("STATE", sliceStateToString(newSpeaker.state), nullptr);
+    newSpeakerVt.setProperty("GAIN", newSpeaker.gain.get(), nullptr);
+    newSpeakerVt.setProperty("DIRECT_OUT_ONLY", newSpeaker.isDirectOutOnly, nullptr);
+    auto const & position{ newSpeaker.position.getCartesian() };
+    newSpeakerVt.setProperty("X", position.x, nullptr);
+    newSpeakerVt.setProperty("Y", position.y, nullptr);
+    newSpeakerVt.setProperty("Z", position.z, nullptr);
+
+    parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, nullptr);
 }
 
 //==============================================================================
@@ -627,24 +648,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         //TODO VB: put this in a function, probably in speakersetupcontainer
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
-        {
-            // need to compare the data before and after this, get the new speaker info, and add to the VT
-            auto const& newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
-            jassert(parent.isValid());
-
-            juce::ValueTree newSpeakerVt("SPEAKER");
-            // TODO VB: need the undo manager
-            newSpeakerVt.setProperty("ID", newOutputPatch.get(), nullptr);
-            newSpeakerVt.setProperty("STATE", sliceStateToString(newSpeaker.state), nullptr);
-            newSpeakerVt.setProperty("GAIN", newSpeaker.gain.get(), nullptr);
-            newSpeakerVt.setProperty("DIRECT_OUT_ONLY", newSpeaker.isDirectOutOnly, nullptr);
-            auto const& position{ newSpeaker.position.getCartesian() };
-            newSpeakerVt.setProperty("X", position.x, nullptr);
-            newSpeakerVt.setProperty("Y", position.y, nullptr);
-            newSpeakerVt.setProperty("Z", position.z, nullptr);
-
-            parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, nullptr);
-        }
+        addNewSpeakerToVt (newOutputPatch, parent);
 
         mMainContentComponent.refreshSpeakers();
         updateWinContent();
