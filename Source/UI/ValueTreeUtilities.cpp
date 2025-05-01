@@ -70,7 +70,7 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
     newVt.appendChild (mainSpeakerGroup, nullptr);
 
     //adding a couple of random group now to test this feature
-#if 1
+#if 0
     auto randomSpeakerGroup1 = juce::ValueTree (SPEAKER_GROUP);
     randomSpeakerGroup1.setProperty (ID, "Audiodice 2", nullptr);
     mainSpeakerGroup.appendChild (randomSpeakerGroup1, nullptr);

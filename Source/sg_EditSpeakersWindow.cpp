@@ -553,8 +553,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 #else
-    //TODO VB: will need a way to get this for the group feature to work
-    jassertfalse;
+    auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
+    tl::optional<int> selectedRow{};
+    if (vtRow.isValid ())
+        selectedRow = vtRow.getParent().indexOf (vtRow);
+    DBG (*selectedRow);
 #endif
 
     // mMainContentComponent.setShowTriplets(false);
@@ -568,7 +571,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         tl::optional<output_patch_t> outputPatch{};
         tl::optional<int> index{};
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
+#if 1 //USE_OLD_SPEAKER_SETUP_VIEW
+        //TODO VB: why we not getting in here??
         if (selectedRow) {
             outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
             index = *selectedRow + 1;
@@ -876,6 +880,7 @@ void EditSpeakersWindow::selectRow(tl::optional<int> const value)
 //==============================================================================
 void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const outputPatch)
 {
+#if USE_OLD_SPEAKER_SETUP_VIEW
     auto const getSelectedRow = [this](output_patch_t const id) {
         juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
         auto const & displayOrder{ spatGrisData.speakerSetup.ordering };
@@ -883,10 +888,11 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const output
         return displayOrder.indexOf(id);
     };
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
+
     selectRow(outputPatch.map(getSelectedRow));
 #else
-    jassertfalse;
+    //TODO VB: make sure we don't need the above
+    //jassertfalse;
 #endif
     pushSelectionToMainComponent();
 }

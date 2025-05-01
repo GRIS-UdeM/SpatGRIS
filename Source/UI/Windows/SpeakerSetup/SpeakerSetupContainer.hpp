@@ -51,12 +51,14 @@ public:
     }
 
     void resized () override;
-        
+
     void deleteSelectedItems ();
 
     bool keyPressed (const juce::KeyPress& key) override;
 
     void saveSpeakerSetup();
+
+    juce::ValueTree getSelectedItem();
 
 private:
     juce::File vtFile;

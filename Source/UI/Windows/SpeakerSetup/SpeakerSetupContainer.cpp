@@ -134,4 +134,12 @@ void SpeakerSetupContainer::saveSpeakerSetup()
     }
 }
 
+juce::ValueTree SpeakerSetupContainer::getSelectedItem ()
+{
+    if (auto selectedLine = dynamic_cast<SpeakerSetupLine*> (speakerSetupTreeView.getSelectedItem (0)))
+        return selectedLine->getValueTree();
+
+    return juce::ValueTree {};
+}
+
 } // namespace gris

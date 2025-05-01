@@ -52,6 +52,8 @@ public:
 
     void sort (juce::ValueTree vt = {});
 
+    juce::ValueTree getValueTree() { return valueTree; }
+
 private:
     juce::ValueTree valueTree;
     juce::UndoManager& undoManager;
