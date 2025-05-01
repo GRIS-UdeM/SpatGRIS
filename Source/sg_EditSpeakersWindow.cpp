@@ -487,6 +487,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 }
 
 //==============================================================================
+//TODO VB: this seems to be a dupe from EditSpeakersWindow::buttonClicked() below?
 void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition)
 {
     static auto constexpr GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
@@ -555,9 +556,12 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 #else
     auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
     tl::optional<int> selectedRow{};
+    juce::ValueTree parent;
     if (vtRow.isValid ())
-        selectedRow = vtRow.getParent().indexOf (vtRow);
-    DBG (*selectedRow);
+    {
+        parent = vtRow.getParent ();
+        selectedRow = parent.indexOf (vtRow);
+    }
 #endif
 
     // mMainContentComponent.setShowTriplets(false);
@@ -571,15 +575,32 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         tl::optional<output_patch_t> outputPatch{};
         tl::optional<int> index{};
 
-#if 1 //USE_OLD_SPEAKER_SETUP_VIEW
-        //TODO VB: why we not getting in here??
         if (selectedRow) {
             outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
             index = *selectedRow + 1;
         }
-#endif
 
+        //TODO VB: put this in a function, probably in speakersetupcontainer
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
+        {
+            // need to compare the data before and after this, get the new speaker info, and add to the VT
+            auto & const newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
+            jassert(parent.isValid());
+
+            juce::ValueTree newSpeakerVt("SPEAKER");
+            // TODO VB: need the undo manager
+            newSpeakerVt.setProperty("ID", newOutputPatch.get(), nullptr);
+            newSpeakerVt.setProperty("STATE", sliceStateToString(newSpeaker.state), nullptr);
+            newSpeakerVt.setProperty("GAIN", newSpeaker.gain.get(), nullptr);
+            newSpeakerVt.setProperty("DIRECT_OUT_ONLY", newSpeaker.isDirectOutOnly, nullptr);
+            auto & const position{ newSpeaker.position.getCartesian() };
+            newSpeakerVt.setProperty("X", position.x, nullptr);
+            newSpeakerVt.setProperty("Y", position.y, nullptr);
+            newSpeakerVt.setProperty("Z", position.z, nullptr);
+
+            parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, nullptr);
+        }
+
         mMainContentComponent.refreshSpeakers();
         updateWinContent();
         selectSpeaker(newOutputPatch);
