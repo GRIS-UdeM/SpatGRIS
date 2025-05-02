@@ -629,13 +629,10 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 #else
     //TODO VB: dry this, it's also above
     auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
-    tl::optional<int> selectedRow{};
-    juce::ValueTree parent;
-    if (vtRow.isValid ())
-    {
-        parent = vtRow.getParent ();
-        selectedRow = parent.indexOf (vtRow);
-    }
+    jassert (vtRow.isValid());
+    auto parent = vtRow.getParent ();
+    tl::optional<int>  selectedRow = parent.indexOf (vtRow);
+
 #endif
 
     // mMainContentComponent.setShowTriplets(false);
