@@ -142,7 +142,7 @@ juce::ValueTree SpeakerSetupContainer::getSelectedItem()
             return selected->getValueTree();
     } else {
         auto const numLines = speakerSetupTreeView.getNumRowsInTree();
-        if (auto const last = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getItemOnRow(numLines)))
+        if (auto const last = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getItemOnRow(numLines-1)))
             return last->getValueTree();
     }
 
