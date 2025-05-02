@@ -17,8 +17,9 @@
 
 #pragma once
 
-#include "SpeakerSetupLine.hpp"
 #include "../../ValueTreeUtilities.hpp"
+#include "SpeakerSetupLine.hpp"
+#include <Data/sg_LogicStrucs.hpp>
 
 namespace gris
 {
@@ -38,7 +39,7 @@ class SpeakerSetupContainer final : public juce::Component,
     private juce::Timer
 {
 public:
-    SpeakerSetupContainer (const juce::File& speakerSetupXmlFile);
+    SpeakerSetupContainer (const SpeakerSetup& setup, const juce::File& speakerSetupXmlFile);
 
     ~SpeakerSetupContainer () override
     {
@@ -61,6 +62,8 @@ public:
     juce::ValueTree getSelectedItem();
 
 private:
+    //TODO VB: this can't be const lol
+    const SpeakerSetup& speakerSetup;
     juce::File vtFile;
     juce::ValueTree vt;
 

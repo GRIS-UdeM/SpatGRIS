@@ -29,6 +29,7 @@
 namespace gris
 {
 //==============================================================================
+#if USE_OLD_SPEAKER_SETUP_VIEW
 static Position getLegalSpeakerPosition(Position const & position,
                                         SpatMode const spatMode,
                                         bool const isDirectOutOnly,
@@ -83,7 +84,7 @@ static Position getLegalSpeakerPosition(Position const & position,
     }
     return Position{ newPosition };
 }
-
+#endif
 //==============================================================================
 LabelWrapper::LabelWrapper(GrisLookAndFeel & lookAndFeel)
 {
@@ -113,7 +114,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , spatGrisData(mainContentComponent.getData())
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
-    , mSpeakerSetupContainer (spatGrisData.appData.lastSpeakerSetup)
+    , mSpeakerSetupContainer (spatGrisData.speakerSetup, spatGrisData.appData.lastSpeakerSetup)
     , mFont(juce::FontOptions().withHeight (14.f))
     , mRingSpeakers(lookAndFeel)
     , mRingElevation(lookAndFeel)
