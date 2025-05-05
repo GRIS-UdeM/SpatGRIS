@@ -17,13 +17,17 @@
 
 #pragma once
 #include "../../ValueTreeUtilities.hpp"
+#include "../../../sg_GrisLookAndFeel.hpp"
 
 namespace gris
 {
 class SpeakerTreeComponent : public juce::Component
 {
 public:
-    SpeakerTreeComponent (const juce::ValueTree& v);
+    SpeakerTreeComponent (juce::TreeViewItem* owner, const juce::ValueTree& v);
+    ~SpeakerTreeComponent () { setLookAndFeel (nullptr); }
+
+    void paint(juce::Graphics & g) override;
 
     void resized () override;
 
@@ -33,6 +37,9 @@ protected:
     juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del;
 
     juce::ValueTree vt;
+
+    GrisLookAndFeel lnf;
+    juce::TreeViewItem* treeViewItem;
 };
 
 //==============================================================================
@@ -40,7 +47,7 @@ protected:
 class SpeakerGroupComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerGroupComponent (const juce::ValueTree& v);
+    SpeakerGroupComponent (juce::TreeViewItem* owner, const juce::ValueTree& v);
 };
 
 //==============================================================================
@@ -48,6 +55,6 @@ public:
 class SpeakerComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerComponent (const juce::ValueTree& v);
+    SpeakerComponent (juce::TreeViewItem* owner, const juce::ValueTree& v);
 };
 }

@@ -24,6 +24,7 @@ SpeakerSetupContainer::SpeakerSetupContainer(const SpeakerSetup & setup, const j
 {
     vt = convertSpeakerSetup (juce::ValueTree::fromXml (vtFile.loadFileAsString ()));
 
+    speakerSetupTreeView.setRootItemVisible(false);
     addAndMakeVisible (speakerSetupTreeView);
 
     speakerSetupTreeView.setTitle (vtFile.getFileName ());

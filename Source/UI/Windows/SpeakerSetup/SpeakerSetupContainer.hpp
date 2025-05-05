@@ -23,17 +23,6 @@
 
 namespace gris
 {
-inline juce::Colour getUIColourIfAvailable (juce::LookAndFeel_V4::ColourScheme::UIColour uiColour,
-                                            juce::Colour fallback = juce::Colour (0xff4d4d4d)) noexcept
-{
-    if (auto* v4 = dynamic_cast<juce::LookAndFeel_V4*> (&juce::LookAndFeel::getDefaultLookAndFeel ()))
-        return v4->getCurrentColourScheme ().getUIColour (uiColour);
-
-    return fallback;
-}
-
-//===============================
-
 class SpeakerSetupContainer final : public juce::Component,
     public juce::DragAndDropContainer,
     private juce::Timer
@@ -44,11 +33,6 @@ public:
     ~SpeakerSetupContainer () override
     {
         speakerSetupTreeView.setRootItem (nullptr);
-    }
-
-    void paint (juce::Graphics& g) override
-    {
-        g.fillAll (getUIColourIfAvailable (juce::LookAndFeel_V4::ColourScheme::UIColour::windowBackground));
     }
 
     void resized () override;

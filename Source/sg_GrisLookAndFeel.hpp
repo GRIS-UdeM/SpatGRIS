@@ -28,7 +28,7 @@ namespace gris
 {
 //==============================================================================
 /** Custom Look And Feel */
-class GrisLookAndFeel : public juce::LookAndFeel_V3
+class GrisLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
     float constexpr static mFontSize = 10.f;

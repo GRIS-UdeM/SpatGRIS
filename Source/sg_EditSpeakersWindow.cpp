@@ -161,7 +161,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
             mViewportWrapper.getContent()->addAndMakeVisible(labelTextEditor->editor);
         } else if (auto * labelComboBox{ dynamic_cast<LabelComboBoxWrapper *>(w) }) {
             labelComboBox->comboBox.addItemList(comboItemList, 1);
-            labelComboBox->comboBox.setSelectedId(1);
+            labelComboBox->comboBox.setSelectedId(4);
             labelComboBox->comboBox.setTooltip(tooltip);
             mViewportWrapper.getContent()->addAndMakeVisible(labelComboBox->comboBox);
         }
@@ -176,10 +176,10 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 
     // Polyhedron of speakers.
     setupWrapper(&mPolyFaces, "# of faces", "Number of faces/speakers for the polyhedron.", {}, {}, {}, { "4", "6", "8", "12", "20" });
-    setupWrapper(&mPolyX, "X", "X position for the center of the polyhedron, in the [-1.667, 1.667] range", "0", 4, "-0123456789.");
+    setupWrapper(&mPolyX, "X", "X position for the center of the polyhedron, in the [-1.667, 1.667] range", "0.5", 4, "-0123456789.");
     setupWrapper(&mPolyY, "Y", "Y position for the center of the polyhedron.", "0", 4, "-0123456789.");
-    setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0", 4, "-0123456789.");
-    setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", "1", 4, "0123456789.");
+    setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0.15", 4, "-0123456789.");
+    setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", ".05", 4, "0123456789.");
     setupWrapper(&mPolyAzimuthOffset, "Azimuth offset", "Azimuth rotation for the polyhedron shape, in degrees.", "0", 3, "0123456789");
     setupWrapper(&mPolyElevOffset, "Elevation offset", "Azimuth rotation for the polyhedron shape, in degrees.", "0", 3, "0123456789");
     setupButton(mAddPolyButton, "Add Polyhedron");

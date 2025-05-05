@@ -24,12 +24,15 @@ namespace gris
 //==============================================================================
 GrisLookAndFeel::GrisLookAndFeel()
 {
-    this->mBackGroundAndFieldColour = juce::Colours::cyan; //juce::Colours::blue.withBrightness(0.35f).withSaturation(0.05f);
-    this->mWinBackGroundAndFieldColour = juce::Colours::green; //juce::Colour::fromRGB(46, 46, 46);
+    //TODO VB: these first 2 do things
+    this->mBackGroundAndFieldColour = juce::Colours::blue.withBrightness(0.35f).withSaturation(0.05f);
+    this->mWinBackGroundAndFieldColour = juce::Colour::fromRGB(46, 46, 46);
 
     this->mLightColour = juce::Colour::fromRGB(235, 245, 250); // Colours::whiteSmoke;
     this->mDarkColour = juce::Colour::fromRGB(15, 10, 5);      // Colours::black;
     this->mGreyColour = juce::Colour::fromRGB(120, 120, 120);  // Colours::grey;
+
+    //TODO VB: this is the background of editors -- in the speaker edition window the labels turn into editors
     this->mEditBgcolor = juce::Colour::fromRGB(172, 172, 172);
     this->mHlBgcolor = juce::Colour::fromRGB(190, 125, 18);
 

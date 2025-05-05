@@ -18,18 +18,29 @@
 #include "SpeakerTreeComponent.hpp"
 namespace gris
 {
-SpeakerTreeComponent::SpeakerTreeComponent (const juce::ValueTree& v)
+SpeakerTreeComponent::SpeakerTreeComponent (juce::TreeViewItem* owner, const juce::ValueTree& v)
     : vt (v)
+    , treeViewItem (owner)
 {
+    //setLookAndFeel(&lnf);
     setInterceptsMouseClicks (false, true);
 
     setupEditor (x, juce::String::formatted ("%.2f", static_cast<float>(v["X"])));
     setupEditor (y, juce::String::formatted ("%.2f", static_cast<float>(v["Y"])));
     setupEditor (z, juce::String::formatted ("%.2f", static_cast<float>(v["Z"])));
-    setupEditor (azim, "convert");
-    setupEditor (elev, "convert");
-    setupEditor (distance, "radius?");
+    //TODO VB: all these:
+    setupEditor (azim, "");
+    setupEditor (elev, "");
+    setupEditor (distance, "");
     setupEditor (del, "DEL");
+}
+
+inline void SpeakerTreeComponent::paint (juce::Graphics& g)
+{
+    if (treeViewItem->isSelected ())
+        g.fillAll (lnf.mHlBgcolor);
+    else if (treeViewItem->getIndexInParent () % 2 == 0)
+        g.fillAll (lnf.mGreyColour);
 }
 
 void SpeakerTreeComponent::resized ()
@@ -61,18 +72,19 @@ void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::StringRef tex
 
 //==============================================================================
 
-SpeakerGroupComponent::SpeakerGroupComponent (const juce::ValueTree& v) : SpeakerTreeComponent (v)
+SpeakerGroupComponent::SpeakerGroupComponent (juce::TreeViewItem* owner, const juce::ValueTree& v) : SpeakerTreeComponent (owner, v)
 {
     setupEditor (id, v[ID].toString ());
 }
 
 //==============================================================================
 
-SpeakerComponent::SpeakerComponent (const juce::ValueTree& v) : SpeakerTreeComponent (v)
+SpeakerComponent::SpeakerComponent (juce::TreeViewItem* owner, const juce::ValueTree& v) : SpeakerTreeComponent (owner, v)
 {
     setupEditor (id, v["ID"].toString ());
     setupEditor (gain, v["GAIN"].toString ());
-    setupEditor (highpass, "wtf?");
+    //TODO VB:
+    setupEditor (highpass, {});
     setupEditor (direct, v["DIRECT_OUT_ONLY"].toString ());
 }
 }
