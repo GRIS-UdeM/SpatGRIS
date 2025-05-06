@@ -16,6 +16,9 @@
 */
 
 #include "SpeakerTreeComponent.hpp"
+#include <Data/StrongTypes/sg_CartesianVector.hpp>
+#include <Data/sg_Position.hpp>
+
 namespace gris
 {
 SpeakerTreeComponent::SpeakerTreeComponent (juce::TreeViewItem* owner, const juce::ValueTree& v)
@@ -25,13 +28,17 @@ SpeakerTreeComponent::SpeakerTreeComponent (juce::TreeViewItem* owner, const juc
     //setLookAndFeel(&lnf);
     setInterceptsMouseClicks (false, true);
 
-    setupEditor (x, juce::String::formatted ("%.2f", static_cast<float>(v["X"])));
-    setupEditor (y, juce::String::formatted ("%.2f", static_cast<float>(v["Y"])));
-    setupEditor (z, juce::String::formatted ("%.2f", static_cast<float>(v["Z"])));
-    //TODO VB: all these:
-    setupEditor (azim, "");
-    setupEditor (elev, "");
-    setupEditor (distance, "");
+    //TODO VB: serialize to string and back to position in the VT instead of constructing it like this
+    auto const position = Position{ CartesianVector(v["X"], v["Y"], v["Z"]) };
+    auto& const cartesian { position.getCartesian () };
+    auto& const polar{ position.getPolar() };
+
+    setupEditor (x, juce::String (cartesian.x, 3));
+    setupEditor (y, juce::String (cartesian.y, 3));
+    setupEditor (z, juce::String (cartesian.z, 3));
+    setupEditor (azim, juce::String (polar.azimuth.get(), 3));
+    setupEditor (elev, juce::String (polar.elevation.get(), 3));
+    setupEditor (distance, juce::String (polar.length, 3));
     setupEditor (del, "DEL");
 }
 
