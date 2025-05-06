@@ -535,11 +535,32 @@ void GrisLookAndFeel::drawTreeviewPlusMinusBox(juce::Graphics & g,
                                                bool isOpen,
                                                bool isMouseOver)
 {
+#if 1
     juce::Path p;
     p.addTriangle(0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
 
     g.setColour(mLightColour);
     g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
+#else
+    juce::Path p;
+
+    // Normalized '>' shape
+    p.startNewSubPath(0.0f, 0.0f);
+    p.lineTo(1.0f, 0.5f);
+    p.lineTo(0.0f, 1.0f);
+
+    // Shrink the area to fit half-size
+    auto targetArea
+        = area.reduced(2, area.getHeight() / 4).withSizeKeepingCentre(area.getWidth() / 4, area.getHeight() / 4);
+
+    auto transform = p.getTransformToScaleToFit(targetArea, true);
+
+    if (!isOpen)
+        transform = transform.rotated(juce::MathConstants<float>::halfPi, area.getCentreX(), area.getCentreY());
+
+    g.setColour(mLightColour);
+    g.strokePath(p, juce::PathStrokeType(2.0f), transform);
+#endif
 }
 
 void SmallGrisLookAndFeel::drawToggleButton(juce::Graphics & g,

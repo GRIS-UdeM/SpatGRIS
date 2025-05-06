@@ -46,10 +46,12 @@ SpeakerTreeComponent::SpeakerTreeComponent (juce::TreeViewItem* owner, const juc
     drag.setInterceptsMouseClicks (false, false);
 }
 
-inline void SpeakerTreeComponent::paint (juce::Graphics& g)
+void SpeakerTreeComponent::paint (juce::Graphics& g)
 {
     if (treeViewItem->isSelected ())
         g.fillAll (lnf.mHlBgcolor);
+    else if (vt.getType() == SPEAKER_GROUP)
+        g.fillAll (lnf.mBackGroundAndFieldColour.darker(.5f));
     else if (treeViewItem->getIndexInParent () % 2 == 0)
         g.fillAll (lnf.mGreyColour);
 }
