@@ -36,6 +36,27 @@ SpeakerSetupContainer::SpeakerSetupContainer(const SpeakerSetup & setup, const j
     mainSpeakerGroupLine.reset (new SpeakerSetupLine (vt.getChild(0), undoManager));
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
+    auto setLabelText = [this](juce::Label& label, const juce::String & text) {
+        //label.setLookAndFeel (&headerLabelLookAndFeel);
+        //label.setBorderSize ( { 1, 1, 1, 1 });
+        label.setColour (juce::Label::ColourIds::outlineColourId, lookAndFeel.mLightColour.withAlpha (.25f));
+        label.setText(text, juce::dontSendNotification);
+        addAndMakeVisible(label);
+    };
+
+    setLabelText (id, "ID");
+    setLabelText (x, "X");
+    setLabelText (y, "Y");
+    setLabelText (z, "Z");
+    setLabelText (azim, "Azimuth");
+    setLabelText (elev, "Elevation");
+    setLabelText (distance, "Distance");
+    setLabelText (gain, "Gain");
+    setLabelText (highpass, "Highpass");
+    setLabelText (direct, "Direct");
+    setLabelText (del, "Delete");
+    setLabelText (drag, "Drag");
+
     addAndMakeVisible (undoButton);
     addAndMakeVisible (redoButton);
     addAndMakeVisible (sortButton);
@@ -49,12 +70,33 @@ SpeakerSetupContainer::SpeakerSetupContainer(const SpeakerSetup & setup, const j
     startTimer (500);
 
     setSize (500, 500);
+
+    setLookAndFeel (&lookAndFeel);
 }
+
 void SpeakerSetupContainer::resized ()
 {
-    auto r = getLocalBounds ().reduced (8);
+    auto bounds = getLocalBounds ().reduced (8);
+    auto header = bounds.removeFromTop (30);
+    header.removeFromLeft (20);
+    // this is taken from SpeakerTreeComponent::resized () and should be DRYed
+    {
+        //TODO VB: for some reason this is slightly less than in SpeakerTreeComponent, probably because of the tree arrow or something
+        constexpr auto fixedLeftColWidth{ 172 /*200*/ };
+        constexpr auto otherColWidth{ 60 };
+        constexpr auto dragColWidth { 40 };
 
-    auto buttons = r.removeFromBottom (22);
+        id.setBounds(header.removeFromLeft(fixedLeftColWidth));
+
+        // then position the other components with a fixed width of otherColWidth
+        for (auto label : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del/*, &drag*/ })
+            label->setBounds(header.removeFromLeft(otherColWidth));
+
+        drag.setBounds (header.removeFromLeft (dragColWidth));
+    }
+
+
+    auto buttons = bounds.removeFromBottom (22);
     undoButton.setBounds (buttons.removeFromLeft (100));
     buttons.removeFromLeft (6);
     redoButton.setBounds (buttons.removeFromLeft (100));
@@ -63,8 +105,8 @@ void SpeakerSetupContainer::resized ()
     buttons.removeFromLeft (6);
     saveButton.setBounds (buttons.removeFromLeft (100));
 
-    r.removeFromBottom (4);
-    speakerSetupTreeView.setBounds (r);
+    bounds.removeFromBottom (4);
+    speakerSetupTreeView.setBounds (bounds);
 }
 
 void SpeakerSetupContainer::deleteSelectedItems ()

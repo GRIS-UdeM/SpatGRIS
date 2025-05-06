@@ -40,6 +40,10 @@ SpeakerTreeComponent::SpeakerTreeComponent (juce::TreeViewItem* owner, const juc
     setupEditor (elev, juce::String (polar.elevation.get(), 3));
     setupEditor (distance, juce::String (polar.length, 3));
     setupEditor (del, "DEL");
+
+    setupEditor (drag, "=");
+    drag.setEditable(false);
+    drag.setInterceptsMouseClicks (false, false);
 }
 
 inline void SpeakerTreeComponent::paint (juce::Graphics& g)
@@ -65,7 +69,7 @@ void SpeakerTreeComponent::resized ()
         id.setBounds (bounds.removeFromLeft (idColWidth));
 
         // then position the other components with a fixed width of otherColWidth
-        for (auto* component : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
+        for (auto* component : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del, &drag })
             component->setBounds (bounds.removeFromLeft (otherColWidth));
     }
 }
@@ -88,6 +92,8 @@ SpeakerGroupComponent::SpeakerGroupComponent (juce::TreeViewItem* owner, const j
 
 SpeakerComponent::SpeakerComponent (juce::TreeViewItem* owner, const juce::ValueTree& v) : SpeakerTreeComponent (owner, v)
 {
+    // TODO VB: this is super weird because all these components belong to the parent. We probably need some virtual
+    // function to call in resized where we get the list of components that are in children
     setupEditor (id, v["ID"].toString ());
     setupEditor (gain, v["GAIN"].toString ());
     //TODO VB:

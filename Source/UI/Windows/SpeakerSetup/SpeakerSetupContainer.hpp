@@ -32,7 +32,10 @@ public:
 
     ~SpeakerSetupContainer () override
     {
+        setLookAndFeel (nullptr);
         speakerSetupTreeView.setRootItem (nullptr);
+
+        //TODO VB: delete lnf from all labels. Need a way to iterate through those components
     }
 
     void resized () override;
@@ -46,10 +49,25 @@ public:
     juce::ValueTree getSelectedItem();
 
 private:
-    //TODO VB: this can't be const lol
+    //struct HeaderLabelLookAndFeel : public GrisLookAndFeel
+    //{
+    //    juce::BorderSize<int> getLabelBorderSize (juce::Label&) override
+    //    {
+    //        return juce::BorderSize<int> (2);
+    //    }
+    //};
+
+    //HeaderLabelLookAndFeel headerLabelLookAndFeel;
+
+    GrisLookAndFeel lookAndFeel;
+    // TODO VB: this isn't used, and needs to stay const, so probably isn't needed -- we'll have main component be a VT
+    // listener or something
     const SpeakerSetup& speakerSetup;
     juce::File vtFile;
     juce::ValueTree vt;
+
+    //header
+    juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
 
     juce::TreeView speakerSetupTreeView;
     juce::TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton { "Sort" }, saveButton { "Save" };

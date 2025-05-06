@@ -34,7 +34,7 @@ public:
 protected:
     void setupEditor (juce::Label& editor, juce::StringRef text);;
 
-    juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del;
+    juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
 
     juce::ValueTree vt;
 
