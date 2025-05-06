@@ -22,6 +22,11 @@ namespace gris
 
 void copyValueTreeProperties (const juce::ValueTree& source, juce::ValueTree& dest)
 {
+    //these are the only types of sources we're expecting here
+    jassert (source.getType ().toString ().contains("SPEAKER_")
+             || source.getType().toString() == "POSITION"
+             || source.getType ().toString () == "HIGHPASS");
+
     for (int i = 0; i < source.getNumProperties (); ++i) {
         const auto propertyName = source.getPropertyName (i);
         const auto propertyValue = source.getProperty (propertyName);
@@ -32,13 +37,27 @@ void copyValueTreeProperties (const juce::ValueTree& source, juce::ValueTree& de
 //TODO VB: this will need unit tests -- and can this be constexpr
 juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
 {
-    //<SPEAKER_SETUP VERSION = "3.1.14" SPAT_MODE = "Dome" DIFFUSION = "0.0" GENERAL_MUTE = "0">
-    // 
-    //  <SPEAKER_1 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
-    //      <POSITION X = "-4.371138828673793e-8" Y = "1.0" Z = "-4.371138828673793e-8" / >
-    //  </SPEAKER_1>
-    //  <SPEAKER_2 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
-    //      <POSITION X = "0.0980171337723732" Y = "0.9951847195625305" Z = "-4.371138828673793e-8" / >
+    // DOME EXAMPLE
+    /*<SPEAKER_SETUP VERSION = "3.1.14" SPAT_MODE = "Dome" DIFFUSION = "0.0" GENERAL_MUTE = "0">
+        <SPEAKER_1 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
+            <POSITION X = "-4.371138828673793e-8" Y = "1.0" Z = "-4.371138828673793e-8" / >
+        </SPEAKER_1>
+        <SPEAKER_2 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
+            <POSITION X = "0.0980171337723732" Y = "0.9951847195625305" Z = "-4.371138828673793e-8" / >
+        </SPEAKER_2>
+    */
+
+    // SPEAKER EXAMPLE
+    /*<SPEAKER_SETUP VERSION = "3.1.14" SPAT_MODE = "Cube" DIFFUSION = "0.0" GENERAL_MUTE = "0">
+        <SPEAKER_1 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
+            <POSITION X = "-0.7071083784103394" Y = "0.7071067690849304" Z = "-9.478120688299896e-8" / >
+            <HIGHPASS FREQ = "60.0" / >
+        </SPEAKER_1>
+        <SPEAKER_2 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
+            <POSITION X = "0.7071067094802856" Y = "0.7071068286895752" Z = "-9.478120688299896e-8" / >
+            <HIGHPASS FREQ = "60.0" / >
+        </SPEAKER_2>
+    */
 
     //TODO VB: handle default speaker setup and all legacy types
     if (oldSpeakerSetup.getType () != SPEAKER_SETUP)
@@ -69,17 +88,6 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
     mainSpeakerGroup.setProperty(ID, "Main", nullptr);
     newVt.appendChild (mainSpeakerGroup, nullptr);
 
-    //adding a couple of random group now to test this feature
-#if 0
-    auto randomSpeakerGroup1 = juce::ValueTree (SPEAKER_GROUP);
-    randomSpeakerGroup1.setProperty (ID, "Audiodice 2", nullptr);
-    mainSpeakerGroup.appendChild (randomSpeakerGroup1, nullptr);
-
-    auto randomSpeakerGroup = juce::ValueTree (SPEAKER_GROUP);
-    randomSpeakerGroup.setProperty (ID, "Audiodice 1", nullptr);
-    mainSpeakerGroup.appendChild (randomSpeakerGroup, nullptr);
-#endif
-
     //then add all speakers to the main group
     for (const auto& speaker : oldSpeakerSetup)
     {
@@ -95,9 +103,10 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
         const auto speakerId = speaker.getType ().toString ().removeCharacters ("SPEAKER_");
         newSpeaker.setProperty ("ID", speakerId, nullptr);
 
-        //copy properties for the speaker and its position child into the newSpeaker
+        // copy properties for the speaker and its children
         copyValueTreeProperties (speaker, newSpeaker);
-        copyValueTreeProperties (speaker.getChild (0), newSpeaker);
+        for (const auto child : speaker)
+            copyValueTreeProperties (child, newSpeaker);
 
         mainSpeakerGroup.appendChild (newSpeaker, nullptr);
     }

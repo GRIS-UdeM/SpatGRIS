@@ -24,6 +24,8 @@ SpeakerSetupContainer::SpeakerSetupContainer(const SpeakerSetup & setup, const j
 {
     vt = convertSpeakerSetup (juce::ValueTree::fromXml (vtFile.loadFileAsString ()));
 
+    //DBG (vt.toXmlString());
+
     speakerSetupTreeView.setRootItemVisible(false);
     addAndMakeVisible (speakerSetupTreeView);
 
@@ -37,8 +39,6 @@ SpeakerSetupContainer::SpeakerSetupContainer(const SpeakerSetup & setup, const j
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
     auto setLabelText = [this](juce::Label& label, const juce::String & text) {
-        //label.setLookAndFeel (&headerLabelLookAndFeel);
-        //label.setBorderSize ( { 1, 1, 1, 1 });
         label.setColour (juce::Label::ColourIds::outlineColourId, lookAndFeel.mLightColour.withAlpha (.25f));
         label.setText(text, juce::dontSendNotification);
         addAndMakeVisible(label);
@@ -89,12 +89,11 @@ void SpeakerSetupContainer::resized ()
         id.setBounds(header.removeFromLeft(fixedLeftColWidth));
 
         // then position the other components with a fixed width of otherColWidth
-        for (auto label : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del/*, &drag*/ })
+        for (auto label : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
             label->setBounds(header.removeFromLeft(otherColWidth));
 
         drag.setBounds (header.removeFromLeft (dragColWidth));
     }
-
 
     auto buttons = bounds.removeFromBottom (22);
     undoButton.setBounds (buttons.removeFromLeft (100));

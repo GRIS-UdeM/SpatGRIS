@@ -96,8 +96,7 @@ SpeakerComponent::SpeakerComponent (juce::TreeViewItem* owner, const juce::Value
     // function to call in resized where we get the list of components that are in children
     setupEditor (id, v["ID"].toString ());
     setupEditor (gain, v["GAIN"].toString ());
-    //TODO VB:
-    setupEditor (highpass, {});
+    setupEditor (highpass, v["FREQ"].toString());
     setupEditor (direct, v["DIRECT_OUT_ONLY"].toString ());
 }
 }

@@ -49,16 +49,6 @@ public:
     juce::ValueTree getSelectedItem();
 
 private:
-    //struct HeaderLabelLookAndFeel : public GrisLookAndFeel
-    //{
-    //    juce::BorderSize<int> getLabelBorderSize (juce::Label&) override
-    //    {
-    //        return juce::BorderSize<int> (2);
-    //    }
-    //};
-
-    //HeaderLabelLookAndFeel headerLabelLookAndFeel;
-
     GrisLookAndFeel lookAndFeel;
     // TODO VB: this isn't used, and needs to stay const, so probably isn't needed -- we'll have main component be a VT
     // listener or something
