@@ -30,8 +30,8 @@ SpeakerTreeComponent::SpeakerTreeComponent (juce::TreeViewItem* owner, const juc
 
     //TODO VB: serialize to string and back to position in the VT instead of constructing it like this
     auto const position = Position{ CartesianVector(v["X"], v["Y"], v["Z"]) };
-    auto& const cartesian { position.getCartesian () };
-    auto& const polar{ position.getPolar() };
+    auto const & cartesian{ position.getCartesian() };
+    auto const & polar{ position.getPolar() };
 
     setupEditor (x, juce::String (cartesian.x, 3));
     setupEditor (y, juce::String (cartesian.y, 3));
