@@ -179,6 +179,12 @@ public:
                           float rotaryEndAngle,
                           juce::Slider & slider) override;
 
+    void drawTreeviewPlusMinusBox(juce::Graphics & g,
+                                  const juce::Rectangle<float> & area,
+                                  juce::Colour backgroundColour,
+                                  bool isOpen,
+                                  bool isMouseOver) override;
+
 private:
     JUCE_LEAK_DETECTOR(GrisLookAndFeel)
 }; // class GrisLookAndFeel

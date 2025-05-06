@@ -529,6 +529,19 @@ void GrisLookAndFeel::drawRotarySlider(juce::Graphics & g,
     g.strokePath(outlineArc, juce::PathStrokeType(lineThickness));
 }
 
+void GrisLookAndFeel::drawTreeviewPlusMinusBox(juce::Graphics & g,
+                                               const juce::Rectangle<float> & area,
+                                               juce::Colour backgroundColour,
+                                               bool isOpen,
+                                               bool isMouseOver)
+{
+    juce::Path p;
+    p.addTriangle(0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
+
+    g.setColour(mLightColour);
+    g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
+}
+
 void SmallGrisLookAndFeel::drawToggleButton(juce::Graphics & g,
                                             juce::ToggleButton & button,
                                             bool const isMouseOverButton,
