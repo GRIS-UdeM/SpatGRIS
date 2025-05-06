@@ -19,10 +19,10 @@
 
 #include "sg_EditSpeakersWindow.hpp"
 
+#include "AlgoGRIS/Data/sg_Narrow.hpp"
 #include "sg_EditableTextCustomComponent.hpp"
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
-#include "AlgoGRIS/Data/sg_Narrow.hpp"
 #include <numbers>
 #include <span>
 
@@ -114,8 +114,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , spatGrisData(mainContentComponent.getData())
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
-    , mSpeakerSetupContainer (spatGrisData.speakerSetup, spatGrisData.appData.lastSpeakerSetup)
-    , mFont(juce::FontOptions().withHeight (14.f))
+    , mSpeakerSetupContainer(spatGrisData.speakerSetup, spatGrisData.appData.lastSpeakerSetup)
+    , mFont(juce::FontOptions().withHeight(14.f))
     , mRingSpeakers(lookAndFeel)
     , mRingElevation(lookAndFeel)
     , mRingRadius(lookAndFeel)
@@ -175,13 +175,34 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupButton(mAddRingButton, "Add Ring");
 
     // Polyhedron of speakers.
-    setupWrapper(&mPolyFaces, "# of faces", "Number of faces/speakers for the polyhedron.", {}, {}, {}, { "4", "6", "8", "12", "20" });
-    setupWrapper(&mPolyX, "X", "X position for the center of the polyhedron, in the [-1.667, 1.667] range", "0.5", 4, "-0123456789.");
+    setupWrapper(&mPolyFaces,
+                 "# of faces",
+                 "Number of faces/speakers for the polyhedron.",
+                 {},
+                 {},
+                 {},
+                 { "4", "6", "8", "12", "20" });
+    setupWrapper(&mPolyX,
+                 "X",
+                 "X position for the center of the polyhedron, in the [-1.667, 1.667] range",
+                 "0.5",
+                 4,
+                 "-0123456789.");
     setupWrapper(&mPolyY, "Y", "Y position for the center of the polyhedron.", "0", 4, "-0123456789.");
     setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0.15", 4, "-0123456789.");
     setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", ".05", 4, "0123456789.");
-    setupWrapper(&mPolyAzimuthOffset, "Azimuth offset", "Azimuth rotation for the polyhedron shape, in degrees.", "0", 3, "0123456789");
-    setupWrapper(&mPolyElevOffset, "Elevation offset", "Azimuth rotation for the polyhedron shape, in degrees.", "0", 3, "0123456789");
+    setupWrapper(&mPolyAzimuthOffset,
+                 "Azimuth offset",
+                 "Azimuth rotation for the polyhedron shape, in degrees.",
+                 "0",
+                 3,
+                 "0123456789");
+    setupWrapper(&mPolyElevOffset,
+                 "Elevation offset",
+                 "Azimuth rotation for the polyhedron shape, in degrees.",
+                 "0",
+                 3,
+                 "0123456789");
     setupButton(mAddPolyButton, "Add Polyhedron");
     togglePolyhedraExtraWidgets();
 
@@ -232,7 +253,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 #if USE_OLD_SPEAKER_SETUP_VIEW
     mViewportWrapper.getContent()->addAndMakeVisible(mSpeakersTableListBox);
 #else
-    mViewportWrapper.getContent ()->addAndMakeVisible (mSpeakerSetupContainer);
+    mViewportWrapper.getContent()->addAndMakeVisible(mSpeakerSetupContainer);
 #endif
 
     mViewportWrapper.repaint();
@@ -488,7 +509,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 }
 
 //==============================================================================
-//TODO VB: this seems to be a dupe from EditSpeakersWindow::buttonClicked() below?
+// TODO VB: this seems to be a dupe from EditSpeakersWindow::buttonClicked() below?
 void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition)
 {
 #if USE_OLD_SPEAKER_SETUP_VIEW
@@ -536,58 +557,52 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
 
     mShouldComputeSpeakers = true;
 #else
-    //TODO VB: dry this, it's also below
-    auto const vtRow = mSpeakerSetupContainer.getSelectedItem ();
-    tl::optional<int> indexInCurGroup {};
-    juce::ValueTree curGroup;
-    if (vtRow.isValid ())
-    {
-        curGroup = vtRow.getParent ();
-        indexInCurGroup = curGroup.indexOf (vtRow);
-    }
+    if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakers > MAX_NUM_SPEAKERS)
+        return;
+
+    // TODO VB: dry this, it's also below
+    auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
+    jassert(vtRow.isValid());
+    juce::ValueTree curGroup = vtRow.getParent();
+    tl::optional<int> indexInCurGroup = curGroup.indexOf(vtRow);
 
     juce::ValueTree newGroup("SPEAKER_GROUP");
-    newGroup.setProperty("ID", "audiodice", nullptr);
-    curGroup.addChild (newGroup, *indexInCurGroup + 1, nullptr);
+    newGroup.setProperty("ID", "new group", nullptr);
+    curGroup.addChild(newGroup, *indexInCurGroup + 1, nullptr);
 
-    auto const& speakers { spatGrisData.speakerSetup.speakers };
-    output_patch_t newOutputPatch {};
+    auto const & speakers{ spatGrisData.speakerSetup.speakers };
+    output_patch_t newOutputPatch{};
 
-    if (mMainContentComponent.getMaxSpeakerOutputPatch ().get () + numSpeakers > MAX_NUM_SPEAKERS)
-    {
-        return;
-    }
+    for (int i{}; i < numSpeakers; ++i) {
+        tl::optional<output_patch_t> outputPatch{};
+        tl::optional<int> index{};
 
-    for (int i {}; i < numSpeakers; ++i)
-    {
-        tl::optional<output_patch_t> outputPatch {};
-        tl::optional<int> index {};
-
-        //so here, indexInCurGroup is really the index of the new group inside the current group
-        //we'll need to keep that in sync with the actual number of speakers...
-        if (indexInCurGroup)
-        {
-            outputPatch = getSpeakerOutputPatchForRow (*indexInCurGroup);
+        // so here, indexInCurGroup is really the index of the new group inside the current group
+        // we'll need to keep that in sync with the actual number of speakers...
+        if (indexInCurGroup) {
+            outputPatch = getSpeakerOutputPatchForRow(*indexInCurGroup);
             index = *indexInCurGroup;
             *indexInCurGroup += 1;
         }
 
-        newOutputPatch = mMainContentComponent.addSpeaker (outputPatch, index);
-        mNumRows = speakers.size ();
+        newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
+        mNumRows = speakers.size();
 
-        mMainContentComponent.setSpeakerPosition (newOutputPatch, getSpeakerPosition (i));
-        addNewSpeakerToVt (newOutputPatch, newGroup, true);
+        mMainContentComponent.setSpeakerPosition(newOutputPatch, getSpeakerPosition(i));
+        addNewSpeakerToVt(newOutputPatch, newGroup, true);
     }
-    mMainContentComponent.refreshSpeakers ();
-    updateWinContent ();
+    mMainContentComponent.refreshSpeakers();
+    updateWinContent();
 
-    selectSpeaker (newOutputPatch);
+    selectSpeaker(newOutputPatch);
 
     mShouldComputeSpeakers = true;
 #endif
 }
 
-void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch, juce::ValueTree & parent, bool append)
+void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch,
+                                           juce::ValueTree & parent,
+                                           bool append)
 {
     // need to compare the data before and after this, get the new speaker info, and add to the VT
     auto const & newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
@@ -607,7 +622,7 @@ void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutpu
     if (append)
         parent.appendChild(newSpeakerVt, nullptr);
     else
-        parent.addChild (newSpeakerVt, newOutputPatch.get () - 1, nullptr);
+        parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, nullptr);
 }
 
 //==============================================================================
@@ -628,11 +643,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 #else
-    //TODO VB: dry this, it's also above
+    // TODO VB: dry this, it's also above
     auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
-    jassert (vtRow.isValid());
-    auto parent = vtRow.getParent ();
-    tl::optional<int>  selectedRow = parent.indexOf (vtRow);
+    jassert(vtRow.isValid());
+    auto parent = vtRow.getParent();
+    tl::optional<int> selectedRow = parent.indexOf(vtRow);
 
 #endif
 
@@ -652,9 +667,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             index = *selectedRow + 1;
         }
 
-        //TODO VB: put this in a function, probably in speakersetupcontainer
+        // TODO VB: put this in a function, probably in speakersetupcontainer
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
-        addNewSpeakerToVt (newOutputPatch, parent, false);
+        addNewSpeakerToVt(newOutputPatch, parent, false);
 
         mMainContentComponent.refreshSpeakers();
         updateWinContent();
@@ -664,15 +679,23 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 #endif
         mShouldComputeSpeakers = true;
     } else if (button == &mSaveAsSpeakerSetupButton) {
-        // Save as... speaker button
         mShouldComputeSpeakers = true;
         computeSpeakers();
+#if USE_OLD_SPEAKER_SETUP_VIEW
         mMainContentComponent.saveAsEditedSpeakerSetup();
+#else
+        // TODO VB: save AS
+        jassertfalse;
+        mSpeakerSetupContainer.saveSpeakerSetup();
+#endif
     } else if (button == &mSaveSpeakerSetupButton) {
-        // Save speaker button
         mShouldComputeSpeakers = true;
         computeSpeakers();
-        mMainContentComponent.saveEditedSpeakerSetup();
+#if USE_OLD_SPEAKER_SETUP_VIEW
+        mMainContentComponent.saveEditedSpeakerSetup ();
+#else
+        mSpeakerSetupContainer.saveSpeakerSetup ();
+#endif
     } else if (button == &mAddRingButton) {
         auto getPosition = [this](int i) -> Position {
             const auto numSpeakers{ mRingSpeakers.getTextAs<float>() };
@@ -823,7 +846,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    const auto intValue {textEditor.getText().getIntValue()};
+    const auto intValue{ textEditor.getText().getIntValue() };
     const auto floatValue{ textEditor.getText().getFloatValue() };
     const auto spatMode{ spatGrisData.speakerSetup.spatMode };
 
@@ -843,7 +866,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
         mShouldComputeSpeakers = true;
     } else if (&textEditor == &mRingElevation.editor) {
         auto const value{ floatValue < elevationHalfPoint ? std::clamp(floatValue, 0.0f, 90.0f)
-                                             : std::clamp(floatValue, 270.0f, 360.0f) };
+                                                          : std::clamp(floatValue, 270.0f, 360.0f) };
         textEditor.setText(juce::String{ value, 1 }, false);
         mShouldComputeSpeakers = true;
     } else if (&textEditor == &mRingRadius.editor) {
@@ -857,7 +880,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
         auto const value{ std::clamp(floatValue, -360.0f, 360.0f) };
         textEditor.setText(juce::String{ value, 1 }, false);
         mShouldComputeSpeakers = true;
-    } else if (&textEditor == &mPolyX.editor){
+    } else if (&textEditor == &mPolyX.editor) {
         clampPolyXYZ();
     } else if (&textEditor == &mPolyY.editor) {
         clampPolyXYZ();
@@ -905,8 +928,8 @@ void EditSpeakersWindow::updateWinContent()
 #if USE_OLD_SPEAKER_SETUP_VIEW
     mSpeakersTableListBox.updateContent();
 #else
-    //TODO VB: this is hit multiple times when opening the window/app
-    //jassertfalse;
+    // TODO VB: this is hit multiple times when opening the window/app
+    // jassertfalse;
 #endif
     mDiffusionSlider.setValue(spatGrisData.speakerSetup.diffusion);
     mDiffusionSlider.setEnabled(spatGrisData.project.spatMode == SpatMode::mbap
@@ -936,8 +959,8 @@ void EditSpeakersWindow::pushSelectionToMainComponent() const
 
     mMainContentComponent.setSelectedSpeakers(std::move(selection));
 #else
-    //TODO VB: this is hit whenever we click into the setup view
-    //jassertfalse;
+    // TODO VB: this is hit whenever we click into the setup view
+    // jassertfalse;
 #endif
 }
 
@@ -964,11 +987,10 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const output
         return displayOrder.indexOf(id);
     };
 
-
     selectRow(outputPatch.map(getSelectedRow));
 #else
-    //TODO VB: make sure we don't need the above
-    //jassertfalse;
+    // TODO VB: make sure we don't need the above
+    // jassertfalse;
 #endif
     pushSelectionToMainComponent();
 }
@@ -983,7 +1005,7 @@ void EditSpeakersWindow::closeButtonPressed()
 }
 
 //==============================================================================
-bool EditSpeakersWindow::keyPressed(const juce::KeyPress &key)
+bool EditSpeakersWindow::keyPressed(const juce::KeyPress & key)
 {
     auto const key_w{ juce::KeyPress(87) };
     if (key.getModifiers().isCommandDown() && key.isKeyCurrentlyDown(key_w.getKeyCode())) {
@@ -999,32 +1021,32 @@ void EditSpeakersWindow::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    //viewport
+    // viewport
     auto bounds{ getLocalBounds() };
     mViewportWrapper.setBounds(bounds);
     mViewportWrapper.correctSize(getWidth() - 10, getHeight() - 30);
 
-    //speaker table
+    // speaker table
     auto const secondRowH{ 24 };
     auto const bottomPanelH{ 195 + secondRowH };
 #if USE_OLD_SPEAKER_SETUP_VIEW
     mSpeakersTableListBox.setSize(getWidth(), getHeight() - bottomPanelH);
 #else
-    mSpeakerSetupContainer.setSize (getWidth (), getHeight () - bottomPanelH);
+    mSpeakerSetupContainer.setSize(getWidth(), getHeight() - bottomPanelH);
 #endif
 
-    //first row of bottom panel with add speaker, save as, and save buttons
-    auto const firstRowH {22};
+    // first row of bottom panel with add speaker, save as, and save buttons
+    auto const firstRowH{ 22 };
     auto const firstRowY{ getHeight() - 180 };
     mAddSpeakerButton.setBounds(5, firstRowY, 100, firstRowH);
     mSaveAsSpeakerSetupButton.setBounds(getWidth() - 210, firstRowY, 100, firstRowH);
     mSaveSpeakerSetupButton.setBounds(getWidth() - 105, firstRowY, 100, firstRowH);
 
-    //second row of bottom panel with rings of speakers
+    // second row of bottom panel with rings of speakers
     auto const secondRowY{ getHeight() - 140 };
-    auto const positionWidget = [](LabelWrapper* w, int x, int y, int lw, int ew) {
+    auto const positionWidget = [](LabelWrapper * w, int x, int y, int lw, int ew) {
         w->label.setBounds(x, y, lw, secondRowH);
-        if (auto * lew{ dynamic_cast<LabelTextEditorWrapper*>(w) })
+        if (auto * lew{ dynamic_cast<LabelTextEditorWrapper *>(w) })
             lew->editor.setBounds(x + lw, y, ew, secondRowH);
         else if (auto * lcw{ dynamic_cast<LabelComboBoxWrapper *>(w) })
             lcw->comboBox.setBounds(x + lw, y, ew, secondRowH);
@@ -1036,11 +1058,11 @@ void EditSpeakersWindow::resized()
     positionWidget(&mRingOffsetAngle, 400, secondRowY, 80, 60);
     mAddRingButton.setBounds(getWidth() - 105, secondRowY, 100, 24);
 
-    //third row of bottom panel with polyhedra controls
-    auto const thirdRowY { secondRowY + secondRowH + 2};
+    // third row of bottom panel with polyhedra controls
+    auto const thirdRowY{ secondRowY + secondRowH + 2 };
     positionWidget(&mPolyFaces, 5, thirdRowY, 70, 50);
-    auto startingX {120};
-    auto const shortlabelW {30};
+    auto startingX{ 120 };
+    auto const shortlabelW{ 30 };
     auto const shortEditorW{ 40 };
     positionWidget(&mPolyX, startingX, thirdRowY, shortlabelW, shortEditorW);
     startingX += shortlabelW + shortEditorW;
@@ -1341,7 +1363,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
 #endif
 //==============================================================================
 
-bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & event)
+bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & /*event*/)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 #if USE_OLD_SPEAKER_SETUP_VIEW
@@ -1541,7 +1563,7 @@ void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
 }
 
 //==============================================================================
-void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
+void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & /*event*/)
 {
 #if USE_OLD_SPEAKER_SETUP_VIEW
     JUCE_ASSERT_MESSAGE_THREAD;

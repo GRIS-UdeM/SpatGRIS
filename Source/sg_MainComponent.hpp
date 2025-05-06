@@ -231,8 +231,10 @@ public:
     //==============================================================================
     // Commands.
     void handleShowPreferences();
+#if USE_OLD_SPEAKER_SETUP_VIEW
     void saveAsEditedSpeakerSetup();
     void saveEditedSpeakerSetup();
+#endif
 
     //==============================================================================
     // Close windows
@@ -302,8 +304,10 @@ private:
     void handleResetSourcesPositions();
     void handleResetMeterClipping();
     void handleColorizeInputs();
+#if USE_OLD_SPEAKER_SETUP_VIEW
     void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
+#endif
     void handleShowOscMonitorWindow();
 
     void refreshSourceSlices();
@@ -332,7 +336,9 @@ private:
     bool loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption option);
     bool loadProject(juce::File const & file, bool discardCurrentProject);
     bool saveProject(tl::optional<juce::File> maybeFile);
+#if USE_OLD_SPEAKER_SETUP_VIEW
     bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
+#endif
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
     [[nodiscard]] bool makeSureSpeakerSetupIsSavedToDisk() noexcept;
     void setTitles() const;

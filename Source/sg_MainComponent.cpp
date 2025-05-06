@@ -504,6 +504,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
 }
 
 //==============================================================================
+#if USE_OLD_SPEAKER_SETUP_VIEW
 void MainContentComponent::handleSaveSpeakerSetupAs()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -511,6 +512,7 @@ void MainContentComponent::handleSaveSpeakerSetupAs()
 
     [[maybe_unused]] auto const success{ saveSpeakerSetup(tl::nullopt) };
 }
+#endif
 
 //==============================================================================
 void MainContentComponent::closeSpeakersConfigurationWindow()
@@ -546,9 +548,15 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
         if (result == 0) {
             return;
         } else if (result == 1) {
+#if USE_OLD_SPEAKER_SETUP_VIEW
             if (!saveSpeakerSetup(mData.appData.lastSpeakerSetup)) {
                 return;
             }
+#else
+            // TODO VB
+            jassertfalse;
+            return;
+#endif
         } else if (result == 2) {
             auto const spatMode{ mData.project.spatMode };
             loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
@@ -570,18 +578,17 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 #endif
 }
 
-//==============================================================================
+#if USE_OLD_SPEAKER_SETUP_VIEW
 void MainContentComponent::saveAsEditedSpeakerSetup()
 {
     saveSpeakerSetup(tl::nullopt);
 }
 
-//==============================================================================
 void MainContentComponent::saveEditedSpeakerSetup()
 {
     handleSaveSpeakerSetup();
 }
-
+#endif
 //==============================================================================
 void MainContentComponent::closePlayerWindow()
 {
@@ -1454,10 +1461,20 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             handleOpenSpeakerSetup();
             break;
         case CommandId::saveSpeakerSetupId:
+#if USE_OLD_SPEAKER_SETUP_VIEW
             handleSaveSpeakerSetup();
+#else
+            // TODO VB: need to handle this when window is closed?
+            jassertfalse;
+#endif
             break;
         case CommandId::saveSpeakerSetupAsId:
+#if USE_OLD_SPEAKER_SETUP_VIEW
             handleSaveSpeakerSetupAs();
+#else
+            // TODO VB: need to handle this when window is closed?
+            jassertfalse;
+#endif
             break;
         case CommandId::showSpeakerEditId:
             handleShowSpeakerEditWindow();
@@ -2660,6 +2677,8 @@ void MainContentComponent::buttonPressed([[maybe_unused]] SpatButton * button)
 }
 
 //==============================================================================
+
+#if USE_OLD_SPEAKER_SETUP_VIEW
 void MainContentComponent::handleSaveSpeakerSetup()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2667,6 +2686,7 @@ void MainContentComponent::handleSaveSpeakerSetup()
 
     saveSpeakerSetup(mData.appData.lastSpeakerSetup);
 }
+#endif
 
 //==============================================================================
 bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
@@ -2706,6 +2726,7 @@ bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
 }
 
 //==============================================================================
+#if USE_OLD_SPEAKER_SETUP_VIEW
 bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2729,6 +2750,7 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
     }
 
     auto const & file{ *maybeFile };
+
     auto const content{ mData.speakerSetup.toXml() };
     auto const success{ content->writeTo(file) };
 
@@ -2741,6 +2763,7 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
 
     return success;
 }
+#endif
 
 //==============================================================================
 bool MainContentComponent::makeSureProjectIsSavedToDisk() noexcept
@@ -2802,8 +2825,13 @@ bool MainContentComponent::makeSureSpeakerSetupIsSavedToDisk() noexcept
     }
 
     jassert(pressedButton == BUTTON_OK);
-
+#if USE_OLD_SPEAKER_SETUP_VIEW
     return saveSpeakerSetup(tl::nullopt);
+#else
+    // TODO VB
+    jassertfalse;
+    return false;
+#endif
 }
 
 //==============================================================================
