@@ -114,7 +114,9 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , spatGrisData(mainContentComponent.getData())
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
+#if ! USE_OLD_SPEAKER_SETUP_VIEW
     , mSpeakerSetupContainer(spatGrisData.speakerSetup, spatGrisData.appData.lastSpeakerSetup)
+#endif
     , mFont(juce::FontOptions().withHeight(14.f))
     , mRingSpeakers(lookAndFeel)
     , mRingElevation(lookAndFeel)
@@ -286,11 +288,11 @@ EditSpeakersWindow::~EditSpeakersWindow()
 }
 
 //==============================================================================
+#if USE_OLD_SPEAKER_SETUP_VIEW
 void EditSpeakersWindow::initComp()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
     mSpeakersTableListBox.setModel(this);
 
     mSpeakersTableListBox.setColour(juce::ListBox::outlineColourId, mLookAndFeel.getWinBackgroundColour());
@@ -381,11 +383,12 @@ void EditSpeakersWindow::initComp()
     mSpeakersTableListBox.setSize(getWidth(), 400);
 
     mSpeakersTableListBox.updateContent();
-#endif
+
     mViewportWrapper.repaint();
     mViewportWrapper.resized();
     resized();
 }
+#endif
 
 //==============================================================================
 struct Sorter {
@@ -433,6 +436,7 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 }
 
 //==============================================================================
+#if USE_OLD_SPEAKER_SETUP_VIEW
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -488,7 +492,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
     mMainContentComponent.reorderSpeakers(std::move(newOrder));
     updateWinContent();
 }
-
+#endif
 //==============================================================================
 void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 {
@@ -669,7 +673,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         // TODO VB: put this in a function, probably in speakersetupcontainer
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
+#if ! USE_OLD_SPEAKER_SETUP_VIEW
         addNewSpeakerToVt(newOutputPatch, parent, false);
+#endif
 
         mMainContentComponent.refreshSpeakers();
         updateWinContent();
@@ -1084,6 +1090,7 @@ void EditSpeakersWindow::resized()
 }
 
 //==============================================================================
+#if USE_OLD_SPEAKER_SETUP_VIEW
 juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNumber) const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1125,7 +1132,7 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
 }
 
 //==============================================================================
-#if USE_OLD_SPEAKER_SETUP_VIEW
+
 void EditSpeakersWindow::setText(int const columnNumber,
                                  int const rowNumber,
                                  juce::String const & newText,
@@ -1363,7 +1370,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
 #endif
 //==============================================================================
 
-bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & /*event*/)
+bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & event)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 #if USE_OLD_SPEAKER_SETUP_VIEW
@@ -1408,6 +1415,7 @@ void EditSpeakersWindow::computeSpeakers()
     }
 }
 
+#if USE_OLD_SPEAKER_SETUP_VIEW
 //==============================================================================
 // This is overloaded from TableListBoxModel, and should fill in the background of the whole row.
 void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
@@ -1563,9 +1571,10 @@ void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
 }
 
 //==============================================================================
-void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & /*event*/)
+/** This is used to reorder speakers only. Dragging to change values in the text editors is handled in
+ * EditableTextCustomComponent::mouseDrag() */
+void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
 {
-#if USE_OLD_SPEAKER_SETUP_VIEW
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (!mDragStartY) {
@@ -1606,7 +1615,6 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & /*event*/)
 
     updateWinContent();
     mShouldComputeSpeakers = true;
-#endif
 }
 
 //==============================================================================
@@ -1616,5 +1624,7 @@ void EditSpeakersWindow::mouseUp(juce::MouseEvent const & /*event*/)
 
     computeSpeakers();
 }
+
+#endif
 
 } // namespace gris

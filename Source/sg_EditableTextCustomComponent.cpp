@@ -16,11 +16,12 @@
  You should have received a copy of the GNU General Public License
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "sg_EditableTextCustomComponent.hpp"
 
 #include "sg_AudioProcessor.hpp"
+
 #include "sg_EditSpeakersWindow.hpp"
+
 
 namespace gris
 {
@@ -124,7 +125,9 @@ void EditableTextCustomComponent::setRowAndColumn(const int newRow, const int ne
         setColour(outlineColourId, juce::Colours::black.withAlpha(0.2f));
         setBorderSize(juce::BorderSize<int>{ 1 });
     }
+#if USE_OLD_SPEAKER_SETUP_VIEW
     setText(mOwner.getText(mColumnId, mRow), juce::dontSendNotification);
+#endif
 }
 
 //==============================================================================

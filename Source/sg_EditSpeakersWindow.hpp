@@ -24,7 +24,7 @@
 #include "sg_Box.hpp"
 #include "UI/Windows/SpeakerSetup/SpeakerSetupContainer.hpp"
 
-#define USE_OLD_SPEAKER_SETUP_VIEW 0
+#define USE_OLD_SPEAKER_SETUP_VIEW 1
 
 namespace gris
 {
@@ -52,6 +52,8 @@ struct LabelWrapper {
 
     juce::Label label;
 };
+
+//==============================================================================
 
 struct LabelTextEditorWrapper : public LabelWrapper
 {
@@ -86,6 +88,8 @@ struct LabelTextEditorWrapper : public LabelWrapper
     juce::TextEditor editor;
 };
 
+//==============================================================================
+
 struct LabelComboBoxWrapper : public LabelWrapper
 {
     explicit LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel);
@@ -103,7 +107,9 @@ struct LabelComboBoxWrapper : public LabelWrapper
 //==============================================================================
 class EditSpeakersWindow final
     : public juce::DocumentWindow
+#if USE_OLD_SPEAKER_SETUP_VIEW
     , public juce::TableListBoxModel
+#endif
     , public juce::ToggleButton::Listener
     , public juce::TextEditor::Listener
     , public juce::Slider::Listener
@@ -193,8 +199,8 @@ public:
     ~EditSpeakersWindow() override;
     SG_DELETE_COPY_AND_MOVE(EditSpeakersWindow)
     //==============================================================================
-    void initComp();
 #if USE_OLD_SPEAKER_SETUP_VIEW
+    void initComp();
     void selectRow(tl::optional<int> value);
 #endif
     void selectSpeaker(tl::optional<output_patch_t> outputPatch);
@@ -208,8 +214,8 @@ public:
 private:
     //==============================================================================
     void pushSelectionToMainComponent() const;
-    [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
 #if USE_OLD_SPEAKER_SETUP_VIEW
+    [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
 #endif
     bool isMouseOverDragHandle(juce::MouseEvent const & event);
@@ -219,16 +225,18 @@ private:
     void addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition);
     //==============================================================================
     // VIRTUALS
-    [[nodiscard]] int getNumRows() override { return this->mNumRows; }
     void addNewSpeakerToVt (const gris::output_patch_t& newOutputPatch, juce::ValueTree& parent, bool append);
     void buttonClicked(juce::Button * button) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void textEditorFocusLost(juce::TextEditor &) override;
     void closeButtonPressed() override;
     bool keyPressed (const juce::KeyPress &key) override;
-    void sliderValueChanged(juce::Slider * slider) override;
+    void resized () override;
+    void sliderValueChanged (juce::Slider* slider) override;
+#if USE_OLD_SPEAKER_SETUP_VIEW
+    [[nodiscard]] int getNumRows () override { return this->mNumRows; }
     void sortOrderChanged(int newSortColumnId, bool isForwards) override;
-    void resized() override;
+    
     void paintRowBackground(juce::Graphics & g, int rowNumber, int width, int height, bool rowIsSelected) override;
     void paintCell(juce::Graphics &, int, int, int , int, bool ) override {}
     [[nodiscard]] Component * refreshComponentForCell(int rowNumber,
@@ -236,8 +244,10 @@ private:
                                                       bool isRowSelected,
                                                       Component * existingComponentToUpdate) override;
     void mouseDown(juce::MouseEvent const & event) override;
+
     void mouseDrag(juce::MouseEvent const & event) override;
     void mouseUp(juce::MouseEvent const & event) override;
+#endif
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };
