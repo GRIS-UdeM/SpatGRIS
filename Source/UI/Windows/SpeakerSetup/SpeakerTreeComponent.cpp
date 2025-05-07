@@ -88,7 +88,7 @@ void SpeakerTreeComponent::setupEditor (DraggableLabel& editor, juce::Value valu
     editor.onMouseDragCallback = [this, &editor](int deltaY)
         {
             auto currentValue = editor.getText ().getFloatValue ();
-            auto newValue = currentValue - deltaY * 0.001f;
+            auto newValue = currentValue - deltaY * 0.01f;
             editor.setText (juce::String (newValue, 3), juce::dontSendNotification);
             editor.getTextValue ().setValue (newValue);
         };
