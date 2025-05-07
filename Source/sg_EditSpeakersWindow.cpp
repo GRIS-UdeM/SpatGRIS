@@ -84,6 +84,63 @@ static Position getLegalSpeakerPosition(Position const & position,
     }
     return Position{ newPosition };
 }
+#else
+static Position getLegalSpeakerPosition (Position const& position,
+                                         SpatMode const spatMode,
+                                         bool const isDirectOutOnly,
+                                         [[maybe_unused]] int const modifiedCol)
+{
+    using Col = EditSpeakersWindow::Cols;
+
+    jassert (modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION || modifiedCol == Col::DISTANCE
+             || modifiedCol == Col::X || modifiedCol == Col::Y || modifiedCol == Col::Z);
+
+    static auto const CONSTRAIN_CARTESIAN
+        = [](float const& valueModified, float& valueToAdjust, float& valueToTryToKeepIntact) {
+        auto const valueModified2 { valueModified * valueModified };
+        auto const lengthWithoutValueToAdjust { valueModified2 + valueToTryToKeepIntact * valueToTryToKeepIntact };
+
+        if (lengthWithoutValueToAdjust > 1.0f) {
+            auto const sign { valueToTryToKeepIntact < 0.0f ? -1.0f : 1.0f };
+            auto const length { std::sqrt (1.0f - valueModified2) };
+            valueToTryToKeepIntact = sign * length;
+            valueToAdjust = 0.0f;
+            return;
+        }
+
+        auto const sign { valueToAdjust < 0.0f ? -1.0f : 1.0f };
+        auto const length { std::sqrt (1.0f - lengthWithoutValueToAdjust) };
+        valueToAdjust = sign * length;
+        };
+
+    if (spatMode == SpatMode::mbap || isDirectOutOnly) {
+        return Position { position.getCartesian ().clampedToFarField () };
+    }
+
+    if (modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION) {
+        return position.normalized ();
+    }
+
+    auto newPosition { position.getCartesian () };
+
+    auto& x { newPosition.x };
+    auto& y { newPosition.y };
+    auto& z { newPosition.z };
+    if (modifiedCol == Col::X) {
+        x = std::clamp (x, -1.0f, 1.0f);
+        CONSTRAIN_CARTESIAN (x, y, z);
+    }
+    else if (modifiedCol == Col::Y) {
+        y = std::clamp (y, -1.0f, 1.0f);
+        CONSTRAIN_CARTESIAN (y, x, z);
+    }
+    else {
+        jassert (modifiedCol == Col::Z);
+        z = std::clamp (z, -1.0f, 1.0f);
+        CONSTRAIN_CARTESIAN (z, x, y);
+    }
+    return Position { newPosition };
+}
 #endif
 //==============================================================================
 LabelWrapper::LabelWrapper(GrisLookAndFeel & lookAndFeel)
@@ -255,6 +312,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 #if USE_OLD_SPEAKER_SETUP_VIEW
     mViewportWrapper.getContent()->addAndMakeVisible(mSpeakersTableListBox);
 #else
+    setDraggable (false);
     mViewportWrapper.getContent()->addAndMakeVisible(mSpeakerSetupContainer);
     mSpeakerSetupContainer.addValueTreeListener (this);
 #endif

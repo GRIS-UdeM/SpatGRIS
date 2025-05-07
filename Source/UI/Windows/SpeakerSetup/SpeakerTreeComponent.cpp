@@ -84,11 +84,74 @@ void SpeakerTreeComponent::setupEditor (DraggableLabel& editor, juce::Value valu
     editor.setEditable (true);
     addAndMakeVisible (editor);
     editor.setInterceptsMouseClicks(true, false);
-    editor.onMouseDragCallback = [this, &editor]()
+    editor.onMouseDragCallback = [this, &editor](int deltaY)
         {
-            auto deltaY = editor.getMouseXYRelative ().getY ();
-            auto currentValue = editor.getText ().getDoubleValue ();
-            auto newValue = currentValue - deltaY * 0.01f; // Adjust sensitivity as needed  
+        static auto const clampCartesian = [](float & valueModified,
+                                              float & valueToAdjust,
+                                              float & valueToTryToKeepIntact) {
+            auto const valueModified2{ valueModified * valueModified };
+            auto const lengthWithoutValueToAdjust{ valueModified2 + valueToTryToKeepIntact * valueToTryToKeepIntact };
+
+            if (lengthWithoutValueToAdjust > 1.0f) {
+                auto const sign{ valueToTryToKeepIntact < 0.0f ? -1.0f : 1.0f };
+                auto const length{ std::sqrt(1.0f - valueModified2) };
+                valueToTryToKeepIntact = sign * length;
+                valueToAdjust = 0.0f;
+                return;
+            }
+
+            auto const sign{ valueToAdjust < 0.0f ? -1.0f : 1.0f };
+            auto const length{ std::sqrt(1.0f - lengthWithoutValueToAdjust) };
+            valueToAdjust = sign * length;
+        };
+
+            auto currentValue = editor.getText ().getFloatValue ();
+            auto newValue = currentValue - deltaY * 0.1f; // Adjust sensitivity as needed
+
+
+
+            //LOGIC FROM THE OTHER PLACE
+            //auto newPosition { position.getCartesian () };
+
+            //auto& x { newPosition.x };
+            //auto& y { newPosition.y };
+            //auto& z { newPosition.z };
+            //if (modifiedCol == Col::X) {
+            //    x = std::clamp (x, -1.0f, 1.0f);
+            //    CONSTRAIN_CARTESIAN (x, y, z);
+            //}
+            //else if (modifiedCol == Col::Y) {
+            //    y = std::clamp (y, -1.0f, 1.0f);
+            //    CONSTRAIN_CARTESIAN (y, x, z);
+            //}
+            //else {
+            //    jassert (modifiedCol == Col::Z);
+            //    z = std::clamp (z, -1.0f, 1.0f);
+            //    CONSTRAIN_CARTESIAN (z, x, y);
+
+
+
+            newValue = std::clamp (newValue, -1.0f, 1.0f);
+
+            auto curX = x.getText().getFloatValue();
+            auto curY = y.getText ().getFloatValue ();
+            auto curZ = z.getText ().getFloatValue ();
+
+            if (&editor == &x)
+                clampCartesian(newValue, curY, curZ);
+            else if (&editor == &y)
+                clampCartesian (newValue, curX, curZ);
+            else if (&editor == &z)
+                clampCartesian (newValue, curX, curY);
+            else
+                jassertfalse;
+            //else if (editor == azim)
+            //    clampCartesian(newValue, elev, distance);
+            //else if (editor == elev)
+            //    clampCartesian(newValue, azim, distance);
+            //else if (editor == distance)
+
+
             editor.setText (juce::String (newValue, 3), juce::dontSendNotification);
             editor.getTextValue ().setValue (newValue);
         };

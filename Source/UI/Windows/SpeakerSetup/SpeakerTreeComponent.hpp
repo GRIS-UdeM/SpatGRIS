@@ -22,14 +22,30 @@
 namespace gris
 {
 
-struct DraggableLabel : public juce::Label
+class DraggableLabel : public juce::Label
 {
-    std::function<void ()> onMouseDragCallback;
+public:
+    std::function<void (int)> onMouseDragCallback;
+
+private:
+    int lastMouseY = 0; // Track the last Y position of the mouse
+
+    void mouseDown (const juce::MouseEvent& event) override
+    {
+        lastMouseY = event.getPosition ().getY (); // Initialize the last Y position on mouse down
+    }
 
     void mouseDrag (const juce::MouseEvent& event) override
     {
+        //probably should be using this, not sure it needs a buffered position 
+        //event.getDistanceFromDragStartY()
+
+        int currentMouseY = event.getPosition ().getY ();
+        int deltaY = currentMouseY - lastMouseY; // Calculate the delta
+        lastMouseY = currentMouseY; // Update the last Y position
+
         if (onMouseDragCallback)
-            onMouseDragCallback ();
+            onMouseDragCallback (deltaY); // Pass the delta to the callback
     }
 };
 
