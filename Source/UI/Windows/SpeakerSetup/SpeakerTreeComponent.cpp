@@ -33,6 +33,7 @@ SpeakerTreeComponent::SpeakerTreeComponent (juce::TreeViewItem* owner, const juc
     //auto const & cartesian{ position.getCartesian() };
     auto const & polar{ position.getPolar() };
 
+    //TODO VB: use undomanager
     setupEditor (x, vt.getPropertyAsValue ("X", nullptr));
     setupEditor (y, vt.getPropertyAsValue ("Y", nullptr));
     setupEditor (z, vt.getPropertyAsValue ("Z", nullptr));
@@ -86,59 +87,11 @@ void SpeakerTreeComponent::setupEditor (DraggableLabel& editor, juce::Value valu
     editor.setInterceptsMouseClicks(true, false);
     editor.onMouseDragCallback = [this, &editor](int deltaY)
         {
-            //there's all this logic too
-            //if (spatMode == SpatMode::mbap || isDirectOutOnly) {
-            //    return Position { position.getCartesian ().clampedToFarField () };
-            //}
-
-            //if (modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION) {
-            //    return position.normalized ();
-            //}
-
-        //static auto const clampCartesian = [](const float valueModified,
-        //                                      juce::Value valueToAdjust,
-        //                                      juce::Value valueToTryToKeepIntact) {
-        //    float const valueModified2{ std::powf (valueModified, 2) };
-        //        auto const lengthWithoutValueToAdjust{ valueModified2
-        //                                               + static_cast<float>(valueToTryToKeepIntact.getValue())
-        //                                                     * static_cast<float>(valueToTryToKeepIntact.getValue()) };
-
-        //    if (lengthWithoutValueToAdjust > 1.0f) {
-        //        auto const sign{ valueToTryToKeepIntact < 0.0f ? -1.0f : 1.0f };
-        //        auto const length{ std::sqrt(1.0f - valueModified2) };
-        //        valueToTryToKeepIntact = sign * length;
-        //        valueToAdjust = 0.0f;
-        //        return;
-        //    }
-
-        //    auto const sign{ valueToAdjust < 0.0f ? -1.0f : 1.0f };
-        //    auto const length{ std::sqrt(1.0f - lengthWithoutValueToAdjust) };
-        //    valueToAdjust = sign * length;
-        //};
-
             auto currentValue = editor.getText ().getFloatValue ();
-            auto newValue = currentValue - deltaY * 0.1f; // Adjust sensitivity as needed
-            //newValue = std::clamp (newValue, -1.0f, 1.0f);
-
-        //    if (&editor == &x)
-        //        clampCartesian(newValue, y.getTextValue(), z.getTextValue ());
-        //    else if (&editor == &y)
-        //        clampCartesian (newValue, x.getTextValue (), z.getTextValue ());
-        //    else if (&editor == &z)
-        //        clampCartesian (newValue, x.getTextValue (), y.getTextValue ());
-        //    else
-        //        jassertfalse;
-        //    //else if (editor == azim)
-        //    //    clampCartesian(newValue, elev, distance);
-        //    //else if (editor == elev)
-        //    //    clampCartesian(newValue, azim, distance);
-        //    //else if (editor == distance)
-
-
+            auto newValue = currentValue - deltaY * 0.001f;
             editor.setText (juce::String (newValue, 3), juce::dontSendNotification);
             editor.getTextValue ().setValue (newValue);
         };
-
 }
 
 void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::StringRef text)
