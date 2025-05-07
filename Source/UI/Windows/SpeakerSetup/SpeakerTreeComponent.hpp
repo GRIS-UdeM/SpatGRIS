@@ -21,6 +21,20 @@
 
 namespace gris
 {
+
+struct DraggableLabel : public juce::Label
+{
+    std::function<void ()> onMouseDragCallback;
+
+    void mouseDrag (const juce::MouseEvent& event) override
+    {
+        if (onMouseDragCallback)
+            onMouseDragCallback ();
+    }
+};
+
+//==============================================================================
+
 class SpeakerTreeComponent : public juce::Component
 {
 public:
@@ -32,10 +46,10 @@ public:
     void resized () override;
 
 protected:
-    void setupEditor (juce::Label& editor, juce::Value value);
+    void setupEditor (DraggableLabel& editor, juce::Value value);
     void setupEditor (juce::Label& editor, juce::StringRef text);
 
-    juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
+    DraggableLabel id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
 
     juce::ValueTree vt;
 

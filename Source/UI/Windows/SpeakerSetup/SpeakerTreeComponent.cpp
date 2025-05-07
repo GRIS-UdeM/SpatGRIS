@@ -78,12 +78,21 @@ void SpeakerTreeComponent::resized ()
     }
 }
 
-void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::Value value)
+void SpeakerTreeComponent::setupEditor (DraggableLabel& editor, juce::Value value)
 {
-    //editor.setText (value.toString(), juce::dontSendNotification);
     editor.getTextValue ().referTo (value);
     editor.setEditable (true);
     addAndMakeVisible (editor);
+    editor.setInterceptsMouseClicks(true, false);
+    editor.onMouseDragCallback = [this, &editor]()
+        {
+            auto deltaY = editor.getMouseXYRelative ().getY ();
+            auto currentValue = editor.getText ().getDoubleValue ();
+            auto newValue = currentValue - deltaY * 0.01f; // Adjust sensitivity as needed  
+            editor.setText (juce::String (newValue, 3), juce::dontSendNotification);
+            editor.getTextValue ().setValue (newValue);
+        };
+
 }
 
 void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::StringRef text)
