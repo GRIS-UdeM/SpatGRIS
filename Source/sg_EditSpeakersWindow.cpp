@@ -88,12 +88,9 @@ static Position getLegalSpeakerPosition(Position const & position,
 static Position getLegalSpeakerPosition (Position const& position,
                                          SpatMode const spatMode,
                                          bool const isDirectOutOnly,
-                                         [[maybe_unused]] int const modifiedCol)
+                                         juce::Identifier property)
 {
-    using Col = EditSpeakersWindow::Cols;
-
-    jassert (modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION || modifiedCol == Col::DISTANCE
-             || modifiedCol == Col::X || modifiedCol == Col::Y || modifiedCol == Col::Z);
+    jassert (property == X || property == Y || property == Z);
 
     static auto const CONSTRAIN_CARTESIAN
         = [](float const& valueModified, float& valueToAdjust, float& valueToTryToKeepIntact) {
@@ -117,25 +114,26 @@ static Position getLegalSpeakerPosition (Position const& position,
         return Position { position.getCartesian ().clampedToFarField () };
     }
 
-    if (modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION) {
-        return position.normalized ();
-    }
+    //TODO VB
+    //if (modifiedCol == AZIMUTH || modifiedCol == Col::ELEVATION) {
+    //    return position.normalized ();
+    //}
 
     auto newPosition { position.getCartesian () };
 
     auto& x { newPosition.x };
     auto& y { newPosition.y };
     auto& z { newPosition.z };
-    if (modifiedCol == Col::X) {
+    if (property == X) {
         x = std::clamp (x, -1.0f, 1.0f);
         CONSTRAIN_CARTESIAN (x, y, z);
     }
-    else if (modifiedCol == Col::Y) {
+    else if (property == Y) {
         y = std::clamp (y, -1.0f, 1.0f);
         CONSTRAIN_CARTESIAN (y, x, z);
     }
     else {
-        jassert (modifiedCol == Col::Z);
+        jassert (property == Z);
         z = std::clamp (z, -1.0f, 1.0f);
         CONSTRAIN_CARTESIAN (z, x, y);
     }
@@ -1697,7 +1695,11 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
         //<SPEAKER ID = "1" STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0" X = "5" Y = "0.7071067690849304"
         //    Z = "-9.478120688299896e-8" FREQ = "60.0" / >
         if (property == X || property == Y || property == Z) {
-            mMainContentComponent.setSpeakerPosition(outputPatch, CartesianVector{ vt[X], vt[Y], vt[Z] });
+            Position newPosition{ CartesianVector{ vt[X], vt[Y], vt[Z] } };
+            newPosition
+                = getLegalSpeakerPosition(newPosition, spatGrisData.project.spatMode, vt[DIRECT_OUT_ONLY], property);
+
+            mMainContentComponent.setSpeakerPosition(outputPatch, newPosition);
             mShouldComputeSpeakers = true;
         } else if (property == GAIN) {
             mMainContentComponent.setSpeakerGain(outputPatch, dbfs_t(newVal));
