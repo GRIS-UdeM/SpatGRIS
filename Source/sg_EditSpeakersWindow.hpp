@@ -24,14 +24,13 @@
 #include "sg_Box.hpp"
 #include "UI/Windows/SpeakerSetup/SpeakerSetupContainer.hpp"
 
-#define USE_OLD_SPEAKER_SETUP_VIEW 1
+#define USE_OLD_SPEAKER_SETUP_VIEW 0
 
 namespace gris
 {
 class EditableTextCustomComponent;
 class MainContentComponent;
 class GrisLookAndFeel;
-
 
 /** used to snap the elevation when calculating ring positions. 135.f is short-hand for the mid point
     between 90° (max elevation going up) and 270° (max elevation going down): 90 + (360 − 270)/2 = 135.
@@ -109,6 +108,8 @@ class EditSpeakersWindow final
     : public juce::DocumentWindow
 #if USE_OLD_SPEAKER_SETUP_VIEW
     , public juce::TableListBoxModel
+#else
+    , public juce::ValueTree::Listener
 #endif
     , public juce::ToggleButton::Listener
     , public juce::TextEditor::Listener
@@ -247,6 +248,13 @@ private:
 
     void mouseDrag(juce::MouseEvent const & event) override;
     void mouseUp(juce::MouseEvent const & event) override;
+#else
+    void valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property) override;
+    void valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child) override;
+    void valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent) override;
+    void valueTreeChildOrderChanged(juce::ValueTree & parent, int oldChildId, int newChildId) override;
+    void valueTreeParentChanged(juce::ValueTree & childWithNewParent) override;
+    void valueTreeRedirected(juce::ValueTree &) override { jassertfalse; }
 #endif
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)

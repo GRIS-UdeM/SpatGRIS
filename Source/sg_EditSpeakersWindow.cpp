@@ -256,6 +256,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mViewportWrapper.getContent()->addAndMakeVisible(mSpeakersTableListBox);
 #else
     mViewportWrapper.getContent()->addAndMakeVisible(mSpeakerSetupContainer);
+    mSpeakerSetupContainer.addValueTreeListener (this);
 #endif
 
     mViewportWrapper.repaint();
@@ -1623,6 +1624,43 @@ void EditSpeakersWindow::mouseUp(juce::MouseEvent const & /*event*/)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     computeSpeakers();
+}
+
+#else
+void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property)
+{
+    auto const newVal{ vt[property] };
+    if (vt.getType() == SPEAKER_GROUP) {
+        jassertfalse;
+    } else if (vt.getType() == SPEAKER) {
+        jassertfalse;
+    } else {
+        jassertfalse;
+    }
+}
+
+void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)
+{
+    //TODO VB
+    jassertfalse;
+}
+
+void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent)
+{
+    //TODO VB
+    jassertfalse;
+}
+
+void EditSpeakersWindow::valueTreeChildOrderChanged(juce::ValueTree & parent, int oldChildId, int newChildId)
+{
+    //TODO VB
+    jassertfalse;
+}
+
+void EditSpeakersWindow::valueTreeParentChanged(juce::ValueTree & /*childWithNewParent*/)
+{
+    //TODO VB
+    jassertfalse;
 }
 
 #endif

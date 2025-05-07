@@ -48,6 +48,9 @@ public:
 
     juce::ValueTree getSelectedItem();
 
+    //juce::ValueTree getSpeakerSetupVt() { return vt; }
+    void addValueTreeListener(juce::ValueTree::Listener * listener) { vt.addListener(listener); }
+
 private:
     GrisLookAndFeel lookAndFeel;
     // TODO VB: this isn't used, and needs to stay const, so probably isn't needed -- we'll have main component be a VT
