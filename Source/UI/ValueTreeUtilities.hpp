@@ -43,4 +43,10 @@ const juce::Identifier SPEAKER_GROUP("SPEAKER_GROUP");
 const juce::Identifier SPEAKER("SPEAKER");
 const juce::Identifier VERSION("VERSION");
 const juce::Identifier ID ("ID");
+const juce::Identifier X ("X");
+const juce::Identifier Y ("Y");
+const juce::Identifier Z ("Z");
+const juce::Identifier GAIN ("GAIN");
+const juce::Identifier FREQ ("FREQ");
+const juce::Identifier DIRECT_OUT_ONLY ("DIRECT_OUT_ONLY");
 } // namespace gris

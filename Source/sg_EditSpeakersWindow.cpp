@@ -1627,13 +1627,30 @@ void EditSpeakersWindow::mouseUp(juce::MouseEvent const & /*event*/)
 }
 
 #else
+
 void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property)
 {
+    output_patch_t const outputPatch{ vt.getProperty(ID) };
     auto const newVal{ vt[property] };
+
     if (vt.getType() == SPEAKER_GROUP) {
         jassertfalse;
     } else if (vt.getType() == SPEAKER) {
-        jassertfalse;
+        //<SPEAKER ID = "1" STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0" X = "5" Y = "0.7071067690849304"
+        //    Z = "-9.478120688299896e-8" FREQ = "60.0" / >
+        if (property == X || property == Y || property == Z) {
+            mMainContentComponent.setSpeakerPosition(outputPatch, CartesianVector{ vt[X], vt[Y], vt[Z] });
+            mShouldComputeSpeakers = true;
+        } else if (property == GAIN) {
+            mMainContentComponent.setSpeakerGain(outputPatch, dbfs_t(newVal));
+        } else if (property == DIRECT_OUT_ONLY) {
+            auto const directOutOnly{ vt[DIRECT_OUT_ONLY] };
+            mMainContentComponent.speakerDirectOutOnlyChanged(outputPatch, directOutOnly);
+        } else if (property == FREQ) {
+            // TODO VB
+        } else {
+            jassertfalse;
+        }
     } else {
         jassertfalse;
     }
