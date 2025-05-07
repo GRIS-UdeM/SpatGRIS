@@ -32,7 +32,8 @@ public:
     void resized () override;
 
 protected:
-    void setupEditor (juce::Label& editor, juce::StringRef text);;
+    void setupEditor (juce::Label& editor, juce::Value value);
+    void setupEditor (juce::Label& editor, juce::StringRef text);
 
     juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
 

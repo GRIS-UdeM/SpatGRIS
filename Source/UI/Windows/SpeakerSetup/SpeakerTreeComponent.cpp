@@ -33,15 +33,17 @@ SpeakerTreeComponent::SpeakerTreeComponent (juce::TreeViewItem* owner, const juc
     auto const & cartesian{ position.getCartesian() };
     auto const & polar{ position.getPolar() };
 
-    setupEditor (x, juce::String (cartesian.x, 3));
-    setupEditor (y, juce::String (cartesian.y, 3));
-    setupEditor (z, juce::String (cartesian.z, 3));
+    setupEditor (x, vt.getPropertyAsValue ("X", nullptr));
+    setupEditor (y, vt.getPropertyAsValue ("Y", nullptr));
+    setupEditor (z, vt.getPropertyAsValue ("Z", nullptr));
+
+    //TODO VB: all these will need some different logic from the above setupEditor
     setupEditor (azim, juce::String (polar.azimuth.get(), 3));
     setupEditor (elev, juce::String (polar.elevation.get(), 3));
     setupEditor (distance, juce::String (polar.length, 3));
     setupEditor (del, "DEL");
-
     setupEditor (drag, "=");
+
     drag.setEditable(false);
     drag.setInterceptsMouseClicks (false, false);
 }
@@ -76,6 +78,14 @@ void SpeakerTreeComponent::resized ()
     }
 }
 
+void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::Value value)
+{
+    //editor.setText (value.toString(), juce::dontSendNotification);
+    editor.getTextValue ().referTo (value);
+    editor.setEditable (true);
+    addAndMakeVisible (editor);
+}
+
 void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::StringRef text)
 {
     editor.setText (text, juce::dontSendNotification);
@@ -87,7 +97,7 @@ void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::StringRef tex
 
 SpeakerGroupComponent::SpeakerGroupComponent (juce::TreeViewItem* owner, const juce::ValueTree& v) : SpeakerTreeComponent (owner, v)
 {
-    setupEditor (id, v[ID].toString ());
+    setupEditor (id, vt.getPropertyAsValue ("ID", nullptr));
 }
 
 //==============================================================================
@@ -96,9 +106,9 @@ SpeakerComponent::SpeakerComponent (juce::TreeViewItem* owner, const juce::Value
 {
     // TODO VB: this is super weird because all these components belong to the parent. We probably need some virtual
     // function to call in resized where we get the list of components that are in children
-    setupEditor (id, v["ID"].toString ());
-    setupEditor (gain, v["GAIN"].toString ());
-    setupEditor (highpass, v["FREQ"].toString());
-    setupEditor (direct, v["DIRECT_OUT_ONLY"].toString ());
+    setupEditor (id, vt.getPropertyAsValue ("ID", nullptr));
+    setupEditor (gain, vt.getPropertyAsValue ("GAIN", nullptr));
+    setupEditor (highpass, vt.getPropertyAsValue ("FREQ", nullptr));
+    setupEditor (direct, vt.getPropertyAsValue ("DIRECT_OUT_ONLY", nullptr));
 }
 }
