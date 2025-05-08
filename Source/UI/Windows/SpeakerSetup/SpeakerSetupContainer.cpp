@@ -18,9 +18,10 @@
 #include "SpeakerSetupContainer.hpp"
 namespace gris
 {
-SpeakerSetupContainer::SpeakerSetupContainer(const SpeakerSetup & setup, const juce::File & speakerSetupXmlFile)
+SpeakerSetupContainer::SpeakerSetupContainer(const SpeakerSetup & setup, const juce::File & speakerSetupXmlFile, juce::UndoManager& undoMan)
     : speakerSetup{ setup }
     , vtFile{ speakerSetupXmlFile }
+    , undoManager (undoMan)
 {
     vt = convertSpeakerSetup (juce::ValueTree::fromXml (vtFile.loadFileAsString ()));
 

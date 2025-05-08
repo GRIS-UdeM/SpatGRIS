@@ -21,114 +21,121 @@
 
 namespace gris
 {
-SpeakerTreeComponent::SpeakerTreeComponent (juce::TreeViewItem* owner, const juce::ValueTree& v)
-    : vt (v)
-    , treeViewItem (owner)
+SpeakerTreeComponent::SpeakerTreeComponent(juce::TreeViewItem * owner,
+                                           const juce::ValueTree & v,
+                                           juce::UndoManager & undoMan)
+    : vt(v)
+    , treeViewItem(owner)
+    , undoManager (undoMan)
 {
-    //setLookAndFeel(&lnf);
-    setInterceptsMouseClicks (false, true);
+    // setLookAndFeel(&lnf);
+    setInterceptsMouseClicks(false, true);
 
-    //TODO VB: serialize to string and back to position in the VT instead of constructing it like this
-    auto const position = Position{ CartesianVector(v["X"], v["Y"], v["Z"]) };
-    //auto const & cartesian{ position.getCartesian() };
+    // TODO VB: serialize to string and back to position in the VT instead of constructing it like this
+    auto const position = Position{ CartesianVector(v[X], v[Y], v[Z]) };
+    // auto const & cartesian{ position.getCartesian() };
     auto const & polar{ position.getPolar() };
 
-    //TODO VB: use undomanager
-    setupEditor (x, X);
-    setupEditor (y, Y);
-    setupEditor (z, Z);
+    setupDraggableEditor(x, X);
+    setupDraggableEditor(y, Y);
+    setupDraggableEditor(z, Z);
 
-    //TODO VB: all these will need some different logic from the above setupEditor
-    setupEditor (azim, juce::String (polar.azimuth.get(), 3));
-    setupEditor (elev, juce::String (polar.elevation.get(), 3));
-    setupEditor (distance, juce::String (polar.length, 3));
-    setupEditor (del, "DEL");
-    setupEditor (drag, "=");
+    // TODO VB: all these will need some different logic from the above setupEditor
+    setupEditor(azim, juce::String(polar.azimuth.get(), 3));
+    setupEditor(elev, juce::String(polar.elevation.get(), 3));
+    setupEditor(distance, juce::String(polar.length, 3));
+    setupEditor(del, juce::String("DEL"));
+    setupEditor(drag, juce::String("="));
 
     drag.setEditable(false);
-    drag.setInterceptsMouseClicks (false, false);
+    drag.setInterceptsMouseClicks(false, false);
 }
 
-void SpeakerTreeComponent::paint (juce::Graphics& g)
+void SpeakerTreeComponent::paint(juce::Graphics & g)
 {
-    if (treeViewItem->isSelected ())
-        g.fillAll (lnf.mHlBgcolor);
+    if (treeViewItem->isSelected())
+        g.fillAll(lnf.mHlBgcolor);
     else if (vt.getType() == SPEAKER_GROUP)
-        g.fillAll (lnf.mBackGroundAndFieldColour.darker(.5f));
-    else if (treeViewItem->getIndexInParent () % 2 == 0)
-        g.fillAll (lnf.mGreyColour);
+        g.fillAll(lnf.mBackGroundAndFieldColour.darker(.5f));
+    else if (treeViewItem->getIndexInParent() % 2 == 0)
+        g.fillAll(lnf.mGreyColour);
 }
 
-void SpeakerTreeComponent::resized ()
+void SpeakerTreeComponent::resized()
 {
-    constexpr auto fixedLeftColWidth { 200 };
-    constexpr auto otherColWidth { 60 } ;
+    constexpr auto fixedLeftColWidth{ 200 };
+    constexpr auto otherColWidth{ 60 };
 
-    if (auto* window = findParentComponentOfClass<juce::DocumentWindow> ())
-    {
-        auto bounds = getLocalBounds ();
+    if (auto * window = findParentComponentOfClass<juce::DocumentWindow>()) {
+        auto bounds = getLocalBounds();
 
         // position the ID colum so it is a fixed width of fixedLeftColWidth fromt the left of the document window
-        const auto windowOriginInThis = window->getLocalPoint (this, juce::Point<int>{ 0, 0 });
+        const auto windowOriginInThis = window->getLocalPoint(this, juce::Point<int>{ 0, 0 });
         const auto idColWidth = fixedLeftColWidth - windowOriginInThis.x;
-        id.setBounds (bounds.removeFromLeft (idColWidth));
+        id.setBounds(bounds.removeFromLeft(idColWidth));
 
         // then position the other components with a fixed width of otherColWidth
-        for (auto* component : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del, &drag })
-            component->setBounds (bounds.removeFromLeft (otherColWidth));
+        for (auto * component : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del, &drag })
+            component->setBounds(bounds.removeFromLeft(otherColWidth));
     }
 }
 
-void SpeakerTreeComponent::setupEditor(DraggableLabel & label, juce::Identifier identifier)
+void SpeakerTreeComponent::setupDraggableEditor(DraggableLabel & label, juce::Identifier identifier)
 {
     label.setEditable(true);
 
     // Show the initial value with 3 decimals
-    label.setText(juce::String(static_cast<float> (vt[identifier]), 3), juce::dontSendNotification);
+    label.setText(juce::String(static_cast<float>(vt[identifier]), 3), juce::dontSendNotification);
 
     // Create and hold the listener to sync value -> label
-    auto * listener = new ValueToLabelListener(vt.getPropertyAsValue (identifier, nullptr), label);
+    auto * listener = new ValueToLabelListener(vt.getPropertyAsValue(identifier, &undoManager), label);
     valueListeners.add(listener);
 
     label.onTextChange = [this, &label, identifier] {
         auto newValue = label.getText().getFloatValue();
-        vt.setProperty(identifier, newValue, nullptr);
+        vt.setProperty(identifier, newValue, &undoManager);
         label.setText(juce::String(newValue, 3), juce::dontSendNotification);
     };
 
     label.onMouseDragCallback = [this, &label, identifier](int deltaY) {
         auto currentValue = label.getText().getFloatValue();
         auto newValue = currentValue - deltaY * 0.01f;
-        vt.setProperty (identifier, newValue, nullptr);
+        vt.setProperty(identifier, newValue, &undoManager);
         label.setText(juce::String(newValue, 3), juce::dontSendNotification);
     };
 
     addAndMakeVisible(label);
 }
 
-void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::StringRef text)
+void SpeakerTreeComponent::setupEditor(juce::Label & editor, juce::StringRef text)
 {
-    editor.setText (text, juce::dontSendNotification);
-    editor.setEditable (true);
-    addAndMakeVisible (editor);
+    editor.setText(text, juce::dontSendNotification);
+    editor.setEditable(true);
+    addAndMakeVisible(editor);
 }
 
 //==============================================================================
 
-SpeakerGroupComponent::SpeakerGroupComponent (juce::TreeViewItem* owner, const juce::ValueTree& v) : SpeakerTreeComponent (owner, v)
+SpeakerGroupComponent::SpeakerGroupComponent(juce::TreeViewItem * owner,
+                                             const juce::ValueTree & v,
+                                             juce::UndoManager & undoManager)
+    : SpeakerTreeComponent(owner, v, undoManager)
 {
-    setupEditor (id, ID);
+    setupEditor(id, ID);
 }
 
 //==============================================================================
 
-SpeakerComponent::SpeakerComponent (juce::TreeViewItem* owner, const juce::ValueTree& v) : SpeakerTreeComponent (owner, v)
+SpeakerComponent::SpeakerComponent(juce::TreeViewItem * owner,
+                                   const juce::ValueTree & v,
+                                   juce::UndoManager & undoManager)
+    : SpeakerTreeComponent(owner, v, undoManager)
 {
     // TODO VB: this is super weird because all these components belong to the parent. We probably need some virtual
     // function to call in resized where we get the list of components that are in children
-    setupEditor (id, ID);
-    setupEditor (gain, GAIN);
-    setupEditor (highpass, FREQ);
-    setupEditor (direct, DIRECT_OUT_ONLY);
+    setupEditor(id, ID);
+    setupEditor(gain, GAIN);
+    setupEditor(highpass, FREQ);
+    setupEditor(direct, DIRECT_OUT_ONLY);
 }
-}
+} // namespace gris

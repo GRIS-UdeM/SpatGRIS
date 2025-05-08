@@ -23,12 +23,12 @@ namespace gris
 {
 SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
                                        GrisLookAndFeel & lnf,
-                                       MainContentComponent & mainContentComponent)
+                                       MainContentComponent & mainContentComponent, juce::UndoManager& undoManager)
     : DocumentWindow(name, lnf.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lnf)
     , mSpeakerSetupContainer(mainContentComponent.getData().speakerSetup,
-                             mainContentComponent.getData().appData.lastSpeakerSetup)
+                             mainContentComponent.getData().appData.lastSpeakerSetup, undoManager)
 {
     setContentNonOwned (&mSpeakerSetupContainer, true);
     setResizable (true, true);

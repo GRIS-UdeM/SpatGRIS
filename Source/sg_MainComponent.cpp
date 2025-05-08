@@ -269,7 +269,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     audioParametersChanged();
 
     //TODO VB: remove
-    handleShowSpeakerEditWindow();
+    juce::MessageManager::callAsync([this]() { handleShowSpeakerEditWindow(); });
 }
 
 //==============================================================================
@@ -611,7 +611,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
         auto const windowName = juce::String{ "Speaker Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
                                 + juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension();
-        mEditSpeakersWindow = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this);
+        mEditSpeakersWindow = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, undoManager);
 #if USE_OLD_SPEAKER_SETUP_VIEW
         mEditSpeakersWindow->initComp();
 #endif

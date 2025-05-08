@@ -30,7 +30,7 @@ public:
     SpeakerSetupWindow () = delete;
     SpeakerSetupWindow (juce::String const& name,
                          GrisLookAndFeel& lookAndFeel,
-                         MainContentComponent& mainContentComponent);
+                         MainContentComponent& mainContentComponent, juce::UndoManager& undoManager);
 
     void closeButtonPressed () override;
 

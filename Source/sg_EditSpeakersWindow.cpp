@@ -112,10 +112,9 @@ static void getLegalSpeakerPosition(juce::ValueTree & vt,
     //     return position.normalized ();
     // }
 
-
     vt.setProperty (valueModified, clampedModifiedFloat, undoManager);
-    auto const valueModified2 { std::powf (clampedModifiedFloat, 2) };
-    auto const lengthWithoutValueToAdjust { valueModified2 + std::powf (intactFloat, 2)};
+    auto const valueModified2 { clampedModifiedFloat * clampedModifiedFloat };
+    auto const lengthWithoutValueToAdjust { valueModified2 + intactFloat * intactFloat };
 
     if (lengthWithoutValueToAdjust > 1.0f) {
         auto const sign { intactFloat < 0.0f ? -1.0f : 1.0f };
@@ -153,14 +152,15 @@ LabelComboBoxWrapper::LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel) : Labe
 //==============================================================================
 EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                        GrisLookAndFeel & lookAndFeel,
-                                       MainContentComponent & mainContentComponent)
+                                       MainContentComponent & mainContentComponent,
+                                       juce::UndoManager& undoMan)
     : DocumentWindow(name, lookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
     , spatGrisData(mainContentComponent.getData())
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
 #if ! USE_OLD_SPEAKER_SETUP_VIEW
-    , mSpeakerSetupContainer(spatGrisData.speakerSetup, spatGrisData.appData.lastSpeakerSetup)
+    , mSpeakerSetupContainer(spatGrisData.speakerSetup, spatGrisData.appData.lastSpeakerSetup, undoMan)
 #endif
     , mFont(juce::FontOptions().withHeight(14.f))
     , mRingSpeakers(lookAndFeel)
@@ -174,6 +174,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mPolyRadius(lookAndFeel)
     , mPolyAzimuthOffset(lookAndFeel)
     , mPolyElevOffset(lookAndFeel)
+    , undoManager (undoMan)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

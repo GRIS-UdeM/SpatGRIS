@@ -194,7 +194,8 @@ public:
     //==============================================================================
     EditSpeakersWindow(juce::String const & name,
                        GrisLookAndFeel & lookAndFeel,
-                       MainContentComponent & mainContentComponent);
+                       MainContentComponent & mainContentComponent,
+                       juce::UndoManager& undoMan);
     //==============================================================================
     EditSpeakersWindow() = delete;
     ~EditSpeakersWindow() override;
@@ -255,6 +256,8 @@ private:
     void valueTreeChildOrderChanged(juce::ValueTree & parent, int oldChildId, int newChildId) override;
     void valueTreeParentChanged(juce::ValueTree & childWithNewParent) override;
     void valueTreeRedirected(juce::ValueTree &) override { jassertfalse; }
+
+    juce::UndoManager& undoManager;
 #endif
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)

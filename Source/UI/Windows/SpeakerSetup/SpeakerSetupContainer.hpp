@@ -28,7 +28,9 @@ class SpeakerSetupContainer final : public juce::Component,
     private juce::Timer
 {
 public:
-    SpeakerSetupContainer (const SpeakerSetup& setup, const juce::File& speakerSetupXmlFile);
+    SpeakerSetupContainer(const SpeakerSetup & setup,
+                          const juce::File & speakerSetupXmlFile,
+                          juce::UndoManager & undoMan);
 
     ~SpeakerSetupContainer () override
     {
@@ -66,12 +68,13 @@ private:
     juce::TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton { "Sort" }, saveButton { "Save" };
 
     std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
-    juce::UndoManager undoManager;
 
     void timerCallback () override
     {
         undoManager.beginNewTransaction ();
     }
+
+    juce::UndoManager& undoManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerSetupContainer)
 };

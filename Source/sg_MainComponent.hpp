@@ -76,6 +76,8 @@ class MainContentComponent final
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
+    juce::UndoManager undoManager;
+
     enum class LoadSpeakerSetupOption { allowDiscardingUnsavedChanges, disallowDiscardingUnsavedChanges };
 
     juce::ReadWriteLock mLock{};

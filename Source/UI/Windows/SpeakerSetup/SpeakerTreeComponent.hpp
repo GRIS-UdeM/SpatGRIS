@@ -48,7 +48,7 @@ private:
 class SpeakerTreeComponent : public juce::Component
 {
 public:
-    SpeakerTreeComponent(juce::TreeViewItem * owner, const juce::ValueTree & v);
+    SpeakerTreeComponent(juce::TreeViewItem * owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
     ~SpeakerTreeComponent() { setLookAndFeel(nullptr); }
 
     void paint(juce::Graphics & g) override;
@@ -56,7 +56,7 @@ public:
     void resized() override;
 
 protected:
-    void setupEditor(DraggableLabel & editor, juce::Identifier id);
+    void setupDraggableEditor(DraggableLabel & editor, juce::Identifier id);
     void setupEditor(juce::Label & editor, juce::StringRef text);
 
     DraggableLabel id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
@@ -66,6 +66,7 @@ protected:
     GrisLookAndFeel lnf;
     juce::TreeViewItem * treeViewItem;
 
+    /** This is used to edit the label values back if they were clamped by getLegalSpeakerPosition() */
     class ValueToLabelListener : public juce::Value::Listener
     {
     public:
@@ -88,8 +89,9 @@ protected:
         juce::Value value;
         juce::Component::SafePointer<juce::Label> weakLabel;
     };
-
     juce::OwnedArray<ValueToLabelListener> valueListeners;
+
+    juce::UndoManager& undoManager;
 };
 
 //==============================================================================
@@ -97,7 +99,7 @@ protected:
 class SpeakerGroupComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerGroupComponent(juce::TreeViewItem * owner, const juce::ValueTree & v);
+    SpeakerGroupComponent(juce::TreeViewItem * owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
 };
 
 //==============================================================================
@@ -105,6 +107,6 @@ public:
 class SpeakerComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerComponent(juce::TreeViewItem * owner, const juce::ValueTree & v);
+    SpeakerComponent(juce::TreeViewItem * owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
 };
 } // namespace gris
