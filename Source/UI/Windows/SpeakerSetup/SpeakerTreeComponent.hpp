@@ -16,8 +16,8 @@
 */
 
 #pragma once
-#include "../../ValueTreeUtilities.hpp"
 #include "../../../sg_GrisLookAndFeel.hpp"
+#include "../../ValueTreeUtilities.hpp"
 
 namespace gris
 {
@@ -25,24 +25,21 @@ namespace gris
 class DraggableLabel : public juce::Label
 {
 public:
-    std::function<void (int)> onMouseDragCallback;
+    std::function<void(int)> onMouseDragCallback;
 
 private:
     int lastMouseY = 0;
 
-    void mouseDown (const juce::MouseEvent& event) override
-    {
-        lastMouseY = event.getPosition ().getY ();
-    }
+    void mouseDown(const juce::MouseEvent & event) override { lastMouseY = event.getPosition().getY(); }
 
-    void mouseDrag (const juce::MouseEvent& event) override
+    void mouseDrag(const juce::MouseEvent & event) override
     {
-        auto const currentMouseY = event.getPosition ().getY ();
+        auto const currentMouseY = event.getPosition().getY();
         auto const deltaY = currentMouseY - lastMouseY;
         lastMouseY = currentMouseY;
 
         if (onMouseDragCallback)
-            onMouseDragCallback (deltaY);
+            onMouseDragCallback(deltaY);
     }
 };
 
@@ -51,23 +48,48 @@ private:
 class SpeakerTreeComponent : public juce::Component
 {
 public:
-    SpeakerTreeComponent (juce::TreeViewItem* owner, const juce::ValueTree& v);
-    ~SpeakerTreeComponent () { setLookAndFeel (nullptr); }
+    SpeakerTreeComponent(juce::TreeViewItem * owner, const juce::ValueTree & v);
+    ~SpeakerTreeComponent() { setLookAndFeel(nullptr); }
 
     void paint(juce::Graphics & g) override;
 
-    void resized () override;
+    void resized() override;
 
 protected:
-    void setupEditor (DraggableLabel& editor, juce::Value value);
-    void setupEditor (juce::Label& editor, juce::StringRef text);
+    void setupEditor(DraggableLabel & editor, juce::Value value);
+    void setupEditor(juce::Label & editor, juce::StringRef text);
 
     DraggableLabel id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
 
     juce::ValueTree vt;
 
     GrisLookAndFeel lnf;
-    juce::TreeViewItem* treeViewItem;
+    juce::TreeViewItem * treeViewItem;
+
+    class ValueToLabelListener : public juce::Value::Listener
+    {
+    public:
+        ValueToLabelListener(juce::Value valueToWatch, juce::Label & targetLabel)
+            : value(valueToWatch)
+            , weakLabel(&targetLabel)
+        {
+            value.addListener(this);
+        }
+
+        ~ValueToLabelListener() override { value.removeListener(this); }
+
+        void valueChanged(juce::Value & v) override
+        {
+            if (auto * l = weakLabel.getComponent())
+                l->setText(juce::String((float)v.getValue(), 3), juce::dontSendNotification);
+        }
+
+    private:
+        juce::Value value;
+        juce::Component::SafePointer<juce::Label> weakLabel;
+    };
+
+    juce::OwnedArray<ValueToLabelListener> valueListeners;
 };
 
 //==============================================================================
@@ -75,7 +97,7 @@ protected:
 class SpeakerGroupComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerGroupComponent (juce::TreeViewItem* owner, const juce::ValueTree& v);
+    SpeakerGroupComponent(juce::TreeViewItem * owner, const juce::ValueTree & v);
 };
 
 //==============================================================================
@@ -83,6 +105,6 @@ public:
 class SpeakerComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerComponent (juce::TreeViewItem* owner, const juce::ValueTree& v);
+    SpeakerComponent(juce::TreeViewItem * owner, const juce::ValueTree & v);
 };
-}
+} // namespace gris

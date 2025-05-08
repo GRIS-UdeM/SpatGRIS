@@ -79,19 +79,31 @@ void SpeakerTreeComponent::resized ()
     }
 }
 
-void SpeakerTreeComponent::setupEditor (DraggableLabel& editor, juce::Value value)
+void SpeakerTreeComponent::setupEditor(DraggableLabel & label, juce::Value value)
 {
-    editor.getTextValue ().referTo (value);
-    editor.setEditable (true);
-    addAndMakeVisible (editor);
-    editor.setInterceptsMouseClicks(true, false);
-    editor.onMouseDragCallback = [this, &editor](int deltaY)
-        {
-            auto currentValue = editor.getText ().getFloatValue ();
-            auto newValue = currentValue - deltaY * 0.01f;
-            editor.setText (juce::String (newValue, 3), juce::dontSendNotification);
-            editor.getTextValue ().setValue (newValue);
-        };
+    label.setEditable(true);
+
+    // Show the initial value with 3 decimals
+    label.setText(juce::String((float)value.getValue(), 3), juce::dontSendNotification);
+
+    // Create and hold the listener to sync value -> label
+    auto * listener = new ValueToLabelListener(value, label);
+    valueListeners.add(listener);
+
+    label.onTextChange = [&label, &value] {
+        auto newValue = label.getText().getFloatValue();
+        value.setValue(newValue);
+        label.setText(juce::String(newValue, 3), juce::dontSendNotification);
+    };
+
+    label.onMouseDragCallback = [&label, &value](int deltaY) {
+        auto currentValue = label.getText().getFloatValue();
+        auto newValue = currentValue - deltaY * 0.01f;
+        value.setValue(newValue);
+        label.setText(juce::String(newValue, 3), juce::dontSendNotification);
+    };
+
+    addAndMakeVisible(label);
 }
 
 void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::StringRef text)
