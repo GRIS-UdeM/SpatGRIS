@@ -619,8 +619,8 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
     tl::optional<int> indexInCurGroup = curGroup.indexOf(vtRow);
 
     juce::ValueTree newGroup("SPEAKER_GROUP");
-    newGroup.setProperty("ID", "new group", nullptr);
-    curGroup.addChild(newGroup, *indexInCurGroup + 1, nullptr);
+    newGroup.setProperty("ID", "new group", &undoManager);
+    curGroup.addChild(newGroup, *indexInCurGroup + 1, &undoManager);
 
     auto const & speakers{ spatGrisData.speakerSetup.speakers };
     output_patch_t newOutputPatch{};
@@ -662,19 +662,19 @@ void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutpu
 
     juce::ValueTree newSpeakerVt("SPEAKER");
     // TODO VB: need the undo manager
-    newSpeakerVt.setProperty("ID", newOutputPatch.get(), nullptr);
-    newSpeakerVt.setProperty("STATE", sliceStateToString(newSpeaker.state), nullptr);
-    newSpeakerVt.setProperty("GAIN", newSpeaker.gain.get(), nullptr);
-    newSpeakerVt.setProperty("DIRECT_OUT_ONLY", newSpeaker.isDirectOutOnly, nullptr);
+    newSpeakerVt.setProperty("ID", newOutputPatch.get(), &undoManager);
+    newSpeakerVt.setProperty("STATE", sliceStateToString(newSpeaker.state), &undoManager);
+    newSpeakerVt.setProperty("GAIN", newSpeaker.gain.get(), &undoManager);
+    newSpeakerVt.setProperty("DIRECT_OUT_ONLY", newSpeaker.isDirectOutOnly, &undoManager);
     auto const & position{ newSpeaker.position.getCartesian() };
-    newSpeakerVt.setProperty("X", position.x, nullptr);
-    newSpeakerVt.setProperty("Y", position.y, nullptr);
-    newSpeakerVt.setProperty("Z", position.z, nullptr);
+    newSpeakerVt.setProperty(X, position.x, &undoManager);
+    newSpeakerVt.setProperty(Y, position.y, &undoManager);
+    newSpeakerVt.setProperty(Z, position.z, &undoManager);
 
     if (append)
-        parent.appendChild(newSpeakerVt, nullptr);
+        parent.appendChild(newSpeakerVt, &undoManager);
     else
-        parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, nullptr);
+        parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, &undoManager);
 }
 
 //==============================================================================
@@ -1696,7 +1696,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
                                         spatGrisData.project.spatMode,
                                         vt[DIRECT_OUT_ONLY],
                                         property,
-                                        nullptr);
+                                        &undoManager);
             } else if (property == Y) {
                 getLegalSpeakerPosition(vt,
                                         property,
@@ -1705,7 +1705,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
                                         spatGrisData.project.spatMode,
                                         vt[DIRECT_OUT_ONLY],
                                         property,
-                                        nullptr);
+                                        &undoManager);
             } else if (property == Z) {
                 getLegalSpeakerPosition(vt,
                                         property,
@@ -1714,7 +1714,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
                                         spatGrisData.project.spatMode,
                                         vt[DIRECT_OUT_ONLY],
                                         property,
-                                        nullptr);
+                                        &undoManager);
             }
 
             mMainContentComponent.setSpeakerPosition(outputPatch, newPosition);
