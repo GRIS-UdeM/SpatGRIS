@@ -64,6 +64,8 @@ public:
 
     Position getPosition() { return juce::VariantConverter<Position>::fromVar(vt[CARTESIAN_POSITION]); }
 
+    float getPositionCoordinate (Position::Coordinate coordinate);
+
     juce::String getPositionCoordinateTrimmedText(Position::Coordinate coordinate);
 
     void setPositionCoordinate (Position::Coordinate coordinate, float newValue);

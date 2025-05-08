@@ -169,6 +169,29 @@ static Position getLegalSpeakerPosition(Position const & position,
 }
 
 
+float SpeakerTreeComponent::getPositionCoordinate (Position::Coordinate coordinate)
+{
+    auto const position { getPosition () };
+
+    switch (coordinate) {
+    case Position::Coordinate::x:
+        return position.getCartesian ().x;
+    case Position::Coordinate::y:
+        return position.getCartesian ().y;
+    case Position::Coordinate::z:
+        return position.getCartesian ().z;
+    case Position::Coordinate::azimuth:
+        return position.getPolar ().azimuth.get();
+    case Position::Coordinate::elevation:
+        return position.getPolar ().elevation.get ();
+    case Position::Coordinate::radius:
+        return position.getPolar ().length;
+    default:
+        jassertfalse;
+        return {};
+    };
+}
+
 juce::String SpeakerTreeComponent::getPositionCoordinateTrimmedText (Position::Coordinate coordinate)
 {
     auto const position { getPosition () };
@@ -180,6 +203,12 @@ juce::String SpeakerTreeComponent::getPositionCoordinateTrimmedText (Position::C
         return juce::String (position.getCartesian ().y, 3);
     case Position::Coordinate::z:
         return juce::String (position.getCartesian ().z, 3);
+    case Position::Coordinate::azimuth:
+        return juce::String (position.getPolar ().azimuth.get (), 3);
+    case Position::Coordinate::elevation:
+        return juce::String (position.getPolar ().elevation.get (), 3);
+    case Position::Coordinate::radius:
+        return juce::String (position.getPolar ().length, 3);
     default:
         jassertfalse;
         return juce::String ();
@@ -189,7 +218,7 @@ juce::String SpeakerTreeComponent::getPositionCoordinateTrimmedText (Position::C
 void SpeakerTreeComponent::setPositionCoordinate (Position::Coordinate coordinate, float newValue)
 {
     // get the current position and update the coordinate
-    auto position = [position{ getPosition() }, coordinate, newValue]() {
+    auto position = [position{ getPosition() }, coordinate, newValue](){
         switch (coordinate) {
         case Position::Coordinate::x:
             return position.withX(newValue);
@@ -197,6 +226,12 @@ void SpeakerTreeComponent::setPositionCoordinate (Position::Coordinate coordinat
             return position.withY(newValue);
         case Position::Coordinate::z:
             return position.withZ(newValue);
+        case Position::Coordinate::azimuth:
+            return Position {position.getPolar ().withAzimuth (radians_t (newValue))};
+        case Position::Coordinate::elevation:
+            return  Position { position.getPolar ().withElevation (radians_t (newValue)) };
+        case Position::Coordinate::radius:
+            return Position{ position.getPolar().withRadius(newValue) };
         default:
             jassertfalse;
             return position;
@@ -226,7 +261,7 @@ void SpeakerTreeComponent::setupDraggableEditor(DraggableLabel & label, Position
     label.onMouseDragCallback = [this, &label, coordinate](int deltaY) {
         auto currentValue = label.getText().getFloatValue();
         auto newValue = currentValue - deltaY * 0.01f;
-        setPositionCoordinate (coordinate, label.getText ().getFloatValue ());
+        setPositionCoordinate (coordinate, newValue);
         label.setText (getPositionCoordinateTrimmedText (coordinate), juce::dontSendNotification);
     };
 
