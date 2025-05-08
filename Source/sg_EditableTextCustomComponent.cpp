@@ -98,9 +98,9 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
 
     auto const offset{ event.getDistanceFromDragStartY() };
     if (increment) {
+#if USE_OLD_SPEAKER_SETUP_VIEW
         auto const diff{ *increment * narrow<float>(mLastOffset - offset) / 2.5f };
         auto const val{ getText().getFloatValue() + diff };
-#if USE_OLD_SPEAKER_SETUP_VIEW
         mOwner.setText(mColumnId, mRow, juce::String(val), event.mods.isAltDown());
 #endif
     }

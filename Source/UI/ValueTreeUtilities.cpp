@@ -16,20 +16,34 @@
 */
 
 #include "ValueTreeUtilities.hpp"
+#include <Data/sg_Position.hpp>
 
 namespace gris
 {
 
-void copyValueTreeProperties (const juce::ValueTree& source, juce::ValueTree& dest)
+/** This simply copies properties from one valuetree to another, nothing else. */
+void copyProperties (const juce::ValueTree& source, juce::ValueTree& dest)
 {
     //these are the only types of sources we're expecting here
     jassert (source.getType ().toString ().contains("SPEAKER_")
-             || source.getType().toString() == "POSITION"
+             || source.getType().toString() == CartesianVector::XmlTags::POSITION
              || source.getType ().toString () == "HIGHPASS");
 
+    if (source.getType ().toString () == CartesianVector::XmlTags::POSITION) {
+        auto const x = source[CartesianVector::XmlTags::X];
+        auto const y = source[CartesianVector::XmlTags::Y];
+        auto const z = source[CartesianVector::XmlTags::Z];
+
+        dest.setProperty(CARTESIAN_POSITION,
+                         juce::VariantConverter<Position>::toVar(Position{ CartesianVector{ x, y, z } }),
+                         nullptr);
+
+        return;
+    }
+
     for (int i = 0; i < source.getNumProperties (); ++i) {
-        const auto propertyName = source.getPropertyName (i);
-        const auto propertyValue = source.getProperty (propertyName);
+        auto const propertyName = source.getPropertyName (i);
+        auto const propertyValue = source.getProperty (propertyName);
         dest.setProperty (propertyName, propertyValue, nullptr);
     }
 };
@@ -47,7 +61,7 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
         </SPEAKER_2>
     */
 
-    // SPEAKER EXAMPLE
+    // CUBE EXAMPLE
     /*<SPEAKER_SETUP VERSION = "3.1.14" SPAT_MODE = "Cube" DIFFUSION = "0.0" GENERAL_MUTE = "0">
         <SPEAKER_1 STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0">
             <POSITION X = "-0.7071083784103394" Y = "0.7071067690849304" Z = "-9.478120688299896e-8" / >
@@ -71,22 +85,22 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
         return {};
     }
 
-    // check if the version is already up to date
-    if (oldSpeakerSetup.getProperty(VERSION) == CURRENT_SPEAKERSETUP_VERSION)
+    DBG (oldSpeakerSetup.toXmlString ());
+
+    // get outta here if the version is already up to date
+    if (oldSpeakerSetup.getProperty(VERSION) == CURRENT_SPEAKER_SETUP_VERSION)
         return oldSpeakerSetup; 
 
-    //create new value tree
+    //create new value tree and copy root properties into it
     auto newVt = juce::ValueTree (SPEAKER_SETUP);
+    newVt.setProperty (VERSION, CURRENT_SPEAKER_SETUP_VERSION, nullptr);
+    copyProperties (oldSpeakerSetup, newVt);
 
-    //copy and update the root node
-    copyValueTreeProperties (oldSpeakerSetup, newVt);
-    newVt.setProperty (VERSION, CURRENT_SPEAKERSETUP_VERSION, nullptr);
-
-    //TODO VB: we need to init this speaker group with a position and everything
     //create and append the main speaker group node
-    auto mainSpeakerGroup = juce::ValueTree (SPEAKER_GROUP);
+    auto mainSpeakerGroup = juce::ValueTree(SPEAKER_GROUP);
     mainSpeakerGroup.setProperty(ID, "Main", nullptr);
-    newVt.appendChild (mainSpeakerGroup, nullptr);
+    mainSpeakerGroup.setProperty(CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar(Position{}), nullptr);
+    newVt.appendChild(mainSpeakerGroup, nullptr);
 
     //then add all speakers to the main group
     for (const auto& speaker : oldSpeakerSetup)
@@ -94,7 +108,7 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
         if (! speaker.getType ().toString().contains ("SPEAKER_")
             || speaker.getChild(0).getType().toString() != "POSITION")
         {
-            //corrupted file??
+            //corrupted file? Speakers must have a type that starts with SPEAKER_ and have a POSITION child
             jassertfalse;
             continue;   //should we continue or return here?
         }
@@ -104,14 +118,14 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
         newSpeaker.setProperty ("ID", speakerId, nullptr);
 
         // copy properties for the speaker and its children
-        copyValueTreeProperties (speaker, newSpeaker);
+        copyProperties (speaker, newSpeaker);
         for (const auto child : speaker)
-            copyValueTreeProperties (child, newSpeaker);
+            copyProperties (child, newSpeaker);
 
         mainSpeakerGroup.appendChild (newSpeaker, nullptr);
     }
 
-    //DBG (newVt.toXmlString());
+    DBG (newVt.toXmlString());
 
     return newVt;
 }

@@ -18,6 +18,8 @@
 #pragma once
 #include "../../../sg_GrisLookAndFeel.hpp"
 #include "../../ValueTreeUtilities.hpp"
+#include <Data/sg_Position.hpp>
+#include <Data/sg_SpatMode.hpp>
 
 namespace gris
 {
@@ -55,8 +57,19 @@ public:
 
     void resized() override;
 
+    void setPosition(Position position)
+    {
+        vt.setProperty(CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar(position), &undoManager);
+    }
+
+    Position getPosition() { return juce::VariantConverter<Position>::fromVar(vt[CARTESIAN_POSITION]); }
+
+    juce::String getPositionCoordinateTrimmedText(Position::Coordinate coordinate);
+
+    void setPositionCoordinate (Position::Coordinate coordinate, float newValue);
+
 protected:
-    void setupDraggableEditor(DraggableLabel & editor, juce::Identifier id);
+    void setupDraggableEditor(DraggableLabel & editor, Position::Coordinate coordinate);
     void setupEditor(juce::Label & editor, juce::StringRef text);
 
     DraggableLabel id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
@@ -66,30 +79,32 @@ protected:
     GrisLookAndFeel lnf;
     juce::TreeViewItem * treeViewItem;
 
-    /** This is used to edit the label values back if they were clamped by getLegalSpeakerPosition() */
-    class ValueToLabelListener : public juce::Value::Listener
-    {
-    public:
-        ValueToLabelListener(juce::Value valueToWatch, juce::Label & targetLabel)
-            : value(valueToWatch)
-            , weakLabel(&targetLabel)
-        {
-            value.addListener(this);
-        }
+    SpatMode getSpatMode () const;
 
-        ~ValueToLabelListener() override { value.removeListener(this); }
+    ///** This is used to edit the label values back if they were clamped by getLegalSpeakerPosition() */
+    //class ValueToLabelListener : public juce::Value::Listener
+    //{
+    //public:
+    //    ValueToLabelListener(juce::Value valueToWatch, juce::Label & targetLabel)
+    //        : value(valueToWatch)
+    //        , weakLabel(&targetLabel)
+    //    {
+    //        value.addListener(this);
+    //    }
 
-        void valueChanged(juce::Value & v) override
-        {
-            if (auto * l = weakLabel.getComponent())
-                l->setText(juce::String((float)v.getValue(), 3), juce::dontSendNotification);
-        }
+    //    ~ValueToLabelListener() override { value.removeListener(this); }
 
-    private:
-        juce::Value value;
-        juce::Component::SafePointer<juce::Label> weakLabel;
-    };
-    juce::OwnedArray<ValueToLabelListener> valueListeners;
+    //    void valueChanged(juce::Value & v) override
+    //    {
+    //        if (auto * l = weakLabel.getComponent())
+    //            l->setText(juce::String((float)v.getValue(), 3), juce::dontSendNotification);
+    //    }
+
+    //private:
+    //    juce::Value value;
+    //    juce::Component::SafePointer<juce::Label> weakLabel;
+    //};
+    //juce::OwnedArray<ValueToLabelListener> valueListeners;
 
     juce::UndoManager& undoManager;
 };

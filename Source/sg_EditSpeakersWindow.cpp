@@ -84,50 +84,50 @@ static Position getLegalSpeakerPosition(Position const & position,
     }
     return Position{ newPosition };
 }
-#else
-static void getLegalSpeakerPosition(juce::ValueTree & vt,
-                                    juce::Identifier valueModified,
-                                    juce::Identifier valueToAdjust,
-                                    juce::Identifier valueToTryToKeepIntact,
-                                    SpatMode const spatMode,
-                                    bool const isDirectOutOnly,
-                                    juce::Identifier property,
-                                    juce::UndoManager* undoManager)
-{
-    jassert(property == X || property == Y || property == Z);
-
-    auto const modifiedFloat { static_cast<float> (vt[valueModified]) };
-    auto const clampedModifiedFloat { std::clamp (modifiedFloat, -1.0f, 1.0f) };
-    auto const adjustedFloat { static_cast<float> (vt[valueToAdjust]) };
-    auto const intactFloat { static_cast<float> (vt[valueToTryToKeepIntact]) };
-
-    if (spatMode == SpatMode::mbap || isDirectOutOnly) {
-        auto const clamped { std::clamp (modifiedFloat, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS) };
-        vt.setProperty (valueModified, clamped, undoManager);
-        return;
-    }
-
-    // TODO VB
-    // if (modifiedCol == AZIMUTH || modifiedCol == Col::ELEVATION) {
-    //     return position.normalized ();
-    // }
-
-    vt.setProperty (valueModified, clampedModifiedFloat, undoManager);
-    auto const valueModified2 { clampedModifiedFloat * clampedModifiedFloat };
-    auto const lengthWithoutValueToAdjust { valueModified2 + intactFloat * intactFloat };
-
-    if (lengthWithoutValueToAdjust > 1.0f) {
-        auto const sign { intactFloat < 0.0f ? -1.0f : 1.0f };
-        auto const length { std::sqrt (1.0f - valueModified2) };
-        vt.setProperty (valueToTryToKeepIntact, sign * length, undoManager);
-        vt.setProperty (valueToAdjust, 0.f, undoManager);
-        return;
-    }
-
-    auto const sign { adjustedFloat < 0.0f ? -1.0f : 1.0f };
-    auto const length { std::sqrt (1.0f - lengthWithoutValueToAdjust) };
-    vt.setProperty (valueToAdjust, sign * length, undoManager);
-}
+//#else
+//static void getLegalSpeakerPosition(juce::ValueTree & vt,
+//                                    juce::Identifier valueModified,
+//                                    juce::Identifier valueToAdjust,
+//                                    juce::Identifier valueToTryToKeepIntact,
+//                                    SpatMode const spatMode,
+//                                    bool const isDirectOutOnly,
+//                                    juce::Identifier property,
+//                                    juce::UndoManager* undoManager)
+//{
+//    jassert(property == X || property == Y || property == Z);
+//
+//    auto const modifiedFloat { static_cast<float> (vt[valueModified]) };
+//    auto const clampedModifiedFloat { std::clamp (modifiedFloat, -1.0f, 1.0f) };
+//    auto const adjustedFloat { static_cast<float> (vt[valueToAdjust]) };
+//    auto const intactFloat { static_cast<float> (vt[valueToTryToKeepIntact]) };
+//
+//    if (spatMode == SpatMode::mbap || isDirectOutOnly) {
+//        auto const clamped { std::clamp (modifiedFloat, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS) };
+//        vt.setProperty (valueModified, clamped, undoManager);
+//        return;
+//    }
+//
+//    // TODO VB
+//    // if (modifiedCol == AZIMUTH || modifiedCol == Col::ELEVATION) {
+//    //     return position.normalized ();
+//    // }
+//
+//    vt.setProperty (valueModified, clampedModifiedFloat, undoManager);
+//    auto const valueModified2 { clampedModifiedFloat * clampedModifiedFloat };
+//    auto const lengthWithoutValueToAdjust { valueModified2 + intactFloat * intactFloat };
+//
+//    if (lengthWithoutValueToAdjust > 1.0f) {
+//        auto const sign { intactFloat < 0.0f ? -1.0f : 1.0f };
+//        auto const length { std::sqrt (1.0f - valueModified2) };
+//        vt.setProperty (valueToTryToKeepIntact, sign * length, undoManager);
+//        vt.setProperty (valueToAdjust, 0.f, undoManager);
+//        return;
+//    }
+//
+//    auto const sign { adjustedFloat < 0.0f ? -1.0f : 1.0f };
+//    auto const length { std::sqrt (1.0f - lengthWithoutValueToAdjust) };
+//    vt.setProperty (valueToAdjust, sign * length, undoManager);
+//}
 #endif
 //==============================================================================
 LabelWrapper::LabelWrapper(GrisLookAndFeel & lookAndFeel)
@@ -656,20 +656,17 @@ void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutpu
                                            juce::ValueTree & parent,
                                            bool append)
 {
-    // need to compare the data before and after this, get the new speaker info, and add to the VT
     auto const & newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
     jassert(parent.isValid());
 
     juce::ValueTree newSpeakerVt("SPEAKER");
-    // TODO VB: need the undo manager
+    newSpeakerVt.setProperty (CARTESIAN_POSITION,
+                              juce::VariantConverter<Position>::toVar (newSpeaker.position),
+                              &undoManager);
     newSpeakerVt.setProperty("ID", newOutputPatch.get(), &undoManager);
     newSpeakerVt.setProperty("STATE", sliceStateToString(newSpeaker.state), &undoManager);
     newSpeakerVt.setProperty("GAIN", newSpeaker.gain.get(), &undoManager);
     newSpeakerVt.setProperty("DIRECT_OUT_ONLY", newSpeaker.isDirectOutOnly, &undoManager);
-    auto const & position{ newSpeaker.position.getCartesian() };
-    newSpeakerVt.setProperty(X, position.x, &undoManager);
-    newSpeakerVt.setProperty(Y, position.y, &undoManager);
-    newSpeakerVt.setProperty(Z, position.z, &undoManager);
 
     if (append)
         parent.appendChild(newSpeakerVt, &undoManager);
@@ -1685,39 +1682,43 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
     } else if (vt.getType() == SPEAKER) {
         //<SPEAKER ID = "1" STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0" X = "5" Y = "0.7071067690849304"
         //    Z = "-9.478120688299896e-8" FREQ = "60.0" / >
-        if (property == X || property == Y || property == Z) {
-            Position newPosition{ CartesianVector{ vt[X], vt[Y], vt[Z] } };
+        //if (property == X || property == Y || property == Z) {
+        //    Position newPosition{ CartesianVector{ vt[X], vt[Y], vt[Z] } };
 
-            if (property == X) {
-                getLegalSpeakerPosition(vt,
-                                        property,
-                                        Y,
-                                        Z,
-                                        spatGrisData.project.spatMode,
-                                        vt[DIRECT_OUT_ONLY],
-                                        property,
-                                        &undoManager);
-            } else if (property == Y) {
-                getLegalSpeakerPosition(vt,
-                                        property,
-                                        X,
-                                        Z,
-                                        spatGrisData.project.spatMode,
-                                        vt[DIRECT_OUT_ONLY],
-                                        property,
-                                        &undoManager);
-            } else if (property == Z) {
-                getLegalSpeakerPosition(vt,
-                                        property,
-                                        X,
-                                        Y,
-                                        spatGrisData.project.spatMode,
-                                        vt[DIRECT_OUT_ONLY],
-                                        property,
-                                        &undoManager);
-            }
+        //    if (property == X) {
+        //        getLegalSpeakerPosition(vt,
+        //                                property,
+        //                                Y,
+        //                                Z,
+        //                                spatGrisData.project.spatMode,
+        //                                vt[DIRECT_OUT_ONLY],
+        //                                property,
+        //                                &undoManager);
+        //    } else if (property == Y) {
+        //        getLegalSpeakerPosition(vt,
+        //                                property,
+        //                                X,
+        //                                Z,
+        //                                spatGrisData.project.spatMode,
+        //                                vt[DIRECT_OUT_ONLY],
+        //                                property,
+        //                                &undoManager);
+        //    } else if (property == Z) {
+        //        getLegalSpeakerPosition(vt,
+        //                                property,
+        //                                X,
+        //                                Y,
+        //                                spatGrisData.project.spatMode,
+        //                                vt[DIRECT_OUT_ONLY],
+        //                                property,
+        //                                &undoManager);
+        //    }
 
-            mMainContentComponent.setSpeakerPosition(outputPatch, newPosition);
+        //    mMainContentComponent.setSpeakerPosition(outputPatch, newPosition);
+        //    mShouldComputeSpeakers = true;
+        if (property == CARTESIAN_POSITION) {
+            Position newPosition { juce::VariantConverter<Position>::fromVar (newVal) };
+            mMainContentComponent.setSpeakerPosition (outputPatch, newPosition);
             mShouldComputeSpeakers = true;
         } else if (property == GAIN) {
             mMainContentComponent.setSpeakerGain(outputPatch, dbfs_t(newVal));

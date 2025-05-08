@@ -26,10 +26,10 @@ namespace gris
  * @param source The source ValueTree containing the properties to copy.
  * @param dest The destination ValueTree where the properties will be copied to.
  */
-void copyValueTreeProperties(const juce::ValueTree & source, juce::ValueTree & dest);
+void copyProperties(const juce::ValueTree & source, juce::ValueTree & dest);
 
 /**
- * Converts an old speaker setup ValueTree to the CURRENT_SPEAKERSETUP_VERSION.
+ * Converts an old speaker setup ValueTree to the CURRENT_SPEAKER_SETUP_VERSION.
  *
  * @param oldSpeakerSetup The ValueTree representing the old speaker setup.
  * @return A new ValueTree representing the converted speaker setup.
@@ -37,16 +37,15 @@ void copyValueTreeProperties(const juce::ValueTree & source, juce::ValueTree & d
 juce::ValueTree convertSpeakerSetup(const juce::ValueTree & oldSpeakerSetup);
 
 // Speaker setup identifiers
-const auto CURRENT_SPEAKERSETUP_VERSION = "4.0.0";
-const juce::Identifier SPEAKER_SETUP("SPEAKER_SETUP");
-const juce::Identifier SPEAKER_GROUP("SPEAKER_GROUP");
-const juce::Identifier SPEAKER("SPEAKER");
-const juce::Identifier VERSION("VERSION");
-const juce::Identifier ID ("ID");
-const juce::Identifier X ("X");
-const juce::Identifier Y ("Y");
-const juce::Identifier Z ("Z");
-const juce::Identifier GAIN ("GAIN");
-const juce::Identifier FREQ ("FREQ");
-const juce::Identifier DIRECT_OUT_ONLY ("DIRECT_OUT_ONLY");
+const auto CURRENT_SPEAKER_SETUP_VERSION = "4.0.0";
+const juce::Identifier SPAT_MODE{ "SPAT_MODE" };
+const juce::Identifier SPEAKER_SETUP{ "SPEAKER_SETUP" };
+const juce::Identifier SPEAKER_GROUP{ "SPEAKER_GROUP" };
+const juce::Identifier SPEAKER{ "SPEAKER" };
+const juce::Identifier VERSION{ "VERSION" };
+const juce::Identifier ID{ "ID" };
+const juce::Identifier CARTESIAN_POSITION{ "CARTESIAN_POSITION" };
+const juce::Identifier GAIN{ "GAIN" };
+const juce::Identifier FREQ{ "FREQ" };
+const juce::Identifier DIRECT_OUT_ONLY{ "DIRECT_OUT_ONLY" };
 } // namespace gris
