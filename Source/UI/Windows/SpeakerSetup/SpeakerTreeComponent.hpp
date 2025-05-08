@@ -56,7 +56,7 @@ public:
     void resized() override;
 
 protected:
-    void setupEditor(DraggableLabel & editor, juce::Value value);
+    void setupEditor(DraggableLabel & editor, juce::Identifier id);
     void setupEditor(juce::Label & editor, juce::StringRef text);
 
     DraggableLabel id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;

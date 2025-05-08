@@ -34,9 +34,9 @@ SpeakerTreeComponent::SpeakerTreeComponent (juce::TreeViewItem* owner, const juc
     auto const & polar{ position.getPolar() };
 
     //TODO VB: use undomanager
-    setupEditor (x, vt.getPropertyAsValue ("X", nullptr));
-    setupEditor (y, vt.getPropertyAsValue ("Y", nullptr));
-    setupEditor (z, vt.getPropertyAsValue ("Z", nullptr));
+    setupEditor (x, X);
+    setupEditor (y, Y);
+    setupEditor (z, Z);
 
     //TODO VB: all these will need some different logic from the above setupEditor
     setupEditor (azim, juce::String (polar.azimuth.get(), 3));
@@ -79,27 +79,27 @@ void SpeakerTreeComponent::resized ()
     }
 }
 
-void SpeakerTreeComponent::setupEditor(DraggableLabel & label, juce::Value value)
+void SpeakerTreeComponent::setupEditor(DraggableLabel & label, juce::Identifier identifier)
 {
     label.setEditable(true);
 
     // Show the initial value with 3 decimals
-    label.setText(juce::String((float)value.getValue(), 3), juce::dontSendNotification);
+    label.setText(juce::String(static_cast<float> (vt[identifier]), 3), juce::dontSendNotification);
 
     // Create and hold the listener to sync value -> label
-    auto * listener = new ValueToLabelListener(value, label);
+    auto * listener = new ValueToLabelListener(vt.getPropertyAsValue (identifier, nullptr), label);
     valueListeners.add(listener);
 
-    label.onTextChange = [&label, &value] {
+    label.onTextChange = [this, &label, identifier] {
         auto newValue = label.getText().getFloatValue();
-        value.setValue(newValue);
+        vt.setProperty(identifier, newValue, nullptr);
         label.setText(juce::String(newValue, 3), juce::dontSendNotification);
     };
 
-    label.onMouseDragCallback = [&label, &value](int deltaY) {
+    label.onMouseDragCallback = [this, &label, identifier](int deltaY) {
         auto currentValue = label.getText().getFloatValue();
         auto newValue = currentValue - deltaY * 0.01f;
-        value.setValue(newValue);
+        vt.setProperty (identifier, newValue, nullptr);
         label.setText(juce::String(newValue, 3), juce::dontSendNotification);
     };
 
@@ -117,7 +117,7 @@ void SpeakerTreeComponent::setupEditor (juce::Label& editor, juce::StringRef tex
 
 SpeakerGroupComponent::SpeakerGroupComponent (juce::TreeViewItem* owner, const juce::ValueTree& v) : SpeakerTreeComponent (owner, v)
 {
-    setupEditor (id, vt.getPropertyAsValue ("ID", nullptr));
+    setupEditor (id, ID);
 }
 
 //==============================================================================
@@ -126,9 +126,9 @@ SpeakerComponent::SpeakerComponent (juce::TreeViewItem* owner, const juce::Value
 {
     // TODO VB: this is super weird because all these components belong to the parent. We probably need some virtual
     // function to call in resized where we get the list of components that are in children
-    setupEditor (id, vt.getPropertyAsValue ("ID", nullptr));
-    setupEditor (gain, vt.getPropertyAsValue ("GAIN", nullptr));
-    setupEditor (highpass, vt.getPropertyAsValue ("FREQ", nullptr));
-    setupEditor (direct, vt.getPropertyAsValue ("DIRECT_OUT_ONLY", nullptr));
+    setupEditor (id, ID);
+    setupEditor (gain, GAIN);
+    setupEditor (highpass, FREQ);
+    setupEditor (direct, DIRECT_OUT_ONLY);
 }
 }

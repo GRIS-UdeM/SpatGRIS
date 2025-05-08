@@ -85,17 +85,25 @@ static Position getLegalSpeakerPosition(Position const & position,
     return Position{ newPosition };
 }
 #else
-static void getLegalSpeakerPosition(juce::Value valueModified,
-                                    juce::Value valueToAdjust,
-                                    juce::Value valueToTryToKeepIntact,
+static void getLegalSpeakerPosition(juce::ValueTree & vt,
+                                    juce::Identifier valueModified,
+                                    juce::Identifier valueToAdjust,
+                                    juce::Identifier valueToTryToKeepIntact,
                                     SpatMode const spatMode,
                                     bool const isDirectOutOnly,
-                                    juce::Identifier property)
+                                    juce::Identifier property,
+                                    juce::UndoManager* undoManager)
 {
     jassert(property == X || property == Y || property == Z);
 
+    auto const modifiedFloat { static_cast<float> (vt[valueModified]) };
+    auto const clampedModifiedFloat { std::clamp (modifiedFloat, -1.0f, 1.0f) };
+    auto const adjustedFloat { static_cast<float> (vt[valueToAdjust]) };
+    auto const intactFloat { static_cast<float> (vt[valueToTryToKeepIntact]) };
+
     if (spatMode == SpatMode::mbap || isDirectOutOnly) {
-        valueModified = std::clamp (static_cast<float> (valueModified.getValue ()), -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS);
+        auto const clamped { std::clamp (modifiedFloat, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS) };
+        vt.setProperty (valueModified, clamped, undoManager);
         return;
     }
 
@@ -104,21 +112,22 @@ static void getLegalSpeakerPosition(juce::Value valueModified,
     //     return position.normalized ();
     // }
 
-    valueModified = std::clamp(static_cast<float>(valueModified.getValue()), -1.0f, 1.0f);
-    float const valueModified2 { std::powf (valueModified.getValue (), 2) };
-    auto const lengthWithoutValueToAdjust { valueModified2 + std::powf (valueToTryToKeepIntact.getValue (), 2) };
+
+    vt.setProperty (valueModified, clampedModifiedFloat, undoManager);
+    auto const valueModified2 { std::powf (clampedModifiedFloat, 2) };
+    auto const lengthWithoutValueToAdjust { valueModified2 + std::powf (intactFloat, 2)};
 
     if (lengthWithoutValueToAdjust > 1.0f) {
-        auto const sign { valueToTryToKeepIntact < 0.0f ? -1.0f : 1.0f };
+        auto const sign { intactFloat < 0.0f ? -1.0f : 1.0f };
         auto const length { std::sqrt (1.0f - valueModified2) };
-        valueToTryToKeepIntact = sign * length;
-        valueToAdjust = 0.0f;
+        vt.setProperty (valueToTryToKeepIntact, sign * length, undoManager);
+        vt.setProperty (valueToAdjust, 0.f, undoManager);
         return;
     }
 
-    auto const sign { valueToAdjust < 0.0f ? -1.0f : 1.0f };
+    auto const sign { adjustedFloat < 0.0f ? -1.0f : 1.0f };
     auto const length { std::sqrt (1.0f - lengthWithoutValueToAdjust) };
-    valueToAdjust = sign * length;
+    vt.setProperty (valueToAdjust, sign * length, undoManager);
 }
 #endif
 //==============================================================================
@@ -1679,29 +1688,33 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             Position newPosition{ CartesianVector{ vt[X], vt[Y], vt[Z] } };
 
             if (property == X) {
-                getLegalSpeakerPosition(vt.getPropertyAsValue (property, nullptr),
-                                                      vt.getPropertyAsValue(Y, nullptr),
-                                                      vt.getPropertyAsValue(Z, nullptr),
-                                                      spatGrisData.project.spatMode,
-                                                      vt[DIRECT_OUT_ONLY],
-                                                      property);
+                getLegalSpeakerPosition(vt,
+                                        property,
+                                        Y,
+                                        Z,
+                                        spatGrisData.project.spatMode,
+                                        vt[DIRECT_OUT_ONLY],
+                                        property,
+                                        nullptr);
             } else if (property == Y) {
-                getLegalSpeakerPosition (vt.getPropertyAsValue (property, nullptr),
-                                                       vt.getPropertyAsValue (X, nullptr),
-                                                       vt.getPropertyAsValue (Z, nullptr),
-                                                       spatGrisData.project.spatMode,
-                                                       vt[DIRECT_OUT_ONLY],
-                                                       property);
+                getLegalSpeakerPosition(vt,
+                                        property,
+                                        X,
+                                        Z,
+                                        spatGrisData.project.spatMode,
+                                        vt[DIRECT_OUT_ONLY],
+                                        property,
+                                        nullptr);
             } else if (property == Z) {
-                getLegalSpeakerPosition (vt.getPropertyAsValue (property, nullptr),
-                                                       vt.getPropertyAsValue (X, nullptr),
-                                                       vt.getPropertyAsValue (Y, nullptr),
-                                                       spatGrisData.project.spatMode,
-                                                       vt[DIRECT_OUT_ONLY],
-                                                       property);
+                getLegalSpeakerPosition(vt,
+                                        property,
+                                        X,
+                                        Y,
+                                        spatGrisData.project.spatMode,
+                                        vt[DIRECT_OUT_ONLY],
+                                        property,
+                                        nullptr);
             }
-
-            
 
             mMainContentComponent.setSpeakerPosition(outputPatch, newPosition);
             mShouldComputeSpeakers = true;
