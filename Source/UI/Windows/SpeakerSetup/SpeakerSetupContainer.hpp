@@ -28,8 +28,7 @@ class SpeakerSetupContainer final : public juce::Component,
     private juce::Timer
 {
 public:
-    SpeakerSetupContainer(const SpeakerSetup & setup,
-                          const juce::File & speakerSetupXmlFile,
+    SpeakerSetupContainer(const juce::File & speakerSetupXmlFile,
                           juce::UndoManager & undoMan);
 
     ~SpeakerSetupContainer () override
@@ -56,9 +55,6 @@ public:
 
 private:
     GrisLookAndFeel lookAndFeel;
-    // TODO VB: this isn't used, and needs to stay const, so probably isn't needed -- we'll have main component be a VT
-    // listener or something
-    const SpeakerSetup& speakerSetup;
     juce::File vtFile;
     juce::ValueTree vt;
 

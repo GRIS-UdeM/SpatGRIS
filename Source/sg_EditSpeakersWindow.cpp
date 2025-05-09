@@ -160,7 +160,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
 #if ! USE_OLD_SPEAKER_SETUP_VIEW
-    , mSpeakerSetupContainer(spatGrisData.speakerSetup, spatGrisData.appData.lastSpeakerSetup, undoMan)
+    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, undoMan)
 #endif
     , mFont(juce::FontOptions().withHeight(14.f))
     , mRingSpeakers(lookAndFeel)

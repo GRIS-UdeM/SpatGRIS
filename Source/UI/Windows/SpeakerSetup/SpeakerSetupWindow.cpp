@@ -27,8 +27,7 @@ SpeakerSetupWindow::SpeakerSetupWindow(juce::String const & name,
     : DocumentWindow(name, lnf.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lnf)
-    , mSpeakerSetupContainer(mainContentComponent.getData().speakerSetup,
-                             mainContentComponent.getData().appData.lastSpeakerSetup, undoManager)
+    , mSpeakerSetupContainer(mainContentComponent.getData().appData.lastSpeakerSetup, undoManager)
 {
     setContentNonOwned (&mSpeakerSetupContainer, true);
     setResizable (true, true);
