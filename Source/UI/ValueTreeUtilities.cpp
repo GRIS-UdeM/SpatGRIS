@@ -129,4 +129,15 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
 
     return newVt;
 }
+juce::ValueTree getTopParent (const juce::ValueTree& vt)
+{
+    auto parent = vt.getParent();
+    while (parent.isValid()) {
+        if (parent.getParent().isValid())
+            parent = parent.getParent();
+        else
+            break;
+    }
+    return parent;
+}
 }

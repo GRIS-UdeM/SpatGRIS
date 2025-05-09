@@ -52,7 +52,12 @@ public:
 
     //juce::ValueTree getSpeakerSetupVt() { return vt; }
     void addValueTreeListener(juce::ValueTree::Listener * listener) { vt.addListener(listener); }
-    void setSpatMode(SpatMode spatMode) { vt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager); }
+    void setSpatMode(SpatMode spatMode)
+    {
+        DBG (vt.toXmlString());
+        vt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager);
+        DBG (vt.toXmlString ());
+    }
 
 private:
     GrisLookAndFeel lookAndFeel;

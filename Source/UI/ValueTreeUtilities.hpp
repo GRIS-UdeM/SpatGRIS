@@ -36,6 +36,8 @@ void copyProperties(const juce::ValueTree & source, juce::ValueTree & dest);
  */
 juce::ValueTree convertSpeakerSetup(const juce::ValueTree & oldSpeakerSetup);
 
+juce::ValueTree getTopParent (const juce::ValueTree& vt);
+
 // Speaker setup identifiers
 const auto CURRENT_SPEAKER_SETUP_VERSION = "4.0.0";
 const juce::Identifier SPAT_MODE{ "SPAT_MODE" };

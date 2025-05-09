@@ -21,6 +21,8 @@
 #include <Data/sg_Position.hpp>
 #include <Data/sg_SpatMode.hpp>
 
+//class SpeakerSetupLine;
+
 namespace gris
 {
 
@@ -47,10 +49,10 @@ private:
 
 //==============================================================================
 
-class SpeakerTreeComponent : public juce::Component
+class SpeakerTreeComponent : public juce::Component, public juce::ValueTree::Listener
 {
 public:
-    SpeakerTreeComponent(juce::TreeViewItem * owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    SpeakerTreeComponent(juce::TreeViewItem* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
     ~SpeakerTreeComponent() { setLookAndFeel(nullptr); }
 
     void paint(juce::Graphics & g) override;
@@ -81,36 +83,16 @@ protected:
     juce::ValueTree vt;
 
     GrisLookAndFeel lnf;
-    juce::TreeViewItem * treeViewItem;
+    juce::TreeViewItem* treeViewItem;
 
     tl::optional<SpatMode> getSpatMode () const;
 
-    ///** This is used to edit the label values back if they were clamped by getLegalSpeakerPosition() */
-    //class ValueToLabelListener : public juce::Value::Listener
-    //{
-    //public:
-    //    ValueToLabelListener(juce::Value valueToWatch, juce::Label & targetLabel)
-    //        : value(valueToWatch)
-    //        , weakLabel(&targetLabel)
-    //    {
-    //        value.addListener(this);
-    //    }
-
-    //    ~ValueToLabelListener() override { value.removeListener(this); }
-
-    //    void valueChanged(juce::Value & v) override
-    //    {
-    //        if (auto * l = weakLabel.getComponent())
-    //            l->setText(juce::String((float)v.getValue(), 3), juce::dontSendNotification);
-    //    }
-
-    //private:
-    //    juce::Value value;
-    //    juce::Component::SafePointer<juce::Label> weakLabel;
-    //};
-    //juce::OwnedArray<ValueToLabelListener> valueListeners;
-
     juce::UndoManager& undoManager;
+
+private:
+    void valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property) override;
+
+    void updateEnabledLabels();
 };
 
 //==============================================================================
@@ -118,7 +100,7 @@ protected:
 class SpeakerGroupComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerGroupComponent(juce::TreeViewItem * owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    SpeakerGroupComponent(juce::TreeViewItem* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
 };
 
 //==============================================================================
@@ -126,6 +108,6 @@ public:
 class SpeakerComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerComponent(juce::TreeViewItem * owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    SpeakerComponent(juce::TreeViewItem* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
 };
 } // namespace gris

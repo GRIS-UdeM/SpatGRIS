@@ -1679,42 +1679,6 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
     if (vt.getType() == SPEAKER_GROUP) {
         jassertfalse;
     } else if (vt.getType() == SPEAKER) {
-        //<SPEAKER ID = "1" STATE = "normal" GAIN = "0.0" DIRECT_OUT_ONLY = "0" X = "5" Y = "0.7071067690849304"
-        //    Z = "-9.478120688299896e-8" FREQ = "60.0" / >
-        //if (property == X || property == Y || property == Z) {
-        //    Position newPosition{ CartesianVector{ vt[X], vt[Y], vt[Z] } };
-
-        //    if (property == X) {
-        //        getLegalSpeakerPosition(vt,
-        //                                property,
-        //                                Y,
-        //                                Z,
-        //                                spatGrisData.project.spatMode,
-        //                                vt[DIRECT_OUT_ONLY],
-        //                                property,
-        //                                &undoManager);
-        //    } else if (property == Y) {
-        //        getLegalSpeakerPosition(vt,
-        //                                property,
-        //                                X,
-        //                                Z,
-        //                                spatGrisData.project.spatMode,
-        //                                vt[DIRECT_OUT_ONLY],
-        //                                property,
-        //                                &undoManager);
-        //    } else if (property == Z) {
-        //        getLegalSpeakerPosition(vt,
-        //                                property,
-        //                                X,
-        //                                Y,
-        //                                spatGrisData.project.spatMode,
-        //                                vt[DIRECT_OUT_ONLY],
-        //                                property,
-        //                                &undoManager);
-        //    }
-
-        //    mMainContentComponent.setSpeakerPosition(outputPatch, newPosition);
-        //    mShouldComputeSpeakers = true;
         if (property == CARTESIAN_POSITION) {
             Position newPosition { juce::VariantConverter<Position>::fromVar (newVal) };
             mMainContentComponent.setSpeakerPosition (outputPatch, newPosition);
@@ -1729,9 +1693,10 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
         } else {
             jassertfalse;
         }
-    } else if (property !=  SPAT_MODE) {
+    } else if (property == SPAT_MODE) {
+        DBG (vt.toXmlString());
+    } else
         jassertfalse;
-    }
 }
 
 void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)

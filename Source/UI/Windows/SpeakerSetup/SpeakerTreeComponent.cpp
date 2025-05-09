@@ -17,18 +17,17 @@
 
 #include "SpeakerTreeComponent.hpp"
 #include <Data/StrongTypes/sg_CartesianVector.hpp>
-
+//#include "SpeakerSetupLine.hpp"
 
 namespace gris
 {
-SpeakerTreeComponent::SpeakerTreeComponent(juce::TreeViewItem * owner,
-                                           const juce::ValueTree & v,
-                                           juce::UndoManager & undoMan)
+SpeakerTreeComponent::SpeakerTreeComponent(juce::TreeViewItem* owner, const juce::ValueTree& v, juce::UndoManager& undoMan)
     : vt(v)
     , treeViewItem(owner)
     , undoManager (undoMan)
 {
-    // setLookAndFeel(&lnf);
+    DBG (vt.getRoot ().toXmlString());
+    vt.getRoot().addListener(this);
     setInterceptsMouseClicks(false, true);
 
     auto const position = juce::VariantConverter<Position>::fromVar (v[CARTESIAN_POSITION]);
@@ -78,46 +77,6 @@ void SpeakerTreeComponent::resized()
             component->setBounds(bounds.removeFromLeft(otherColWidth));
     }
 }
-
-//static void getLegalSpeakerPosition (const float& valueModified,
-//                                     float& valueToAdjust,
-//                                     float& valueToTryToKeepIntact,
-//                                     SpatMode const spatMode,
-//                                     bool const isDirectOutOnly,
-//                                     juce::Identifier property)
-//{
-//    auto const modifiedFloat { static_cast<float> (vt[valueModified]) };
-//    auto const clampedModifiedFloat { std::clamp (modifiedFloat, -1.0f, 1.0f) };
-//    auto const adjustedFloat { static_cast<float> (vt[valueToAdjust]) };
-//    auto const intactFloat { static_cast<float> (vt[valueToTryToKeepIntact]) };
-//
-//    if (spatMode == SpatMode::mbap || isDirectOutOnly) {
-//        auto const clamped { std::clamp (modifiedFloat, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS) };
-//        vt.setProperty (valueModified, clamped, undoManager);
-//        return;
-//    }
-//
-//    // TODO VB
-//    // if (modifiedCol == AZIMUTH || modifiedCol == Col::ELEVATION) {
-//    //     return position.normalized ();
-//    // }
-//
-//    vt.setProperty (valueModified, clampedModifiedFloat, undoManager);
-//    auto const valueModified2 { clampedModifiedFloat * clampedModifiedFloat };
-//    auto const lengthWithoutValueToAdjust { valueModified2 + intactFloat * intactFloat };
-//
-//    if (lengthWithoutValueToAdjust > 1.0f) {
-//        auto const sign { intactFloat < 0.0f ? -1.0f : 1.0f };
-//        auto const length { std::sqrt (1.0f - valueModified2) };
-//        vt.setProperty (valueToTryToKeepIntact, sign * length, undoManager);
-//        vt.setProperty (valueToAdjust, 0.f, undoManager);
-//        return;
-//    }
-//
-//    auto const sign { adjustedFloat < 0.0f ? -1.0f : 1.0f };
-//    auto const length { std::sqrt (1.0f - lengthWithoutValueToAdjust) };
-//    vt.setProperty (valueToAdjust, sign * length, undoManager);
-//}
 
 static Position getLegalSpeakerPosition(Position const & position,
                                         SpatMode const spatMode,
@@ -289,16 +248,50 @@ void SpeakerTreeComponent::updateAllPositionLabels ()
 
 tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const
 {
-    auto parentTree = vt;
-    while (parentTree.getParent().isValid())
-        parentTree = parentTree.getParent();
+    return stringToSpatMode (vt.getRoot ().getProperty(SPAT_MODE).toString());
+}
 
-    return stringToSpatMode (parentTree[SPAT_MODE].toString());
+void SpeakerTreeComponent::valueTreePropertyChanged (juce::ValueTree& valueTree, const juce::Identifier& property)
+{
+    //only interested in this tree and property for now
+    //if (/*valueTree == vt && */property == SPAT_MODE)  
+        updateEnabledLabels();
+}
+
+void SpeakerTreeComponent::updateEnabledLabels ()
+{
+    if (auto const spatMode {getSpatMode()}; spatMode == SpatMode::vbap)
+    {
+        x.setEnabled (false);
+        z.setEnabled (false);
+        z.setEnabled (false);
+        azim.setEnabled (true);
+        elev.setEnabled (true);
+        distance.setEnabled (true);
+    }
+    else if (spatMode == SpatMode::mbap)
+    {
+        x.setEnabled (true);
+        z.setEnabled (true);
+        z.setEnabled (true);
+        azim.setEnabled (false);
+        elev.setEnabled (false);
+        distance.setEnabled (false);
+    }
+    else
+    {
+        x.setEnabled (true);
+        z.setEnabled (true);
+        z.setEnabled (true);
+        azim.setEnabled (true);
+        elev.setEnabled (true);
+        distance.setEnabled (true);
+    }
 }
 
 //==============================================================================
 
-SpeakerGroupComponent::SpeakerGroupComponent(juce::TreeViewItem * owner,
+SpeakerGroupComponent::SpeakerGroupComponent(juce::TreeViewItem* owner,
                                              const juce::ValueTree & v,
                                              juce::UndoManager & undoManager)
     : SpeakerTreeComponent(owner, v, undoManager)
@@ -308,7 +301,7 @@ SpeakerGroupComponent::SpeakerGroupComponent(juce::TreeViewItem * owner,
 
 //==============================================================================
 
-SpeakerComponent::SpeakerComponent(juce::TreeViewItem * owner,
+SpeakerComponent::SpeakerComponent(juce::TreeViewItem* owner,
                                    const juce::ValueTree & v,
                                    juce::UndoManager & undoManager)
     : SpeakerTreeComponent(owner, v, undoManager)
