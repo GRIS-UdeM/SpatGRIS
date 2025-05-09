@@ -256,14 +256,14 @@ void SpeakerTreeComponent::setupDraggableEditor(DraggableLabel & label, Position
 
     label.onTextChange = [this, &label, coordinate] {
         setPositionCoordinate(coordinate, label.getText().getFloatValue());
-        label.setText(getPositionCoordinateTrimmedText (coordinate), juce::dontSendNotification);
+        updateAllPositionLabels ();
     };
 
     label.onMouseDragCallback = [this, &label, coordinate](int deltaY) {
         auto currentValue = label.getText().getFloatValue();
         auto newValue = currentValue - deltaY * 0.01f;
         setPositionCoordinate (coordinate, newValue);
-        label.setText (getPositionCoordinateTrimmedText (coordinate), juce::dontSendNotification);
+        updateAllPositionLabels ();
     };
 
     addAndMakeVisible(label);
@@ -274,6 +274,16 @@ void SpeakerTreeComponent::setupEditor(juce::Label & editor, juce::StringRef tex
     editor.setText(text, juce::dontSendNotification);
     editor.setEditable(true);
     addAndMakeVisible(editor);
+}
+
+void SpeakerTreeComponent::updateAllPositionLabels ()
+{
+    x.setText(getPositionCoordinateTrimmedText(Position::Coordinate::x), juce::dontSendNotification);
+    y.setText(getPositionCoordinateTrimmedText(Position::Coordinate::y), juce::dontSendNotification);
+    z.setText(getPositionCoordinateTrimmedText(Position::Coordinate::z), juce::dontSendNotification);
+    azim.setText(getPositionCoordinateTrimmedText(Position::Coordinate::azimuth), juce::dontSendNotification);
+    elev.setText(getPositionCoordinateTrimmedText(Position::Coordinate::elevation), juce::dontSendNotification);
+    distance.setText(getPositionCoordinateTrimmedText(Position::Coordinate::radius), juce::dontSendNotification);
 }
 
 tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const

@@ -74,6 +74,8 @@ protected:
     void setupDraggableEditor(DraggableLabel & editor, Position::Coordinate coordinate);
     void setupEditor(juce::Label & editor, juce::StringRef text);
 
+    void updateAllPositionLabels();
+
     DraggableLabel id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
 
     juce::ValueTree vt;
