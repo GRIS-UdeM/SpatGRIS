@@ -39,9 +39,10 @@ SpeakerTreeComponent::SpeakerTreeComponent(juce::TreeViewItem * owner,
     setupDraggableEditor(z, Position::Coordinate::z);
 
     // TODO VB: all these will need some different logic from the above setupEditor
-    setupEditor(azim, juce::String(polar.azimuth.get(), 3));
-    setupEditor(elev, juce::String(polar.elevation.get(), 3));
-    setupEditor(distance, juce::String(polar.length, 3));
+    setupDraggableEditor (azim, Position::Coordinate::azimuth);
+    setupDraggableEditor (elev, Position::Coordinate::elevation);
+    setupDraggableEditor (distance, Position::Coordinate::radius);
+
     setupEditor(del, juce::String("DEL"));
     setupEditor(drag, juce::String("="));
 
