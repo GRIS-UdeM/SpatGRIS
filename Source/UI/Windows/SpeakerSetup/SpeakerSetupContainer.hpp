@@ -52,12 +52,7 @@ public:
 
     //juce::ValueTree getSpeakerSetupVt() { return vt; }
     void addValueTreeListener(juce::ValueTree::Listener * listener) { vt.addListener(listener); }
-    void setSpatMode(SpatMode spatMode)
-    {
-        DBG (vt.toXmlString());
-        vt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager);
-        DBG (vt.toXmlString ());
-    }
+    void setSpatMode(SpatMode spatMode) { vt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager); }
 
 private:
     GrisLookAndFeel lookAndFeel;
@@ -68,7 +63,7 @@ private:
     juce::ValueTree vt;
 
     //header
-    juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
+    juce::Label id, x, y, z, azim, elev, radius, gain, highpass, direct, del, drag;
 
     juce::TreeView speakerSetupTreeView;
     juce::TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton { "Sort" }, saveButton { "Save" };

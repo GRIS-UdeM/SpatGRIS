@@ -22,12 +22,12 @@
 namespace gris
 {
 SpeakerTreeComponent::SpeakerTreeComponent(juce::TreeViewItem* owner, const juce::ValueTree& v, juce::UndoManager& undoMan)
-    : vt(v)
+    : speakerTreeVt(v)
+    , speakerSetupVt (v.getRoot())
     , treeViewItem(owner)
     , undoManager (undoMan)
 {
-    DBG (vt.getRoot ().toXmlString());
-    vt.getRoot().addListener(this);
+    speakerSetupVt.addListener(this);
     setInterceptsMouseClicks(false, true);
 
     auto const position = juce::VariantConverter<Position>::fromVar (v[CARTESIAN_POSITION]);
@@ -40,20 +40,22 @@ SpeakerTreeComponent::SpeakerTreeComponent(juce::TreeViewItem* owner, const juce
     // TODO VB: all these will need some different logic from the above setupEditor
     setupDraggableEditor (azim, Position::Coordinate::azimuth);
     setupDraggableEditor (elev, Position::Coordinate::elevation);
-    setupDraggableEditor (distance, Position::Coordinate::radius);
+    setupDraggableEditor (radius, Position::Coordinate::radius);
 
     setupEditor(del, juce::String("DEL"));
     setupEditor(drag, juce::String("="));
 
     drag.setEditable(false);
     drag.setInterceptsMouseClicks(false, false);
+
+    updateEnabledLabels();
 }
 
 void SpeakerTreeComponent::paint(juce::Graphics & g)
 {
     if (treeViewItem->isSelected())
         g.fillAll(lnf.mHlBgcolor);
-    else if (vt.getType() == SPEAKER_GROUP)
+    else if (speakerTreeVt.getType() == SPEAKER_GROUP)
         g.fillAll(lnf.mBackGroundAndFieldColour.darker(.5f));
     else if (treeViewItem->getIndexInParent() % 2 == 0)
         g.fillAll(lnf.mGreyColour);
@@ -73,7 +75,7 @@ void SpeakerTreeComponent::resized()
         id.setBounds(bounds.removeFromLeft(idColWidth));
 
         // then position the other components with a fixed width of otherColWidth
-        for (auto * component : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del, &drag })
+        for (auto * component : { &x, &y, &z, &azim, &elev, &radius, &gain, &highpass, &direct, &del, &drag })
             component->setBounds(bounds.removeFromLeft(otherColWidth));
     }
 }
@@ -200,19 +202,14 @@ void SpeakerTreeComponent::setPositionCoordinate (Position::Coordinate coordinat
 
     // clamp the position to a legal value and set it back
     auto const spatMode {getSpatMode().value_or(SpatMode::mbap)};
-    position = getLegalSpeakerPosition (position, spatMode, vt[DIRECT_OUT_ONLY], coordinate);
+    position = getLegalSpeakerPosition (position, spatMode, speakerTreeVt[DIRECT_OUT_ONLY], coordinate);
     setPosition (position);
 }
 
 void SpeakerTreeComponent::setupDraggableEditor(DraggableLabel & label, Position::Coordinate coordinate)
 {
     label.setEditable(true);
-
     label.setText(getPositionCoordinateTrimmedText(coordinate), juce::dontSendNotification);
-
-    // Create and hold the listener to sync value -> label
-    //auto * listener = new ValueToLabelListener(vt.getPropertyAsValue(identifier, &undoManager), label);
-    //valueListeners.add(listener);
 
     label.onTextChange = [this, &label, coordinate] {
         setPositionCoordinate(coordinate, label.getText().getFloatValue());
@@ -243,18 +240,18 @@ void SpeakerTreeComponent::updateAllPositionLabels ()
     z.setText(getPositionCoordinateTrimmedText(Position::Coordinate::z), juce::dontSendNotification);
     azim.setText(getPositionCoordinateTrimmedText(Position::Coordinate::azimuth), juce::dontSendNotification);
     elev.setText(getPositionCoordinateTrimmedText(Position::Coordinate::elevation), juce::dontSendNotification);
-    distance.setText(getPositionCoordinateTrimmedText(Position::Coordinate::radius), juce::dontSendNotification);
+    radius.setText(getPositionCoordinateTrimmedText(Position::Coordinate::radius), juce::dontSendNotification);
 }
 
 tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const
 {
-    return stringToSpatMode (vt.getRoot ().getProperty(SPAT_MODE).toString());
+    return stringToSpatMode (speakerTreeVt.getRoot ().getProperty(SPAT_MODE).toString());
 }
 
 void SpeakerTreeComponent::valueTreePropertyChanged (juce::ValueTree& valueTree, const juce::Identifier& property)
 {
     //only interested in this tree and property for now
-    //if (/*valueTree == vt && */property == SPAT_MODE)  
+    if (valueTree == speakerSetupVt && property == SPAT_MODE)
         updateEnabledLabels();
 }
 
@@ -263,29 +260,29 @@ void SpeakerTreeComponent::updateEnabledLabels ()
     if (auto const spatMode {getSpatMode()}; spatMode == SpatMode::vbap)
     {
         x.setEnabled (false);
-        z.setEnabled (false);
+        y.setEnabled (false);
         z.setEnabled (false);
         azim.setEnabled (true);
         elev.setEnabled (true);
-        distance.setEnabled (true);
+        radius.setEnabled (true);
     }
     else if (spatMode == SpatMode::mbap)
     {
         x.setEnabled (true);
-        z.setEnabled (true);
+        y.setEnabled (true);
         z.setEnabled (true);
         azim.setEnabled (false);
         elev.setEnabled (false);
-        distance.setEnabled (false);
+        radius.setEnabled (false);
     }
     else
     {
         x.setEnabled (true);
-        z.setEnabled (true);
+        y.setEnabled (true);
         z.setEnabled (true);
         azim.setEnabled (true);
         elev.setEnabled (true);
-        distance.setEnabled (true);
+        radius.setEnabled (true);
     }
 }
 

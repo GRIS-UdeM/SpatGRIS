@@ -61,10 +61,10 @@ public:
 
     void setPosition(Position position)
     {
-        vt.setProperty(CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar(position), &undoManager);
+        speakerTreeVt.setProperty(CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar(position), &undoManager);
     }
 
-    Position getPosition() { return juce::VariantConverter<Position>::fromVar(vt[CARTESIAN_POSITION]); }
+    Position getPosition() { return juce::VariantConverter<Position>::fromVar(speakerTreeVt[CARTESIAN_POSITION]); }
 
     float getPositionCoordinate (Position::Coordinate coordinate);
 
@@ -78,9 +78,10 @@ protected:
 
     void updateAllPositionLabels();
 
-    DraggableLabel id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
+    DraggableLabel id, x, y, z, azim, elev, radius, gain, highpass, direct, del, drag;
 
-    juce::ValueTree vt;
+    juce::ValueTree speakerTreeVt;
+    juce::ValueTree speakerSetupVt;
 
     GrisLookAndFeel lnf;
     juce::TreeViewItem* treeViewItem;
@@ -90,7 +91,7 @@ protected:
     juce::UndoManager& undoManager;
 
 private:
-    void valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property) override;
+    void valueTreePropertyChanged(juce::ValueTree & speakerTreeVt, const juce::Identifier & property) override;
 
     void updateEnabledLabels();
 };

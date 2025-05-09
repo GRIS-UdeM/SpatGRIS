@@ -51,7 +51,7 @@ SpeakerSetupContainer::SpeakerSetupContainer(const SpeakerSetup & setup, const j
     setLabelText (z, "Z");
     setLabelText (azim, "Azimuth");
     setLabelText (elev, "Elevation");
-    setLabelText (distance, "Distance");
+    setLabelText (radius, "Radius");
     setLabelText (gain, "Gain");
     setLabelText (highpass, "Highpass");
     setLabelText (direct, "Direct");
@@ -90,7 +90,7 @@ void SpeakerSetupContainer::resized ()
         id.setBounds(header.removeFromLeft(fixedLeftColWidth));
 
         // then position the other components with a fixed width of otherColWidth
-        for (auto label : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
+        for (auto label : { &x, &y, &z, &azim, &elev, &radius, &gain, &highpass, &direct, &del })
             label->setBounds(header.removeFromLeft(otherColWidth));
 
         drag.setBounds (header.removeFromLeft (dragColWidth));
