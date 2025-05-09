@@ -85,7 +85,7 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
         return {};
     }
 
-    DBG (oldSpeakerSetup.toXmlString ());
+    //DBG (oldSpeakerSetup.toXmlString ());
 
     // get outta here if the version is already up to date
     if (oldSpeakerSetup.getProperty(VERSION) == CURRENT_SPEAKER_SETUP_VERSION)
@@ -125,7 +125,7 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
         mainSpeakerGroup.appendChild (newSpeaker, nullptr);
     }
 
-    DBG (newVt.toXmlString());
+    //DBG (newVt.toXmlString());
 
     return newVt;
 }
