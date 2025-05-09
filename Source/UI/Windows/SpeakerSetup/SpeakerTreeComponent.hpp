@@ -21,10 +21,9 @@
 #include <Data/sg_Position.hpp>
 #include <Data/sg_SpatMode.hpp>
 
-//class SpeakerSetupLine;
-
 namespace gris
 {
+class SpeakerSetupLine;
 
 class DraggableLabel : public juce::Label
 {
@@ -52,7 +51,7 @@ private:
 class SpeakerTreeComponent : public juce::Component, public juce::ValueTree::Listener
 {
 public:
-    SpeakerTreeComponent(juce::TreeViewItem* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    SpeakerTreeComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
     ~SpeakerTreeComponent() { setLookAndFeel(nullptr); }
 
     void paint(juce::Graphics & g) override;
@@ -84,7 +83,7 @@ protected:
     juce::ValueTree speakerSetupVt;
 
     GrisLookAndFeel lnf;
-    juce::TreeViewItem* treeViewItem;
+    SpeakerSetupLine* treeViewItem;
 
     tl::optional<SpatMode> getSpatMode () const;
 
@@ -101,7 +100,7 @@ private:
 class SpeakerGroupComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerGroupComponent(juce::TreeViewItem* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    SpeakerGroupComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
 };
 
 //==============================================================================
@@ -109,6 +108,6 @@ public:
 class SpeakerComponent : public SpeakerTreeComponent
 {
 public:
-    SpeakerComponent(juce::TreeViewItem* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    SpeakerComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
 };
 } // namespace gris

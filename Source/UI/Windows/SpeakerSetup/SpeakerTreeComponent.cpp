@@ -16,12 +16,14 @@
 */
 
 #include "SpeakerTreeComponent.hpp"
+#include "SpeakerSetupLine.hpp"
 #include <Data/StrongTypes/sg_CartesianVector.hpp>
-//#include "SpeakerSetupLine.hpp"
 
 namespace gris
 {
-SpeakerTreeComponent::SpeakerTreeComponent(juce::TreeViewItem* owner, const juce::ValueTree& v, juce::UndoManager& undoMan)
+SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
+                                           const juce::ValueTree & v,
+                                           juce::UndoManager & undoMan)
     : speakerTreeVt(v)
     , speakerSetupVt (v.getRoot())
     , treeViewItem(owner)
@@ -288,7 +290,7 @@ void SpeakerTreeComponent::updateEnabledLabels ()
 
 //==============================================================================
 
-SpeakerGroupComponent::SpeakerGroupComponent(juce::TreeViewItem* owner,
+SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine* owner,
                                              const juce::ValueTree & v,
                                              juce::UndoManager & undoManager)
     : SpeakerTreeComponent(owner, v, undoManager)
@@ -298,7 +300,7 @@ SpeakerGroupComponent::SpeakerGroupComponent(juce::TreeViewItem* owner,
 
 //==============================================================================
 
-SpeakerComponent::SpeakerComponent(juce::TreeViewItem* owner,
+SpeakerComponent::SpeakerComponent(SpeakerSetupLine* owner,
                                    const juce::ValueTree & v,
                                    juce::UndoManager & undoManager)
     : SpeakerTreeComponent(owner, v, undoManager)
