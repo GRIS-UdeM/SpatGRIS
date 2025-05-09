@@ -81,7 +81,7 @@ protected:
     GrisLookAndFeel lnf;
     juce::TreeViewItem * treeViewItem;
 
-    SpatMode getSpatMode () const;
+    tl::optional<SpatMode> getSpatMode () const;
 
     ///** This is used to edit the label values back if they were clamped by getLegalSpeakerPosition() */
     //class ValueToLabelListener : public juce::Value::Listener

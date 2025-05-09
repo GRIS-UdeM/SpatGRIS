@@ -239,7 +239,8 @@ void SpeakerTreeComponent::setPositionCoordinate (Position::Coordinate coordinat
     }();
 
     // clamp the position to a legal value and set it back
-    position = getLegalSpeakerPosition (position, getSpatMode (), vt[DIRECT_OUT_ONLY], coordinate);
+    auto const spatMode {getSpatMode().value_or(SpatMode::mbap)};
+    position = getLegalSpeakerPosition (position, spatMode, vt[DIRECT_OUT_ONLY], coordinate);
     setPosition (position);
 }
 
@@ -275,14 +276,13 @@ void SpeakerTreeComponent::setupEditor(juce::Label & editor, juce::StringRef tex
     addAndMakeVisible(editor);
 }
 
-SpatMode SpeakerTreeComponent::getSpatMode() const
+tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const
 {
     auto parentTree = vt;
     while (parentTree.getParent().isValid())
         parentTree = parentTree.getParent();
 
-    jassert(parentTree.hasProperty(SPAT_MODE));
-    return static_cast<SpatMode>(static_cast<int>(parentTree[SPAT_MODE]));
+    return stringToSpatMode (parentTree[SPAT_MODE].toString());
 }
 
 //==============================================================================
