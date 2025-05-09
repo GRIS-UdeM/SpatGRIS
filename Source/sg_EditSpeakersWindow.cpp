@@ -779,6 +779,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             const auto azimOffset = mPolyAzimuthOffset.getTextAs<float>() * PI.get() / 180.0f; // Convert to radians
             const auto elevOffset = mPolyElevOffset.getTextAs<float>() * PI.get() / 180.0f;    // Convert to radians
 
+            //NOW HERE: these should be set in the group value tree
             const auto centerX = mPolyX.getTextAs<float>();
             const auto centerY = mPolyY.getTextAs<float>();
             const auto centerZ = mPolyZ.getTextAs<float>();
@@ -836,11 +837,13 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             const auto & curVertex = vertices[i];
             const auto norm = std::hypot(curVertex[0], curVertex[1], curVertex[2]);
 
+            //THESE ARE THE COORDINATES OF THE SPEAKER RELATIVE TO THE CENTER ABOVE
             // Normalize and scale to radius
             const auto x = radius * curVertex[0] / norm;
             const auto y = radius * curVertex[1] / norm;
             const auto z = radius * curVertex[2] / norm;
 
+            //AND THESE ARE REALLY GROUP PROPERTIES AREN'T THEY
             // Apply azimuth rotation (around Z-axis)
             const auto sinAzim{ std::sin(azimOffset) };
             const auto cosAzim{ std::cos(azimOffset) };
