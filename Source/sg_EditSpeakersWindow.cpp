@@ -979,8 +979,7 @@ void EditSpeakersWindow::updateWinContent()
 #if USE_OLD_SPEAKER_SETUP_VIEW
     mSpeakersTableListBox.updateContent();
 #else
-    // TODO VB: this is hit multiple times when opening the window/app
-    // jassertfalse;
+    mSpeakerSetupContainer.setSpatMode (spatGrisData.speakerSetup.spatMode);
 #endif
     mDiffusionSlider.setValue(spatGrisData.speakerSetup.diffusion);
     mDiffusionSlider.setEnabled(spatGrisData.project.spatMode == SpatMode::mbap
@@ -1730,7 +1729,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
         } else {
             jassertfalse;
         }
-    } else {
+    } else if (property !=  SPAT_MODE) {
         jassertfalse;
     }
 }
