@@ -32,20 +32,17 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     speakerSetupVt.addListener(this);
     setInterceptsMouseClicks(false, true);
 
-    auto const position = juce::VariantConverter<Position>::fromVar (v[CARTESIAN_POSITION]);
-    auto const & polar{ position.getPolar() };
+    setupEditorLabel (id, ID);
 
-    setupDraggableEditor(x, Position::Coordinate::x);
-    setupDraggableEditor(y, Position::Coordinate::y);
-    setupDraggableEditor(z, Position::Coordinate::z);
+    setupDraggableLabel(x, Position::Coordinate::x);
+    setupDraggableLabel(y, Position::Coordinate::y);
+    setupDraggableLabel(z, Position::Coordinate::z);
+    setupDraggableLabel(azim, Position::Coordinate::azimuth);
+    setupDraggableLabel(elev, Position::Coordinate::elevation);
+    setupDraggableLabel(radius, Position::Coordinate::radius);
 
-    // TODO VB: all these will need some different logic from the above setupEditor
-    setupDraggableEditor (azim, Position::Coordinate::azimuth);
-    setupDraggableEditor (elev, Position::Coordinate::elevation);
-    setupDraggableEditor (radius, Position::Coordinate::radius);
-
-    setupEditor(del, juce::String("DEL"));
-    setupEditor(drag, juce::String("="));
+    setupStringLabel(del, juce::String("DEL"));
+    setupStringLabel(drag, juce::String("="));
 
     drag.setEditable(false);
     drag.setInterceptsMouseClicks(false, false);
@@ -208,7 +205,7 @@ void SpeakerTreeComponent::setPositionCoordinate (Position::Coordinate coordinat
     setPosition (position);
 }
 
-void SpeakerTreeComponent::setupDraggableEditor(DraggableLabel & label, Position::Coordinate coordinate)
+void SpeakerTreeComponent::setupDraggableLabel(DraggableLabel & label, Position::Coordinate coordinate)
 {
     label.setEditable(true);
     label.setText(getPositionCoordinateTrimmedText(coordinate), juce::dontSendNotification);
@@ -228,11 +225,17 @@ void SpeakerTreeComponent::setupDraggableEditor(DraggableLabel & label, Position
     addAndMakeVisible(label);
 }
 
-void SpeakerTreeComponent::setupEditor(juce::Label & editor, juce::StringRef text)
+void SpeakerTreeComponent::setupStringLabel (juce::Label & label, juce::StringRef text)
 {
-    editor.setText(text, juce::dontSendNotification);
-    editor.setEditable(true);
-    addAndMakeVisible(editor);
+    label.setText(text, juce::dontSendNotification);
+    addAndMakeVisible(label);
+}
+
+void SpeakerTreeComponent::setupEditorLabel (juce::Label& label, juce::Identifier property)
+{
+    label.setEditable (true);
+    label.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(property, &undoManager));
+    addAndMakeVisible (label);
 }
 
 void SpeakerTreeComponent::updateAllPositionLabels ()
@@ -266,7 +269,7 @@ void SpeakerTreeComponent::updateEnabledLabels ()
         z.setEnabled (false);
         azim.setEnabled (true);
         elev.setEnabled (true);
-        radius.setEnabled (true);
+        radius.setEnabled (false);
     }
     else if (spatMode == SpatMode::mbap)
     {
@@ -284,7 +287,7 @@ void SpeakerTreeComponent::updateEnabledLabels ()
         z.setEnabled (true);
         azim.setEnabled (true);
         elev.setEnabled (true);
-        radius.setEnabled (true);
+        radius.setEnabled (false);
     }
 }
 
@@ -295,7 +298,6 @@ SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine* owner,
                                              juce::UndoManager & undoManager)
     : SpeakerTreeComponent(owner, v, undoManager)
 {
-    setupEditor(id, ID);
 }
 
 //==============================================================================
@@ -305,11 +307,8 @@ SpeakerComponent::SpeakerComponent(SpeakerSetupLine* owner,
                                    juce::UndoManager & undoManager)
     : SpeakerTreeComponent(owner, v, undoManager)
 {
-    // TODO VB: this is super weird because all these components belong to the parent. We probably need some virtual
-    // function to call in resized where we get the list of components that are in children
-    setupEditor(id, ID);
-    setupEditor(gain, GAIN);
-    setupEditor(highpass, FREQ);
-    setupEditor(direct, DIRECT_OUT_ONLY);
+    setupEditorLabel(gain, GAIN);
+    setupEditorLabel(highpass, FREQ);
+    setupEditorLabel(direct, DIRECT_OUT_ONLY);
 }
 } // namespace gris

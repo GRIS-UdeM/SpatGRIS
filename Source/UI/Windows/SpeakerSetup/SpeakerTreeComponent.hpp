@@ -72,8 +72,9 @@ public:
     void setPositionCoordinate (Position::Coordinate coordinate, float newValue);
 
 protected:
-    void setupDraggableEditor(DraggableLabel & editor, Position::Coordinate coordinate);
-    void setupEditor(juce::Label & editor, juce::StringRef text);
+    void setupDraggableLabel(DraggableLabel & label, Position::Coordinate coordinate);
+    void setupStringLabel(juce::Label & label, juce::StringRef text);
+    void setupEditorLabel (juce::Label& label, juce::Identifier property);
 
     void updateAllPositionLabels();
 
