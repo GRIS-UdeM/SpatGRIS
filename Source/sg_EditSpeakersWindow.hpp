@@ -251,11 +251,11 @@ private:
     void mouseUp(juce::MouseEvent const & event) override;
 #else
     void valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property) override;
-    void valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child) override;
-    void valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent) override;
-    void valueTreeChildOrderChanged(juce::ValueTree & parent, int oldChildId, int newChildId) override;
-    void valueTreeParentChanged(juce::ValueTree & childWithNewParent) override;
-    void valueTreeRedirected(juce::ValueTree &) override { jassertfalse; }
+    //void valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child) override;
+    //void valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent) override;
+    //void valueTreeChildOrderChanged(juce::ValueTree & parent, int oldChildId, int newChildId) override;
+    //void valueTreeParentChanged(juce::ValueTree & childWithNewParent) override;
+    //void valueTreeRedirected(juce::ValueTree &) override { jassertfalse; }
 
     juce::UndoManager& undoManager;
 #endif

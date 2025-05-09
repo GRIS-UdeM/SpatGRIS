@@ -174,7 +174,9 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mPolyRadius(lookAndFeel)
     , mPolyAzimuthOffset(lookAndFeel)
     , mPolyElevOffset(lookAndFeel)
+#if ! USE_OLD_SPEAKER_SETUP_VIEW
     , undoManager (undoMan)
+#endif
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -656,6 +658,7 @@ void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutpu
                                            juce::ValueTree & parent,
                                            bool append)
 {
+#if !USE_OLD_SPEAKER_SETUP_VIEW
     auto const & newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
     jassert(parent.isValid());
 
@@ -672,6 +675,7 @@ void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutpu
         parent.appendChild(newSpeakerVt, &undoManager);
     else
         parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, &undoManager);
+#endif
 }
 
 //==============================================================================
@@ -774,6 +778,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             const auto radius = mPolyRadius.getTextAs<float>();
             const auto azimOffset = mPolyAzimuthOffset.getTextAs<float>() * PI.get() / 180.0f; // Convert to radians
             const auto elevOffset = mPolyElevOffset.getTextAs<float>() * PI.get() / 180.0f;    // Convert to radians
+
             const auto centerX = mPolyX.getTextAs<float>();
             const auto centerY = mPolyY.getTextAs<float>();
             const auto centerZ = mPolyZ.getTextAs<float>();
@@ -1699,29 +1704,29 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
         jassertfalse;
 }
 
-void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)
-{
-    //TODO VB
-    jassertfalse;
-}
-
-void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent)
-{
-    //TODO VB
-    jassertfalse;
-}
-
-void EditSpeakersWindow::valueTreeChildOrderChanged(juce::ValueTree & parent, int oldChildId, int newChildId)
-{
-    //TODO VB
-    jassertfalse;
-}
-
-void EditSpeakersWindow::valueTreeParentChanged(juce::ValueTree & /*childWithNewParent*/)
-{
-    //TODO VB
-    jassertfalse;
-}
+//void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)
+//{
+//    //TODO VB
+//    //jassertfalse;
+//}
+//
+//void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent)
+//{
+//    //TODO VB
+//    //jassertfalse;
+//}
+//
+//void EditSpeakersWindow::valueTreeChildOrderChanged(juce::ValueTree & parent, int oldChildId, int newChildId)
+//{
+//    //TODO VB
+//    jassertfalse;
+//}
+//
+//void EditSpeakersWindow::valueTreeParentChanged(juce::ValueTree & /*childWithNewParent*/)
+//{
+//    //TODO VB
+//    jassertfalse;
+//}
 
 #endif
 
