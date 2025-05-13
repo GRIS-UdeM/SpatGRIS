@@ -176,7 +176,7 @@ juce::ValueTree SpeakerSetupContainer::getSelectedItem()
 {
     //if we have a selection, return the last selected item. Otherwise return the last overall item
     if (auto const numSelected{ speakerSetupTreeView.getNumSelectedItems() }) {
-        if (auto const selected = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getSelectedItem(numSelected)))
+        if (auto const selected = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getSelectedItem(0)))
             return selected->getValueTree();
     } else {
         auto const numLines = speakerSetupTreeView.getNumRowsInTree();

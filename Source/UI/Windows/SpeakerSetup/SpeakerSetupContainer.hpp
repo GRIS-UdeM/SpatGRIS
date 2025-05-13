@@ -47,7 +47,15 @@ public:
 
     void saveSpeakerSetup();
 
+    /** returns either the selected item or the last item*/
     juce::ValueTree getSelectedItem();
+
+    std::pair<juce::ValueTree, int> getParentAndIndexOfSelectedItem()
+    {
+        auto const vtRow = getSelectedItem();
+        auto parent = vtRow.getParent();
+        return { parent, parent.indexOf(vtRow) };
+    }
 
     //juce::ValueTree getSpeakerSetupVt() { return vt; }
     void addValueTreeListener(juce::ValueTree::Listener * listener) { vt.addListener(listener); }

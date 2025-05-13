@@ -227,7 +227,7 @@ private:
     void addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition);
     //==============================================================================
     // VIRTUALS
-    void addNewSpeakerToVt (const gris::output_patch_t& newOutputPatch, juce::ValueTree& parent, bool append);
+    void addNewSpeakerToVt (const gris::output_patch_t& newOutputPatch, juce::ValueTree parent, bool append);
     void buttonClicked(juce::Button * button) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void textEditorFocusLost(juce::TextEditor &) override;

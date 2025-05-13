@@ -615,10 +615,12 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
         return;
 
     // TODO VB: dry this, it's also below
-    auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
-    jassert(vtRow.isValid());
-    juce::ValueTree curGroup = vtRow.getParent();
-    auto indexInCurGroup = curGroup.indexOf(vtRow);
+    //auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
+    //jassert(vtRow.isValid());
+    //juce::ValueTree curGroup = vtRow.getParent();
+    //auto indexInCurGroup = curGroup.indexOf(vtRow);
+
+    auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getParentAndIndexOfSelectedItem ();
 
     juce::ValueTree newGroup("SPEAKER_GROUP");
     newGroup.setProperty(ID, "new group", &undoManager);
@@ -654,7 +656,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
 }
 
 void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch,
-                                           juce::ValueTree & parent,
+                                           juce::ValueTree parent,
                                            bool append)
 {
 #if !USE_OLD_SPEAKER_SETUP_VIEW
@@ -694,13 +696,6 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
-#else
-    // TODO VB: dry this, it's also above
-    auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
-    jassert(vtRow.isValid());
-    auto parent = vtRow.getParent();
-    tl::optional<int> selectedRow = parent.indexOf(vtRow);
-
 #endif
 
     // mMainContentComponent.setShowTriplets(false);
@@ -711,16 +706,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             return;
         }
 
-        tl::optional<output_patch_t> outputPatch{};
-        tl::optional<int> index{};
-
-        if (selectedRow) {
-            outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
-            index = *selectedRow + 1;
-        }
-
-        // TODO VB: put this in a function, probably in speakersetupcontainer
-        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
+        auto const [parent, selectedRow] = mSpeakerSetupContainer.getParentAndIndexOfSelectedItem();
+        auto const outputPatchToCopy = getSpeakerOutputPatchForRow(selectedRow);
+        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, selectedRow + 1) };
 #if ! USE_OLD_SPEAKER_SETUP_VIEW
         addNewSpeakerToVt(newOutputPatch, parent, false);
 #endif
