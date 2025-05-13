@@ -2,10 +2,9 @@
 
 <JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.3.7"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
-              companyName="GRIS - UdeM" cppLanguageStandard="latest"
-              jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
-              addUsingNamespaceToJuceHeader="0" defines="JUCE_MODAL_LOOPS_PERMITTED=1"
-              headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS">
+              companyName="GRIS - UdeM" cppLanguageStandard="latest" jucerFormatVersion="1"
+              displaySplashScreen="1" maxBinaryFileSize="1048576" addUsingNamespaceToJuceHeader="0"
+              defines="JUCE_MODAL_LOOPS_PERMITTED=1" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="FbCRQM" name="FreeFarsi-Mono.otf" compile="0" resource="1"
@@ -29,6 +28,7 @@
             file="Resources/SpatGRIS_3.3.7_Manuel_FR.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
+      <FILE id="ObNeQh" name="trash.svg" compile="0" resource="1" file="Resources/trash.svg"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
       <GROUP id="{D059D036-0ECD-ACF5-4465-BDC1A866C55E}" name="Audio">

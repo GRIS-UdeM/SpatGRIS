@@ -41,7 +41,17 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     setupDraggableLabel(elev, Position::Coordinate::elevation);
     setupDraggableLabel(radius, Position::Coordinate::radius);
 
-    setupStringLabel(del, juce::String("DEL"));
+    if (auto trashDrawable = juce::Drawable::createFromImageData(BinaryData::trash_svg, BinaryData::trash_svgSize))
+        deleteButton.setImages(trashDrawable.get());
+    else
+        jassertfalse;
+    deleteButton.setClickingTogglesState (false);
+    deleteButton.onClick = [this]() {
+        auto parent = speakerTreeVt.getParent();
+        parent.removeChild (speakerTreeVt, &undoManager);
+    };
+    addAndMakeVisible (deleteButton);
+
     setupStringLabel(drag, juce::String("="));
 
     drag.setEditable(false);
@@ -74,8 +84,9 @@ void SpeakerTreeComponent::resized()
         id.setBounds(bounds.removeFromLeft(idColWidth));
 
         // then position the other components with a fixed width of otherColWidth
-        for (auto * component : { &x, &y, &z, &azim, &elev, &radius, &gain, &highpass, &direct, &del, &drag })
-            component->setBounds(bounds.removeFromLeft(otherColWidth));
+        std::vector<juce::Component*> components = { &x, &y, &z, &azim, &elev, &radius, &gain, &highpass, &direct, &deleteButton, &drag };
+        for (auto* component : components)
+            component->setBounds (bounds.removeFromLeft (otherColWidth));
     }
 }
 
@@ -309,6 +320,8 @@ SpeakerComponent::SpeakerComponent(SpeakerSetupLine* owner,
 {
     setupEditorLabel(gain, GAIN);
     setupEditorLabel(highpass, FREQ);
-    setupEditorLabel(direct, DIRECT_OUT_ONLY);
+
+    direct.getToggleStateValue ().referTo (speakerTreeVt.getPropertyAsValue (DIRECT_OUT_ONLY, &undoManager));
+    addAndMakeVisible (direct);
 }
 } // namespace gris

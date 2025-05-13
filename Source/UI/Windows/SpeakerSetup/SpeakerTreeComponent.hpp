@@ -78,7 +78,11 @@ protected:
 
     void updateAllPositionLabels();
 
-    DraggableLabel id, x, y, z, azim, elev, radius, gain, highpass, direct, del, drag;
+    DraggableLabel id, x, y, z, azim, elev, radius, gain, highpass, drag;
+
+    juce::DrawableButton deleteButton { "TrashButton", juce::DrawableButton::ImageFitted };
+
+    juce::ToggleButton direct;
 
     juce::ValueTree speakerTreeVt;
     juce::ValueTree speakerSetupVt;
