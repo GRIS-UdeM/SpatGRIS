@@ -224,7 +224,7 @@ private:
     SpeakerData const & getSpeakerData(int rowNum) const;
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     void computeSpeakers();
-    void addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition);
+    void addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition);
     //==============================================================================
     // VIRTUALS
     void addNewSpeakerToVt (const gris::output_patch_t& newOutputPatch, juce::ValueTree& parent, bool append);

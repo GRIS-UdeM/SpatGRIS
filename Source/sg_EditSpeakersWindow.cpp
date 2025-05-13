@@ -564,7 +564,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 
 //==============================================================================
 // TODO VB: this seems to be a dupe from EditSpeakersWindow::buttonClicked() below?
-void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition)
+void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition)
 {
 #if USE_OLD_SPEAKER_SETUP_VIEW
     static auto constexpr GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
@@ -618,11 +618,12 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
     auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
     jassert(vtRow.isValid());
     juce::ValueTree curGroup = vtRow.getParent();
-    tl::optional<int> indexInCurGroup = curGroup.indexOf(vtRow);
+    auto indexInCurGroup = curGroup.indexOf(vtRow);
 
     juce::ValueTree newGroup("SPEAKER_GROUP");
-    newGroup.setProperty("ID", "new group", &undoManager);
-    curGroup.addChild(newGroup, *indexInCurGroup + 1, &undoManager);
+    newGroup.setProperty(ID, "new group", &undoManager);
+    newGroup.setProperty (CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar (groupPosition), &undoManager);
+    curGroup.addChild(newGroup, indexInCurGroup + 1, &undoManager);
 
     auto const & speakers{ spatGrisData.speakerSetup.speakers };
     output_patch_t newOutputPatch{};
@@ -633,11 +634,9 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, std::function<Position
 
         // so here, indexInCurGroup is really the index of the new group inside the current group
         // we'll need to keep that in sync with the actual number of speakers...
-        if (indexInCurGroup) {
-            outputPatch = getSpeakerOutputPatchForRow(*indexInCurGroup);
-            index = *indexInCurGroup;
-            *indexInCurGroup += 1;
-        }
+        outputPatch = getSpeakerOutputPatchForRow(indexInCurGroup);
+        index = indexInCurGroup;
+        indexInCurGroup += 1;
 
         newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
         mNumRows = speakers.size();
@@ -752,7 +751,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mSpeakerSetupContainer.saveSpeakerSetup ();
 #endif
     } else if (button == &mAddRingButton) {
-        auto getPosition = [this](int i) -> Position {
+        auto const getSpeakerPosition = [this](int i) -> Position {
             const auto numSpeakers{ mRingSpeakers.getTextAs<float>() };
 
             // Calculate the azimuth angle by distributing speakers evenly in a circle
@@ -771,9 +770,19 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             return Position{ PolarVector{ radians_t{ azimuth.centered() }, radians_t{ zenith }, radius } };
         };
 
-        addSpeakerGroup(mRingSpeakers.getTextAs<int>(), getPosition);
+        //for now all rings are centered at the origin
+        auto const groupPosition = Position { { 0.f, 0.f, 0.f } };
+
+        addSpeakerGroup(mRingSpeakers.getTextAs<int>(), groupPosition, getSpeakerPosition);
     } else if (button == &mAddPolyButton) {
-        const auto getPosition = [this](int i) -> Position {
+
+        auto const numFaces { mPolyFaces.getSelectionAsInt () };
+        jassert (numFaces == 4 || numFaces == 6 || numFaces == 8 || numFaces == 12 || numFaces == 20);
+
+        auto const groupPosition
+            = Position { { mPolyX.getTextAs<float> (), mPolyY.getTextAs<float> (), mPolyZ.getTextAs<float> () } };
+
+        auto const getSpeakerPosition = [this](int i) -> Position {
             const auto numFaces = mPolyFaces.getSelectionAsInt();
             const auto radius = mPolyRadius.getTextAs<float>();
             const auto azimOffset = mPolyAzimuthOffset.getTextAs<float>() * PI.get() / 180.0f; // Convert to radians
@@ -859,9 +868,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             return Position{ CartesianVector{ centerX + xRot, centerY + yAzim, centerZ + zRot } };
         };
 
-        const auto numFaces{ mPolyFaces.getSelectionAsInt() };
-        jassert(numFaces == 4 || numFaces == 6 || numFaces == 8 || numFaces == 12 || numFaces == 20);
-        addSpeakerGroup(numFaces, getPosition);
+        addSpeakerGroup(numFaces, groupPosition, getSpeakerPosition);
     } else if (button == &mPinkNoiseToggleButton) {
         // Pink noise button
         tl::optional<dbfs_t> newPinkNoiseLevel{};
