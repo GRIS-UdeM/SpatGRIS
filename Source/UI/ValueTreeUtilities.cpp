@@ -93,8 +93,8 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
 
     //create new value tree and copy root properties into it
     auto newVt = juce::ValueTree (SPEAKER_SETUP);
-    newVt.setProperty (VERSION, CURRENT_SPEAKER_SETUP_VERSION, nullptr);
     copyProperties (oldSpeakerSetup, newVt);
+    newVt.setProperty (VERSION, CURRENT_SPEAKER_SETUP_VERSION, nullptr);
 
     //create and append the main speaker group node
     auto mainSpeakerGroup = juce::ValueTree(SPEAKER_GROUP);
@@ -126,7 +126,6 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
     }
 
     //DBG (newVt.toXmlString());
-
     return newVt;
 }
 juce::ValueTree getTopParent (const juce::ValueTree& vt)

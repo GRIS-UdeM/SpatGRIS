@@ -614,12 +614,6 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakers > MAX_NUM_SPEAKERS)
         return;
 
-    // TODO VB: dry this, it's also below
-    //auto const vtRow = mSpeakerSetupContainer.getSelectedItem();
-    //jassert(vtRow.isValid());
-    //juce::ValueTree curGroup = vtRow.getParent();
-    //auto indexInCurGroup = curGroup.indexOf(vtRow);
-
     auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getParentAndIndexOfSelectedItem ();
 
     juce::ValueTree newGroup("SPEAKER_GROUP");
@@ -643,8 +637,11 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
         newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
         mNumRows = speakers.size();
 
-        mMainContentComponent.setSpeakerPosition(newOutputPatch, getSpeakerPosition(i));
-        addNewSpeakerToVt(newOutputPatch, newGroup, true);
+        auto newSpeakerVt = addNewSpeakerToVt (newOutputPatch, newGroup, true);
+        newSpeakerVt.setProperty(CARTESIAN_POSITION,
+                                 juce::VariantConverter<Position>::toVar(getSpeakerPosition(i)),
+                                 &undoManager);
+        mMainContentComponent.setSpeakerPosition(newOutputPatch, SpeakerData::getAbsoluteSpeakerPosition(newSpeakerVt));
     }
     mMainContentComponent.refreshSpeakers();
     updateWinContent();
@@ -655,9 +652,9 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
 #endif
 }
 
-void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch,
-                                           juce::ValueTree parent,
-                                           bool append)
+juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch,
+                                                      juce::ValueTree parent,
+                                                      bool append)
 {
 #if !USE_OLD_SPEAKER_SETUP_VIEW
     auto const & newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
@@ -676,6 +673,8 @@ void EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutpu
         parent.appendChild(newSpeakerVt, &undoManager);
     else
         parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, &undoManager);
+
+    return newSpeakerVt;
 #endif
 }
 
@@ -767,19 +766,19 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         auto const numFaces { mPolyFaces.getSelectionAsInt () };
         jassert (numFaces == 4 || numFaces == 6 || numFaces == 8 || numFaces == 12 || numFaces == 20);
 
-        auto const groupPosition
-            = Position { { mPolyX.getTextAs<float> (), mPolyY.getTextAs<float> (), mPolyZ.getTextAs<float> () } };
+        // in vbap, the group position is always at the origin
+        Position groupPosition = Position{ { 0.f, 0.f, 0.f } };
+        if (spatGrisData.speakerSetup.spatMode != SpatMode::vbap) {
+            groupPosition = Position{
+                CartesianVector{ mPolyX.getTextAs<float>(), mPolyY.getTextAs<float>(), mPolyZ.getTextAs<float>() }
+            };
+        }
 
         auto const getSpeakerPosition = [this](int i) -> Position {
             const auto numFaces = mPolyFaces.getSelectionAsInt();
             const auto radius = mPolyRadius.getTextAs<float>();
             const auto azimOffset = mPolyAzimuthOffset.getTextAs<float>() * PI.get() / 180.0f; // Convert to radians
             const auto elevOffset = mPolyElevOffset.getTextAs<float>() * PI.get() / 180.0f;    // Convert to radians
-
-            //NOW HERE: these should be set in the group value tree
-            const auto centerX = mPolyX.getTextAs<float>();
-            const auto centerY = mPolyY.getTextAs<float>();
-            const auto centerZ = mPolyZ.getTextAs<float>();
 
             using Vec3 = std::array<float, 3>;
             const auto vertices = [&numFaces]() -> std::span<const Vec3> {
@@ -834,13 +833,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             const auto & curVertex = vertices[i];
             const auto norm = std::hypot(curVertex[0], curVertex[1], curVertex[2]);
 
-            //THESE ARE THE COORDINATES OF THE SPEAKER RELATIVE TO THE CENTER ABOVE
             // Normalize and scale to radius
             const auto x = radius * curVertex[0] / norm;
             const auto y = radius * curVertex[1] / norm;
             const auto z = radius * curVertex[2] / norm;
 
-            //AND THESE ARE REALLY GROUP PROPERTIES AREN'T THEY
             // Apply azimuth rotation (around Z-axis)
             const auto sinAzim{ std::sin(azimOffset) };
             const auto cosAzim{ std::cos(azimOffset) };
@@ -853,7 +850,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             const auto xRot = xAzim * cosElev + z * sinElev;
             const auto zRot = -xAzim * sinElev + z * cosElev;
 
-            return Position{ CartesianVector{ centerX + xRot, centerY + yAzim, centerZ + zRot } };
+            return Position { CartesianVector{ xRot, yAzim, zRot } };
         };
 
         addSpeakerGroup(numFaces, groupPosition, getSpeakerPosition);
@@ -1676,16 +1673,30 @@ void EditSpeakersWindow::mouseUp(juce::MouseEvent const & /*event*/)
 
 void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property)
 {
-    output_patch_t const outputPatch{ vt.getProperty(ID) };
     auto const newVal{ vt[property] };
 
     if (vt.getType() == SPEAKER_GROUP) {
-        jassertfalse;
-    } else if (vt.getType() == SPEAKER) {
         if (property == CARTESIAN_POSITION) {
-            Position newPosition { juce::VariantConverter<Position>::fromVar (newVal) };
-            mMainContentComponent.setSpeakerPosition (outputPatch, newPosition);
+            for (auto speakerVt : vt) {
+                jassert (speakerVt.getType() == SPEAKER);
+                output_patch_t const outputPatch { speakerVt.getProperty (ID) };
+                mMainContentComponent.setSpeakerPosition(outputPatch,
+                                                         SpeakerData::getAbsoluteSpeakerPosition(speakerVt));
+            }
+
             mShouldComputeSpeakers = true;
+        }
+        else {
+            jassertfalse;
+        }
+    } else if (vt.getType() == SPEAKER) {
+        output_patch_t const outputPatch { vt.getProperty (ID) };
+
+        if (property == CARTESIAN_POSITION) {
+            //set speaker position as the center of the group + its position within the group
+            mMainContentComponent.setSpeakerPosition(outputPatch, SpeakerData::getAbsoluteSpeakerPosition(vt));
+            mShouldComputeSpeakers = true;
+
         } else if (property == GAIN) {
             mMainContentComponent.setSpeakerGain(outputPatch, dbfs_t(newVal));
         } else if (property == DIRECT_OUT_ONLY) {

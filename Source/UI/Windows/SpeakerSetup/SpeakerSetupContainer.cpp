@@ -145,6 +145,8 @@ bool SpeakerSetupContainer::keyPressed (const juce::KeyPress& key)
 
 void SpeakerSetupContainer::saveSpeakerSetup()
 {
+    //DBG (vt.toXmlString ());
+
     const auto saveFile = [valueTree = vt](juce::File file) {
         if (! file.replaceWithText (valueTree.toXmlString())) {
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
