@@ -861,15 +861,17 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             newPinkNoiseLevel = dbfs_t{ static_cast<float>(mPinkNoiseGainSlider.getValue()) };
         }
         mMainContentComponent.setPinkNoiseGain(newPinkNoiseLevel);
-    } else if (button->getName().getIntValue() < DIRECT_OUT_BUTTON_ID_OFFSET) {
+    }
+#if USE_OLD_SPEAKER_SETUP_VIEW
+    else if (button->getName().getIntValue() < DIRECT_OUT_BUTTON_ID_OFFSET) {
         // Delete button
         auto const row{ button->getName().getIntValue() };
         auto const speakerId{ spatGrisData.speakerSetup.ordering[row] };
         mMainContentComponent.removeSpeaker(speakerId);
         updateWinContent();
-#if USE_OLD_SPEAKER_SETUP_VIEW
+
         mSpeakersTableListBox.deselectAllRows();
-#endif
+
         mShouldComputeSpeakers = true;
     } else {
         // Direct out
@@ -880,6 +882,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         updateWinContent();
         mShouldComputeSpeakers = true;
     }
+#endif
 
     computeSpeakers();
 }
@@ -1713,17 +1716,31 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
         jassertfalse;
 }
 
-//void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)
-//{
-//    //TODO VB
-//    //jassertfalse;
-//}
-//
-//void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent)
-//{
-//    //TODO VB
-//    //jassertfalse;
-//}
+void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)
+{
+    //TODO VB: this is called when undoing a deletion
+    DBG ("EditSpeakersWindow::valueTreeChildAdded");
+}
+
+void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent)
+{
+    //auto const row { button->getName ().getIntValue () };
+    //auto const speakerId { spatGrisData.speakerSetup.ordering[row] };
+
+    if (child.getType () == SPEAKER_GROUP) {
+        for (auto speakerVt : child) {
+            jassert(speakerVt.getType() == SPEAKER);
+            output_patch_t const outputPatch{ speakerVt.getProperty(ID) };
+            mMainContentComponent.removeSpeaker(outputPatch);
+        }
+    }
+    else if (child.getType () == SPEAKER) {
+        output_patch_t outputPatch {child[ID]};
+        mMainContentComponent.removeSpeaker (outputPatch);
+        updateWinContent ();
+    }
+
+}
 //
 //void EditSpeakersWindow::valueTreeChildOrderChanged(juce::ValueTree & parent, int oldChildId, int newChildId)
 //{

@@ -96,7 +96,6 @@ protected:
 
 private:
     void valueTreePropertyChanged(juce::ValueTree & speakerTreeVt, const juce::Identifier & property) override;
-
     void updateEnabledLabels();
 };
 
