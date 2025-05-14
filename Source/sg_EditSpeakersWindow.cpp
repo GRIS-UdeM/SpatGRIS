@@ -678,6 +678,8 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
         parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, &undoManager);
 
     return newSpeakerVt;
+#else
+    return {};
 #endif
 }
 
@@ -707,10 +709,19 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             return;
         }
 
+#if USE_OLD_SPEAKER_SETUP_VIEW
+        tl::optional<output_patch_t> outputPatch{};
+        tl::optional<int> index{};
+
+        if (selectedRow) {
+            outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
+            index = *selectedRow + 1;
+        }
+        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
+#else
         auto const [parent, selectedRow] = mSpeakerSetupContainer.getParentAndIndexOfSelectedItem();
         auto const outputPatchToCopy = getSpeakerOutputPatchForRow(selectedRow);
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, selectedRow + 1) };
-#if ! USE_OLD_SPEAKER_SETUP_VIEW
         addNewSpeakerToVt(newOutputPatch, parent, false);
 #endif
 
