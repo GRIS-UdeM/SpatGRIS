@@ -1719,20 +1719,31 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
 
 void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)
 {
-    //currently this path is only used when undoing a deletion
-    if (!undoManager.isPerformingUndoRedo())
+    auto const childType{ child.getType() };
+    //currently this path is only used when undoing a speaker or speaker group deletion
+    if (!undoManager.isPerformingUndoRedo() || (childType != SPEAKER && childType != SPEAKER_GROUP))
         return;
 
-    if (child.getType() == SPEAKER) {
-        const auto selectedRow = parent.indexOf (child);
-        const auto speakerSetup = SpeakerData::fromVt (child);
-        auto const newOutputPatch{ mMainContentComponent.addSpeaker(*speakerSetup, selectedRow + 1) };
+    output_patch_t newOutputPatch;
 
-        mMainContentComponent.refreshSpeakers();
-        updateWinContent();
-        selectSpeaker(newOutputPatch);
-        mShouldComputeSpeakers = true;
+    const auto putBackSpeaker = [this](juce::ValueTree speakerGroup, juce::ValueTree speaker) {
+        const auto selectedRow = speakerGroup.indexOf(speaker);
+        const auto speakerSetup = SpeakerData::fromVt(speaker);
+        return mMainContentComponent.addSpeaker(*speakerSetup, selectedRow + 1);
+    };
+
+    if (childType == SPEAKER_GROUP) {
+        for (auto speaker : child)
+            newOutputPatch = putBackSpeaker(child, speaker);
+    } else {
+        jassert(childType == SPEAKER);
+        newOutputPatch = putBackSpeaker(parent, child);
     }
+
+    mMainContentComponent.refreshSpeakers();
+    updateWinContent();
+    selectSpeaker(newOutputPatch);
+    mShouldComputeSpeakers = true;
 }
 
 void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent)
