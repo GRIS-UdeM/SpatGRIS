@@ -267,7 +267,8 @@ tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const
 void SpeakerTreeComponent::valueTreePropertyChanged (juce::ValueTree& valueTree, const juce::Identifier& property)
 {
     //only interested in this tree and property for now
-    if (valueTree == speakerSetupVt && property == SPAT_MODE)
+    if ((valueTree == speakerSetupVt && property == SPAT_MODE)
+        || (valueTree == speakerTreeVt && property == DIRECT_OUT_ONLY))
         updateEnabledLabels();
 }
 
@@ -280,7 +281,7 @@ void SpeakerTreeComponent::updateEnabledLabels ()
         z.setEnabled (false);
         azim.setEnabled (true);
         elev.setEnabled (true);
-        radius.setEnabled (false);
+        radius.setEnabled (speakerTreeVt[DIRECT_OUT_ONLY]);
     }
     else if (spatMode == SpatMode::mbap)
     {
