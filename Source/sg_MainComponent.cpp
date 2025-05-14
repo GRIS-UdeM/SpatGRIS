@@ -2503,32 +2503,41 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
 }
 
 //==============================================================================
-output_patch_t MainContentComponent::addSpeaker (const SpeakerData& speakerData,
-                                                 tl::optional<int> const index)
+output_patch_t MainContentComponent::addSpeaker(const SpeakerData & speakerData,
+                                                tl::optional<int> const index,
+                                                tl::optional <output_patch_t>newOutputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock { mLock };
 
     auto newSpeaker { std::make_unique<SpeakerData> (speakerData) };
-    auto const newOutputPatch { ++getMaxSpeakerOutputPatch () };
 
-    if (index) {
-        auto const isValidIndex { *index >= 0 && *index < mData.speakerSetup.ordering.size () };
-        if (isValidIndex) {
-            mData.speakerSetup.ordering.insert (*index, newOutputPatch);
+    const auto settingExistingSpeaker{ newOutputPatch && mData.speakerSetup.speakers.contains(*newOutputPatch) };
+
+    if (!settingExistingSpeaker) {
+        newOutputPatch = ++getMaxSpeakerOutputPatch(); // I'm not sure about this at all, it seems like these output
+                                                       // back BS numbers could get out of sync
+
+        if (index) {
+            auto const isValidIndex{ *index >= 0 && *index < mData.speakerSetup.ordering.size() };
+            if (isValidIndex) {
+                mData.speakerSetup.ordering.insert(*index, *newOutputPatch);
+            } else {
+                static constexpr auto AT_END = -1;
+                mData.speakerSetup.ordering.insert(AT_END, *newOutputPatch);
+            }
+        } else {
+            mData.speakerSetup.ordering.add(*newOutputPatch);
         }
-        else {
-            static constexpr auto AT_END = -1;
-            mData.speakerSetup.ordering.insert (AT_END, newOutputPatch);
-        }
+
+        mData.speakerSetup.speakers.add (*newOutputPatch, std::move (newSpeaker));
     }
     else {
-        mData.speakerSetup.ordering.add (newOutputPatch);
+        mData.speakerSetup.speakers.remove (*newOutputPatch);
+        mData.speakerSetup.speakers.add (*newOutputPatch, std::move (newSpeaker));
     }
 
-    mData.speakerSetup.speakers.add (newOutputPatch, std::move (newSpeaker));
-
-    return newOutputPatch;
+    return *newOutputPatch;
 }
 
 //==============================================================================

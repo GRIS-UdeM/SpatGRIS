@@ -636,6 +636,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
         indexInCurGroup += 1;
 
         newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
+        //auto const newOutputPatch { ++mMainContentComponent.getMaxSpeakerOutputPatch () };
         mNumRows = speakers.size();
 
         auto newSpeakerVt = addNewSpeakerToVt (newOutputPatch, newGroup, true);
@@ -1721,15 +1722,19 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
 {
     auto const childType{ child.getType() };
     //currently this path is only used when undoing a speaker or speaker group deletion
-    if (!undoManager.isPerformingUndoRedo() || (childType != SPEAKER && childType != SPEAKER_GROUP))
-        return;
+    //if (!undoManager.isPerformingUndoRedo() || (childType != SPEAKER && childType != SPEAKER_GROUP))
+    //    return;
 
-    output_patch_t newOutputPatch;
+    tl::optional <output_patch_t> newOutputPatch;
 
-    const auto putBackSpeaker = [this](juce::ValueTree speakerGroup, juce::ValueTree speaker) {
+    if (! undoManager.isPerformingUndoRedo ())
+        newOutputPatch = output_patch_t (child[ID]);
+
+    const auto putBackSpeaker = [this, &newOutputPatch](juce::ValueTree speakerGroup, juce::ValueTree speaker) {
         const auto selectedRow = speakerGroup.indexOf(speaker);
-        const auto speakerSetup = SpeakerData::fromVt(speaker);
-        return mMainContentComponent.addSpeaker(*speakerSetup, selectedRow + 1);
+        const auto speakerData = SpeakerData::fromVt(speaker);
+        const auto outputPatch = speaker[ID];
+        return mMainContentComponent.addSpeaker(*speakerData, selectedRow + 1, newOutputPatch);
     };
 
     if (childType == SPEAKER_GROUP) {
