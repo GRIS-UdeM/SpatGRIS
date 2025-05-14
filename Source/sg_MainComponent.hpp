@@ -43,9 +43,6 @@
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
-#include "UI/Windows/SpeakerSetup/SpeakerSetupWindow.hpp"
-
-#define USE_OLD_SPEAKER_WINDOW 1
 
 namespace gris
 {
@@ -92,7 +89,6 @@ class MainContentComponent final
 
     // Windows.
     std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow {};
-    std::unique_ptr<SpeakerSetupWindow> mSpeakerSetupWindow;
     std::unique_ptr<SettingsWindow> mPropertiesWindow{};
     std::unique_ptr<FlatViewWindow> mFlatViewWindow{};
     std::unique_ptr<AboutWindow> mAboutWindow{};

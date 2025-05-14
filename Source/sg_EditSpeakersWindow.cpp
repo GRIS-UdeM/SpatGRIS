@@ -1413,7 +1413,7 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
     JUCE_ASSERT_MESSAGE_THREAD;
 
     //TODO VB: this is for sure problematic with the new stuff
-    jassertfalse;
+    //jassertfalse;
 
     auto const & data{ spatGrisData };
     jassert(row >= 0 && row < data.speakerSetup.ordering.size());

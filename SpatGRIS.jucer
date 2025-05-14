@@ -160,10 +160,6 @@
                   file="Source/UI/Windows/SpeakerSetup/SpeakerSetupLine.cpp"/>
             <FILE id="nAM1Vt" name="SpeakerSetupLine.hpp" compile="0" resource="0"
                   file="Source/UI/Windows/SpeakerSetup/SpeakerSetupLine.hpp"/>
-            <FILE id="nfjIjl" name="SpeakerSetupWindow.cpp" compile="1" resource="0"
-                  file="Source/UI/Windows/SpeakerSetup/SpeakerSetupWindow.cpp"/>
-            <FILE id="AisGFv" name="SpeakerSetupWindow.hpp" compile="0" resource="0"
-                  file="Source/UI/Windows/SpeakerSetup/SpeakerSetupWindow.hpp"/>
             <FILE id="Bsj2dV" name="SpeakerTreeComponent.cpp" compile="1" resource="0"
                   file="Source/UI/Windows/SpeakerSetup/SpeakerTreeComponent.cpp"/>
             <FILE id="xOpYoh" name="SpeakerTreeComponent.hpp" compile="0" resource="0"

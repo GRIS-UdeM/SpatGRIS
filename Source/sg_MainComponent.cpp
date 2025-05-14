@@ -520,7 +520,6 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-#if USE_OLD_SPEAKER_WINDOW
     auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastSpeakerSetup } }.getDocumentElement() };
     jassert(savedElement);
     if (!savedElement) {
@@ -573,9 +572,6 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
     } else {
         speakerSetupKeepChanges();
     }
-#else
-    mSpeakerSetupWindow.reset();
-#endif
 }
 
 #if USE_OLD_SPEAKER_SETUP_VIEW
@@ -606,7 +602,6 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-#if USE_OLD_SPEAKER_WINDOW
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String{ "Speaker Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
@@ -616,14 +611,6 @@ void MainContentComponent::handleShowSpeakerEditWindow()
         mEditSpeakersWindow->initComp();
 #endif
     }
-#else
-    if (! mSpeakerSetupWindow) {
-        auto const windowName = juce::String { "Speaker Setup Edition - " }
-            + spatModeToString (mData.speakerSetup.spatMode) + " - "
-            + juce::File { mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension ();
-        mSpeakerSetupWindow = std::make_unique<SpeakerSetupWindow>(windowName, mLookAndFeel, *this);
-    }
-#endif
 }
 
 //==============================================================================
@@ -2907,16 +2894,6 @@ void MainContentComponent::timerCallback()
     mInfoPanel->setCpuLoad(cpuRunningAverage);
 
     //TODO VB: could this code here be the reason the speaker edit window is blinking on linux?
-#if 1
-    if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
-        mIsProcessForeground = juce::Process::isForegroundProcess();
-        if (mSpeakerSetupWindow != nullptr && mIsProcessForeground) {
-            mSpeakerSetupWindow->setAlwaysOnTop(true);
-        } else if (mSpeakerSetupWindow != nullptr && !mIsProcessForeground) {
-            mSpeakerSetupWindow->setAlwaysOnTop(false);
-        }
-    }
-#else
     if (mIsProcessForeground != juce::Process::isForegroundProcess ()) {
         mIsProcessForeground = juce::Process::isForegroundProcess ();
         if (mEditSpeakersWindow != nullptr && mIsProcessForeground) {
@@ -2926,7 +2903,6 @@ void MainContentComponent::timerCallback()
             mEditSpeakersWindow->setAlwaysOnTop (false);
         }
     }
-#endif
 }
 
 //==============================================================================
