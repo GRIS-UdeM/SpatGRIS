@@ -208,6 +208,7 @@ public:
     void selectRow(tl::optional<int> value);
 #endif
     void selectSpeaker(tl::optional<output_patch_t> outputPatch);
+    void updateSelectedSpeakers();
 
     void togglePolyhedraExtraWidgets();
 

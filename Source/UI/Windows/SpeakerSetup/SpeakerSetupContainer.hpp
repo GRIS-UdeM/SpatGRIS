@@ -29,7 +29,8 @@ class SpeakerSetupContainer final : public juce::Component,
 {
 public:
     SpeakerSetupContainer(const juce::File & speakerSetupXmlFile,
-                          juce::UndoManager & undoMan);
+                          juce::UndoManager & undoMan,
+                          std::function<void()> selectionChanged);
 
     ~SpeakerSetupContainer () override
     {
@@ -73,6 +74,7 @@ private:
     juce::TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton { "Sort" }, saveButton { "Save" };
 
     std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
+    std::function<void ()> onSelectionChanged;
 
     void timerCallback () override
     {

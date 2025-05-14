@@ -160,7 +160,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
 #if ! USE_OLD_SPEAKER_SETUP_VIEW
-    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, undoMan)
+    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, undoMan, [this]() { updateSelectedSpeakers(); })
 #endif
     , mFont(juce::FontOptions().withHeight(14.f))
     , mRingSpeakers(lookAndFeel)
@@ -1014,8 +1014,8 @@ void EditSpeakersWindow::pushSelectionToMainComponent() const
 
     mMainContentComponent.setSelectedSpeakers(std::move(selection));
 #else
-    // TODO VB: this is hit whenever we click into the setup view
-    // jassertfalse;
+
+    jassertfalse;
 #endif
 }
 
@@ -1044,10 +1044,15 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const output
 
     selectRow(outputPatch.map(getSelectedRow));
 #else
-    // TODO VB: make sure we don't need the above
-    // jassertfalse;
+    jassertfalse;
 #endif
     pushSelectionToMainComponent();
+}
+
+void EditSpeakersWindow::updateSelectedSpeakers ()
+{
+    //NOW HERE, I need a new function to get all selected items and then call select speaker on one of them
+    mSpeakerSetupContainer.getSelectedItem();
 }
 
 //==============================================================================

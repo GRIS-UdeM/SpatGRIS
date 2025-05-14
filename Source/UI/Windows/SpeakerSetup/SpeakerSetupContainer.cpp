@@ -18,9 +18,12 @@
 #include "SpeakerSetupContainer.hpp"
 namespace gris
 {
-SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlFile, juce::UndoManager& undoMan)
+SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlFile,
+                                             juce::UndoManager & undoMan,
+                                             std::function<void()> selectionChanged)
     : vtFile{ speakerSetupXmlFile }
     , undoManager (undoMan)
+    , onSelectionChanged (selectionChanged)
 {
     vt = convertSpeakerSetup (juce::ValueTree::fromXml (vtFile.loadFileAsString ()));
 
@@ -35,7 +38,7 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
 
     // at this point vt is the whole speaker setup, but I think the lines should only care about groups or speakers, so
     // only giving them the main group for now?
-    mainSpeakerGroupLine.reset (new SpeakerSetupLine (vt.getChild(0), undoManager));
+    mainSpeakerGroupLine.reset (new SpeakerSetupLine (vt.getChild(0), undoManager, onSelectionChanged));
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
     auto setLabelText = [this](juce::Label& label, const juce::String & text) {

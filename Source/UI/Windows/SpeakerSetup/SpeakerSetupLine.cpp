@@ -18,10 +18,14 @@
 #include "SpeakerSetupLine.hpp"
 namespace gris
 {
-SpeakerSetupLine::SpeakerSetupLine (const juce::ValueTree& v, juce::UndoManager& um)
-    : valueTree (v), undoManager (um)
+SpeakerSetupLine::SpeakerSetupLine(const juce::ValueTree & v,
+                                   juce::UndoManager & um,
+                                   std::function<void()> selectionChanged)
+    : valueTree(v)
+    , undoManager(um)
+    , onSelectionChanged(selectionChanged)
 {
-    valueTree.addListener (this);
+    valueTree.addListener(this);
 }
 
 std::unique_ptr<juce::Component> SpeakerSetupLine::createItemComponent ()
@@ -123,7 +127,12 @@ void SpeakerSetupLine::refreshSubItems ()
     clearSubItems ();
 
     for (int i = 0; i < valueTree.getNumChildren (); ++i)
-        addSubItem (new SpeakerSetupLine (valueTree.getChild (i), undoManager));
+        addSubItem (new SpeakerSetupLine (valueTree.getChild (i), undoManager, onSelectionChanged));
+}
+
+void SpeakerSetupLine::itemSelectionChanged(bool isNowSelected)
+{
+    onSelectionChanged();
 }
 
 void SpeakerSetupLine::treeChildrenChanged (const juce::ValueTree& parentTree)

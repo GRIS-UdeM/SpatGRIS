@@ -26,7 +26,7 @@ class SpeakerSetupLine final
     , private juce::ValueTree::Listener
 {
 public:
-    SpeakerSetupLine (const juce::ValueTree& v, juce::UndoManager& um);
+    SpeakerSetupLine(const juce::ValueTree & v, juce::UndoManager & um, std::function<void()> selectionChanged);
 
     juce::String getUniqueName() const override { return valueTree.getType().toString(); }
 
@@ -57,14 +57,13 @@ public:
 private:
     juce::ValueTree valueTree;
     juce::UndoManager& undoManager;
+    std::function<void ()> onSelectionChanged;
 
     void refreshSubItems ();
 
-    void valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&) override
-    {
-        repaintItem ();
-    }
+    void itemSelectionChanged(bool isNowSelected) override;
 
+    void valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&) override { repaintItem (); }
     void valueTreeChildAdded (juce::ValueTree& parentTree, juce::ValueTree&) override { treeChildrenChanged (parentTree); }
     void valueTreeChildRemoved (juce::ValueTree& parentTree, juce::ValueTree&, int) override { treeChildrenChanged (parentTree); }
     void valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int) override { treeChildrenChanged (parentTree); }
