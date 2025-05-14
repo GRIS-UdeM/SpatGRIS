@@ -1663,19 +1663,67 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
         }
     } else if (vt.getType() == SPEAKER) {
         output_patch_t const outputPatch { vt.getProperty (ID) };
+        auto const& speakers { spatGrisData.speakerSetup.speakers };
+        auto const& speaker { speakers[outputPatch] };
 
         if (property == CARTESIAN_POSITION) {
             //set speaker position as the center of the group + its position within the group
             mMainContentComponent.setSpeakerPosition(outputPatch, SpeakerData::getAbsoluteSpeakerPosition(vt));
             mShouldComputeSpeakers = true;
-
+        }else if (property == DIRECT_OUT_ONLY) {
+            auto const directOutOnly { vt[DIRECT_OUT_ONLY] };
+            mMainContentComponent.setShowTriplets (false);
+            mMainContentComponent.speakerDirectOutOnlyChanged (outputPatch, directOutOnly);
         } else if (property == GAIN) {
-            mMainContentComponent.setSpeakerGain(outputPatch, dbfs_t(newVal));
-        } else if (property == DIRECT_OUT_ONLY) {
-            auto const directOutOnly{ vt[DIRECT_OUT_ONLY] };
-            mMainContentComponent.speakerDirectOutOnlyChanged(outputPatch, directOutOnly);
+            //TODO VB: should gain and freq be dragable
+            static constexpr dbfs_t MIN_GAIN { -18.0f };
+            static constexpr dbfs_t MAX_GAIN { 6.0f };
+            dbfs_t val { (float) newVal};
+            auto diff = val - speaker.gain;
+            val = std::clamp (val, MIN_GAIN, MAX_GAIN);
+            mMainContentComponent.setSpeakerGain (outputPatch, val);
         } else if (property == FREQ) {
-            // TODO VB
+            static constexpr hz_t OFF_FREQ { 0.0f };
+            static constexpr hz_t MIN_FREQ { 20.0f };
+            static constexpr hz_t MAX_FREQ { 150.0f };
+            hz_t val { static_cast<float>(newVal) };
+            auto diff = val
+                - speaker.highpassData.map_or ([](SpeakerHighpassData const& data) { return data.freq; },
+                                               hz_t { OFF_FREQ });
+            auto mapValue = [&](hz_t value, hz_t modDiff) {
+                if (value <= OFF_FREQ && modDiff <= OFF_FREQ) {
+                    value = OFF_FREQ;
+                }
+                else if (value < MIN_FREQ && value > OFF_FREQ && modDiff < OFF_FREQ) {
+                    value = OFF_FREQ;
+                }
+                else {
+                    value = std::clamp (value, MIN_FREQ, MAX_FREQ);
+                }
+                return value;
+                };
+            val = mapValue (val, diff);
+            mMainContentComponent.setSpeakerHighPassFreq (outputPatch, val);
+        } else if (property == ID) {
+            // TODO VB: test this, it's taken from EditSpeakersWindow::setText() above
+            mMainContentComponent.setShowTriplets(false);
+            auto const & oldOutputPatch{ outputPatch };
+            output_patch_t newOutputPatch{ std::clamp((int) newVal, 1, MAX_NUM_SPEAKERS) };
+
+            if (newOutputPatch != oldOutputPatch) {
+                if (speakers.contains(newOutputPatch)) {
+                    juce::AlertWindow alert("Wrong output patch!    ",
+                                            "Sorry! Output patch number " + juce::String(newOutputPatch.get())
+                                                + " is already used.",
+                                            juce::AlertWindow::WarningIcon);
+                    alert.setLookAndFeel(&mLookAndFeel);
+                    alert.addButton("OK", 0, juce::KeyPress(juce::KeyPress::returnKey));
+                    alert.runModalLoop();
+                } else {
+                    mMainContentComponent.speakerOutputPatchChanged(oldOutputPatch, newOutputPatch);
+                }
+            }
+        mShouldComputeSpeakers = true;
         } else {
             jassertfalse;
         }
