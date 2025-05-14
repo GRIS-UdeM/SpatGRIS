@@ -56,13 +56,7 @@ public:
 
     juce::ValueTree getValueTree() { return valueTree; }
 
-    tl::optional<output_patch_t> getOutputPatch() const
-    {
-        if (valueTree.hasProperty(ID))
-            return output_patch_t (valueTree[ID]);
-        else
-            return tl::nullopt;
-    }
+    tl::optional<output_patch_t> getOutputPatch();
 
 private:
     //TODO VB: rename

@@ -138,6 +138,14 @@ void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
         vt.appendChild (speaker, &undoManager);
 }
 
+tl::optional<output_patch_t> SpeakerSetupLine::getOutputPatch ()
+{
+    if (!mightContainSubItems () && valueTree.hasProperty (ID))
+        return output_patch_t (valueTree[ID]);
+    else
+        return tl::nullopt;
+}
+
 void SpeakerSetupLine::refreshSubItems ()
 {
     clearSubItems ();
@@ -146,7 +154,7 @@ void SpeakerSetupLine::refreshSubItems ()
         addSubItem (new SpeakerSetupLine (valueTree.getChild (i), undoManager, onSelectionChanged));
 }
 
-void SpeakerSetupLine::itemSelectionChanged(bool isNowSelected)
+void SpeakerSetupLine::itemSelectionChanged(bool /*isNowSelected*/)
 {
     onSelectionChanged();
 }

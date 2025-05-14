@@ -193,6 +193,18 @@ juce::ValueTree SpeakerSetupContainer::getSelectedItem()
     return juce::ValueTree{};
 }
 
+juce::Array<output_patch_t> SpeakerSetupContainer::getSelectedSpeakers()
+{
+    juce::Array<output_patch_t> selectedOutputPatches{};
+
+    for (int i = 0; i < speakerSetupTreeView.getNumSelectedItems(); ++i)
+        if (auto * speakerLine = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getSelectedItem(i)))
+            if (auto outputPatch = speakerLine->getOutputPatch())
+                selectedOutputPatches.add(*outputPatch);
+
+    return selectedOutputPatches;
+}
+
 void SpeakerSetupContainer::selectSpeaker (tl::optional<output_patch_t> const outputPatch)
 {
     mainSpeakerGroupLine->selectChildSpeaker(outputPatch);

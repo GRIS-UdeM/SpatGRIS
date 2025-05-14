@@ -84,50 +84,6 @@ static Position getLegalSpeakerPosition(Position const & position,
     }
     return Position{ newPosition };
 }
-//#else
-//static void getLegalSpeakerPosition(juce::ValueTree & vt,
-//                                    juce::Identifier valueModified,
-//                                    juce::Identifier valueToAdjust,
-//                                    juce::Identifier valueToTryToKeepIntact,
-//                                    SpatMode const spatMode,
-//                                    bool const isDirectOutOnly,
-//                                    juce::Identifier property,
-//                                    juce::UndoManager* undoManager)
-//{
-//    jassert(property == X || property == Y || property == Z);
-//
-//    auto const modifiedFloat { static_cast<float> (vt[valueModified]) };
-//    auto const clampedModifiedFloat { std::clamp (modifiedFloat, -1.0f, 1.0f) };
-//    auto const adjustedFloat { static_cast<float> (vt[valueToAdjust]) };
-//    auto const intactFloat { static_cast<float> (vt[valueToTryToKeepIntact]) };
-//
-//    if (spatMode == SpatMode::mbap || isDirectOutOnly) {
-//        auto const clamped { std::clamp (modifiedFloat, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS) };
-//        vt.setProperty (valueModified, clamped, undoManager);
-//        return;
-//    }
-//
-//    // TODO VB
-//    // if (modifiedCol == AZIMUTH || modifiedCol == Col::ELEVATION) {
-//    //     return position.normalized ();
-//    // }
-//
-//    vt.setProperty (valueModified, clampedModifiedFloat, undoManager);
-//    auto const valueModified2 { clampedModifiedFloat * clampedModifiedFloat };
-//    auto const lengthWithoutValueToAdjust { valueModified2 + intactFloat * intactFloat };
-//
-//    if (lengthWithoutValueToAdjust > 1.0f) {
-//        auto const sign { intactFloat < 0.0f ? -1.0f : 1.0f };
-//        auto const length { std::sqrt (1.0f - valueModified2) };
-//        vt.setProperty (valueToTryToKeepIntact, sign * length, undoManager);
-//        vt.setProperty (valueToAdjust, 0.f, undoManager);
-//        return;
-//    }
-//
-//    auto const sign { adjustedFloat < 0.0f ? -1.0f : 1.0f };
-//    auto const length { std::sqrt (1.0f - lengthWithoutValueToAdjust) };
-//    vt.setProperty (valueToAdjust, sign * length, undoManager);
-//}
 #endif
 //==============================================================================
 LabelWrapper::LabelWrapper(GrisLookAndFeel & lookAndFeel)
@@ -563,7 +519,6 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 }
 
 //==============================================================================
-// TODO VB: this seems to be a dupe from EditSpeakersWindow::buttonClicked() below?
 void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition)
 {
 #if USE_OLD_SPEAKER_SETUP_VIEW
@@ -1025,18 +980,7 @@ void EditSpeakersWindow::pushSelectionToMainComponent()
 
     mMainContentComponent.setSelectedSpeakers(std::move(selection));
 #else
-
-    //TODO VB: should this directly return an array of output patches? At least it should return the array instead of using references
-    juce::OwnedArray<juce::ValueTree> selectedItems;
-    mSpeakerSetupContainer.getSelectedTreeViewItems(selectedItems);
-
-    juce::Array<output_patch_t> selection{};
-    selection.ensureStorageAllocated(selectedItems.size());
-    for (auto selectedVt : selectedItems)
-        if (selectedVt->getType() == SPEAKER)
-            selection.add(output_patch_t{ selectedVt->getProperty(ID) });
-
-    mMainContentComponent.setSelectedSpeakers(selection);
+    mMainContentComponent.setSelectedSpeakers(mSpeakerSetupContainer.getSelectedSpeakers());
 #endif
 }
 

@@ -56,6 +56,8 @@ public:
         SpeakerSetupLine::getSelectedTreeViewItems(speakerSetupTreeView, items);
     }
 
+    juce::Array<output_patch_t> getSelectedSpeakers();
+
     void selectSpeaker (tl::optional<output_patch_t> const outputPatch);
 
     std::pair<juce::ValueTree, int> getParentAndIndexOfSelectedItem()
