@@ -2503,6 +2503,35 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
 }
 
 //==============================================================================
+output_patch_t MainContentComponent::addSpeaker (const SpeakerData& speakerData,
+                                                 tl::optional<int> const index)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock { mLock };
+
+    auto newSpeaker { std::make_unique<SpeakerData> (speakerData) };
+    auto const newOutputPatch { ++getMaxSpeakerOutputPatch () };
+
+    if (index) {
+        auto const isValidIndex { *index >= 0 && *index < mData.speakerSetup.ordering.size () };
+        if (isValidIndex) {
+            mData.speakerSetup.ordering.insert (*index, newOutputPatch);
+        }
+        else {
+            static constexpr auto AT_END = -1;
+            mData.speakerSetup.ordering.insert (AT_END, newOutputPatch);
+        }
+    }
+    else {
+        mData.speakerSetup.ordering.add (newOutputPatch);
+    }
+
+    mData.speakerSetup.speakers.add (newOutputPatch, std::move (newSpeaker));
+
+    return newOutputPatch;
+}
+
+//==============================================================================
 void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2868,7 +2897,7 @@ void MainContentComponent::timerCallback()
 
     mInfoPanel->setCpuLoad(cpuRunningAverage);
 
-    //TODO VB: i DON'T THINK I NEED THAT?
+    //TODO VB: could this code here be the reason the speaker edit window is blinking on linux?
 #if 1
     if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
         mIsProcessForeground = juce::Process::isForegroundProcess();

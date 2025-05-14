@@ -618,6 +618,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
 
     juce::ValueTree newGroup("SPEAKER_GROUP");
     newGroup.setProperty(ID, "new group", &undoManager);
+    newGroup.setProperty (UUID, juce::Uuid{}.toString (), &undoManager);
     newGroup.setProperty (CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar (groupPosition), &undoManager);
     curGroup.addChild(newGroup, indexInCurGroup + 1, &undoManager);
 
@@ -660,14 +661,15 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
     auto const & newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
     jassert(parent.isValid());
 
-    juce::ValueTree newSpeakerVt("SPEAKER");
-    newSpeakerVt.setProperty (CARTESIAN_POSITION,
-                              juce::VariantConverter<Position>::toVar (newSpeaker.position),
-                              &undoManager);
-    newSpeakerVt.setProperty("ID", newOutputPatch.get(), &undoManager);
-    newSpeakerVt.setProperty("STATE", sliceStateToString(newSpeaker.state), &undoManager);
-    newSpeakerVt.setProperty("GAIN", newSpeaker.gain.get(), &undoManager);
-    newSpeakerVt.setProperty("DIRECT_OUT_ONLY", newSpeaker.isDirectOutOnly, &undoManager);
+    juce::ValueTree newSpeakerVt(SPEAKER);
+    newSpeakerVt.setProperty(CARTESIAN_POSITION,
+                             juce::VariantConverter<Position>::toVar(newSpeaker.position),
+                             &undoManager);
+    newSpeakerVt.setProperty(ID, newOutputPatch.get(), &undoManager);
+    newSpeakerVt.setProperty(UUID, juce::Uuid{}.toString(), &undoManager);
+    newSpeakerVt.setProperty(STATE, sliceStateToString(newSpeaker.state), &undoManager);
+    newSpeakerVt.setProperty(GAIN, newSpeaker.gain.get(), &undoManager);
+    newSpeakerVt.setProperty(DIRECT_OUT_ONLY, newSpeaker.isDirectOutOnly, &undoManager);
 
     if (append)
         parent.appendChild(newSpeakerVt, &undoManager);
@@ -700,7 +702,6 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     // mMainContentComponent.setShowTriplets(false);
 
     if (button == &mAddSpeakerButton) {
-        // Add speaker button
         if (mMainContentComponent.getMaxSpeakerOutputPatch().get() >= MAX_NUM_SPEAKERS) {
             return;
         }
@@ -1718,15 +1719,24 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
 
 void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)
 {
-    //TODO VB: this is called when undoing a deletion
-    DBG ("EditSpeakersWindow::valueTreeChildAdded");
+    //currently this path is only used when undoing a deletion
+    if (!undoManager.isPerformingUndoRedo())
+        return;
+
+    if (child.getType() == SPEAKER) {
+        const auto selectedRow = parent.indexOf (child);
+        const auto speakerSetup = SpeakerData::fromVt (child);
+        auto const newOutputPatch{ mMainContentComponent.addSpeaker(*speakerSetup, selectedRow + 1) };
+
+        mMainContentComponent.refreshSpeakers();
+        updateWinContent();
+        selectSpeaker(newOutputPatch);
+        mShouldComputeSpeakers = true;
+    }
 }
 
 void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent)
 {
-    //auto const row { button->getName ().getIntValue () };
-    //auto const speakerId { spatGrisData.speakerSetup.ordering[row] };
-
     if (child.getType () == SPEAKER_GROUP) {
         for (auto speakerVt : child) {
             jassert(speakerVt.getType() == SPEAKER);
@@ -1739,7 +1749,6 @@ void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::V
         mMainContentComponent.removeSpeaker (outputPatch);
         updateWinContent ();
     }
-
 }
 //
 //void EditSpeakersWindow::valueTreeChildOrderChanged(juce::ValueTree & parent, int oldChildId, int newChildId)
