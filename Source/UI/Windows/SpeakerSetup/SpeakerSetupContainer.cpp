@@ -193,4 +193,9 @@ juce::ValueTree SpeakerSetupContainer::getSelectedItem()
     return juce::ValueTree{};
 }
 
+void SpeakerSetupContainer::selectSpeaker (tl::optional<output_patch_t> const outputPatch)
+{
+    mainSpeakerGroupLine->selectChildSpeaker(outputPatch);
+}
+
 } // namespace gris

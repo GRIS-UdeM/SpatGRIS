@@ -208,7 +208,6 @@ public:
     void selectRow(tl::optional<int> value);
 #endif
     void selectSpeaker(tl::optional<output_patch_t> outputPatch);
-    void updateSelectedSpeakers();
 
     void togglePolyhedraExtraWidgets();
 
@@ -218,7 +217,7 @@ public:
 
 private:
     //==============================================================================
-    void pushSelectionToMainComponent() const;
+    void pushSelectionToMainComponent();
 #if USE_OLD_SPEAKER_SETUP_VIEW
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);

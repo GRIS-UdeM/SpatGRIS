@@ -51,6 +51,13 @@ public:
     /** returns either the selected item or the last item*/
     juce::ValueTree getSelectedItem();
 
+    void getSelectedTreeViewItems(juce::OwnedArray<juce::ValueTree> & items)
+    {
+        SpeakerSetupLine::getSelectedTreeViewItems(speakerSetupTreeView, items);
+    }
+
+    void selectSpeaker (tl::optional<output_patch_t> const outputPatch);
+
     std::pair<juce::ValueTree, int> getParentAndIndexOfSelectedItem()
     {
         auto const vtRow = getSelectedItem();
@@ -58,12 +65,12 @@ public:
         return { parent, parent.indexOf(vtRow) };
     }
 
-    //juce::ValueTree getSpeakerSetupVt() { return vt; }
     void addValueTreeListener(juce::ValueTree::Listener * listener) { vt.addListener(listener); }
     void setSpatMode(SpatMode spatMode) { vt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager); }
 
 private:
     GrisLookAndFeel lookAndFeel;
+    //TODO VB: rename these
     juce::File vtFile;
     juce::ValueTree vt;
 
@@ -76,10 +83,7 @@ private:
     std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
     std::function<void ()> onSelectionChanged;
 
-    void timerCallback () override
-    {
-        undoManager.beginNewTransaction ();
-    }
+    void timerCallback() override { undoManager.beginNewTransaction(); }
 
     juce::UndoManager& undoManager;
 

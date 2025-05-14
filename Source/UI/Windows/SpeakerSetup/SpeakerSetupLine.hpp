@@ -50,11 +50,22 @@ public:
 
     static void getSelectedTreeViewItems (juce::TreeView& treeView, juce::OwnedArray<juce::ValueTree>& items);
 
+    void selectChildSpeaker (tl::optional<output_patch_t> const outputPatch);
+
     void sort (juce::ValueTree vt = {});
 
     juce::ValueTree getValueTree() { return valueTree; }
 
+    tl::optional<output_patch_t> getOutputPatch() const
+    {
+        if (valueTree.hasProperty(ID))
+            return output_patch_t (valueTree[ID]);
+        else
+            return tl::nullopt;
+    }
+
 private:
+    //TODO VB: rename
     juce::ValueTree valueTree;
     juce::UndoManager& undoManager;
     std::function<void ()> onSelectionChanged;

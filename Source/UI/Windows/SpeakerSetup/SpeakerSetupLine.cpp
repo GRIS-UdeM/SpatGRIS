@@ -85,6 +85,21 @@ void SpeakerSetupLine::getSelectedTreeViewItems (juce::TreeView& treeView, juce:
             items.add (new juce::ValueTree (vti->valueTree));
 }
 
+void SpeakerSetupLine::selectChildSpeaker(tl::optional<output_patch_t> const outputPatch)
+{
+    auto treeView = getOwnerView();
+    for (int i = 0; i < treeView->getNumRowsInTree(); ++i) {
+        auto speakerSetupLine = dynamic_cast<SpeakerSetupLine *>(treeView->getItemOnRow(i));
+        if (!speakerSetupLine || speakerSetupLine->mightContainSubItems())
+            continue;
+
+        if (speakerSetupLine->getOutputPatch() == outputPatch)
+            speakerSetupLine->setSelected(true, juce::dontSendNotification);
+        else
+            speakerSetupLine->setSelected (false, juce::dontSendNotification);
+    }
+}
+
 struct Comparator
 {
     int compareElements (const juce::ValueTree& first, const juce::ValueTree& second)
@@ -94,6 +109,7 @@ struct Comparator
     }
 };
 
+//TODO VB: this should really use juce::TreeViewItem::sortSubItems()
 void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
 {
     if (! vt.isValid ())

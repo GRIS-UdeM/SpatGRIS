@@ -160,7 +160,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
 #if ! USE_OLD_SPEAKER_SETUP_VIEW
-    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, undoMan, [this]() { updateSelectedSpeakers(); })
+    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, undoMan, [this]() { pushSelectionToMainComponent (); })
 #endif
     , mFont(juce::FontOptions().withHeight(14.f))
     , mRingSpeakers(lookAndFeel)
@@ -994,7 +994,7 @@ void EditSpeakersWindow::updateWinContent()
 }
 
 //==============================================================================
-void EditSpeakersWindow::pushSelectionToMainComponent() const
+void EditSpeakersWindow::pushSelectionToMainComponent()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -1015,7 +1015,17 @@ void EditSpeakersWindow::pushSelectionToMainComponent() const
     mMainContentComponent.setSelectedSpeakers(std::move(selection));
 #else
 
-    jassertfalse;
+    //TODO VB: should this directly return an array of output patches? At least it should return the array instead of using references
+    juce::OwnedArray<juce::ValueTree> selectedItems;
+    mSpeakerSetupContainer.getSelectedTreeViewItems(selectedItems);
+
+    juce::Array<output_patch_t> selection{};
+    selection.ensureStorageAllocated(selectedItems.size());
+    for (auto selectedVt : selectedItems)
+        if (selectedVt->getType() == SPEAKER)
+            selection.add(output_patch_t{ selectedVt->getProperty(ID) });
+
+    mMainContentComponent.setSelectedSpeakers(selection);
 #endif
 }
 
@@ -1043,16 +1053,10 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const output
     };
 
     selectRow(outputPatch.map(getSelectedRow));
+    pushSelectionToMainComponent ();
 #else
-    jassertfalse;
+    mSpeakerSetupContainer.selectSpeaker(outputPatch);
 #endif
-    pushSelectionToMainComponent();
-}
-
-void EditSpeakersWindow::updateSelectedSpeakers ()
-{
-    //NOW HERE, I need a new function to get all selected items and then call select speaker on one of them
-    mSpeakerSetupContainer.getSelectedItem();
 }
 
 //==============================================================================
@@ -1453,6 +1457,9 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    //TODO VB: this is for sure problematic with the new stuff
+    jassertfalse;
+
     auto const & data{ spatGrisData };
     jassert(row >= 0 && row < data.speakerSetup.ordering.size());
     auto const result{ data.speakerSetup.ordering[row] };
@@ -1752,7 +1759,7 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
 
     mMainContentComponent.refreshSpeakers();
     updateWinContent();
-    selectSpeaker(newOutputPatch);
+    //selectSpeaker(newOutputPatch);
     mShouldComputeSpeakers = true;
 }
 
