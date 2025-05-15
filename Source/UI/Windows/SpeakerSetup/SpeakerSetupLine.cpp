@@ -21,20 +21,20 @@ namespace gris
 SpeakerSetupLine::SpeakerSetupLine(const juce::ValueTree & v,
                                    juce::UndoManager & um,
                                    std::function<void()> selectionChanged)
-    : valueTree(v)
+    : lineValueTree(v)
     , undoManager(um)
     , onSelectionChanged(selectionChanged)
 {
-    valueTree.addListener(this);
+    lineValueTree.addListener(this);
 }
 
 std::unique_ptr<juce::Component> SpeakerSetupLine::createItemComponent ()
 {
     //TODO VB: either I need to keep a reference to this pointer or I need to pass a ref to this object into this constructor
     if (mightContainSubItems ())
-        return std::make_unique<SpeakerGroupComponent> (this, valueTree, undoManager);
+        return std::make_unique<SpeakerGroupComponent> (this, lineValueTree, undoManager);
     else
-        return std::make_unique<SpeakerComponent> (this, valueTree, undoManager);
+        return std::make_unique<SpeakerComponent> (this, lineValueTree, undoManager);
 }
 
 void SpeakerSetupLine::itemOpennessChanged (bool isNowOpen)
@@ -50,7 +50,7 @@ void SpeakerSetupLine::itemDropped (const juce::DragAndDropTarget::SourceDetails
     juce::OwnedArray<juce::ValueTree> selectedTrees;
     getSelectedTreeViewItems (*getOwnerView (), selectedTrees);
 
-    moveItems (*getOwnerView (), selectedTrees, valueTree, insertIndex, undoManager);
+    moveItems (*getOwnerView (), selectedTrees, lineValueTree, insertIndex, undoManager);
 }
 
 void SpeakerSetupLine::moveItems (juce::TreeView& treeView, const juce::OwnedArray<juce::ValueTree>& items, juce::ValueTree newParent, int insertIndex, juce::UndoManager& undoManager)
@@ -82,7 +82,7 @@ void SpeakerSetupLine::getSelectedTreeViewItems (juce::TreeView& treeView, juce:
 
     for (int i = 0; i < numSelected; ++i)
         if (auto* vti = dynamic_cast<SpeakerSetupLine*> (treeView.getSelectedItem (i)))
-            items.add (new juce::ValueTree (vti->valueTree));
+            items.add (new juce::ValueTree (vti->lineValueTree));
 }
 
 void SpeakerSetupLine::selectChildSpeaker(tl::optional<output_patch_t> const outputPatch)
@@ -113,7 +113,7 @@ struct Comparator
 void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
 {
     if (! vt.isValid ())
-        vt = valueTree;
+        vt = lineValueTree;
 
     juce::Array<juce::ValueTree> speakerGroups;
     juce::Array<juce::ValueTree> allChildren;
@@ -140,8 +140,8 @@ void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
 
 tl::optional<output_patch_t> SpeakerSetupLine::getOutputPatch ()
 {
-    if (!mightContainSubItems () && valueTree.hasProperty (ID))
-        return output_patch_t (valueTree[ID]);
+    if (!mightContainSubItems () && lineValueTree.hasProperty (ID))
+        return output_patch_t (lineValueTree[ID]);
     else
         return tl::nullopt;
 }
@@ -150,8 +150,8 @@ void SpeakerSetupLine::refreshSubItems ()
 {
     clearSubItems ();
 
-    for (int i = 0; i < valueTree.getNumChildren (); ++i)
-        addSubItem (new SpeakerSetupLine (valueTree.getChild (i), undoManager, onSelectionChanged));
+    for (int i = 0; i < lineValueTree.getNumChildren (); ++i)
+        addSubItem (new SpeakerSetupLine (lineValueTree.getChild (i), undoManager, onSelectionChanged));
 }
 
 void SpeakerSetupLine::itemSelectionChanged(bool /*isNowSelected*/)
@@ -161,7 +161,7 @@ void SpeakerSetupLine::itemSelectionChanged(bool /*isNowSelected*/)
 
 void SpeakerSetupLine::treeChildrenChanged (const juce::ValueTree& parentTree)
 {
-    if (parentTree == valueTree)
+    if (parentTree == lineValueTree)
     {
         refreshSubItems ();
         treeHasChanged ();

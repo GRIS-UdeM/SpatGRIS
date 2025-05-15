@@ -28,15 +28,15 @@ class SpeakerSetupLine final
 public:
     SpeakerSetupLine(const juce::ValueTree & v, juce::UndoManager & um, std::function<void()> selectionChanged);
 
-    juce::String getUniqueName() const override { return valueTree.getType().toString(); }
+    juce::String getUniqueName() const override { return lineValueTree.getType().toString(); }
 
-    bool mightContainSubItems() override { return valueTree.getType() == SPEAKER_GROUP; }
+    bool mightContainSubItems() override { return lineValueTree.getType() == SPEAKER_GROUP; }
 
     std::unique_ptr<juce::Component> createItemComponent () override;
 
     void itemOpennessChanged (bool isNowOpen) override;
 
-    juce::var getDragSourceDescription () override { return valueTree.getType ().toString(); }
+    juce::var getDragSourceDescription () override { return lineValueTree.getType ().toString(); }
 
     bool isInterestedInDragSource (const juce::DragAndDropTarget::SourceDetails& /*dragSourceDetails*/) override
     {
@@ -54,13 +54,12 @@ public:
 
     void sort (juce::ValueTree vt = {});
 
-    juce::ValueTree getValueTree() { return valueTree; }
+    juce::ValueTree getValueTree() { return lineValueTree; }
 
     tl::optional<output_patch_t> getOutputPatch();
 
 private:
-    //TODO VB: rename
-    juce::ValueTree valueTree;
+    juce::ValueTree lineValueTree;
     juce::UndoManager& undoManager;
     std::function<void ()> onSelectionChanged;
 

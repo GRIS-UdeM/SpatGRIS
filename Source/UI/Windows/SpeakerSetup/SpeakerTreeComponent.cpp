@@ -325,8 +325,6 @@ SpeakerComponent::SpeakerComponent(SpeakerSetupLine* owner,
 
     setupHighPass ();
 
-    setupEditorLabel(highpass, FREQ);
-
     direct.getToggleStateValue ().referTo (speakerTreeVt.getPropertyAsValue (DIRECT_OUT_ONLY, &undoManager));
     addAndMakeVisible (direct);
 }
@@ -360,7 +358,6 @@ void SpeakerComponent::setupGain ()
     addAndMakeVisible (gain);
 }
 
-//TODO VB: this is probably easily DRYable
 void SpeakerComponent::setupHighPass ()
 {
     highpass.setEditable(true);
@@ -379,7 +376,6 @@ void SpeakerComponent::setupHighPass ()
 
     highpass.onTextChange = [this, getClampedFrequency] {
         auto const clampedValue = getClampedFrequency(highpass.getText().getFloatValue()).get();
-        //DBG ("onTextChange " << juce::String (clampedValue));
 
         highpass.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
         speakerTreeVt.setProperty(FREQ, clampedValue, &undoManager);
@@ -388,7 +384,6 @@ void SpeakerComponent::setupHighPass ()
     highpass.onMouseDragCallback = [this, getClampedFrequency](int deltaY) {
         auto const draggedValue{ highpass.getText().getFloatValue() - deltaY * 0.5f };
         auto const clampedValue{ getClampedFrequency(draggedValue, deltaY < 0).get() };
-        //DBG ("onMouseDragCallback " << juce::String (clampedValue));
 
         highpass.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
         speakerTreeVt.setProperty(FREQ, clampedValue, &undoManager);
