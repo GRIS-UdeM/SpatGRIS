@@ -52,6 +52,7 @@ class SpeakerTreeComponent : public juce::Component, public juce::ValueTree::Lis
 {
 public:
     SpeakerTreeComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+
     ~SpeakerTreeComponent() { setLookAndFeel(nullptr); }
 
     void paint(juce::Graphics & g) override;
@@ -75,12 +76,13 @@ protected:
     void setupCoordinateLabel(DraggableLabel & label, Position::Coordinate coordinate);
     void setupStringLabel(juce::Label & label, juce::StringRef text);
     void setupEditorLabel (juce::Label& label, juce::Identifier property);
+    void setupDeleteButton ();
 
     void updateAllPositionLabels();
 
     DraggableLabel id, x, y, z, azim, elev, radius, gain, highpass, drag;
 
-    juce::DrawableButton deleteButton { "TrashButton", juce::DrawableButton::ImageFitted };
+    juce::DrawableButton deleteButton { "TrashButton", juce::DrawableButton::ImageOnButtonBackground };
 
     juce::ToggleButton direct;
 

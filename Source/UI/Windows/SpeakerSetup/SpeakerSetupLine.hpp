@@ -67,11 +67,11 @@ private:
 
     void itemSelectionChanged(bool isNowSelected) override;
 
-    void valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&) override { repaintItem (); }
+    //TODO VB: does this break anything?
+    //void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier&) override { repaintItem (); }
     void valueTreeChildAdded (juce::ValueTree& parentTree, juce::ValueTree&) override { treeChildrenChanged (parentTree); }
     void valueTreeChildRemoved (juce::ValueTree& parentTree, juce::ValueTree&, int) override { treeChildrenChanged (parentTree); }
     void valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int) override { treeChildrenChanged (parentTree); }
-    void valueTreeParentChanged (juce::ValueTree&) override {}
 
     void treeChildrenChanged (const juce::ValueTree& parentTree);
 

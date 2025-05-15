@@ -43,16 +43,7 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     setupCoordinateLabel(elev, Position::Coordinate::elevation);
     setupCoordinateLabel(radius, Position::Coordinate::radius);
 
-    if (auto trashDrawable = juce::Drawable::createFromImageData(BinaryData::trash_svg, BinaryData::trash_svgSize))
-        deleteButton.setImages(trashDrawable.get());
-    else
-        jassertfalse;
-    deleteButton.setClickingTogglesState (false);
-    deleteButton.onClick = [this]() {
-        auto parent = speakerTreeVt.getParent();
-        parent.removeChild (speakerTreeVt, &undoManager);
-    };
-    addAndMakeVisible (deleteButton);
+    setupDeleteButton ();
 
     setupStringLabel(drag, juce::String("="));
 
@@ -60,6 +51,23 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     drag.setInterceptsMouseClicks(false, false);
 
     updateEnabledLabels();
+}
+
+void SpeakerTreeComponent::setupDeleteButton()
+{
+    if (auto trashDrawable = juce::Drawable::createFromImageData(BinaryData::trash_svg, BinaryData::trash_svgSize))
+        deleteButton.setImages(trashDrawable.get());
+    else
+        jassertfalse;
+
+    deleteButton.setClickingTogglesState(false);
+
+    deleteButton.onClick = [this]() {
+        auto parent = speakerTreeVt.getParent();
+        parent.removeChild(speakerTreeVt, &undoManager);
+    };
+
+    addAndMakeVisible(deleteButton);
 }
 
 void SpeakerTreeComponent::paint(juce::Graphics & g)
