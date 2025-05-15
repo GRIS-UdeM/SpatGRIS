@@ -679,7 +679,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         }
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
 #else
-        auto const [parent, selectedRow] = mSpeakerSetupContainer.getParentAndIndexOfSelectedItem();
+        auto const [parent, selectedRow] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
         auto const outputPatchToCopy = getSpeakerOutputPatchForRow(selectedRow);
         auto const newRow{ selectedRow + 1 };
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, newRow) };
