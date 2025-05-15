@@ -2489,53 +2489,59 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
     return newOutputPatch;
 }
 
+juce::String getJuceArrayString (const juce::Array<output_patch_t>& array)
+{
+    juce::String arrayString("(");
+
+    for (auto const& item : array)
+        arrayString << juce::String (item.get()) << " ";
+
+    arrayString = arrayString.trimEnd();
+    arrayString << ")";
+    return arrayString;
+}
+
 //==============================================================================
-output_patch_t MainContentComponent::addSpeaker(const SpeakerData & speakerData,
-                                                tl::optional<int> const index,
-                                                tl::optional <output_patch_t>newOutputPatch)
+void MainContentComponent::addSpeaker(const SpeakerData & speakerData, int index, output_patch_t newOutputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock { mLock };
+    juce::ScopedWriteLock const lock{ mLock };
 
-    auto newSpeaker { std::make_unique<SpeakerData> (speakerData) };
+    DBG("MainContentComponent::addSpeaker() with output patch: "
+        << newOutputPatch.toString() << " and index: " << juce::String(index)
+        << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
 
-    const auto settingExistingSpeaker{ newOutputPatch && mData.speakerSetup.speakers.contains(*newOutputPatch) };
-
-    if (!settingExistingSpeaker) {
-        newOutputPatch = ++getMaxSpeakerOutputPatch(); // I'm not sure about this at all, it seems like these output
-                                                       // back BS numbers could get out of sync
-
-        if (index) {
-            auto const isValidIndex{ *index >= 0 && *index < mData.speakerSetup.ordering.size() };
-            if (isValidIndex) {
-                mData.speakerSetup.ordering.insert(*index, *newOutputPatch);
-            } else {
-                static constexpr auto AT_END = -1;
-                mData.speakerSetup.ordering.insert(AT_END, *newOutputPatch);
-            }
+    if (!mData.speakerSetup.ordering.contains(newOutputPatch)) {
+        auto const isValidIndex{ index >= 0 && index < mData.speakerSetup.ordering.size() };
+        if (isValidIndex) {
+            mData.speakerSetup.ordering.insert(index, newOutputPatch);
         } else {
-            mData.speakerSetup.ordering.add(*newOutputPatch);
+            static constexpr auto AT_END = -1;
+            mData.speakerSetup.ordering.insert(AT_END, newOutputPatch);
         }
 
-        mData.speakerSetup.speakers.add (*newOutputPatch, std::move (newSpeaker));
-    }
-    else {
-        mData.speakerSetup.speakers.remove (*newOutputPatch);
-        mData.speakerSetup.speakers.add (*newOutputPatch, std::move (newSpeaker));
+        mData.speakerSetup.speakers.add(newOutputPatch, std::make_unique<SpeakerData>(speakerData));
     }
 
-    return *newOutputPatch;
+    DBG("after MainContentComponent::addSpeaker() we got: " << mData.speakerSetup.speakers.toString()
+                                                            << " and ordering: "
+                                                            << getJuceArrayString(mData.speakerSetup.ordering));
 }
 
 //==============================================================================
 void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
+    DBG ("removing speaker with output patch: " << outputPatch.toString () << " and ordering: " << getJuceArrayString (mData.speakerSetup.ordering));
+
     juce::ScopedWriteLock const dataLock{ mLock };
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     mData.speakerSetup.ordering.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
+
+    DBG ("after removal we got: " << mData.speakerSetup.speakers.toString () << " and ordering: " << getJuceArrayString (mData.speakerSetup.ordering));
 
     refreshSpeakers();
 }

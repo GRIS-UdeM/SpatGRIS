@@ -594,7 +594,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
         //auto const newOutputPatch { ++mMainContentComponent.getMaxSpeakerOutputPatch () };
         mNumRows = speakers.size();
 
-        auto newSpeakerVt = addNewSpeakerToVt (newOutputPatch, newGroup, true);
+        auto newSpeakerVt = addNewSpeakerToVt (newOutputPatch, newGroup, indexInCurGroup);
         newSpeakerVt.setProperty(CARTESIAN_POSITION,
                                  juce::VariantConverter<Position>::toVar(getSpeakerPosition(i)),
                                  &undoManager);
@@ -611,9 +611,13 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
 
 juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch,
                                                       juce::ValueTree parent,
-                                                      bool append)
+                                                      tl::optional<int> index)
 {
 #if !USE_OLD_SPEAKER_SETUP_VIEW
+
+    DBG("EditSpeakersWindow::addNewSpeakerToVt() adding output patch " << newOutputPatch.toString() << " at index "
+                                                                       << juce::String(*index));
+
     auto const & newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
     jassert(parent.isValid());
 
@@ -627,10 +631,11 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
     newSpeakerVt.setProperty(GAIN, newSpeaker.gain.get(), &undoManager);
     newSpeakerVt.setProperty(DIRECT_OUT_ONLY, newSpeaker.isDirectOutOnly, &undoManager);
 
-    if (append)
-        parent.appendChild(newSpeakerVt, &undoManager);
+    //TODO VB: so far we don't have a case where index is optional, should we remove that?
+    if (index)
+        parent.addChild (newSpeakerVt, *index, &undoManager);
     else
-        parent.addChild(newSpeakerVt, newOutputPatch.get() - 1, &undoManager);
+        parent.appendChild (newSpeakerVt, &undoManager);
 
     return newSpeakerVt;
 #else
@@ -676,8 +681,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 #else
         auto const [parent, selectedRow] = mSpeakerSetupContainer.getParentAndIndexOfSelectedItem();
         auto const outputPatchToCopy = getSpeakerOutputPatchForRow(selectedRow);
-        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, selectedRow + 1) };
-        addNewSpeakerToVt(newOutputPatch, parent, false);
+        auto const newRow{ selectedRow + 1 };
+        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, newRow) };
+        addNewSpeakerToVt(newOutputPatch, parent, newRow);
 #endif
 
         mMainContentComponent.refreshSpeakers();
@@ -1736,28 +1742,17 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
 void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)
 {
     auto const childType{ child.getType() };
-    //currently this path is only used when undoing a speaker or speaker group deletion
-    //if (!undoManager.isPerformingUndoRedo() || (childType != SPEAKER && childType != SPEAKER_GROUP))
-    //    return;
+    auto const index { parent.indexOf (child) };
+    const auto id = output_patch_t (static_cast<int> (child[ID]));
 
-    tl::optional <output_patch_t> newOutputPatch;
-
-    if (! undoManager.isPerformingUndoRedo ())
-        newOutputPatch = output_patch_t (child[ID]);
-
-    const auto putBackSpeaker = [this, &newOutputPatch](juce::ValueTree speakerGroup, juce::ValueTree speaker) {
-        const auto selectedRow = speakerGroup.indexOf(speaker);
-        const auto speakerData = SpeakerData::fromVt(speaker);
-        const auto outputPatch = speaker[ID];
-        return mMainContentComponent.addSpeaker(*speakerData, selectedRow + 1, newOutputPatch);
-    };
+    DBG ("valueTreeChildAdded with ID " << id.toString() << " and index " << juce::String (index));
 
     if (childType == SPEAKER_GROUP) {
         for (auto speaker : child)
-            newOutputPatch = putBackSpeaker(child, speaker);
+            mMainContentComponent.addSpeaker(*SpeakerData::fromVt(speaker), index, id);
     } else {
         jassert(childType == SPEAKER);
-        newOutputPatch = putBackSpeaker(parent, child);
+        mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index, id);
     }
 
     mMainContentComponent.refreshSpeakers();
