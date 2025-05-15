@@ -32,14 +32,16 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     speakerSetupVt.addListener(this);
     setInterceptsMouseClicks(false, true);
 
+    //TODO VB: anything special to do about this wrt to the OG window?
+    //actually yep, look for `} else if (property == ID) {`
     setupEditorLabel (id, ID);
 
-    setupDraggableLabel(x, Position::Coordinate::x);
-    setupDraggableLabel(y, Position::Coordinate::y);
-    setupDraggableLabel(z, Position::Coordinate::z);
-    setupDraggableLabel(azim, Position::Coordinate::azimuth);
-    setupDraggableLabel(elev, Position::Coordinate::elevation);
-    setupDraggableLabel(radius, Position::Coordinate::radius);
+    setupCoordinateLabel(x, Position::Coordinate::x);
+    setupCoordinateLabel(y, Position::Coordinate::y);
+    setupCoordinateLabel(z, Position::Coordinate::z);
+    setupCoordinateLabel(azim, Position::Coordinate::azimuth);
+    setupCoordinateLabel(elev, Position::Coordinate::elevation);
+    setupCoordinateLabel(radius, Position::Coordinate::radius);
 
     if (auto trashDrawable = juce::Drawable::createFromImageData(BinaryData::trash_svg, BinaryData::trash_svgSize))
         deleteButton.setImages(trashDrawable.get());
@@ -216,7 +218,7 @@ void SpeakerTreeComponent::setPositionCoordinate (Position::Coordinate coordinat
     setPosition (position);
 }
 
-void SpeakerTreeComponent::setupDraggableLabel(DraggableLabel & label, Position::Coordinate coordinate)
+void SpeakerTreeComponent::setupCoordinateLabel(DraggableLabel & label, Position::Coordinate coordinate)
 {
     label.setEditable(true);
     label.setText(getPositionCoordinateTrimmedText(coordinate), juce::dontSendNotification);
@@ -307,8 +309,8 @@ void SpeakerTreeComponent::updateEnabledLabels ()
 
 SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine* owner,
                                              const juce::ValueTree & v,
-                                             juce::UndoManager & undoManager)
-    : SpeakerTreeComponent(owner, v, undoManager)
+                                             juce::UndoManager & undoMan)
+    : SpeakerTreeComponent(owner, v, undoMan)
 {
 }
 
@@ -316,10 +318,39 @@ SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine* owner,
 
 SpeakerComponent::SpeakerComponent(SpeakerSetupLine* owner,
                                    const juce::ValueTree & v,
-                                   juce::UndoManager & undoManager)
-    : SpeakerTreeComponent(owner, v, undoManager)
+                                   juce::UndoManager & undoMan)
+    : SpeakerTreeComponent(owner, v, undoMan)
 {
-    setupEditorLabel(gain, GAIN);
+    //setup gain label
+    gain.setEditable(true);
+    gain.setText (speakerTreeVt[GAIN], juce::dontSendNotification);
+
+    const auto getClampedGain = [](float gainValue) {
+        static constexpr dbfs_t MIN_GAIN{ -18.0f };
+        static constexpr dbfs_t MAX_GAIN{ 6.0f };
+        return std::clamp(dbfs_t(gainValue), MIN_GAIN, MAX_GAIN);
+    };
+
+    gain.onTextChange = [this, getClampedGain] {
+        auto const clampedValue = getClampedGain(gain.getText().getFloatValue()).get();
+
+        gain.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
+        speakerTreeVt.setProperty (GAIN, clampedValue, &undoManager);
+    };
+
+    gain.onMouseDragCallback = [this, getClampedGain](int deltaY) {
+        auto const draggedValue{ gain.getText().getFloatValue() - deltaY * 0.05f };
+        auto const clampedValue{ getClampedGain(draggedValue).get()};
+
+        gain.setText (juce::String (clampedValue, 1), juce::dontSendNotification);
+        speakerTreeVt.setProperty(GAIN, clampedValue, &undoManager);
+    };
+
+    addAndMakeVisible(gain);
+
+
+
+
     setupEditorLabel(highpass, FREQ);
 
     direct.getToggleStateValue ().referTo (speakerTreeVt.getPropertyAsValue (DIRECT_OUT_ONLY, &undoManager));

@@ -1676,18 +1676,12 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             //set speaker position as the center of the group + its position within the group
             mMainContentComponent.setSpeakerPosition(outputPatch, SpeakerData::getAbsoluteSpeakerPosition(vt));
             mShouldComputeSpeakers = true;
-        }else if (property == DIRECT_OUT_ONLY) {
+        } else if (property == DIRECT_OUT_ONLY) {
             auto const directOutOnly { vt[DIRECT_OUT_ONLY] };
             mMainContentComponent.setShowTriplets (false);
             mMainContentComponent.speakerDirectOutOnlyChanged (outputPatch, directOutOnly);
         } else if (property == GAIN) {
-            //TODO VB: should gain and freq be dragable
-            static constexpr dbfs_t MIN_GAIN { -18.0f };
-            static constexpr dbfs_t MAX_GAIN { 6.0f };
-            dbfs_t val { (float) newVal};
-            auto diff = val - speaker.gain;
-            val = std::clamp (val, MIN_GAIN, MAX_GAIN);
-            mMainContentComponent.setSpeakerGain (outputPatch, val);
+            mMainContentComponent.setSpeakerGain (outputPatch, dbfs_t {newVal});
         } else if (property == FREQ) {
             static constexpr hz_t OFF_FREQ { 0.0f };
             static constexpr hz_t MIN_FREQ { 20.0f };
