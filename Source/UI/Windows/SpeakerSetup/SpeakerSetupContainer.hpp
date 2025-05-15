@@ -60,12 +60,9 @@ public:
 
     void selectSpeaker (tl::optional<output_patch_t> const outputPatch);
 
-    std::pair<juce::ValueTree, int> getParentAndIndexOfSelectedItem()
-    {
-        auto const vtRow = getSelectedItem();
-        auto parent = vtRow.getParent();
-        return { parent, parent.indexOf(vtRow) };
-    }
+    std::pair<juce::ValueTree, int> getParentAndIndexOfSelectedItem();
+
+    std::pair<juce::ValueTree, int> getMainSpeakerGroupAndIndex ();
 
     void addValueTreeListener(juce::ValueTree::Listener * listener) { vt.addListener(listener); }
     void setSpatMode(SpatMode spatMode) { vt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager); }

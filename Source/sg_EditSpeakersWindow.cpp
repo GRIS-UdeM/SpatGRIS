@@ -569,7 +569,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakers > MAX_NUM_SPEAKERS)
         return;
 
-    auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getParentAndIndexOfSelectedItem ();
+    auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
 
     juce::ValueTree newGroup("SPEAKER_GROUP");
     newGroup.setProperty(ID, "new group", &undoManager);

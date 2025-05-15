@@ -210,4 +210,28 @@ void SpeakerSetupContainer::selectSpeaker (tl::optional<output_patch_t> const ou
     mainSpeakerGroupLine->selectChildSpeaker(outputPatch);
 }
 
+std::pair<juce::ValueTree, int> SpeakerSetupContainer::getParentAndIndexOfSelectedItem ()
+{
+    auto const vtRow = getSelectedItem ();
+    auto parent = vtRow.getParent ();
+    return { parent, parent.indexOf (vtRow) };
+}
+
+std::pair<juce::ValueTree, int> SpeakerSetupContainer::getMainSpeakerGroupAndIndex ()
+{
+    auto vtRow = getSelectedItem ();
+
+    juce::ValueTree parent;
+    int index {};
+    do
+    {
+        parent = vtRow.getParent ();
+        index = parent.indexOf (vtRow);
+        vtRow = parent;
+    } while (vtRow[ID].toString () != "Main");   //TODO VB: make a main constant
+
+
+    return { parent, index };
+}
+
 } // namespace gris
