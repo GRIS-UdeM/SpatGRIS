@@ -321,39 +321,80 @@ SpeakerComponent::SpeakerComponent(SpeakerSetupLine* owner,
                                    juce::UndoManager & undoMan)
     : SpeakerTreeComponent(owner, v, undoMan)
 {
-    //setup gain label
-    gain.setEditable(true);
-    gain.setText (speakerTreeVt[GAIN], juce::dontSendNotification);
+    setupGain();
 
-    const auto getClampedGain = [](float gainValue) {
-        static constexpr dbfs_t MIN_GAIN{ -18.0f };
-        static constexpr dbfs_t MAX_GAIN{ 6.0f };
-        return std::clamp(dbfs_t(gainValue), MIN_GAIN, MAX_GAIN);
-    };
-
-    gain.onTextChange = [this, getClampedGain] {
-        auto const clampedValue = getClampedGain(gain.getText().getFloatValue()).get();
-
-        gain.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
-        speakerTreeVt.setProperty (GAIN, clampedValue, &undoManager);
-    };
-
-    gain.onMouseDragCallback = [this, getClampedGain](int deltaY) {
-        auto const draggedValue{ gain.getText().getFloatValue() - deltaY * 0.05f };
-        auto const clampedValue{ getClampedGain(draggedValue).get()};
-
-        gain.setText (juce::String (clampedValue, 1), juce::dontSendNotification);
-        speakerTreeVt.setProperty(GAIN, clampedValue, &undoManager);
-    };
-
-    addAndMakeVisible(gain);
-
-
-
+    setupHighPass ();
 
     setupEditorLabel(highpass, FREQ);
 
     direct.getToggleStateValue ().referTo (speakerTreeVt.getPropertyAsValue (DIRECT_OUT_ONLY, &undoManager));
     addAndMakeVisible (direct);
 }
+
+void SpeakerComponent::setupGain ()
+{
+    gain.setEditable (true);
+    gain.setText (speakerTreeVt[GAIN], juce::dontSendNotification);
+
+    const auto getClampedGain = [](float gainValue) {
+        static constexpr dbfs_t MIN_GAIN { -18.0f };
+        static constexpr dbfs_t MAX_GAIN { 6.0f };
+        return std::clamp (dbfs_t (gainValue), MIN_GAIN, MAX_GAIN);
+        };
+
+    gain.onTextChange = [this, getClampedGain] {
+        auto const clampedValue = getClampedGain (gain.getText ().getFloatValue ()).get ();
+
+        gain.setText (juce::String (clampedValue, 1), juce::dontSendNotification);
+        speakerTreeVt.setProperty (GAIN, clampedValue, &undoManager);
+        };
+
+    gain.onMouseDragCallback = [this, getClampedGain](int deltaY) {
+        auto const draggedValue { gain.getText ().getFloatValue () - deltaY * 0.05f };
+        auto const clampedValue { getClampedGain (draggedValue).get () };
+
+        gain.setText (juce::String (clampedValue, 1), juce::dontSendNotification);
+        speakerTreeVt.setProperty (GAIN, clampedValue, &undoManager);
+        };
+
+    addAndMakeVisible (gain);
+}
+
+//TODO VB: this is probably easily DRYable
+void SpeakerComponent::setupHighPass ()
+{
+    highpass.setEditable(true);
+    highpass.setText(speakerTreeVt[FREQ], juce::dontSendNotification);
+
+    const auto getClampedFrequency = [](float freqValue, bool isIncreasing = false) {
+        static constexpr hz_t OFF_FREQ{ 0.0f };
+        static constexpr hz_t MIN_FREQ{ 20.0f };
+        static constexpr hz_t MAX_FREQ{ 150.0f };
+
+        if (hz_t(freqValue) < MIN_FREQ)
+            return isIncreasing ? MIN_FREQ : OFF_FREQ;
+
+        return std::clamp(hz_t(freqValue), MIN_FREQ, MAX_FREQ);
+    };
+
+    highpass.onTextChange = [this, getClampedFrequency] {
+        auto const clampedValue = getClampedFrequency(highpass.getText().getFloatValue()).get();
+        //DBG ("onTextChange " << juce::String (clampedValue));
+
+        highpass.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
+        speakerTreeVt.setProperty(FREQ, clampedValue, &undoManager);
+    };
+
+    highpass.onMouseDragCallback = [this, getClampedFrequency](int deltaY) {
+        auto const draggedValue{ highpass.getText().getFloatValue() - deltaY * 0.5f };
+        auto const clampedValue{ getClampedFrequency(draggedValue, deltaY < 0).get() };
+        //DBG ("onMouseDragCallback " << juce::String (clampedValue));
+
+        highpass.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
+        speakerTreeVt.setProperty(FREQ, clampedValue, &undoManager);
+    };
+
+    addAndMakeVisible(highpass);
+}
+
 } // namespace gris

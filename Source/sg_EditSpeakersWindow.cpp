@@ -1683,27 +1683,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
         } else if (property == GAIN) {
             mMainContentComponent.setSpeakerGain (outputPatch, dbfs_t {newVal});
         } else if (property == FREQ) {
-            static constexpr hz_t OFF_FREQ { 0.0f };
-            static constexpr hz_t MIN_FREQ { 20.0f };
-            static constexpr hz_t MAX_FREQ { 150.0f };
-            hz_t val { static_cast<float>(newVal) };
-            auto diff = val
-                - speaker.highpassData.map_or ([](SpeakerHighpassData const& data) { return data.freq; },
-                                               hz_t { OFF_FREQ });
-            auto mapValue = [&](hz_t value, hz_t modDiff) {
-                if (value <= OFF_FREQ && modDiff <= OFF_FREQ) {
-                    value = OFF_FREQ;
-                }
-                else if (value < MIN_FREQ && value > OFF_FREQ && modDiff < OFF_FREQ) {
-                    value = OFF_FREQ;
-                }
-                else {
-                    value = std::clamp (value, MIN_FREQ, MAX_FREQ);
-                }
-                return value;
-                };
-            val = mapValue (val, diff);
-            mMainContentComponent.setSpeakerHighPassFreq (outputPatch, val);
+            mMainContentComponent.setSpeakerHighPassFreq (outputPatch, hz_t {newVal});
         } else if (property == ID) {
             // TODO VB: test this, it's taken from EditSpeakersWindow::setText() above
             mMainContentComponent.setShowTriplets(false);

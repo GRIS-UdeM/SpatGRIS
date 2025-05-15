@@ -113,5 +113,8 @@ class SpeakerComponent : public SpeakerTreeComponent
 {
 public:
     SpeakerComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+private:
+    void setupGain ();
+    void setupHighPass ();
 };
 } // namespace gris
