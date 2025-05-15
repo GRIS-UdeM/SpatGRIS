@@ -216,6 +216,7 @@ public:
     void updateWinContent();
 
 private:
+    bool isAddingGroup = false;
     //==============================================================================
     void pushSelectionToMainComponent();
 #if USE_OLD_SPEAKER_SETUP_VIEW

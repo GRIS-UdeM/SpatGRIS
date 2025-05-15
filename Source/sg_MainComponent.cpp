@@ -2507,9 +2507,11 @@ void MainContentComponent::addSpeaker(const SpeakerData & speakerData, int index
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
+#if DEBUG_SPEAKER_EDITION
     DBG("MainContentComponent::addSpeaker() with output patch: "
         << newOutputPatch.toString() << " and index: " << juce::String(index)
         << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
 
     if (!mData.speakerSetup.ordering.contains(newOutputPatch)) {
         auto const isValidIndex{ index >= 0 && index < mData.speakerSetup.ordering.size() };
@@ -2523,9 +2525,11 @@ void MainContentComponent::addSpeaker(const SpeakerData & speakerData, int index
         mData.speakerSetup.speakers.add(newOutputPatch, std::make_unique<SpeakerData>(speakerData));
     }
 
+#if DEBUG_SPEAKER_EDITION
     DBG("after MainContentComponent::addSpeaker() we got: " << mData.speakerSetup.speakers.toString()
                                                             << " and ordering: "
                                                             << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
 }
 
 //==============================================================================
@@ -2533,7 +2537,10 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    DBG ("removing speaker with output patch: " << outputPatch.toString () << " and ordering: " << getJuceArrayString (mData.speakerSetup.ordering));
+#if DEBUG_SPEAKER_EDITION
+    DBG("removing speaker with output patch: " << outputPatch.toString()
+                                               << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
 
     juce::ScopedWriteLock const dataLock{ mLock };
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
@@ -2541,7 +2548,10 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
     mData.speakerSetup.ordering.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
 
-    DBG ("after removal we got: " << mData.speakerSetup.speakers.toString () << " and ordering: " << getJuceArrayString (mData.speakerSetup.ordering));
+#if DEBUG_SPEAKER_EDITION
+    DBG("after removal we got: " << mData.speakerSetup.speakers.toString()
+                                 << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
 
     refreshSpeakers();
 }

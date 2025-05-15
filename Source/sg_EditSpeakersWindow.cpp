@@ -826,8 +826,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
             return Position { CartesianVector{ xRot, yAzim, zRot } };
         };
-
+        isAddingGroup = true;
         addSpeakerGroup(numFaces, groupPosition, getSpeakerPosition);
+        isAddingGroup = false;
     } else if (button == &mPinkNoiseToggleButton) {
         // Pink noise button
         tl::optional<dbfs_t> newPinkNoiseLevel{};
@@ -858,7 +859,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     }
 #endif
 
-    computeSpeakers();
+    //computeSpeakers();
 }
 
 //==============================================================================
@@ -1432,6 +1433,7 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
 void EditSpeakersWindow::computeSpeakers()
 {
     if (mShouldComputeSpeakers) {
+        DBG ("EditSpeakersWindow::computeSpeakers()");
         mMainContentComponent.refreshSpeakers();
         mShouldComputeSpeakers = false;
     }
@@ -1729,10 +1731,12 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
         mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index, id);
     }
 
-    mMainContentComponent.refreshSpeakers();
-    updateWinContent();
-    //selectSpeaker(newOutputPatch);
-    mShouldComputeSpeakers = true;
+    if (!isAddingGroup) {
+        mMainContentComponent.refreshSpeakers();
+        updateWinContent();
+        // selectSpeaker(newOutputPatch);
+        mShouldComputeSpeakers = true;
+    }
 }
 
 void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent)
@@ -1747,6 +1751,9 @@ void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::V
     else if (child.getType () == SPEAKER) {
         output_patch_t outputPatch {child[ID]};
         mMainContentComponent.removeSpeaker (outputPatch);
+        //TODO VB: this call needs to be coalesced into the future -- when we undo a group creation,
+        //this is called for every child before the one for the group above is called and I don't think
+        //we can avoid all these calls here other than coaslecing them into the future
         updateWinContent ();
     }
 }
