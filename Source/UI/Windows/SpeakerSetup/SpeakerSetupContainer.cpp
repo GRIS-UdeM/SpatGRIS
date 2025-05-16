@@ -42,7 +42,7 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
     auto setLabelText = [this](juce::Label& label, const juce::String & text) {
-        label.setColour (juce::Label::ColourIds::outlineColourId, lookAndFeel.mLightColour.withAlpha (.25f));
+        label.setColour (juce::Label::ColourIds::outlineColourId, grisLookAndFeel.mLightColour.withAlpha (.25f));
         label.setText(text, juce::dontSendNotification);
         addAndMakeVisible(label);
     };
@@ -73,8 +73,6 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     startTimer (500);
 
     setSize (500, 500);
-
-    setLookAndFeel (&lookAndFeel);
 }
 
 void SpeakerSetupContainer::resized ()

@@ -34,10 +34,7 @@ public:
 
     ~SpeakerSetupContainer () override
     {
-        setLookAndFeel (nullptr);
         speakerSetupTreeView.setRootItem (nullptr);
-
-        //TODO VB: delete lnf from all labels. Need a way to iterate through those components
     }
 
     void resized () override;
@@ -68,7 +65,7 @@ public:
     void setSpatMode(SpatMode spatMode) { vt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager); }
 
 private:
-    GrisLookAndFeel lookAndFeel;
+    GrisLookAndFeel grisLookAndFeel;
     //TODO VB: rename these
     juce::File vtFile;
     juce::ValueTree vt;
@@ -80,11 +77,11 @@ private:
     juce::TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton { "Sort" }, saveButton { "Save" };
 
     std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
+
+    juce::UndoManager& undoManager;
     std::function<void ()> onSelectionChanged;
 
     void timerCallback() override { undoManager.beginNewTransaction(); }
-
-    juce::UndoManager& undoManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerSetupContainer)
 };
