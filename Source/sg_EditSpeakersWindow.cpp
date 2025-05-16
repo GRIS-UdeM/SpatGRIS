@@ -556,7 +556,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
 
         mMainContentComponent.setSpeakerPosition(newOutputPatch, getSpeakerPosition(i));
     }
-    mMainContentComponent.refreshSpeakers();
+    mMainContentComponent.requestSpeakerRefresh();
     updateWinContent();
     // TableList needs different sorting parameters to trigger the sorting function.
     mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
