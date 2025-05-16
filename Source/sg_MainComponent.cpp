@@ -256,6 +256,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     initAudioManager();
     initAudioProcessor();
 
+    mSpeakersRefreshAsyncUpdater = std::make_unique<SpeakersRefreshAsyncUpdater> (*this);
+
     // juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     startOsc();
@@ -2552,8 +2554,9 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch, bool 
     DBG("after removal we got: " << mData.speakerSetup.speakers.toString()
                                  << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
 #endif
+
     if (shouldRefreshSpeakers)
-        refreshSpeakers();
+        requestSpeakerRefresh();
 }
 
 //==============================================================================

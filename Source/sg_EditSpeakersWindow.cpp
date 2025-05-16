@@ -600,7 +600,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
                                  &undoManager);
         mMainContentComponent.setSpeakerPosition(newOutputPatch, SpeakerData::getAbsoluteSpeakerPosition(newSpeakerVt));
     }
-    mMainContentComponent.refreshSpeakers();
+    mMainContentComponent.requestSpeakerRefresh ();
     updateWinContent();
 
     selectSpeaker(newOutputPatch);
@@ -688,7 +688,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         addNewSpeakerToVt(newOutputPatch, parent, newRow);
 #endif
 
-        mMainContentComponent.refreshSpeakers();
+        mMainContentComponent.requestSpeakerRefresh ();
         updateWinContent();
         selectSpeaker(newOutputPatch);
 #if USE_OLD_SPEAKER_SETUP_VIEW
@@ -1436,7 +1436,7 @@ void EditSpeakersWindow::computeSpeakers()
 {
     if (mShouldComputeSpeakers) {
         DBG ("EditSpeakersWindow::computeSpeakers()");
-        mMainContentComponent.refreshSpeakers();
+        mMainContentComponent.requestSpeakerRefresh ();
         mShouldComputeSpeakers = false;
     }
 }
@@ -1742,7 +1742,7 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
     }
 
     if (!isAddingGroup) {
-        mMainContentComponent.refreshSpeakers();
+        mMainContentComponent.requestSpeakerRefresh ();
         updateWinContent();
         // selectSpeaker(newOutputPatch);
         mShouldComputeSpeakers = true;

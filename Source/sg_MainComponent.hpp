@@ -225,7 +225,21 @@ public:
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
 
-    void refreshSpeakers();
+    void requestSpeakerRefresh()
+    {
+        if (mSpeakersRefreshAsyncUpdater)
+            mSpeakersRefreshAsyncUpdater->triggerAsyncUpdate();
+    }
+
+    class SpeakersRefreshAsyncUpdater : public juce::AsyncUpdater
+    {
+    public:
+        SpeakersRefreshAsyncUpdater (MainContentComponent& owner) : mOwner (owner) {}
+        void handleAsyncUpdate () override { mOwner.refreshSpeakers (); }
+    private:
+        MainContentComponent& mOwner;
+    };
+    std::unique_ptr<SpeakersRefreshAsyncUpdater> mSpeakersRefreshAsyncUpdater;
 
     //==============================================================================
     // Commands.
@@ -309,6 +323,7 @@ private:
 #endif
     void handleShowOscMonitorWindow();
 
+    void refreshSpeakers ();
     void refreshSourceSlices();
     void refreshSpeakerSlices();
 
