@@ -111,7 +111,7 @@ struct Comparator
     }
 };
 
-//TODO VB: this should really use juce::TreeViewItem::sortSubItems()
+// TODO: look into whether this should use juce::TreeViewItem::sortSubItems() instead of sorting the value tree
 void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
 {
     if (! vt.isValid ())

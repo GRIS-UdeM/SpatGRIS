@@ -46,6 +46,7 @@ const juce::Identifier SPEAKER_GROUP{ "SPEAKER_GROUP" };
 const juce::Identifier SPEAKER{ "SPEAKER" };
 const juce::Identifier VERSION{ "VERSION" };
 const juce::Identifier ID{ "ID" };
+const juce::Identifier NEXT_ID { "NEXT_ID" };
 const juce::Identifier UUID{ "UUID" };
 const juce::Identifier STATE{ "STATE" };
 const juce::Identifier CARTESIAN_POSITION{ "CARTESIAN_POSITION" };

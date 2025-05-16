@@ -1672,7 +1672,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             jassertfalse;
         }
     } else if (vt.getType() == SPEAKER) {
-        output_patch_t const outputPatch { vt.getProperty (ID) };
+        output_patch_t const outputPatch { vt[ID] };
         auto const& speakers { spatGrisData.speakerSetup.speakers };
         auto const& speaker { speakers[outputPatch] };
 
@@ -1688,27 +1688,33 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             mMainContentComponent.setSpeakerGain (outputPatch, dbfs_t {newVal});
         } else if (property == FREQ) {
             mMainContentComponent.setSpeakerHighPassFreq (outputPatch, hz_t {newVal});
-        } else if (property == ID) {
-            // TODO VB: test this, it's taken from EditSpeakersWindow::setText() above
-            mMainContentComponent.setShowTriplets(false);
-            auto const & oldOutputPatch{ outputPatch };
-            output_patch_t newOutputPatch{ std::clamp((int) newVal, 1, MAX_NUM_SPEAKERS) };
+        } else if (property == NEXT_ID) {
+            if (vt.hasProperty(NEXT_ID)) {
+                mMainContentComponent.setShowTriplets(false);
 
-            if (newOutputPatch != oldOutputPatch) {
-                if (speakers.contains(newOutputPatch)) {
-                    juce::AlertWindow alert("Wrong output patch!    ",
-                                            "Sorry! Output patch number " + juce::String(newOutputPatch.get())
-                                                + " is already used.",
-                                            juce::AlertWindow::WarningIcon);
-                    alert.setLookAndFeel(&mLookAndFeel);
-                    alert.addButton("OK", 0, juce::KeyPress(juce::KeyPress::returnKey));
-                    alert.runModalLoop();
-                } else {
-                    mMainContentComponent.speakerOutputPatchChanged(oldOutputPatch, newOutputPatch);
+                auto const & oldOutputPatch{ outputPatch };
+                output_patch_t newOutputPatch{ static_cast<int>(vt[NEXT_ID]) };
+
+                if (newOutputPatch != oldOutputPatch) {
+                    if (speakers.contains(newOutputPatch)) {
+                        juce::AlertWindow alert("Wrong output patch!    ",
+                                                "Sorry! Output patch number " + juce::String(newOutputPatch.get())
+                                                    + " is already used.",
+                                                juce::AlertWindow::WarningIcon);
+                        alert.setLookAndFeel(&mLookAndFeel);
+                        alert.addButton("OK", 0, juce::KeyPress(juce::KeyPress::returnKey));
+                        alert.runModalLoop();
+                    } else {
+                        mMainContentComponent.speakerOutputPatchChanged(oldOutputPatch, newOutputPatch);
+                        vt.setProperty(ID, newOutputPatch.get(), &undoManager);
+                    }
                 }
+
+                vt.removeProperty(NEXT_ID, &undoManager);
             }
+
         mShouldComputeSpeakers = true;
-        } else {
+        } else if (property != ID) {
             jassertfalse;
         }
     } else if (property == SPAT_MODE) {

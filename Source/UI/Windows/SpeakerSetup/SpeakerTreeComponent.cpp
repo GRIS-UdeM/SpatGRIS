@@ -32,9 +32,7 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     speakerSetupVt.addListener(this);
     setInterceptsMouseClicks(false, true);
 
-    //TODO VB: anything special to do about this wrt to the OG window?
-    //actually yep, look for `} else if (property == ID) {`
-    setupEditorLabel (id, ID);
+    setupIdLabel ();
 
     setupCoordinateLabel(x, Position::Coordinate::x);
     setupCoordinateLabel(y, Position::Coordinate::y);
@@ -276,11 +274,25 @@ void SpeakerTreeComponent::setupStringLabel (juce::Label & label, juce::StringRe
     addAndMakeVisible(label);
 }
 
-void SpeakerTreeComponent::setupEditorLabel (juce::Label& label, juce::Identifier property)
+void SpeakerTreeComponent::setupIdLabel ()
 {
-    label.setEditable (true);
-    label.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(property, &undoManager));
-    addAndMakeVisible (label);
+    /*} else if (property == ID) {*/
+
+    //so what's tricky here is that we need to hold onto the previous value for the ID, because we need to call
+    // mMainContentComponent.speakerOutputPatchChanged(oldOutputPatch, newOutputPatch); with it
+
+    id.setText (speakerTreeVt[ID], juce::dontSendNotification);
+    id.setEditable (true);
+
+    id.onTextChange = [this]()
+        {
+            auto const currentId = id.getText ().getIntValue ();
+            auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
+            speakerTreeVt.setProperty (NEXT_ID, clampedId, &undoManager);
+            /*id.setText(juce::String (clampedId), juce::dontSendNotification);*/
+        };
+
+    addAndMakeVisible (id);
 }
 
 void SpeakerTreeComponent::updateAllPositionLabels ()
@@ -300,10 +312,15 @@ tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const
 
 void SpeakerTreeComponent::valueTreePropertyChanged (juce::ValueTree& valueTree, const juce::Identifier& property)
 {
+    if (valueTree == speakerTreeVt && (property == ID || property == NEXT_ID))
+        id.setText (speakerTreeVt[ID].toString(), juce::dontSendNotification);
+
     //only interested in this tree and property for now
     if ((valueTree == speakerSetupVt && property == SPAT_MODE)
         || (valueTree == speakerTreeVt && property == DIRECT_OUT_ONLY))
         updateEnabledLabels();
+
+    
 }
 
 void SpeakerTreeComponent::updateEnabledLabels ()

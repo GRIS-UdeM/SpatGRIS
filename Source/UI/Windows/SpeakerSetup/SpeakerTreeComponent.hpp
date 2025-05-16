@@ -75,7 +75,7 @@ public:
 protected:
     void setupCoordinateLabel(DraggableLabel & label, Position::Coordinate coordinate);
     void setupStringLabel(juce::Label & label, juce::StringRef text);
-    void setupEditorLabel (juce::Label& label, juce::Identifier property);
+    void setupIdLabel ();
     void setupDeleteButton ();
 
     void updateAllPositionLabels();
