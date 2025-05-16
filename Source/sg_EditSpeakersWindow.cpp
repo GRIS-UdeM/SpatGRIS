@@ -633,7 +633,7 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
     newSpeakerVt.setProperty(GAIN, newSpeaker.gain.get(), &undoManager);
     newSpeakerVt.setProperty(DIRECT_OUT_ONLY, newSpeaker.isDirectOutOnly, &undoManager);
 
-    //TODO VB: so far we don't have a case where index is optional, should we remove that?
+    //TODO VB CLEANUP: so far we don't have a case where index is optional, should we remove that?
     if (index)
         parent.addChild (newSpeakerVt, *index, &undoManager);
     else
@@ -1421,8 +1421,8 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    //TODO VB: this is for sure problematic with the new stuff
-    //jassertfalse;
+    // TODO VB CLEANUP: this is for sure problematic with the new stuff
+    // jassertfalse;
 
     auto const & data{ spatGrisData };
     jassert(row >= 0 && row < data.speakerSetup.ordering.size());
@@ -1729,7 +1729,7 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
 #endif
 
     if (childType == SPEAKER_GROUP) {
-        //TODO VB: so I guess we don't need this at all?
+        // TODO VB CLEANUP: so I guess we don't need this at all?
         /*for (auto speaker : child)
         {
             DBG ("speaker with ID " << speaker[ID].toString () << " and index " << juce::String (index));

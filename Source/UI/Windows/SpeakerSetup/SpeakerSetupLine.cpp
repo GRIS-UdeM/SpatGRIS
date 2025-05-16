@@ -33,7 +33,6 @@ SpeakerSetupLine::SpeakerSetupLine(const juce::ValueTree & v,
 
 std::unique_ptr<juce::Component> SpeakerSetupLine::createItemComponent ()
 {
-    //TODO VB: either I need to keep a reference to this pointer or I need to pass a ref to this object into this constructor
     if (mightContainSubItems ())
         return std::make_unique<SpeakerGroupComponent> (this, lineValueTree, undoManager);
     else
