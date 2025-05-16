@@ -1772,18 +1772,6 @@ void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::V
         updateWinContent ();
     }
 }
-//
-//void EditSpeakersWindow::valueTreeChildOrderChanged(juce::ValueTree & parent, int oldChildId, int newChildId)
-//{
-//    //TODO VB
-//    jassertfalse;
-//}
-//
-//void EditSpeakersWindow::valueTreeParentChanged(juce::ValueTree & /*childWithNewParent*/)
-//{
-//    //TODO VB
-//    jassertfalse;
-//}
 
 #endif
 

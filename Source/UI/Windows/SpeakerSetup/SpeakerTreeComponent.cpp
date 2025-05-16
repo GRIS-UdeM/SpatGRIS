@@ -257,8 +257,12 @@ void SpeakerTreeComponent::setupCoordinateLabel(DraggableLabel & label, Position
     };
 
     label.onMouseDragCallback = [this, &label, coordinate](int deltaY) {
+        if (! label.isEnabled())
+            return;
+
         auto currentValue = label.getText().getFloatValue();
         auto newValue = currentValue - deltaY * 0.01f;
+
         setPositionCoordinate (coordinate, newValue);
         updateAllPositionLabels ();
     };
@@ -376,6 +380,9 @@ void SpeakerComponent::setupGain ()
         };
 
     gain.onMouseDragCallback = [this, getClampedGain](int deltaY) {
+        if (! gain.isEnabled ())
+            return;
+
         auto const draggedValue { gain.getText ().getFloatValue () - deltaY * 0.05f };
         auto const clampedValue { getClampedGain (draggedValue).get () };
 
@@ -410,6 +417,9 @@ void SpeakerComponent::setupHighPass ()
     };
 
     highpass.onMouseDragCallback = [this, getClampedFrequency](int deltaY) {
+        if (! highpass.isEnabled ())
+            return;
+
         auto const draggedValue{ highpass.getText().getFloatValue() - deltaY * 0.5f };
         auto const clampedValue{ getClampedFrequency(draggedValue, deltaY < 0).get() };
 
