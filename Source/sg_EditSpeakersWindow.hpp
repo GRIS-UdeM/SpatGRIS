@@ -25,6 +25,7 @@
 #include "UI/Windows/SpeakerSetup/SpeakerSetupContainer.hpp"
 
 #define USE_OLD_SPEAKER_SETUP_VIEW 0
+#define DEBUG_SPEAKER_EDITION 1
 
 namespace gris
 {

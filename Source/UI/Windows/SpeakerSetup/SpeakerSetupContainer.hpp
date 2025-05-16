@@ -64,6 +64,8 @@ public:
     void addValueTreeListener(juce::ValueTree::Listener * listener) { vt.addListener(listener); }
     void setSpatMode(SpatMode spatMode) { vt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager); }
 
+    bool isDeletingGroup() { return SpeakerSetupLine::isDeletingGroup; }
+
 private:
     GrisLookAndFeel grisLookAndFeel;
     //TODO VB: rename these

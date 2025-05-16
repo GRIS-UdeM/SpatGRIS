@@ -615,8 +615,10 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
 {
 #if !USE_OLD_SPEAKER_SETUP_VIEW
 
+#if DEBUG_SPEAKER_EDITION
     DBG("EditSpeakersWindow::addNewSpeakerToVt() adding output patch " << newOutputPatch.toString() << " at index "
                                                                        << juce::String(*index));
+#endif
 
     auto const & newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
     jassert(parent.isValid());
@@ -1710,7 +1712,8 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             jassertfalse;
         }
     } else if (property == SPAT_MODE) {
-        DBG (vt.toXmlString());
+        //TODO VB: do we need to do something here?
+        jassertfalse;
     } else
         jassertfalse;
 }
@@ -1719,16 +1722,23 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
 {
     auto const childType{ child.getType() };
     auto const index { parent.indexOf (child) };
-    const auto id = output_patch_t (static_cast<int> (child[ID]));
+    const auto childOutputPatch = output_patch_t (static_cast<int> (child[ID]));
 
-    DBG ("valueTreeChildAdded with ID " << id.toString() << " and index " << juce::String (index));
+#if DEBUG_SPEAKER_EDITION
+    DBG ("valueTreeChildAdded with ID " << child[ID].toString() << " and index " << juce::String (index));
+#endif
 
     if (childType == SPEAKER_GROUP) {
-        for (auto speaker : child)
-            mMainContentComponent.addSpeaker(*SpeakerData::fromVt(speaker), index, id);
+        //TODO VB: so I guess we don't need this at all?
+        /*for (auto speaker : child)
+        {
+            DBG ("speaker with ID " << speaker[ID].toString () << " and index " << juce::String (index));
+            auto const speakerId = output_patch_t (static_cast<int> (speaker[ID]));
+            mMainContentComponent.addSpeaker(*SpeakerData::fromVt(speaker), index, speakerId);
+        }*/
     } else {
         jassert(childType == SPEAKER);
-        mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index, id);
+        mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index, childOutputPatch);
     }
 
     if (!isAddingGroup) {
@@ -1739,21 +1749,26 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
     }
 }
 
-void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent)
+void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, [[maybe_unused]] int index)
 {
+#if DEBUG_SPEAKER_EDITION
+    DBG ("valueTreeChildRemoved with ID " << child[ID].toString() << " and index " << juce::String (index));
+#endif
+
     if (child.getType () == SPEAKER_GROUP) {
-        for (auto speakerVt : child) {
-            jassert(speakerVt.getType() == SPEAKER);
-            output_patch_t const outputPatch{ speakerVt.getProperty(ID) };
-            mMainContentComponent.removeSpeaker(outputPatch);
-        }
+        //for (auto speakerVt : child) {
+        //    jassert(speakerVt.getType() == SPEAKER);
+        //    output_patch_t const outputPatch{ speakerVt.getProperty(ID) };
+        //    mMainContentComponent.removeSpeaker(outputPatch);
+        //}
     }
     else if (child.getType () == SPEAKER) {
         output_patch_t outputPatch {child[ID]};
-        mMainContentComponent.removeSpeaker (outputPatch);
-        //TODO VB: this call needs to be coalesced into the future -- when we undo a group creation,
-        //this is called for every child before the one for the group above is called and I don't think
-        //we can avoid all these calls here other than coaslecing them into the future
+
+        // TODO: these 2 calls need to be coalesced into the future -- when we undo a group creation,
+        // this is called for every child before the one for the group above is called. Unless we can think
+        // of a hack to only remove all speakers when the group one is removed?
+        mMainContentComponent.removeSpeaker (outputPatch, ! mSpeakerSetupContainer.isDeletingGroup());
         updateWinContent ();
     }
 }

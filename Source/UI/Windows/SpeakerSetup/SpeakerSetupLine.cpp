@@ -18,6 +18,9 @@
 #include "SpeakerSetupLine.hpp"
 namespace gris
 {
+
+bool SpeakerSetupLine::isDeletingGroup = false;
+
 SpeakerSetupLine::SpeakerSetupLine(const juce::ValueTree & v,
                                    juce::UndoManager & um,
                                    std::function<void()> selectionChanged)

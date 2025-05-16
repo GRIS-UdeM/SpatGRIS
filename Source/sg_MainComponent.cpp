@@ -2533,7 +2533,7 @@ void MainContentComponent::addSpeaker(const SpeakerData & speakerData, int index
 }
 
 //==============================================================================
-void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
+void MainContentComponent::removeSpeaker(output_patch_t const outputPatch, bool shouldRefreshSpeakers /*= true*/)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -2552,8 +2552,8 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
     DBG("after removal we got: " << mData.speakerSetup.speakers.toString()
                                  << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
 #endif
-
-    refreshSpeakers();
+    if (shouldRefreshSpeakers)
+        refreshSpeakers();
 }
 
 //==============================================================================

@@ -90,7 +90,7 @@ protected:
     juce::ValueTree speakerSetupVt;
 
     GrisLookAndFeel lnf;
-    SpeakerSetupLine* treeViewItem;
+    SpeakerSetupLine* speakerSetupLine;
 
     tl::optional<SpatMode> getSpatMode () const;
 

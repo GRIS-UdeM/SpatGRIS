@@ -58,6 +58,7 @@ public:
 
     tl::optional<output_patch_t> getOutputPatch();
 
+    static bool isDeletingGroup;
 private:
     juce::ValueTree lineValueTree;
     juce::UndoManager& undoManager;

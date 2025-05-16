@@ -26,7 +26,7 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
                                            juce::UndoManager & undoMan)
     : speakerTreeVt(v)
     , speakerSetupVt (v.getRoot())
-    , treeViewItem(owner)
+    , speakerSetupLine(owner)
     , undoManager (undoMan)
 {
     speakerSetupVt.addListener(this);
@@ -64,7 +64,27 @@ void SpeakerTreeComponent::setupDeleteButton()
 
     deleteButton.onClick = [this]() {
         auto parent = speakerTreeVt.getParent();
-        parent.removeChild(speakerTreeVt, &undoManager);
+
+        if (speakerTreeVt.getType() == SPEAKER) {
+            parent.removeChild(speakerTreeVt, &undoManager);
+        } else if (speakerTreeVt.getType() == SPEAKER_GROUP) {
+            SpeakerSetupLine::isDeletingGroup = true;
+
+            auto const numSpeakers { speakerTreeVt.getNumChildren()};
+            if (numSpeakers >= 1) {
+                //remove all but the first child
+                for (int i = numSpeakers - 1; i >= 1; --i)
+                    speakerTreeVt.removeChild (i, &undoManager);
+
+                SpeakerSetupLine::isDeletingGroup = false;
+
+                //this last one will trigger a call to MainContentComponent::refreshSpeakers()
+                speakerTreeVt.removeChild (0, &undoManager);
+
+                //and finally delete the group
+                parent.removeChild (speakerTreeVt, &undoManager);
+            }
+        }
     };
 
     addAndMakeVisible(deleteButton);
@@ -72,11 +92,11 @@ void SpeakerTreeComponent::setupDeleteButton()
 
 void SpeakerTreeComponent::paint(juce::Graphics & g)
 {
-    if (treeViewItem->isSelected())
+    if (speakerSetupLine->isSelected())
         g.fillAll(lnf.mHlBgcolor);
     else if (speakerTreeVt.getType() == SPEAKER_GROUP)
         g.fillAll(lnf.mBackGroundAndFieldColour.darker(.5f));
-    else if (treeViewItem->getIndexInParent() % 2 == 0)
+    else if (speakerSetupLine->getIndexInParent() % 2 == 0)
         g.fillAll(lnf.mGreyColour);
 }
 
