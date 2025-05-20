@@ -320,8 +320,8 @@ void SpeakerTreeComponent::valueTreePropertyChanged(juce::ValueTree & valueTree,
     if (property == ID)
         id.setText(speakerTreeVt[ID].toString(), juce::dontSendNotification);
 
-    //if (property == NEXT_ID)
-    //    id.setText(speakerTreeVt[NEXT_ID].toString(), juce::dontSendNotification);
+    if (property == CARTESIAN_POSITION)
+        updateAllPositionLabels();
 
     // only interested in this tree and property for now
     if (property == SPAT_MODE || property == DIRECT_OUT_ONLY)

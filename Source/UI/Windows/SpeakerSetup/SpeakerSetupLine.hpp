@@ -68,8 +68,6 @@ private:
 
     void itemSelectionChanged(bool isNowSelected) override;
 
-    //TODO VB: does this break anything?
-    //void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier&) override { repaintItem (); }
     void valueTreeChildAdded (juce::ValueTree& parentTree, juce::ValueTree&) override { treeChildrenChanged (parentTree); }
     void valueTreeChildRemoved (juce::ValueTree& parentTree, juce::ValueTree&, int) override { treeChildrenChanged (parentTree); }
     void valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int) override { treeChildrenChanged (parentTree); }
