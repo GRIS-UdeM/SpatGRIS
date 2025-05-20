@@ -83,7 +83,7 @@ private:
     juce::UndoManager& undoManager;
     std::function<void ()> onSelectionChanged;
 
-    void timerCallback() override { undoManager.beginNewTransaction(); }
+    void timerCallback() override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerSetupContainer)
 };

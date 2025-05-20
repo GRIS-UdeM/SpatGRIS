@@ -284,13 +284,15 @@ void SpeakerTreeComponent::setupIdLabel ()
     id.setText (speakerTreeVt[ID], juce::dontSendNotification);
     id.setEditable (true);
 
-    id.onTextChange = [this]()
-        {
-            auto const currentId = id.getText ().getIntValue ();
-            auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
-            speakerTreeVt.setProperty (NEXT_ID, clampedId, &undoManager);
-            /*id.setText(juce::String (clampedId), juce::dontSendNotification);*/
-        };
+    id.onTextChange = [this]() {
+        auto const currentId = id.getText().getIntValue();
+        auto const clampedId{ std::clamp(currentId, 1, MAX_NUM_SPEAKERS) };
+        // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
+        // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
+        // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
+        // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
+        speakerTreeVt.setProperty(NEXT_ID, clampedId, nullptr);
+    };
 
     addAndMakeVisible (id);
 }

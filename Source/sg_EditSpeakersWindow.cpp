@@ -1672,32 +1672,6 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             jassertfalse;
         }
     } else if (vt.getType() == SPEAKER) {
-
-        //the logic for undoing/redoing speaker IDs is a bit special because we need to track both the previous and next IDs for the speaker
-        if (undoManager.isPerformingUndoRedo () && (property == ID || property == NEXT_ID)) {
-            output_patch_t idOutputPatch { vt[ID] };
-            output_patch_t nextIdOutputPatch { static_cast<int>(vt[NEXT_ID]) };
-
-            if (cachedId == -1) {
-                if (property == NEXT_ID) {
-                    cachedId = nextIdOutputPatch.get();
-                    return;
-                } else {
-                    cachedId = idOutputPatch.get();
-                    return;
-                }
-            }
-
-            output_patch_t cachedPatch{ cachedId };
-
-            if (property == ID && spatGrisData.speakerSetup.speakers.contains(cachedPatch)) {
-                mMainContentComponent.speakerOutputPatchChanged(cachedPatch, idOutputPatch);
-                cachedId = idOutputPatch.get();
-            }
-
-            return;
-        }
-
         output_patch_t const outputPatch { vt[ID] };
         auto const& speakers { spatGrisData.speakerSetup.speakers };
         auto const& speaker { speakers[outputPatch] };
@@ -1732,11 +1706,11 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
                         alert.runModalLoop();
                     } else {
                         mMainContentComponent.speakerOutputPatchChanged(oldOutputPatch, newOutputPatch);
-                        vt.setProperty(ID, newOutputPatch.get(), &undoManager);
+                        vt.setProperty(ID, newOutputPatch.get(), nullptr);
                     }
                 }
 
-                vt.removeProperty(NEXT_ID, &undoManager);
+                vt.removeProperty(NEXT_ID, nullptr);
             }
 
         mShouldComputeSpeakers = true;

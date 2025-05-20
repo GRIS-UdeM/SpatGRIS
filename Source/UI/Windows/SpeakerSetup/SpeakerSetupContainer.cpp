@@ -232,4 +232,12 @@ std::pair<juce::ValueTree, int> SpeakerSetupContainer::getMainSpeakerGroupAndInd
     return { parent, index };
 }
 
+void SpeakerSetupContainer::timerCallback ()
+{
+    undoManager.beginNewTransaction ();
+
+    undoButton.setEnabled (undoManager.canUndo ());
+    redoButton.setEnabled (undoManager.canRedo ());
+}
+
 } // namespace gris
