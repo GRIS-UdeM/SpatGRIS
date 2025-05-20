@@ -310,17 +310,20 @@ tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const
     return stringToSpatMode (speakerTreeVt.getRoot ().getProperty(SPAT_MODE).toString());
 }
 
-void SpeakerTreeComponent::valueTreePropertyChanged (juce::ValueTree& valueTree, const juce::Identifier& property)
+void SpeakerTreeComponent::valueTreePropertyChanged(juce::ValueTree & valueTree, const juce::Identifier & property)
 {
-    if (valueTree == speakerTreeVt && (property == ID || property == NEXT_ID))
-        id.setText (speakerTreeVt[ID].toString(), juce::dontSendNotification);
+    if (valueTree != speakerTreeVt)
+        return;
 
-    //only interested in this tree and property for now
-    if ((valueTree == speakerSetupVt && property == SPAT_MODE)
-        || (valueTree == speakerTreeVt && property == DIRECT_OUT_ONLY))
+    if (property == ID)
+        id.setText(speakerTreeVt[ID].toString(), juce::dontSendNotification);
+
+    //if (property == NEXT_ID)
+    //    id.setText(speakerTreeVt[NEXT_ID].toString(), juce::dontSendNotification);
+
+    // only interested in this tree and property for now
+    if (property == SPAT_MODE || property == DIRECT_OUT_ONLY)
         updateEnabledLabels();
-
-    
 }
 
 void SpeakerTreeComponent::updateEnabledLabels ()

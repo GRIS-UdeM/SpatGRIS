@@ -1672,6 +1672,32 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             jassertfalse;
         }
     } else if (vt.getType() == SPEAKER) {
+
+        //the logic for undoing/redoing speaker IDs is a bit special because we need to track both the previous and next IDs for the speaker
+        if (undoManager.isPerformingUndoRedo () && (property == ID || property == NEXT_ID)) {
+            output_patch_t idOutputPatch { vt[ID] };
+            output_patch_t nextIdOutputPatch { static_cast<int>(vt[NEXT_ID]) };
+
+            if (cachedId == -1) {
+                if (property == NEXT_ID) {
+                    cachedId = nextIdOutputPatch.get();
+                    return;
+                } else {
+                    cachedId = idOutputPatch.get();
+                    return;
+                }
+            }
+
+            output_patch_t cachedPatch{ cachedId };
+
+            if (property == ID && spatGrisData.speakerSetup.speakers.contains(cachedPatch)) {
+                mMainContentComponent.speakerOutputPatchChanged(cachedPatch, idOutputPatch);
+                cachedId = idOutputPatch.get();
+            }
+
+            return;
+        }
+
         output_patch_t const outputPatch { vt[ID] };
         auto const& speakers { spatGrisData.speakerSetup.speakers };
         auto const& speaker { speakers[outputPatch] };
@@ -1688,7 +1714,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             mMainContentComponent.setSpeakerGain (outputPatch, dbfs_t {newVal});
         } else if (property == FREQ) {
             mMainContentComponent.setSpeakerHighPassFreq (outputPatch, hz_t {newVal});
-        } else if (property == NEXT_ID) {
+        } else if (property == NEXT_ID && ! undoManager.isPerformingUndoRedo ()) {  //we don't want to do anything here when undoing/redoing
             if (vt.hasProperty(NEXT_ID)) {
                 mMainContentComponent.setShowTriplets(false);
 
@@ -1714,7 +1740,9 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             }
 
         mShouldComputeSpeakers = true;
-        } else if (property != ID) {
+        }
+        else if (property != ID && property != NEXT_ID) {
+            //unhandled property
             jassertfalse;
         }
     } else if (property == SPAT_MODE) {
