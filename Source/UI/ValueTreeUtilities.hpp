@@ -33,10 +33,34 @@ void copyProperties(const juce::ValueTree & source, juce::ValueTree & dest);
  *
  * @param oldSpeakerSetup The ValueTree representing the old speaker setup.
  * @return A new ValueTree representing the converted speaker setup.
+ *
+ * Here are examples of all the existing speaker setup versions:
+    3.1.14 Resources/templates/Speaker setups/CUBE/Cube_default_speaker_setup.xml
+    3.1.14 Resources/templates/Speaker setups/DOME/Dome_default_speaker_setup.xml
+
+    3.2.11 Resources/templates/Speaker setups/CUBE/Cube0(0)Subs0.xml
+    3.2.11 Resources/templates/Speaker setups/DOME/Dome0(0)Subs0.xml
+
+    3.2.3 Resources/templates/Speaker setups/CUBE/Cube12(3X4)Subs2 Centres.xml
+
+    3.2.5 Resources/templates/Speaker setups/DOME/Dome13(9-4)Subs2 Bremen.xml
+
+    3.2.9 Resources/templates/Speaker setups/DOME/Dome8(4-4)Subs1 ZiMMT Small Studio.xml
+
+    3.3.0 Resources/templates/Speaker setups/CUBE/Cube93(32-32-16-8-4-1)Subs5 Satosphere.xml
+    3.3.0 Resources/templates/Speaker setups/DOME/Dome93(32-32-16-8-4-1)Subs5 Satosphere.xml
+
+    3.3.5 Resources/templates/Speaker setups/CUBE/Cube26(8-8-6-2-2)Subs3 Lisbonne.xml
+    3.3.5 Resources/templates/Speaker setups/DOME/Dome61(29-11-14-7)Subs0 Brahms.xml
+
+    3.3.6 Resources/templates/Speaker setups/CUBE/Cube24(8-8-8)Subs2 Studio PANaroma.xml
+    3.3.6 Resources/templates/Speaker setups/DOME/Dome20(8-6-4-2)Sub4 Lakefield Icosa.xml
+
+    3.3.7 Resources/templates/Speaker setups/DOME/Dome32(4X8)Subs4 SubMix.xml
  */
 juce::ValueTree convertSpeakerSetup(const juce::ValueTree & oldSpeakerSetup);
 
-juce::ValueTree getTopParent (const juce::ValueTree& vt);
+juce::ValueTree getTopParent(const juce::ValueTree & vt);
 
 // Speaker setup identifiers
 const auto CURRENT_SPEAKER_SETUP_VERSION = "4.0.0";
@@ -46,7 +70,7 @@ const juce::Identifier SPEAKER_GROUP{ "SPEAKER_GROUP" };
 const juce::Identifier SPEAKER{ "SPEAKER" };
 const juce::Identifier VERSION{ "VERSION" };
 const juce::Identifier ID{ "ID" };
-const juce::Identifier NEXT_ID { "NEXT_ID" };
+const juce::Identifier NEXT_ID{ "NEXT_ID" };
 const juce::Identifier UUID{ "UUID" };
 const juce::Identifier STATE{ "STATE" };
 const juce::Identifier CARTESIAN_POSITION{ "CARTESIAN_POSITION" };
