@@ -17,7 +17,7 @@
 
 #pragma once
 #include "../../../sg_GrisLookAndFeel.hpp"
-#include "../../ValueTreeUtilities.hpp"
+#include "../../../../submodules/AlgoGRIS/StructGRIS/ValueTreeUtilities.hpp"
 #include <Data/sg_Position.hpp>
 #include <Data/sg_SpatMode.hpp>
 

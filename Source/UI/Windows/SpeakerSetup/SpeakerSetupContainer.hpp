@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "../../ValueTreeUtilities.hpp"
+#include "../../../../submodules/AlgoGRIS/StructGRIS/ValueTreeUtilities.hpp"
 #include "SpeakerSetupLine.hpp"
 #include <Data/sg_LogicStrucs.hpp>
 

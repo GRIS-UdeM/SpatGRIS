@@ -202,10 +202,6 @@
               file="Source/sg_GrisLookAndFeel.cpp"/>
         <FILE id="ePcarq" name="sg_GrisLookAndFeel.hpp" compile="0" resource="0"
               file="Source/sg_GrisLookAndFeel.hpp"/>
-        <FILE id="cqdYOV" name="ValueTreeUtilities.hpp" compile="0" resource="0"
-              file="Source/UI/ValueTreeUtilities.hpp"/>
-        <FILE id="mXwBeM" name="ValueTreeUtilities.cpp" compile="1" resource="0"
-              file="Source/UI/ValueTreeUtilities.cpp"/>
       </GROUP>
       <FILE id="EJRUGM" name="sg_Application.cpp" compile="1" resource="0"
             file="Source/sg_Application.cpp"/>
@@ -311,6 +307,12 @@
           <FILE id="ilAA0T" name="sg_mbap.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Implementations/sg_mbap.hpp"/>
           <FILE id="vMtmVH" name="sg_vbap.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/Implementations/sg_vbap.cpp"/>
           <FILE id="A6XBb2" name="sg_vbap.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Implementations/sg_vbap.hpp"/>
+        </GROUP>
+        <GROUP id="{7FDD40C6-2AE5-E830-5A85-10F236714CFD}" name="StructGRIS">
+          <FILE id="KvvtwK" name="ValueTreeUtilities.cpp" compile="1" resource="0"
+                file="submodules/AlgoGRIS/StructGRIS/ValueTreeUtilities.cpp"/>
+          <FILE id="WdzVx1" name="ValueTreeUtilities.hpp" compile="0" resource="0"
+                file="submodules/AlgoGRIS/StructGRIS/ValueTreeUtilities.hpp"/>
         </GROUP>
         <GROUP id="{669A6AC7-28C1-4F01-2E77-766F5DC333A1}" name="tl">
           <FILE id="KbUZyi" name="COPYING" compile="0" resource="1" file="submodules/AlgoGRIS/tl/COPYING"/>
