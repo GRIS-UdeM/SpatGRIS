@@ -701,9 +701,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 #if USE_OLD_SPEAKER_SETUP_VIEW
         mMainContentComponent.saveAsEditedSpeakerSetup();
 #else
-        // TODO VB: save AS
-        jassertfalse;
-        mSpeakerSetupContainer.saveSpeakerSetup();
+        mSpeakerSetupContainer.saveSpeakerSetup(true);
 #endif
     } else if (button == &mSaveSpeakerSetupButton) {
         mShouldComputeSpeakers = true;

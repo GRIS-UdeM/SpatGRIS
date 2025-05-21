@@ -21,24 +21,24 @@ namespace gris
 SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlFile,
                                              juce::UndoManager & undoMan,
                                              std::function<void()> selectionChanged)
-    : vtFile{ speakerSetupXmlFile }
+    : speakerSetupFile{ speakerSetupXmlFile }
     , undoManager (undoMan)
     , onSelectionChanged (selectionChanged)
 {
-    vt = convertSpeakerSetup (juce::ValueTree::fromXml (vtFile.loadFileAsString ()));
+    speakerSetupVt = convertSpeakerSetup (juce::ValueTree::fromXml (speakerSetupFile.loadFileAsString ()));
 
     //DBG (vt.toXmlString());
 
     speakerSetupTreeView.setRootItemVisible(false);
     addAndMakeVisible (speakerSetupTreeView);
 
-    speakerSetupTreeView.setTitle (vtFile.getFileName ());
+    speakerSetupTreeView.setTitle (speakerSetupFile.getFileName ());
     speakerSetupTreeView.setDefaultOpenness (true);
     speakerSetupTreeView.setMultiSelectEnabled (true);
 
     // at this point vt is the whole speaker setup, but I think the lines should only care about groups or speakers, so
     // only giving them the main group for now?
-    mainSpeakerGroupLine.reset (new SpeakerSetupLine (vt.getChild(0), undoManager, onSelectionChanged));
+    mainSpeakerGroupLine.reset (new SpeakerSetupLine (speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
     auto setLabelText = [this](juce::Label& label, const juce::String & text) {
@@ -63,12 +63,10 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     addAndMakeVisible (undoButton);
     addAndMakeVisible (redoButton);
     addAndMakeVisible (sortButton);
-    addAndMakeVisible (saveButton);
 
     undoButton.onClick = [this] { undoManager.undo (); };
     redoButton.onClick = [this] { undoManager.redo (); };
     sortButton.onClick = [this] { mainSpeakerGroupLine->sort (); };
-    saveButton.onClick = [this] { saveSpeakerSetup(); };
 
     startTimer (500);
 
@@ -102,8 +100,6 @@ void SpeakerSetupContainer::resized ()
     redoButton.setBounds (buttons.removeFromLeft (100));
     buttons.removeFromLeft (6);
     sortButton.setBounds (buttons.removeFromLeft (100));
-    buttons.removeFromLeft (6);
-    saveButton.setBounds (buttons.removeFromLeft (100));
 
     bounds.removeFromBottom (4);
     speakerSetupTreeView.setBounds (bounds);
@@ -144,11 +140,9 @@ bool SpeakerSetupContainer::keyPressed (const juce::KeyPress& key)
     return Component::keyPressed (key);
 }
 
-void SpeakerSetupContainer::saveSpeakerSetup()
+void SpeakerSetupContainer::saveSpeakerSetup(bool saveAs /*= false*/)
 {
-    //DBG (vt.toXmlString ());
-
-    const auto saveFile = [valueTree = vt](juce::File file) {
+    const auto saveFile = [valueTree = speakerSetupVt](juce::File file) {
         if (! file.replaceWithText (valueTree.toXmlString())) {
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
                                                    "Error",
@@ -160,7 +154,6 @@ void SpeakerSetupContainer::saveSpeakerSetup()
         }
     };
 
-    const auto saveAs = false;
     if (saveAs)
     {
         juce::FileChooser fileChooser("Save Speaker Setup",
@@ -171,7 +164,7 @@ void SpeakerSetupContainer::saveSpeakerSetup()
     }
     else
     {
-        saveFile(vtFile);
+        saveFile(speakerSetupFile);
     }
 }
 

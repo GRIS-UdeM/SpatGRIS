@@ -43,7 +43,7 @@ public:
 
     bool keyPressed (const juce::KeyPress& key) override;
 
-    void saveSpeakerSetup();
+    void saveSpeakerSetup(bool saveAs = false);
 
     /** returns either the selected item or the last item*/
     juce::ValueTree getSelectedItem();
@@ -61,22 +61,21 @@ public:
 
     std::pair<juce::ValueTree, int> getMainSpeakerGroupAndIndex ();
 
-    void addValueTreeListener(juce::ValueTree::Listener * listener) { vt.addListener(listener); }
-    void setSpatMode(SpatMode spatMode) { vt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager); }
+    void addValueTreeListener(juce::ValueTree::Listener * listener) { speakerSetupVt.addListener(listener); }
+    void setSpatMode(SpatMode spatMode) { speakerSetupVt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager); }
 
     bool isDeletingGroup() { return SpeakerSetupLine::isDeletingGroup; }
 
 private:
     GrisLookAndFeel grisLookAndFeel;
-    //TODO VB: rename these
-    juce::File vtFile;
-    juce::ValueTree vt;
+    juce::File speakerSetupFile;
+    juce::ValueTree speakerSetupVt;
 
     //header
     juce::Label id, x, y, z, azim, elev, radius, gain, highpass, direct, del, drag;
 
     juce::TreeView speakerSetupTreeView;
-    juce::TextButton undoButton { "Undo" }, redoButton { "Redo" }, sortButton { "Sort" }, saveButton { "Save" };
+    juce::TextButton undoButton{ "Undo" }, redoButton{ "Redo" }, sortButton{ "Sort by ID" };
 
     std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
 
