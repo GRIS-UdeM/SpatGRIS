@@ -276,23 +276,23 @@ void SpeakerTreeComponent::setupStringLabel (juce::Label & label, juce::StringRe
 
 void SpeakerTreeComponent::setupIdLabel ()
 {
-    /*} else if (property == ID) {*/
-
-    //so what's tricky here is that we need to hold onto the previous value for the ID, because we need to call
-    // mMainContentComponent.speakerOutputPatchChanged(oldOutputPatch, newOutputPatch); with it
-
-    id.setText (speakerTreeVt[ID], juce::dontSendNotification);
     id.setEditable (true);
 
-    id.onTextChange = [this]() {
-        auto const currentId = id.getText().getIntValue();
-        auto const clampedId{ std::clamp(currentId, 1, MAX_NUM_SPEAKERS) };
-        // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
-        // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
-        // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
-        // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
-        speakerTreeVt.setProperty(NEXT_ID, clampedId, nullptr);
-    };
+    if (speakerTreeVt.getType () == SPEAKER_GROUP) {
+        id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(ID, &undoManager));
+    }
+    else {
+        id.setText (speakerTreeVt[ID], juce::dontSendNotification);
+        id.onTextChange = [this]() {
+            auto const currentId = id.getText ().getIntValue ();
+            auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
+            // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
+            // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
+            // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
+            // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
+            speakerTreeVt.setProperty (NEXT_ID, clampedId, nullptr);
+            };
+    }
 
     addAndMakeVisible (id);
 }
