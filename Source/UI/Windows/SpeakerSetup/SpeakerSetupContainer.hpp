@@ -38,13 +38,13 @@ public:
         speakerSetupTreeView.setRootItem (nullptr);
     }
 
+    void reload(juce::ValueTree theSpeakerSetupVt);
+
     void resized () override;
 
     void deleteSelectedItems ();
 
     bool keyPressed (const juce::KeyPress& key) override;
-
-    //void saveSpeakerSetup(bool saveAs = false);
 
     /** returns either the selected item or the last item*/
     juce::ValueTree getSelectedItem();

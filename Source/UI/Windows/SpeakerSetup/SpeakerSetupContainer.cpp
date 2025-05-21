@@ -27,8 +27,6 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     , undoManager (undoMan)
     , onSelectionChanged (selectionChanged)
 {
-    DBG (speakerSetupVt.toXmlString());
-
     speakerSetupTreeView.setRootItemVisible(false);
     addAndMakeVisible (speakerSetupTreeView);
 
@@ -73,6 +71,14 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     setSize (500, 500);
 }
 
+void SpeakerSetupContainer::reload(juce::ValueTree theSpeakerSetupVt)
+{
+    speakerSetupVt = theSpeakerSetupVt;
+    speakerSetupTreeView.setRootItem (nullptr);
+    mainSpeakerGroupLine.reset (new SpeakerSetupLine (speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
+    speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
+}
+
 void SpeakerSetupContainer::resized ()
 {
     auto bounds = getLocalBounds ().reduced (8);
@@ -80,8 +86,7 @@ void SpeakerSetupContainer::resized ()
     header.removeFromLeft (20);
     // this is taken from SpeakerTreeComponent::resized () and should be DRYed
     {
-        //TODO VB: for some reason this is slightly less than in SpeakerTreeComponent, probably because of the tree arrow or something
-        constexpr auto fixedLeftColWidth{ 172 /*200*/ };
+        constexpr auto fixedLeftColWidth{ 172 };
         constexpr auto otherColWidth{ 60 };
         constexpr auto dragColWidth { 40 };
 
@@ -139,34 +144,6 @@ bool SpeakerSetupContainer::keyPressed (const juce::KeyPress& key)
 
     return Component::keyPressed (key);
 }
-
-//void SpeakerSetupContainer::saveSpeakerSetup(bool saveAs /*= false*/)
-//{
-//    const auto saveFile = [valueTree = speakerSetupVt](juce::File file) {
-//        if (! file.replaceWithText (valueTree.toXmlString())) {
-//            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-//                                                   "Error",
-//                                                   "Failed to save the file: " + file.getFullPathName());
-//        } else {
-//            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
-//                                                   "Success",
-//                                                   "File saved successfully: " + file.getFullPathName());
-//        }
-//    };
-//
-//    if (saveAs)
-//    {
-//        juce::FileChooser fileChooser("Save Speaker Setup",
-//                                      juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
-//                                      "*.xml");
-//        if (fileChooser.browseForFileToSave(true))
-//            saveFile (fileChooser.getResult());
-//    }
-//    else
-//    {
-//        saveFile(speakerSetupFile);
-//    }
-//}
 
 juce::ValueTree SpeakerSetupContainer::getSelectedItem()
 {

@@ -29,7 +29,9 @@
 
 namespace gris
 {
+#if USE_OLD_SPEAKER_SETUP_VIEW
 class EditableTextCustomComponent;
+#endif
 class MainContentComponent;
 class GrisLookAndFeel;
 
@@ -181,6 +183,7 @@ private:
 
 #if USE_OLD_SPEAKER_SETUP_VIEW
     juce::TableListBox mSpeakersTableListBox;
+    friend EditableTextCustomComponent;
 #else
     SpeakerSetupContainer mSpeakerSetupContainer;
 #endif
@@ -190,9 +193,6 @@ private:
     tl::optional<int> mDragStartY{};
     bool mShouldComputeSpeakers{};
     juce::SparseSet<int> mLastSelectedRows{};
-    //==============================================================================
-    friend EditableTextCustomComponent;
-
 public:
     //==============================================================================
     EditSpeakersWindow(juce::String const & name,

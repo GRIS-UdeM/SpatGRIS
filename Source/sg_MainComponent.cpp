@@ -2772,7 +2772,6 @@ bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
 }
 
 //==============================================================================
-#if 1//USE_OLD_SPEAKER_SETUP_VIEW
 bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2795,24 +2794,17 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
         maybeFile = fc.getResult();
     }
 
-    auto const & file{ *maybeFile };
-
-    //auto const content{ mData.speakerSetup.toXml() };
-    //auto const success{ content->writeTo(file) };
-
-    DBG (mData.speakerSetup.speakerSetupValueTree.toXmlString ());
-    auto const success = file.replaceWithText (mData.speakerSetup.speakerSetupValueTree.toXmlString ());
-    jassert(success);
+    auto const success = maybeFile->replaceWithText (mData.speakerSetup.speakerSetupValueTree.toXmlString ());
     if (success) {
         mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
+        setTitles ();
     }
-
-
-    setTitles();
+    else {
+        jassertfalse;   //could not save the file!
+    }
 
     return success;
 }
-#endif
 
 //==============================================================================
 bool MainContentComponent::makeSureProjectIsSavedToDisk() noexcept

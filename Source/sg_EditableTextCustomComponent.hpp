@@ -20,9 +20,10 @@
 #pragma once
 
 #include "AlgoGRIS/Data/sg_Macros.hpp"
+#include "sg_EditSpeakersWindow.hpp"
 
 #include <JuceHeader.h>
-
+#if USE_OLD_SPEAKER_SETUP_VIEW
 namespace gris
 {
 class EditSpeakersWindow;
@@ -56,3 +57,4 @@ private:
 };
 
 } // namespace gris
+#endif

@@ -957,6 +957,7 @@ void EditSpeakersWindow::updateWinContent()
 #if USE_OLD_SPEAKER_SETUP_VIEW
     mSpeakersTableListBox.updateContent();
 #else
+    mSpeakerSetupContainer.reload (spatGrisData.speakerSetup.speakerSetupValueTree);
     mSpeakerSetupContainer.setSpatMode (spatGrisData.speakerSetup.spatMode);
 #endif
     mDiffusionSlider.setValue(spatGrisData.speakerSetup.diffusion);

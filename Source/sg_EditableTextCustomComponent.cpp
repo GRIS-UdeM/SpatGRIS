@@ -16,13 +16,12 @@
  You should have received a copy of the GNU General Public License
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "sg_EditableTextCustomComponent.hpp"
 
 #include "sg_AudioProcessor.hpp"
 
-#include "sg_EditSpeakersWindow.hpp"
-
-
+#if USE_OLD_SPEAKER_SETUP_VIEW
 namespace gris
 {
 //==============================================================================
@@ -141,3 +140,4 @@ void EditableTextCustomComponent::setColor(bool isEditable)
 }
 
 } // namespace gris
+#endif
