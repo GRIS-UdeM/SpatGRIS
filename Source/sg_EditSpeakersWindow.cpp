@@ -1668,7 +1668,8 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
 
             mShouldComputeSpeakers = true;
         }
-        else {
+        else if (property != ID){
+            // unhandled property
             jassertfalse;
         }
     } else if (vt.getType() == SPEAKER) {
