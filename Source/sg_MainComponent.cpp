@@ -506,7 +506,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
 }
 
 //==============================================================================
-#if USE_OLD_SPEAKER_SETUP_VIEW
+#if 1//USE_OLD_SPEAKER_SETUP_VIEW
 void MainContentComponent::handleSaveSpeakerSetupAs()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -576,7 +576,7 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
     }
 }
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
+#if 1//USE_OLD_SPEAKER_SETUP_VIEW
 void MainContentComponent::saveAsEditedSpeakerSetup()
 {
     saveSpeakerSetup(tl::nullopt);
@@ -2724,7 +2724,7 @@ void MainContentComponent::buttonPressed([[maybe_unused]] SpatButton * button)
 
 //==============================================================================
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
+#if 1//USE_OLD_SPEAKER_SETUP_VIEW
 void MainContentComponent::handleSaveSpeakerSetup()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2772,7 +2772,7 @@ bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
 }
 
 //==============================================================================
-#if USE_OLD_SPEAKER_SETUP_VIEW
+#if 1//USE_OLD_SPEAKER_SETUP_VIEW
 bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2797,13 +2797,16 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
 
     auto const & file{ *maybeFile };
 
-    auto const content{ mData.speakerSetup.toXml() };
-    auto const success{ content->writeTo(file) };
+    //auto const content{ mData.speakerSetup.toXml() };
+    //auto const success{ content->writeTo(file) };
 
+    DBG (mData.speakerSetup.speakerSetupValueTree.toXmlString ());
+    auto const success = file.replaceWithText (mData.speakerSetup.speakerSetupValueTree.toXmlString ());
     jassert(success);
     if (success) {
         mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
     }
+
 
     setTitles();
 

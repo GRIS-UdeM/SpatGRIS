@@ -116,7 +116,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
 #if ! USE_OLD_SPEAKER_SETUP_VIEW
-    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, undoMan, [this]() { pushSelectionToMainComponent (); })
+    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, spatGrisData.speakerSetup.speakerSetupValueTree, undoMan, [this]() { pushSelectionToMainComponent (); })
 #endif
     , mFont(juce::FontOptions().withHeight(14.f))
     , mRingSpeakers(lookAndFeel)
@@ -698,7 +698,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     } else if (button == &mSaveAsSpeakerSetupButton) {
         mShouldComputeSpeakers = true;
         computeSpeakers();
-#if USE_OLD_SPEAKER_SETUP_VIEW
+#if 1 //USE_OLD_SPEAKER_SETUP_VIEW
         mMainContentComponent.saveAsEditedSpeakerSetup();
 #else
         mSpeakerSetupContainer.saveSpeakerSetup(true);
@@ -706,7 +706,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     } else if (button == &mSaveSpeakerSetupButton) {
         mShouldComputeSpeakers = true;
         computeSpeakers();
-#if USE_OLD_SPEAKER_SETUP_VIEW
+#if 1//USE_OLD_SPEAKER_SETUP_VIEW
         mMainContentComponent.saveEditedSpeakerSetup ();
 #else
         mSpeakerSetupContainer.saveSpeakerSetup ();

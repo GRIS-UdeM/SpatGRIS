@@ -128,6 +128,7 @@ juce::ValueTree convertSpeakerSetup (const juce::ValueTree& oldSpeakerSetup)
     //DBG (newVt.toXmlString());
     return newVt;
 }
+
 juce::ValueTree getTopParent (const juce::ValueTree& vt)
 {
     auto parent = vt.getParent();

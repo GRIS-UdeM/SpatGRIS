@@ -136,9 +136,9 @@ public:
         static constexpr int DELETE_BUTTON = 12;
     };
 
-#if ! USE_OLD_SPEAKER_SETUP_VIEW
-    void saveSpeakerSetup () { mSpeakerSetupContainer.saveSpeakerSetup(); }
-#endif
+//#if ! USE_OLD_SPEAKER_SETUP_VIEW
+//    void saveSpeakerSetup () { mSpeakerSetupContainer.saveSpeakerSetup(); }
+//#endif
 
 private:
     static auto constexpr MIN_COL_WIDTH = 50;

@@ -29,6 +29,7 @@ class SpeakerSetupContainer final : public juce::Component,
 {
 public:
     SpeakerSetupContainer(const juce::File & speakerSetupXmlFile,
+                          juce::ValueTree theSpeakerSetupVt,
                           juce::UndoManager & undoMan,
                           std::function<void()> selectionChanged);
 
@@ -43,7 +44,7 @@ public:
 
     bool keyPressed (const juce::KeyPress& key) override;
 
-    void saveSpeakerSetup(bool saveAs = false);
+    //void saveSpeakerSetup(bool saveAs = false);
 
     /** returns either the selected item or the last item*/
     juce::ValueTree getSelectedItem();
@@ -68,7 +69,7 @@ public:
 
 private:
     GrisLookAndFeel grisLookAndFeel;
-    juce::File speakerSetupFile;
+    juce::String speakerSetupFileName;
     juce::ValueTree speakerSetupVt;
 
     //header

@@ -19,20 +19,20 @@
 namespace gris
 {
 SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlFile,
+                                             juce::ValueTree theSpeakerSetupVt,
                                              juce::UndoManager & undoMan,
                                              std::function<void()> selectionChanged)
-    : speakerSetupFile{ speakerSetupXmlFile }
+    : speakerSetupFileName { speakerSetupXmlFile.getFileName()}
+    , speakerSetupVt (theSpeakerSetupVt)
     , undoManager (undoMan)
     , onSelectionChanged (selectionChanged)
 {
-    speakerSetupVt = convertSpeakerSetup (juce::ValueTree::fromXml (speakerSetupFile.loadFileAsString ()));
-
-    //DBG (vt.toXmlString());
+    DBG (speakerSetupVt.toXmlString());
 
     speakerSetupTreeView.setRootItemVisible(false);
     addAndMakeVisible (speakerSetupTreeView);
 
-    speakerSetupTreeView.setTitle (speakerSetupFile.getFileName ());
+    speakerSetupTreeView.setTitle (speakerSetupFileName);
     speakerSetupTreeView.setDefaultOpenness (true);
     speakerSetupTreeView.setMultiSelectEnabled (true);
 
@@ -140,33 +140,33 @@ bool SpeakerSetupContainer::keyPressed (const juce::KeyPress& key)
     return Component::keyPressed (key);
 }
 
-void SpeakerSetupContainer::saveSpeakerSetup(bool saveAs /*= false*/)
-{
-    const auto saveFile = [valueTree = speakerSetupVt](juce::File file) {
-        if (! file.replaceWithText (valueTree.toXmlString())) {
-            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                                   "Error",
-                                                   "Failed to save the file: " + file.getFullPathName());
-        } else {
-            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
-                                                   "Success",
-                                                   "File saved successfully: " + file.getFullPathName());
-        }
-    };
-
-    if (saveAs)
-    {
-        juce::FileChooser fileChooser("Save Speaker Setup",
-                                      juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
-                                      "*.xml");
-        if (fileChooser.browseForFileToSave(true))
-            saveFile (fileChooser.getResult());
-    }
-    else
-    {
-        saveFile(speakerSetupFile);
-    }
-}
+//void SpeakerSetupContainer::saveSpeakerSetup(bool saveAs /*= false*/)
+//{
+//    const auto saveFile = [valueTree = speakerSetupVt](juce::File file) {
+//        if (! file.replaceWithText (valueTree.toXmlString())) {
+//            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+//                                                   "Error",
+//                                                   "Failed to save the file: " + file.getFullPathName());
+//        } else {
+//            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+//                                                   "Success",
+//                                                   "File saved successfully: " + file.getFullPathName());
+//        }
+//    };
+//
+//    if (saveAs)
+//    {
+//        juce::FileChooser fileChooser("Save Speaker Setup",
+//                                      juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+//                                      "*.xml");
+//        if (fileChooser.browseForFileToSave(true))
+//            saveFile (fileChooser.getResult());
+//    }
+//    else
+//    {
+//        saveFile(speakerSetupFile);
+//    }
+//}
 
 juce::ValueTree SpeakerSetupContainer::getSelectedItem()
 {
