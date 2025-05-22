@@ -97,7 +97,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     , mMainWindow(mainWindow)
 {
 
-#if JUCE_DEBUG && RUN_UNIT_TEST
+#if JUCE_DEBUG //&& RUN_UNIT_TEST
     juce::UnitTestRunner testRunner;
     testRunner.runAllTests();
 #endif
