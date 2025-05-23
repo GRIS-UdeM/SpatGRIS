@@ -584,7 +584,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
         tl::optional<output_patch_t> outputPatch{};
         tl::optional<int> index{};
 
-        // so here, indexInCurGroup is really the index of the new group inside the current group
+        // TODO VB: so here, indexInCurGroup is really the index of the new group inside the current group
         // we'll need to keep that in sync with the actual number of speakers...
         outputPatch = getSpeakerOutputPatchForRow(indexInCurGroup);
         index = indexInCurGroup;
@@ -611,7 +611,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
 
 juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch,
                                                       juce::ValueTree parent,
-                                                      tl::optional<int> index)
+                                                      int index)
 {
 #if !USE_OLD_SPEAKER_SETUP_VIEW
 
@@ -633,11 +633,7 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
     newSpeakerVt.setProperty(GAIN, newSpeaker.gain.get(), &undoManager);
     newSpeakerVt.setProperty(DIRECT_OUT_ONLY, newSpeaker.isDirectOutOnly, &undoManager);
 
-    //TODO VB CLEANUP: so far we don't have a case where index is optional, should we remove that?
-    if (index)
-        parent.addChild (newSpeakerVt, *index, &undoManager);
-    else
-        parent.appendChild (newSpeakerVt, &undoManager);
+    parent.addChild(newSpeakerVt, index, &undoManager);
 
     return newSpeakerVt;
 #else
@@ -1420,9 +1416,6 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    // TODO VB CLEANUP: this is for sure problematic with the new stuff
-    // jassertfalse;
-
     auto const & data{ spatGrisData };
     jassert(row >= 0 && row < data.speakerSetup.ordering.size());
     auto const result{ data.speakerSetup.ordering[row] };
@@ -1736,18 +1729,8 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
     DBG ("valueTreeChildAdded with ID " << child[ID].toString() << " and index " << juce::String (index));
 #endif
 
-    if (childType == SPEAKER_GROUP) {
-        // TODO VB CLEANUP: so I guess we don't need this at all?
-        /*for (auto speaker : child)
-        {
-            DBG ("speaker with ID " << speaker[ID].toString () << " and index " << juce::String (index));
-            auto const speakerId = output_patch_t (static_cast<int> (speaker[ID]));
-            mMainContentComponent.addSpeaker(*SpeakerData::fromVt(speaker), index, speakerId);
-        }*/
-    } else {
-        jassert(childType == SPEAKER);
+    if (childType == SPEAKER);
         mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index, childOutputPatch);
-    }
 
     if (!isAddingGroup) {
         mMainContentComponent.requestSpeakerRefresh ();
@@ -1763,17 +1746,10 @@ void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::V
     DBG ("valueTreeChildRemoved with ID " << child[ID].toString() << " and index " << juce::String (index));
 #endif
 
-    if (child.getType () == SPEAKER_GROUP) {
-        //for (auto speakerVt : child) {
-        //    jassert(speakerVt.getType() == SPEAKER);
-        //    output_patch_t const outputPatch{ speakerVt.getProperty(ID) };
-        //    mMainContentComponent.removeSpeaker(outputPatch);
-        //}
-    }
-    else if (child.getType () == SPEAKER) {
+    if (child.getType () == SPEAKER) {
         output_patch_t outputPatch {child[ID]};
 
-        // TODO: these 2 calls need to be coalesced into the future -- when we undo a group creation,
+        // TODO VB: these 2 calls need to be coalesced into the future -- when we undo a group creation,
         // this is called for every child before the one for the group above is called. Unless we can think
         // of a hack to only remove all speakers when the group one is removed?
         mMainContentComponent.removeSpeaker (outputPatch, ! mSpeakerSetupContainer.isDeletingGroup());

@@ -549,15 +549,9 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
         if (result == 0) {
             return;
         } else if (result == 1) {
-#if USE_OLD_SPEAKER_SETUP_VIEW
             if (!saveSpeakerSetup(mData.appData.lastSpeakerSetup)) {
                 return;
             }
-#else
-            // TODO VB
-            jassertfalse;
-            return;
-#endif
         } else if (result == 2) {
             auto const spatMode{ mData.project.spatMode };
             loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
@@ -1452,20 +1446,10 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             handleOpenSpeakerSetup();
             break;
         case CommandId::saveSpeakerSetupId:
-#if USE_OLD_SPEAKER_SETUP_VIEW
             handleSaveSpeakerSetup();
-#else
-            // TODO VB: need to handle this when window is closed?
-            jassertfalse;
-#endif
             break;
         case CommandId::saveSpeakerSetupAsId:
-#if USE_OLD_SPEAKER_SETUP_VIEW
             handleSaveSpeakerSetupAs();
-#else
-            // TODO VB: need to handle this when window is closed?
-            jassertfalse;
-#endif
             break;
         case CommandId::showSpeakerEditId:
             handleShowSpeakerEditWindow();
@@ -2866,13 +2850,7 @@ bool MainContentComponent::makeSureSpeakerSetupIsSavedToDisk() noexcept
     }
 
     jassert(pressedButton == BUTTON_OK);
-#if USE_OLD_SPEAKER_SETUP_VIEW
     return saveSpeakerSetup(tl::nullopt);
-#else
-    // TODO VB
-    jassertfalse;
-    return false;
-#endif
 }
 
 //==============================================================================
@@ -2907,7 +2885,7 @@ void MainContentComponent::timerCallback()
 
     mInfoPanel->setCpuLoad(cpuRunningAverage);
 
-    //TODO VB: could this code here be the reason the speaker edit window is blinking on linux?
+    //TODO: could this be related to this issue https://github.com/GRIS-UdeM/SpatGRIS/issues/476 ?
     if (mIsProcessForeground != juce::Process::isForegroundProcess ()) {
         mIsProcessForeground = juce::Process::isForegroundProcess ();
         if (mEditSpeakersWindow != nullptr && mIsProcessForeground) {
