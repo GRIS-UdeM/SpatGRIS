@@ -598,7 +598,8 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
         newSpeakerVt.setProperty(CARTESIAN_POSITION,
                                  juce::VariantConverter<Position>::toVar(getSpeakerPosition(i)),
                                  &undoManager);
-        mMainContentComponent.setSpeakerPosition(newOutputPatch, SpeakerData::getAbsoluteSpeakerPosition(newSpeakerVt));
+        if (auto const speakerPosition{ SpeakerData::getAbsoluteSpeakerPosition(newSpeakerVt) })
+            mMainContentComponent.setSpeakerPosition(newOutputPatch, *speakerPosition);
     }
     mMainContentComponent.requestSpeakerRefresh ();
     updateWinContent();
@@ -1652,10 +1653,10 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
     if (vt.getType() == SPEAKER_GROUP) {
         if (property == CARTESIAN_POSITION) {
             for (auto speakerVt : vt) {
-                jassert (speakerVt.getType() == SPEAKER);
-                output_patch_t const outputPatch { speakerVt.getProperty (ID) };
-                mMainContentComponent.setSpeakerPosition(outputPatch,
-                                                         SpeakerData::getAbsoluteSpeakerPosition(speakerVt));
+                jassert(speakerVt.getType() == SPEAKER);
+                output_patch_t const outputPatch{ speakerVt.getProperty(ID) };
+                if (auto const speakerPosition{ SpeakerData::getAbsoluteSpeakerPosition(speakerVt) })
+                    mMainContentComponent.setSpeakerPosition(outputPatch, *speakerPosition);
             }
 
             mShouldComputeSpeakers = true;
@@ -1670,9 +1671,10 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
         auto const& speaker { speakers[outputPatch] };
 
         if (property == CARTESIAN_POSITION) {
-            //set speaker position as the center of the group + its position within the group
-            mMainContentComponent.setSpeakerPosition(outputPatch, SpeakerData::getAbsoluteSpeakerPosition(vt));
-            mShouldComputeSpeakers = true;
+            if (auto const speakerPosition{ SpeakerData::getAbsoluteSpeakerPosition(vt) }) {
+                mMainContentComponent.setSpeakerPosition(outputPatch, *speakerPosition);
+                mShouldComputeSpeakers = true;
+            }
         } else if (property == DIRECT_OUT_ONLY) {
             auto const directOutOnly { vt[DIRECT_OUT_ONLY] };
             mMainContentComponent.setShowTriplets (false);
