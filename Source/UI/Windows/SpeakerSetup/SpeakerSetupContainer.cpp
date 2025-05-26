@@ -196,7 +196,7 @@ std::pair<juce::ValueTree, int> SpeakerSetupContainer::getMainSpeakerGroupAndInd
         parent = vtRow.getParent ();
         index = parent.indexOf (vtRow);
         vtRow = parent;
-    } while (vtRow[ID] != MAIN_SPEAKER_GROUP);
+    } while (vtRow[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME);
 
 
     return { parent, index };

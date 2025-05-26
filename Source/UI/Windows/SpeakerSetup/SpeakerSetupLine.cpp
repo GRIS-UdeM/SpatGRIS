@@ -102,12 +102,28 @@ void SpeakerSetupLine::selectChildSpeaker(tl::optional<output_patch_t> const out
     }
 }
 
-struct Comparator
-{
-    int compareElements (const juce::ValueTree& first, const juce::ValueTree& second)
+struct Comparator {
+    int compareElements(const juce::ValueTree & first, const juce::ValueTree & second)
     {
-        jassert (first.hasProperty (ID) && second.hasProperty (ID));
-        return first[ID].toString ().compareNatural (second[ID].toString ());
+        // Try to get SPEAKER_PATCH_ID or SPEAKER_GROUP_NAME from each ValueTree
+        juce::String firstStr, secondStr;
+
+        if (first.hasProperty(SPEAKER_PATCH_ID))
+            firstStr = first[SPEAKER_PATCH_ID].toString();
+        else if (first.hasProperty(SPEAKER_GROUP_NAME))
+            firstStr = first[SPEAKER_GROUP_NAME].toString();
+        else
+            jassertfalse;
+
+        if (second.hasProperty(SPEAKER_PATCH_ID))
+            secondStr = second[SPEAKER_PATCH_ID].toString();
+        else if (second.hasProperty(SPEAKER_GROUP_NAME))
+            secondStr = second[SPEAKER_GROUP_NAME].toString();
+        else
+            jassertfalse;
+
+        // Compare as strings
+        return firstStr.compareNatural(secondStr);
     }
 };
 
@@ -142,8 +158,8 @@ void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
 
 tl::optional<output_patch_t> SpeakerSetupLine::getOutputPatch ()
 {
-    if (!mightContainSubItems () && lineValueTree.hasProperty (ID))
-        return output_patch_t (lineValueTree[ID]);
+    if (lineValueTree.getType () == SPEAKER && lineValueTree.hasProperty(SPEAKER_PATCH_ID))
+        return output_patch_t{ lineValueTree[SPEAKER_PATCH_ID] };
     else
         return tl::nullopt;
 }

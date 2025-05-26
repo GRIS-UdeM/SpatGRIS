@@ -571,8 +571,8 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
 
     auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
 
-    juce::ValueTree newGroup("SPEAKER_GROUP");
-    newGroup.setProperty(ID, "new group", &undoManager);
+    juce::ValueTree newGroup(SPEAKER_GROUP);
+    newGroup.setProperty(SPEAKER_GROUP_NAME, "new group", &undoManager);
     newGroup.setProperty (UUID, juce::Uuid{}.toString (), &undoManager);
     newGroup.setProperty (CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar (groupPosition), &undoManager);
     curGroup.addChild(newGroup, indexInCurGroup + 1, &undoManager);
@@ -628,7 +628,7 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
     newSpeakerVt.setProperty(CARTESIAN_POSITION,
                              juce::VariantConverter<Position>::toVar(newSpeaker.position),
                              &undoManager);
-    newSpeakerVt.setProperty(ID, newOutputPatch.get(), &undoManager);
+    newSpeakerVt.setProperty(SPEAKER_PATCH_ID, newOutputPatch.get(), &undoManager);
     newSpeakerVt.setProperty(UUID, juce::Uuid{}.toString(), &undoManager);
     newSpeakerVt.setProperty(STATE, sliceStateToString(newSpeaker.state), &undoManager);
     newSpeakerVt.setProperty(GAIN, newSpeaker.gain.get(), &undoManager);
@@ -1654,21 +1654,21 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
         if (property == CARTESIAN_POSITION) {
             for (auto speakerVt : vt) {
                 jassert(speakerVt.getType() == SPEAKER);
-                output_patch_t const outputPatch{ speakerVt.getProperty(ID) };
+                output_patch_t const outputPatch{ speakerVt.getProperty(SPEAKER_PATCH_ID) };
                 if (auto const speakerPosition{ SpeakerData::getAbsoluteSpeakerPosition(speakerVt) })
                     mMainContentComponent.setSpeakerPosition(outputPatch, *speakerPosition);
             }
 
             mShouldComputeSpeakers = true;
         }
-        else if (property != ID){
+        else if (property != SPEAKER_GROUP_NAME){
             // unhandled property
             jassertfalse;
         }
     } else if (vt.getType() == SPEAKER) {
-        output_patch_t const outputPatch { vt[ID] };
-        auto const& speakers { spatGrisData.speakerSetup.speakers };
-        auto const& speaker { speakers[outputPatch] };
+        output_patch_t const outputPatch{ vt[SPEAKER_PATCH_ID] };
+        auto const & speakers{ spatGrisData.speakerSetup.speakers };
+        auto const & speaker{ speakers[outputPatch] };
 
         if (property == CARTESIAN_POSITION) {
             if (auto const speakerPosition{ SpeakerData::getAbsoluteSpeakerPosition(vt) }) {
@@ -1676,19 +1676,20 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
                 mShouldComputeSpeakers = true;
             }
         } else if (property == DIRECT_OUT_ONLY) {
-            auto const directOutOnly { vt[DIRECT_OUT_ONLY] };
-            mMainContentComponent.setShowTriplets (false);
-            mMainContentComponent.speakerDirectOutOnlyChanged (outputPatch, directOutOnly);
+            auto const directOutOnly{ vt[DIRECT_OUT_ONLY] };
+            mMainContentComponent.setShowTriplets(false);
+            mMainContentComponent.speakerDirectOutOnlyChanged(outputPatch, directOutOnly);
         } else if (property == GAIN) {
-            mMainContentComponent.setSpeakerGain (outputPatch, dbfs_t {newVal});
+            mMainContentComponent.setSpeakerGain(outputPatch, dbfs_t{ newVal });
         } else if (property == FREQ) {
-            mMainContentComponent.setSpeakerHighPassFreq (outputPatch, hz_t {newVal});
-        } else if (property == NEXT_ID && ! undoManager.isPerformingUndoRedo ()) {  //we don't want to do anything here when undoing/redoing
-            if (vt.hasProperty(NEXT_ID)) {
+            mMainContentComponent.setSpeakerHighPassFreq(outputPatch, hz_t{ newVal });
+        } else if (property == NEXT_SPEAKER_PATCH_ID && !undoManager.isPerformingUndoRedo()) {
+            // we don't want to do anything in here when undoing/redoing
+            if (vt.hasProperty(NEXT_SPEAKER_PATCH_ID)) {
                 mMainContentComponent.setShowTriplets(false);
 
                 auto const & oldOutputPatch{ outputPatch };
-                output_patch_t newOutputPatch{ static_cast<int>(vt[NEXT_ID]) };
+                output_patch_t newOutputPatch{ vt[NEXT_SPEAKER_PATCH_ID] };
 
                 if (newOutputPatch != oldOutputPatch) {
                     if (speakers.contains(newOutputPatch)) {
@@ -1701,21 +1702,20 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
                         alert.runModalLoop();
                     } else {
                         mMainContentComponent.speakerOutputPatchChanged(oldOutputPatch, newOutputPatch);
-                        vt.setProperty(ID, newOutputPatch.get(), nullptr);
+                        vt.setProperty(SPEAKER_PATCH_ID, newOutputPatch.get(), nullptr);
                     }
                 }
 
-                vt.removeProperty(NEXT_ID, nullptr);
+                vt.removeProperty(NEXT_SPEAKER_PATCH_ID, nullptr);
             }
 
-        mShouldComputeSpeakers = true;
-        }
-        else if (property != ID && property != NEXT_ID) {
-            //unhandled property
+            mShouldComputeSpeakers = true;
+        } else if (property != SPEAKER_PATCH_ID && property != NEXT_SPEAKER_PATCH_ID) {
+            // unhandled property
             jassertfalse;
         }
     } else if (property == SPAT_MODE) {
-        //TODO VB: do we need to do something here?
+        // TODO VB: do we need to do something here?
         jassertfalse;
     } else
         jassertfalse;
@@ -1725,13 +1725,13 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
 {
     auto const childType{ child.getType() };
     auto const index { parent.indexOf (child) };
-    const auto childOutputPatch = output_patch_t (static_cast<int> (child[ID]));
+    const auto childOutputPatch = output_patch_t (child[SPEAKER_PATCH_ID]);
 
 #if DEBUG_SPEAKER_EDITION
     DBG ("valueTreeChildAdded with ID " << child[ID].toString() << " and index " << juce::String (index));
 #endif
 
-    if (childType == SPEAKER);
+    if (childType == SPEAKER)
         mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index, childOutputPatch);
 
     if (!isAddingGroup) {
@@ -1749,7 +1749,7 @@ void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::V
 #endif
 
     if (child.getType () == SPEAKER) {
-        output_patch_t outputPatch {child[ID]};
+        output_patch_t outputPatch {child[SPEAKER_PATCH_ID]};
 
         // TODO VB: these 2 calls need to be coalesced into the future -- when we undo a group creation,
         // this is called for every child before the one for the group above is called. Unless we can think

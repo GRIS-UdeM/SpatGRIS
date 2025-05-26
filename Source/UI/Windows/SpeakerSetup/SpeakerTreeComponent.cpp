@@ -278,20 +278,19 @@ void SpeakerTreeComponent::setupIdLabel ()
 {
     id.setEditable (true);
 
-    if (speakerTreeVt.getType () == SPEAKER_GROUP) {
-        id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(ID, &undoManager));
-    }
-    else {
-        id.setText (speakerTreeVt[ID], juce::dontSendNotification);
+    if (speakerTreeVt.getType() == SPEAKER_GROUP) {
+        id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(MAIN_SPEAKER_GROUP_NAME, &undoManager));
+    } else {
+        id.setText(speakerTreeVt[SPEAKER_PATCH_ID], juce::dontSendNotification);
         id.onTextChange = [this]() {
-            auto const currentId = id.getText ().getIntValue ();
-            auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
+            auto const currentId = id.getText().getIntValue();
+            auto const clampedId{ std::clamp(currentId, 1, MAX_NUM_SPEAKERS) };
             // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
             // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
             // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
             // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
-            speakerTreeVt.setProperty (NEXT_ID, clampedId, nullptr);
-            };
+            speakerTreeVt.setProperty(NEXT_SPEAKER_PATCH_ID, clampedId, nullptr);
+        };
     }
 
     addAndMakeVisible (id);
@@ -317,8 +316,8 @@ void SpeakerTreeComponent::valueTreePropertyChanged(juce::ValueTree & valueTree,
     if (valueTree != speakerTreeVt)
         return;
 
-    if (property == ID)
-        id.setText(speakerTreeVt[ID].toString(), juce::dontSendNotification);
+    if (property == SPEAKER_GROUP_NAME || property == SPEAKER_PATCH_ID)
+        id.setText(speakerTreeVt[property].toString(), juce::dontSendNotification);
 
     if (property == CARTESIAN_POSITION)
         updateAllPositionLabels();
