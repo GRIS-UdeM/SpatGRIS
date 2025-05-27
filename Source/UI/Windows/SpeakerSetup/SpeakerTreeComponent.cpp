@@ -277,23 +277,37 @@ void SpeakerTreeComponent::setupStringLabel (juce::Label & label, juce::StringRe
 void SpeakerTreeComponent::setupIdLabel ()
 {
     id.setEditable (true);
+    id.addListener (this);
 
     if (speakerTreeVt.getType() == SPEAKER_GROUP) {
         id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(MAIN_SPEAKER_GROUP_NAME, &undoManager));
     } else {
         id.setText(speakerTreeVt[SPEAKER_PATCH_ID], juce::dontSendNotification);
-        id.onTextChange = [this]() {
-            auto const currentId = id.getText().getIntValue();
-            auto const clampedId{ std::clamp(currentId, 1, MAX_NUM_SPEAKERS) };
-            // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
-            // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
-            // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
-            // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
-            speakerTreeVt.setProperty(NEXT_SPEAKER_PATCH_ID, clampedId, nullptr);
-        };
     }
 
     addAndMakeVisible (id);
+}
+
+void SpeakerTreeComponent::labelTextChanged (juce::Label* label)
+{
+    if (label != &id)
+        return;
+
+    auto const currentId = id.getText ().getIntValue ();
+    auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
+    // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
+    // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
+    // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
+    // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
+    speakerTreeVt.setProperty (NEXT_SPEAKER_PATCH_ID, clampedId, nullptr);
+}
+
+void SpeakerTreeComponent::editorShown (juce::Label* label, juce::TextEditor& editor)
+{
+    if (label != &id)
+        return;
+
+    editor.setInputRestrictions (3, "12345678");
 }
 
 void SpeakerTreeComponent::updateAllPositionLabels ()
@@ -316,8 +330,10 @@ void SpeakerTreeComponent::valueTreePropertyChanged(juce::ValueTree & valueTree,
     if (valueTree != speakerTreeVt)
         return;
 
-    if (property == SPEAKER_GROUP_NAME || property == SPEAKER_PATCH_ID)
-        id.setText(speakerTreeVt[property].toString(), juce::dontSendNotification);
+    if (property == SPEAKER_GROUP_NAME || property == SPEAKER_PATCH_ID) {
+        auto const value = speakerTreeVt[property].toString ();
+        id.setText(value, juce::dontSendNotification);
+    }
 
     if (property == CARTESIAN_POSITION)
         updateAllPositionLabels();

@@ -48,7 +48,10 @@ private:
 
 //==============================================================================
 
-class SpeakerTreeComponent : public juce::Component, public juce::ValueTree::Listener
+class SpeakerTreeComponent
+    : public juce::Component
+    , public juce::ValueTree::Listener
+    , public juce::Label::Listener
 {
 public:
     SpeakerTreeComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
@@ -80,7 +83,9 @@ protected:
 
     void updateAllPositionLabels();
 
-    DraggableLabel id, x, y, z, azim, elev, radius, gain, highpass, drag;
+    juce::Label id;
+
+    DraggableLabel x, y, z, azim, elev, radius, gain, highpass, drag;
 
     juce::DrawableButton deleteButton { "TrashButton", juce::DrawableButton::ImageOnButtonBackground };
 
@@ -99,6 +104,8 @@ protected:
 private:
     void valueTreePropertyChanged(juce::ValueTree & speakerTreeVt, const juce::Identifier & property) override;
     void updateEnabledLabels();
+    void labelTextChanged(juce::Label * labelThatHasChanged) override;
+    void editorShown(juce::Label *, juce::TextEditor &) override;
 };
 
 //==============================================================================

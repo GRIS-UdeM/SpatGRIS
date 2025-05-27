@@ -573,8 +573,8 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
 
     juce::ValueTree newGroup(SPEAKER_GROUP);
     newGroup.setProperty(SPEAKER_GROUP_NAME, "new group", &undoManager);
-    newGroup.setProperty (UUID, juce::Uuid{}.toString (), &undoManager);
-    newGroup.setProperty (CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar (groupPosition), &undoManager);
+    newGroup.setProperty(UUID, juce::Uuid{}.toString(), &undoManager);
+    newGroup.setProperty(CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar(groupPosition), &undoManager);
     curGroup.addChild(newGroup, indexInCurGroup + 1, &undoManager);
 
     auto const & speakers{ spatGrisData.speakerSetup.speakers };
@@ -1688,11 +1688,13 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             if (vt.hasProperty(NEXT_SPEAKER_PATCH_ID)) {
                 mMainContentComponent.setShowTriplets(false);
 
+                // first make sure we have a change in patch numbers
                 auto const & oldOutputPatch{ outputPatch };
                 output_patch_t newOutputPatch{ vt[NEXT_SPEAKER_PATCH_ID] };
-
                 if (newOutputPatch != oldOutputPatch) {
+                    // check that the new output patch isn't in use
                     if (speakers.contains(newOutputPatch)) {
+                        // it is in use, so show an error
                         juce::AlertWindow alert("Wrong output patch!    ",
                                                 "Sorry! Output patch number " + juce::String(newOutputPatch.get())
                                                     + " is already used.",
@@ -1700,16 +1702,21 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
                         alert.setLookAndFeel(&mLookAndFeel);
                         alert.addButton("OK", 0, juce::KeyPress(juce::KeyPress::returnKey));
                         alert.runModalLoop();
+
+                        // and revert to the previous patch value, forcing the change message to be sent
+                        vt.setProperty(SPEAKER_PATCH_ID, oldOutputPatch.get(), nullptr);
+                        vt.sendPropertyChangeMessage(SPEAKER_PATCH_ID);
+
                     } else {
+                        // we're all good so go ahead with the change
                         mMainContentComponent.speakerOutputPatchChanged(oldOutputPatch, newOutputPatch);
                         vt.setProperty(SPEAKER_PATCH_ID, newOutputPatch.get(), nullptr);
+                        mShouldComputeSpeakers = true;
                     }
                 }
 
                 vt.removeProperty(NEXT_SPEAKER_PATCH_ID, nullptr);
             }
-
-            mShouldComputeSpeakers = true;
         } else if (property != SPEAKER_PATCH_ID && property != NEXT_SPEAKER_PATCH_ID) {
             // unhandled property
             jassertfalse;
