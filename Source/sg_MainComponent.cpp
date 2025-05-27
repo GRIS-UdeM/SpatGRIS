@@ -1826,13 +1826,18 @@ void MainContentComponent::updatePeaks()
     for (auto const speaker : mData.speakerSetup.speakers) {
         auto const & peak{ speakerPeaks[speaker.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
-        jassert (mSpeakerSliceComponents.contains (speaker.key));
-        mSpeakerSliceComponents[speaker.key].setLevel(dbPeak);
 
-        auto & exchanger{ viewPortData.hotSpeakersAlphaUpdaters[speaker.key] };
-        auto * ticket{ exchanger.acquire() };
-        ticket->get() = gainToSpeakerAlpha(peak);
-        exchanger.setMostRecent(ticket);
+        if (mSpeakerSliceComponents.contains(speaker.key)) {
+            mSpeakerSliceComponents[speaker.key].setLevel(dbPeak);
+
+            auto & exchanger{ viewPortData.hotSpeakersAlphaUpdaters[speaker.key] };
+            auto * ticket{ exchanger.acquire() };
+            ticket->get() = gainToSpeakerAlpha(peak);
+            exchanger.setMostRecent(ticket);
+        } else {
+            // unknown speaker key!
+            jassertfalse;
+        }
     }
 }
 
@@ -2459,9 +2464,10 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
     auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
 
     if (index) {
-        auto const isValidIndex{ *index >= 0 && *index < mData.speakerSetup.ordering.size() };
+        auto const actualIndex { *index };
+        auto const isValidIndex{ actualIndex >= 0 && actualIndex < mData.speakerSetup.ordering.size() };
         if (isValidIndex) {
-            mData.speakerSetup.ordering.insert(*index, newOutputPatch);
+            mData.speakerSetup.ordering.insert(actualIndex, newOutputPatch);
         } else {
             static constexpr auto AT_END = -1;
             mData.speakerSetup.ordering.insert(AT_END, newOutputPatch);

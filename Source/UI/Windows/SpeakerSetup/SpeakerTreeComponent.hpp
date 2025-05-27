@@ -75,6 +75,8 @@ public:
 
     void setPositionCoordinate (Position::Coordinate coordinate, float newValue);
 
+    bool isSpeakerGroup() const { return speakerTreeVt.getType () == SPEAKER_GROUP; }
+
 protected:
     void setupCoordinateLabel(DraggableLabel & label, Position::Coordinate coordinate);
     void setupStringLabel(juce::Label & label, juce::StringRef text);

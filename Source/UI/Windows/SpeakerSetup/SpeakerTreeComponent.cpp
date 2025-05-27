@@ -65,7 +65,7 @@ void SpeakerTreeComponent::setupDeleteButton()
 
         if (speakerTreeVt.getType() == SPEAKER) {
             parent.removeChild(speakerTreeVt, &undoManager);
-        } else if (speakerTreeVt.getType() == SPEAKER_GROUP) {
+        } else if (isSpeakerGroup()) {
             SpeakerSetupLine::isDeletingGroup = true;
 
             auto const numSpeakers { speakerTreeVt.getNumChildren()};
@@ -92,7 +92,7 @@ void SpeakerTreeComponent::paint(juce::Graphics & g)
 {
     if (speakerSetupLine->isSelected())
         g.fillAll(lnf.mHlBgcolor);
-    else if (speakerTreeVt.getType() == SPEAKER_GROUP)
+    else if (isSpeakerGroup())
         g.fillAll(lnf.mBackGroundAndFieldColour.darker(.5f));
     else if (speakerSetupLine->getIndexInParent() % 2 == 0)
         g.fillAll(lnf.mGreyColour);
@@ -279,8 +279,8 @@ void SpeakerTreeComponent::setupIdLabel ()
     id.setEditable (true);
     id.addListener (this);
 
-    if (speakerTreeVt.getType() == SPEAKER_GROUP) {
-        id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(MAIN_SPEAKER_GROUP_NAME, &undoManager));
+    if (isSpeakerGroup ()) {
+        id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(SPEAKER_GROUP_NAME, &undoManager));
     } else {
         id.setText(speakerTreeVt[SPEAKER_PATCH_ID], juce::dontSendNotification);
     }
@@ -290,7 +290,7 @@ void SpeakerTreeComponent::setupIdLabel ()
 
 void SpeakerTreeComponent::labelTextChanged (juce::Label* label)
 {
-    if (label != &id)
+    if (isSpeakerGroup () || label != &id)
         return;
 
     auto const currentId = id.getText ().getIntValue ();
@@ -304,7 +304,7 @@ void SpeakerTreeComponent::labelTextChanged (juce::Label* label)
 
 void SpeakerTreeComponent::editorShown (juce::Label* label, juce::TextEditor& editor)
 {
-    if (label != &id)
+    if (isSpeakerGroup() || label != &id)
         return;
 
     editor.setInputRestrictions (3, "12345678");

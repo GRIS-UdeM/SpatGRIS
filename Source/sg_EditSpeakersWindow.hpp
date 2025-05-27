@@ -184,12 +184,12 @@ private:
 #if USE_OLD_SPEAKER_SETUP_VIEW
     juce::TableListBox mSpeakersTableListBox;
     friend EditableTextCustomComponent;
+    int mNumRows {};
 #else
     SpeakerSetupContainer mSpeakerSetupContainer;
 #endif
     juce::Font mFont;
 
-    int mNumRows{};
     tl::optional<int> mDragStartY{};
     bool mShouldComputeSpeakers{};
     juce::SparseSet<int> mLastSelectedRows{};

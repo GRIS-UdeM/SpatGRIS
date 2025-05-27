@@ -569,38 +569,35 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakers > MAX_NUM_SPEAKERS)
         return;
 
-    auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
+    auto [mainGroup, indexInMainGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
 
+    // create the new speaker group and add it in the value tree
     juce::ValueTree newGroup(SPEAKER_GROUP);
     newGroup.setProperty(SPEAKER_GROUP_NAME, "new group", &undoManager);
     newGroup.setProperty(UUID, juce::Uuid{}.toString(), &undoManager);
     newGroup.setProperty(CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar(groupPosition), &undoManager);
-    curGroup.addChild(newGroup, indexInCurGroup + 1, &undoManager);
+    mainGroup.addChild(newGroup, indexInMainGroup + 1, &undoManager);
 
     auto const & speakers{ spatGrisData.speakerSetup.speakers };
     output_patch_t newOutputPatch{};
 
     for (int i{}; i < numSpeakers; ++i) {
-        tl::optional<output_patch_t> outputPatch{};
-        tl::optional<int> index{};
 
-        // TODO VB: so here, indexInCurGroup is really the index of the new group inside the current group
-        // we'll need to keep that in sync with the actual number of speakers...
-        outputPatch = getSpeakerOutputPatchForRow(indexInCurGroup);
-        index = indexInCurGroup;
-        indexInCurGroup += 1;
+        //create the speaker in main component
+        auto const outputPatchToCopy = getSpeakerOutputPatchForRow(indexInMainGroup);
+        newOutputPatch = mMainContentComponent.addSpeaker(outputPatchToCopy, ++indexInMainGroup);
 
-        newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
-        //auto const newOutputPatch { ++mMainContentComponent.getMaxSpeakerOutputPatch () };
-        mNumRows = speakers.size();
+        //add the speaker to the value tree
+        //TODO VB: addNewSpeakerToVt() needs to to copy the speaker data from the outputPatchToCopy -- BUT make sure this works below in if (button == &mAddSpeakerButton) {
+        auto newSpeakerVt = addNewSpeakerToVt (newOutputPatch, newGroup, i);
 
-        auto newSpeakerVt = addNewSpeakerToVt (newOutputPatch, newGroup, indexInCurGroup);
         newSpeakerVt.setProperty(CARTESIAN_POSITION,
                                  juce::VariantConverter<Position>::toVar(getSpeakerPosition(i)),
                                  &undoManager);
         if (auto const speakerPosition{ SpeakerData::getAbsoluteSpeakerPosition(newSpeakerVt) })
             mMainContentComponent.setSpeakerPosition(newOutputPatch, *speakerPosition);
     }
+
     mMainContentComponent.requestSpeakerRefresh ();
     updateWinContent();
 
@@ -618,7 +615,7 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
 
 #if DEBUG_SPEAKER_EDITION
     DBG("EditSpeakersWindow::addNewSpeakerToVt() adding output patch " << newOutputPatch.toString() << " at index "
-                                                                       << juce::String(*index));
+                                                                       << juce::String(index));
 #endif
 
     auto const & newSpeaker = spatGrisData.speakerSetup.speakers[newOutputPatch];
@@ -661,12 +658,10 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 #endif
 
-    // mMainContentComponent.setShowTriplets(false);
-
     if (button == &mAddSpeakerButton) {
-        if (mMainContentComponent.getMaxSpeakerOutputPatch().get() >= MAX_NUM_SPEAKERS) {
+
+        if (mMainContentComponent.getMaxSpeakerOutputPatch().get() >= MAX_NUM_SPEAKERS)
             return;
-        }
 
 #if USE_OLD_SPEAKER_SETUP_VIEW
         tl::optional<output_patch_t> outputPatch{};
@@ -677,37 +672,27 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             index = *selectedRow + 1;
         }
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
+        mSpeakersTableListBox.getHeader ().setSortColumnId (sortColumnId, sortedForwards);
 #else
-        auto const [parent, selectedRow] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
-        auto const outputPatchToCopy = getSpeakerOutputPatchForRow(selectedRow);
-        auto const newRow{ selectedRow + 1 };
-        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, newRow) };
-        addNewSpeakerToVt(newOutputPatch, parent, newRow);
-#endif
+        auto [mainGroup, indexInMainGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
 
-        mMainContentComponent.requestSpeakerRefresh ();
-        updateWinContent();
-        selectSpeaker(newOutputPatch);
-#if USE_OLD_SPEAKER_SETUP_VIEW
-        mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards); // TODO: necessary?
+        auto const outputPatchToCopy = getSpeakerOutputPatchForRow(indexInMainGroup);
+
+        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, ++indexInMainGroup) };
+        addNewSpeakerToVt(newOutputPatch, mainGroup, indexInMainGroup);
 #endif
-        mShouldComputeSpeakers = true;
     } else if (button == &mSaveAsSpeakerSetupButton) {
+
         mShouldComputeSpeakers = true;
         computeSpeakers();
-#if 1 //USE_OLD_SPEAKER_SETUP_VIEW
         mMainContentComponent.saveAsEditedSpeakerSetup();
-#else
-        mSpeakerSetupContainer.saveSpeakerSetup(true);
-#endif
+
     } else if (button == &mSaveSpeakerSetupButton) {
+
         mShouldComputeSpeakers = true;
         computeSpeakers();
-#if 1//USE_OLD_SPEAKER_SETUP_VIEW
         mMainContentComponent.saveEditedSpeakerSetup ();
-#else
-        mSpeakerSetupContainer.saveSpeakerSetup ();
-#endif
+
     } else if (button == &mAddRingButton) {
         auto const getSpeakerPosition = [this](int i) -> Position {
             const auto numSpeakers{ mRingSpeakers.getTextAs<float>() };
@@ -950,8 +935,8 @@ void EditSpeakersWindow::updateWinContent()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mNumRows = spatGrisData.speakerSetup.speakers.size();
 #if USE_OLD_SPEAKER_SETUP_VIEW
+    mNumRows = spatGrisData.speakerSetup.speakers.size ();
     mSpeakersTableListBox.updateContent();
 #else
     mSpeakerSetupContainer.reload (spatGrisData.speakerSetup.speakerSetupValueTree);
@@ -1417,6 +1402,7 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    //TODO VB: gotta make sure the row here is always the row that we mean, even when there's groups
     auto const & data{ spatGrisData };
     jassert(row >= 0 && row < data.speakerSetup.ordering.size());
     auto const result{ data.speakerSetup.ordering[row] };
@@ -1735,9 +1721,13 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
     const auto childOutputPatch = output_patch_t (child[SPEAKER_PATCH_ID]);
 
 #if DEBUG_SPEAKER_EDITION
-    DBG ("valueTreeChildAdded with ID " << child[ID].toString() << " and index " << juce::String (index));
+    if (childType == SPEAKER_GROUP)
+        DBG ("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_GROUP_NAME" << child[SPEAKER_GROUP_NAME].toString() << " and index " << juce::String (index));
+    else if (childType == SPEAKER)
+        DBG ("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_PATCH_ID" << child[SPEAKER_PATCH_ID].toString () << " and index " << juce::String (index));
 #endif
 
+    //TODO VB: is this really needed? Check when adding groups vs speakers
     if (childType == SPEAKER)
         mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index, childOutputPatch);
 
@@ -1751,11 +1741,16 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
 
 void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, [[maybe_unused]] int index)
 {
+    auto const childType { child.getType () };
+
 #if DEBUG_SPEAKER_EDITION
-    DBG ("valueTreeChildRemoved with ID " << child[ID].toString() << " and index " << juce::String (index));
+    if (childType == SPEAKER_GROUP)
+        DBG ("EditSpeakersWindow::valueTreeChildRemoved() called for SPEAKER_GROUP_NAME" << child[SPEAKER_GROUP_NAME].toString () << " and index " << juce::String (index));
+    else if (childType == SPEAKER)
+        DBG ("EditSpeakersWindow::valueTreeChildRemoved() called for SPEAKER_PATCH_ID" << child[SPEAKER_PATCH_ID].toString () << " and index " << juce::String (index));
 #endif
 
-    if (child.getType () == SPEAKER) {
+    if (childType == SPEAKER) {
         output_patch_t outputPatch {child[SPEAKER_PATCH_ID]};
 
         // TODO VB: these 2 calls need to be coalesced into the future -- when we undo a group creation,
