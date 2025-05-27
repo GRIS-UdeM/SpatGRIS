@@ -127,9 +127,38 @@ struct Comparator {
     }
 };
 
+#define USE_TREE_VIEW_COMPARATOR 1
+
+#if USE_TREE_VIEW_COMPARATOR
+struct TreeViewItemComparator {
+    int compareElements (juce::TreeViewItem* first, juce::TreeViewItem* second)
+    {
+        auto const * firstLine = dynamic_cast<SpeakerSetupLine *>(first);
+        auto const * secondLine = dynamic_cast<SpeakerSetupLine *>(second);
+        if (!firstLine || !secondLine)
+        {
+            jassertfalse; // This should not happen
+            return 0;
+        }
+
+        auto const firstString { firstLine->getSpeakerIdOrGroupName () };
+        auto const secondString { secondLine->getSpeakerIdOrGroupName () };
+
+        return firstString.compareNatural (secondString);
+    }
+};
+#endif
+
 // TODO: look into whether this should use juce::TreeViewItem::sortSubItems() instead of sorting the value tree
 void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
 {
+#if USE_TREE_VIEW_COMPARATOR
+    TreeViewItemComparator comparison;
+    sortSubItems (comparison);
+    //treeChildrenChanged (vt);
+    refreshSubItems();
+#else
+
     if (! vt.isValid ())
         vt = lineValueTree;
 
@@ -154,6 +183,7 @@ void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
     vt.removeAllChildren (&undoManager);
     for (const auto& speaker : allChildren)
         vt.appendChild (speaker, &undoManager);
+#endif
 }
 
 tl::optional<output_patch_t> SpeakerSetupLine::getOutputPatch ()

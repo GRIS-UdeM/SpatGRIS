@@ -30,7 +30,14 @@ public:
 
     juce::String getUniqueName() const override { return lineValueTree.getType().toString(); }
 
-    bool mightContainSubItems() override { return lineValueTree.getType() == SPEAKER_GROUP; }
+    bool isSpeakerGroup() const { return lineValueTree.getType () == SPEAKER_GROUP; }
+
+    bool mightContainSubItems() override { return isSpeakerGroup(); }
+
+    juce::String getSpeakerIdOrGroupName() const
+    {
+        return isSpeakerGroup() ? lineValueTree[SPEAKER_GROUP_NAME] : lineValueTree[SPEAKER_PATCH_ID];
+    }
 
     std::unique_ptr<juce::Component> createItemComponent () override;
 
