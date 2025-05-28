@@ -1834,9 +1834,6 @@ void MainContentComponent::updatePeaks()
             auto * ticket{ exchanger.acquire() };
             ticket->get() = gainToSpeakerAlpha(peak);
             exchanger.setMostRecent(ticket);
-        } else {
-            // unknown speaker key!
-            jassertfalse;
         }
     }
 }
