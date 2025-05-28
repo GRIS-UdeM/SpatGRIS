@@ -229,7 +229,9 @@ private:
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     void computeSpeakers();
     void addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition);
+#if !USE_OLD_SPEAKER_SETUP_VIEW
     juce::ValueTree addNewSpeakerToVt (const gris::output_patch_t& newOutputPatch, juce::ValueTree parent, int index);
+#endif
     //==============================================================================
     // VIRTUALS
     void buttonClicked(juce::Button * button) override;

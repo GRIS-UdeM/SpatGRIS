@@ -578,7 +578,6 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     newGroup.setProperty(CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar(groupPosition), &undoManager);
     mainGroup.addChild(newGroup, indexInMainGroup + 1, &undoManager);
 
-    auto const & speakers{ spatGrisData.speakerSetup.speakers };
     output_patch_t newOutputPatch{};
 
     for (int i{}; i < numSpeakers; ++i) {
@@ -588,7 +587,6 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
         newOutputPatch = mMainContentComponent.addSpeaker(outputPatchToCopy, ++indexInMainGroup);
 
         //add the speaker to the value tree
-        //TODO VB: addNewSpeakerToVt() needs to to copy the speaker data from the outputPatchToCopy -- BUT make sure this works below in if (button == &mAddSpeakerButton) {
         auto newSpeakerVt = addNewSpeakerToVt (newOutputPatch, newGroup, i);
 
         newSpeakerVt.setProperty(CARTESIAN_POSITION,
@@ -606,12 +604,11 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
 #endif
 }
 
+#if !USE_OLD_SPEAKER_SETUP_VIEW
 juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch,
                                                       juce::ValueTree parent,
                                                       int index)
 {
-#if !USE_OLD_SPEAKER_SETUP_VIEW
-
 #if DEBUG_SPEAKER_EDITION
     DBG("EditSpeakersWindow::addNewSpeakerToVt() adding output patch " << newOutputPatch.toString() << " at index "
                                                                        << juce::String(index));
@@ -633,10 +630,8 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
     parent.addChild(newSpeakerVt, index, &undoManager);
 
     return newSpeakerVt;
-#else
-    return {};
-#endif
 }
+#endif
 
 //==============================================================================
 void EditSpeakersWindow::buttonClicked(juce::Button * button)
