@@ -127,7 +127,8 @@ struct Comparator {
     }
 };
 
-#define USE_TREE_VIEW_COMPARATOR 1
+#define USE_TREE_VIEW_COMPARATOR 0
+#define USE_VALUE_TREE_VIEW_COMPARATOR 1
 
 #if USE_TREE_VIEW_COMPARATOR
 struct TreeViewItemComparator {
@@ -152,11 +153,18 @@ struct TreeViewItemComparator {
 // TODO: look into whether this should use juce::TreeViewItem::sortSubItems() instead of sorting the value tree
 void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
 {
+    if (! vt.isValid ())
+        vt = lineValueTree;
+
 #if USE_TREE_VIEW_COMPARATOR
     TreeViewItemComparator comparison;
     sortSubItems (comparison);
     //treeChildrenChanged (vt);
     refreshSubItems();
+#elif USE_VALUE_TREE_VIEW_COMPARATOR
+    Comparator comparison;
+    vt.sort (comparison, &undoManager, false);
+    refreshSubItems ();
 #else
 
     if (! vt.isValid ())
