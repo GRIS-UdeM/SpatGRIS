@@ -599,7 +599,6 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     }
 
     mMainContentComponent.requestSpeakerRefresh ();
-    //updateWinContent();
 
     selectSpeaker(newOutputPatch);
 
@@ -1727,13 +1726,12 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
         DBG ("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_PATCH_ID" << child[SPEAKER_PATCH_ID].toString () << " and index " << juce::String (index));
 #endif
 
-    //TODO VB: is this really needed? Check when adding groups vs speakers
+    // this is mostly useful when undoing
     if (childType == SPEAKER)
         mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index, childOutputPatch);
 
     if (!isAddingGroup) {
         mMainContentComponent.requestSpeakerRefresh ();
-        //updateWinContent();
         mShouldComputeSpeakers = true;
     }
 }
