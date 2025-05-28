@@ -223,8 +223,9 @@ private:
 #if USE_OLD_SPEAKER_SETUP_VIEW
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
+    bool isMouseOverDragHandle (juce::MouseEvent const& event);
 #endif
-    bool isMouseOverDragHandle(juce::MouseEvent const & event);
+
     SpeakerData const & getSpeakerData(int rowNum) const;
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     void computeSpeakers();
@@ -259,7 +260,6 @@ private:
     void valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property) override;
     void valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child) override;
     void valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent) override;
-    void valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int) override;
 
     juce::UndoManager& undoManager;
 #endif

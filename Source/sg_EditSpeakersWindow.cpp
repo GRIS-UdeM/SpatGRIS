@@ -1369,20 +1369,19 @@ void EditSpeakersWindow::setText(int const columnNumber,
 #endif
 //==============================================================================
 
+#if USE_OLD_SPEAKER_SETUP_VIEW
 bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & event)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-#if USE_OLD_SPEAKER_SETUP_VIEW
+
     auto const positionRelativeToSpeakersTableListBox{ event.getEventRelativeTo(&mSpeakersTableListBox).getPosition() };
     auto const speakersTableListBoxBounds{ mSpeakersTableListBox.getBounds() };
 
     auto const draggableWidth{ mSpeakersTableListBox.getHeader().getColumnWidth(Cols::DRAG_HANDLE) };
     return speakersTableListBoxBounds.contains(positionRelativeToSpeakersTableListBox)
            && positionRelativeToSpeakersTableListBox.getX() < draggableWidth;
-#else
-    return false;
-#endif
 }
+#endif
 
 //==============================================================================
 SpeakerData const & EditSpeakersWindow::getSpeakerData(int const rowNum) const
@@ -1410,7 +1409,6 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
 void EditSpeakersWindow::computeSpeakers()
 {
     if (mShouldComputeSpeakers) {
-        DBG ("EditSpeakersWindow::computeSpeakers()");
         mMainContentComponent.requestSpeakerRefresh ();
         mShouldComputeSpeakers = false;
     }
@@ -1649,8 +1647,6 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
         }
     } else if (vt.getType() == SPEAKER) {
         output_patch_t const outputPatch{ vt[SPEAKER_PATCH_ID] };
-        auto const & speakers{ spatGrisData.speakerSetup.speakers };
-        auto const & speaker{ speakers[outputPatch] };
 
         if (property == CARTESIAN_POSITION) {
             if (auto const speakerPosition{ SpeakerData::getAbsoluteSpeakerPosition(vt) }) {
@@ -1675,7 +1671,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
                 output_patch_t newOutputPatch{ vt[NEXT_SPEAKER_PATCH_ID] };
                 if (newOutputPatch != oldOutputPatch) {
                     // check that the new output patch isn't in use
-                    if (speakers.contains(newOutputPatch)) {
+                    if (spatGrisData.speakerSetup.speakers.contains(newOutputPatch)) {
                         // it is in use, so show an error
                         juce::AlertWindow alert("Wrong output patch!    ",
                                                 "Sorry! Output patch number " + juce::String(newOutputPatch.get())
@@ -1741,7 +1737,7 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
     }
 }
 
-void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, [[maybe_unused]] int index)
+void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & /*parent*/, juce::ValueTree & child, [[maybe_unused]] int index)
 {
     auto const childType { child.getType () };
 
@@ -1754,19 +1750,8 @@ void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::V
 
     if (childType == SPEAKER) {
         output_patch_t outputPatch {child[SPEAKER_PATCH_ID]};
-
-        //ok that is it, this is why sort forking fails
-        // TODO VB: these 2 calls need to be coalesced into the future -- when we undo a group creation,
-        // this is called for every child before the one for the group above is called. Unless we can think
-        // of a hack to only remove all speakers when the group one is removed?
         mMainContentComponent.removeSpeaker (outputPatch, ! mSpeakerSetupContainer.isDeletingGroup());
-        //updateWinContent ();
     }
-}
-
-void EditSpeakersWindow::valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int)
-{
-
 }
 
 #endif
