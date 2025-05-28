@@ -673,7 +673,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         auto const outputPatchToCopy = getSpeakerOutputPatchForRow(indexInMainGroup);
 
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, ++indexInMainGroup) };
-        addNewSpeakerToVt(newOutputPatch, mainGroup, indexInMainGroup);
+
+        auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getCurSpeakerGroupAndIndex ();
+        addNewSpeakerToVt(newOutputPatch, curGroup, ++indexInCurGroup);
 #endif
     } else if (button == &mSaveAsSpeakerSetupButton) {
 
@@ -1721,9 +1723,17 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
         DBG ("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_PATCH_ID" << child[SPEAKER_PATCH_ID].toString () << " and index " << juce::String (index));
 #endif
 
-    // this is mostly useful when undoing
-    if (childType == SPEAKER)
-        mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index, childOutputPatch);
+    // this is only useful when undoing
+    if (childType == SPEAKER && undoManager.isPerformingUndoRedo()) {
+        int indexAdjustment{ 0 };
+        if (parent[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME) {
+            auto const mainGroup = parent.getParent();
+            // we only support one level of grouping for now
+            jassert(mainGroup[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME);
+            indexAdjustment = mainGroup.indexOf(parent);
+        }
+        mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index + indexAdjustment, childOutputPatch);
+    }
 
     if (!isAddingGroup) {
         mMainContentComponent.requestSpeakerRefresh ();

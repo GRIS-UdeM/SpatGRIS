@@ -190,14 +190,24 @@ std::pair<juce::ValueTree, int> SpeakerSetupContainer::getMainSpeakerGroupAndInd
     auto vtRow = getSelectedItem ();
 
     juce::ValueTree parent;
-    int index {};
+    int index {0};
     do
     {
         parent = vtRow.getParent ();
-        index = parent.indexOf (vtRow);
+        index += parent.indexOf (vtRow);
         vtRow = parent;
     } while (vtRow[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME);
 
+
+    return { parent, index };
+}
+
+std::pair<juce::ValueTree, int> SpeakerSetupContainer::getCurSpeakerGroupAndIndex()
+{
+    auto vtRow = getSelectedItem();
+
+    auto const parent{ vtRow.getParent() };
+    auto const index{ parent.indexOf(vtRow) };
 
     return { parent, index };
 }

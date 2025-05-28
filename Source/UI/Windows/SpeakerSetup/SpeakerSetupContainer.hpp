@@ -61,6 +61,7 @@ public:
     std::pair<juce::ValueTree, int> getParentAndIndexOfSelectedItem();
 
     std::pair<juce::ValueTree, int> getMainSpeakerGroupAndIndex ();
+    std::pair<juce::ValueTree, int> getCurSpeakerGroupAndIndex ();
 
     void addValueTreeListener(juce::ValueTree::Listener * listener) { speakerSetupVt.addListener(listener); }
     void setSpatMode(SpatMode spatMode) { speakerSetupVt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager); }
