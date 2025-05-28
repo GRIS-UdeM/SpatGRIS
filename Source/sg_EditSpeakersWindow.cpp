@@ -1397,7 +1397,6 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    //TODO VB: gotta make sure the row here is always the row that we mean, even when there's groups
     auto const & data{ spatGrisData };
     jassert(row >= 0 && row < data.speakerSetup.ordering.size());
     auto const result{ data.speakerSetup.ordering[row] };
@@ -1699,11 +1698,10 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             // unhandled property
             jassertfalse;
         }
-    } else if (property == SPAT_MODE) {
-        // TODO VB: do we need to do something here?
+    } else if (property != SPAT_MODE) {
+        // unhandled property
         jassertfalse;
-    } else
-        jassertfalse;
+    }
 }
 
 void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)
