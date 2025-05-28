@@ -128,20 +128,13 @@ struct ValueTreeComparator
     }
 };
 
-void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
+void SpeakerSetupLine::sort(juce::ValueTree vt /*= {valueTree}}*/)
 {
-    if (! vt.isValid ())
+    if (!vt.isValid())
         vt = lineValueTree;
-#if 0
-    ValueTreeComparator comparator;
-    vt.sort (comparator, &undoManager, false);
-    refreshSubItems ();
-#else
 
     juce::Array<juce::ValueTree> speakerGroups;
     juce::Array<juce::ValueTree> allChildren;
-
-    DBG (vt.toXmlString());
 
     for (auto child : vt) {
         if (child.getType() == SPEAKER_GROUP)
@@ -150,7 +143,7 @@ void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
         allChildren.add(child);
     }
 
-    // first recurse into speaker groups
+    // first recurse into speaker groups to sort them
     for (auto speakerGroup : speakerGroups)
         sort(speakerGroup);
 
@@ -158,23 +151,10 @@ void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
     ValueTreeComparator comparison;
     allChildren.sort(comparison);
 
-    //do this this deletes the undo manager, probably beacause this very node is deleted somewhere else
+    // and rebuild the tree
     vt.removeAllChildren(&undoManager);
-    DBG (vt.toXmlString ());
-
     for (const auto & speaker : allChildren)
-    {
-        DBG (vt.toXmlString ());
-
-        DBG (speaker.toXmlString ());
-        if (speaker.getParent().isValid())
-            DBG ("valid parent: " << speaker.getParent ().toXmlString());
-
         vt.appendChild(speaker, &undoManager);
-
-        DBG (vt.toXmlString ());
-    }
-#endif
 }
 
 tl::optional<output_patch_t> SpeakerSetupLine::getOutputPatch ()
