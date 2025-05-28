@@ -433,7 +433,7 @@ void SpeakerComponent::setupGain ()
 void SpeakerComponent::setupHighPass ()
 {
     highpass.setEditable(true);
-    highpass.setText(speakerTreeVt[FREQ], juce::dontSendNotification);
+    highpass.setText(speakerTreeVt[HIGHPASS_FREQ], juce::dontSendNotification);
 
     const auto getClampedFrequency = [](float freqValue, bool isIncreasing = false) {
         static constexpr hz_t OFF_FREQ{ 0.0f };
@@ -450,7 +450,7 @@ void SpeakerComponent::setupHighPass ()
         auto const clampedValue = getClampedFrequency(highpass.getText().getFloatValue()).get();
 
         highpass.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
-        speakerTreeVt.setProperty(FREQ, clampedValue, &undoManager);
+        speakerTreeVt.setProperty(HIGHPASS_FREQ, clampedValue, &undoManager);
     };
 
     highpass.onMouseDragCallback = [this, getClampedFrequency](int deltaY) {
@@ -461,7 +461,7 @@ void SpeakerComponent::setupHighPass ()
         auto const clampedValue{ getClampedFrequency(draggedValue, deltaY < 0).get() };
 
         highpass.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
-        speakerTreeVt.setProperty(FREQ, clampedValue, &undoManager);
+        speakerTreeVt.setProperty(HIGHPASS_FREQ, clampedValue, &undoManager);
     };
 
     addAndMakeVisible(highpass);

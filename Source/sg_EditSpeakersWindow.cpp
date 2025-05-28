@@ -1658,7 +1658,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             mMainContentComponent.speakerDirectOutOnlyChanged(outputPatch, directOutOnly);
         } else if (property == GAIN) {
             mMainContentComponent.setSpeakerGain(outputPatch, dbfs_t{ newVal });
-        } else if (property == FREQ) {
+        } else if (property == HIGHPASS_FREQ) {
             mMainContentComponent.setSpeakerHighPassFreq(outputPatch, hz_t{ newVal });
         } else if (property == NEXT_SPEAKER_PATCH_ID && !undoManager.isPerformingUndoRedo()) {
             // we don't want to do anything in here when undoing/redoing
