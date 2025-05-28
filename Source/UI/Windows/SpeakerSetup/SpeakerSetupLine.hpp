@@ -27,6 +27,11 @@ class SpeakerSetupLine final
 {
 public:
     SpeakerSetupLine(const juce::ValueTree & v, juce::UndoManager & um, std::function<void()> selectionChanged);
+    ~SpeakerSetupLine() override
+    {
+        //jassert (! isSpeakerGroup());
+        //DBG ("DELETING THIS" << lineValueTree.toXmlString());
+    }
 
     juce::String getUniqueName() const override { return lineValueTree.getType().toString(); }
 

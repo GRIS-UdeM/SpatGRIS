@@ -599,7 +599,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     }
 
     mMainContentComponent.requestSpeakerRefresh ();
-    updateWinContent();
+    //updateWinContent();
 
     selectSpeaker(newOutputPatch);
 
@@ -1733,8 +1733,7 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
 
     if (!isAddingGroup) {
         mMainContentComponent.requestSpeakerRefresh ();
-        updateWinContent();
-        // selectSpeaker(newOutputPatch);
+        //updateWinContent();
         mShouldComputeSpeakers = true;
     }
 }
@@ -1753,12 +1752,18 @@ void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & parent, juce::V
     if (childType == SPEAKER) {
         output_patch_t outputPatch {child[SPEAKER_PATCH_ID]};
 
+        //ok that is it, this is why sort forking fails
         // TODO VB: these 2 calls need to be coalesced into the future -- when we undo a group creation,
         // this is called for every child before the one for the group above is called. Unless we can think
         // of a hack to only remove all speakers when the group one is removed?
         mMainContentComponent.removeSpeaker (outputPatch, ! mSpeakerSetupContainer.isDeletingGroup());
-        updateWinContent ();
+        //updateWinContent ();
     }
+}
+
+void EditSpeakersWindow::valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int)
+{
+
 }
 
 #endif

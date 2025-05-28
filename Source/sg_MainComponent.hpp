@@ -244,10 +244,8 @@ public:
     //==============================================================================
     // Commands.
     void handleShowPreferences();
-#if 1//USE_OLD_SPEAKER_SETUP_VIEW
     void saveAsEditedSpeakerSetup();
     void saveEditedSpeakerSetup();
-#endif
 
     //==============================================================================
     // Close windows
@@ -323,6 +321,8 @@ private:
 #endif
     void handleShowOscMonitorWindow();
 
+    /** This is called by the SpeakersRefreshAsyncUpdater when MainContentComponent::requestSpeakerRefresh() is called.
+     */
     void refreshSpeakers ();
     void refreshSourceSlices();
     void refreshSpeakerSlices();

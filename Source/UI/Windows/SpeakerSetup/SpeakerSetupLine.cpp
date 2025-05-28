@@ -102,7 +102,8 @@ void SpeakerSetupLine::selectChildSpeaker(tl::optional<output_patch_t> const out
     }
 }
 
-struct Comparator {
+struct ValueTreeComparator
+{
     int compareElements(const juce::ValueTree & first, const juce::ValueTree & second)
     {
         // Try to get SPEAKER_PATCH_ID or SPEAKER_GROUP_NAME from each ValueTree
@@ -127,70 +128,52 @@ struct Comparator {
     }
 };
 
-#define USE_TREE_VIEW_COMPARATOR 0
-#define USE_VALUE_TREE_VIEW_COMPARATOR 1
-
-#if USE_TREE_VIEW_COMPARATOR
-struct TreeViewItemComparator {
-    int compareElements (juce::TreeViewItem* first, juce::TreeViewItem* second)
-    {
-        auto const * firstLine = dynamic_cast<SpeakerSetupLine *>(first);
-        auto const * secondLine = dynamic_cast<SpeakerSetupLine *>(second);
-        if (!firstLine || !secondLine)
-        {
-            jassertfalse; // This should not happen
-            return 0;
-        }
-
-        auto const firstString { firstLine->getSpeakerIdOrGroupName () };
-        auto const secondString { secondLine->getSpeakerIdOrGroupName () };
-
-        return firstString.compareNatural (secondString);
-    }
-};
-#endif
-
-// TODO: look into whether this should use juce::TreeViewItem::sortSubItems() instead of sorting the value tree
 void SpeakerSetupLine::sort (juce::ValueTree vt /*= {valueTree}}*/)
 {
     if (! vt.isValid ())
         vt = lineValueTree;
-
-#if USE_TREE_VIEW_COMPARATOR
-    TreeViewItemComparator comparison;
-    sortSubItems (comparison);
-    //treeChildrenChanged (vt);
-    refreshSubItems();
-#elif USE_VALUE_TREE_VIEW_COMPARATOR
-    Comparator comparison;
-    vt.sort (comparison, &undoManager, false);
+#if 0
+    ValueTreeComparator comparator;
+    vt.sort (comparator, &undoManager, false);
     refreshSubItems ();
 #else
-
-    if (! vt.isValid ())
-        vt = lineValueTree;
 
     juce::Array<juce::ValueTree> speakerGroups;
     juce::Array<juce::ValueTree> allChildren;
 
-    for (auto child : vt) {
-        if (child.getType () == SPEAKER_GROUP)
-            speakerGroups.add (child);
+    DBG (vt.toXmlString());
 
-        allChildren.add (child);
+    for (auto child : vt) {
+        if (child.getType() == SPEAKER_GROUP)
+            speakerGroups.add(child);
+
+        allChildren.add(child);
     }
 
-    //first recurse into speaker groups
+    // first recurse into speaker groups
     for (auto speakerGroup : speakerGroups)
-        sort (speakerGroup);
+        sort(speakerGroup);
 
-    //then actually sort all children
-    Comparator comparison;
-    allChildren.sort (comparison);
+    // then actually sort all children
+    ValueTreeComparator comparison;
+    allChildren.sort(comparison);
 
-    vt.removeAllChildren (&undoManager);
-    for (const auto& speaker : allChildren)
-        vt.appendChild (speaker, &undoManager);
+    //do this this deletes the undo manager, probably beacause this very node is deleted somewhere else
+    vt.removeAllChildren(&undoManager);
+    DBG (vt.toXmlString ());
+
+    for (const auto & speaker : allChildren)
+    {
+        DBG (vt.toXmlString ());
+
+        DBG (speaker.toXmlString ());
+        if (speaker.getParent().isValid())
+            DBG ("valid parent: " << speaker.getParent ().toXmlString());
+
+        vt.appendChild(speaker, &undoManager);
+
+        DBG (vt.toXmlString ());
+    }
 #endif
 }
 
