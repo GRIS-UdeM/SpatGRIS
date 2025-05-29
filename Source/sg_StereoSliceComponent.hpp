@@ -43,7 +43,7 @@ public:
     ~StereoSliceComponent() override = default;
     SG_DELETE_COPY_AND_MOVE(StereoSliceComponent)
     //==============================================================================
-    void muteSoloButtonClicked(SpeakerIOState) override { jassertfalse; }
+    void muteSoloButtonClicked(SliceState) override { jassertfalse; }
     void smallButtonClicked(SmallToggleButton * /*button*/, bool /*state*/, bool /*isLeftMouseButton*/) override {}
 
 private:

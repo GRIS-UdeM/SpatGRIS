@@ -37,12 +37,12 @@ MuteSoloComponent::MuteSoloComponent(Listener & listener,
 }
 
 //==============================================================================
-void MuteSoloComponent::setPortState(SpeakerIOState const state)
+void MuteSoloComponent::setPortState(SliceState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mMuteButton.setToggleState(state == SpeakerIOState::muted);
-    mSoloButton.setToggleState(state == SpeakerIOState::solo);
+    mMuteButton.setToggleState(state == SliceState::muted);
+    mSoloButton.setToggleState(state == SliceState::solo);
 }
 
 //==============================================================================
@@ -75,12 +75,12 @@ void MuteSoloComponent::smallButtonClicked(SmallToggleButton * button, bool cons
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (button == &mMuteButton) {
-        auto const portState{ state ? SpeakerIOState::muted : SpeakerIOState::normal };
+        auto const portState{ state ? SliceState::muted : SliceState::normal };
         mListener.muteSoloButtonClicked(portState);
         return;
     }
     if (button == &mSoloButton) {
-        auto const portState{ state ? SpeakerIOState::solo : SpeakerIOState::normal };
+        auto const portState{ state ? SliceState::solo : SliceState::normal };
         mListener.muteSoloButtonClicked(portState);
         return;
     }

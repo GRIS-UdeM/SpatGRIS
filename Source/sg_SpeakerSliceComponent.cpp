@@ -39,7 +39,7 @@ void SpeakerSliceComponent::speakerIdButtonClicked([[maybe_unused]] SpeakerIdBut
 }
 
 //==============================================================================
-void SpeakerSliceComponent::muteSoloButtonClicked(SpeakerIOState const state)
+void SpeakerSliceComponent::muteSoloButtonClicked(SliceState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

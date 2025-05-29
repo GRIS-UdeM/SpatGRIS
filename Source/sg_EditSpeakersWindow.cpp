@@ -294,7 +294,7 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
                              juce::VariantConverter<Position>::toVar(newSpeaker.position),
                              &undoManager);
     newSpeakerVt.setProperty(SPEAKER_PATCH_ID, newOutputPatch.get(), &undoManager);
-    newSpeakerVt.setProperty(IO_STATE, IOStateToString(newSpeaker.state), &undoManager);
+    newSpeakerVt.setProperty(IO_STATE, sliceStateToString(newSpeaker.state), &undoManager);
     newSpeakerVt.setProperty(GAIN, newSpeaker.gain.get(), &undoManager);
     newSpeakerVt.setProperty(DIRECT_OUT_ONLY, newSpeaker.isDirectOutOnly, &undoManager);
     newSpeakerVt.setProperty (UUID, juce::Uuid ().toString (), nullptr);

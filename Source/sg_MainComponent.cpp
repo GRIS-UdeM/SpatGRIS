@@ -988,8 +988,8 @@ void MainContentComponent::generalMuteButtonPressed()
     juce::ScopedReadLock const lock{ mLock };
 
     auto const newSliceState{ mControlPanel->getGeneralMuteButtonState() == GeneralMuteButton::State::allUnmuted
-                             ? SpeakerIOState::muted
-                             : SpeakerIOState::normal };
+                             ? SliceState::muted
+                             : SliceState::normal };
     auto const newGeneralMuteButtonState{ mControlPanel->getGeneralMuteButtonState()
                                                   == GeneralMuteButton::State::allUnmuted
                                               ? GeneralMuteButton::State::allMuted
@@ -1834,7 +1834,7 @@ void MainContentComponent::refreshSourceSlices()
     auto const isAtLeastOneSourceSolo{ std::any_of(
         mData.project.sources.cbegin(),
         mData.project.sources.cend(),
-        [](SourcesData::ConstNode const & node) { return node.value->state == SpeakerIOState::solo; }) };
+        [](SourcesData::ConstNode const & node) { return node.value->state == SliceState::solo; }) };
 
     auto const directOutChoices{ std::make_shared<DirectOutSelectorComponent::Choices>() };
 
@@ -1876,10 +1876,10 @@ void MainContentComponent::refreshSpeakerSlices()
     auto const isAtLeastOneSpeakerSolo{ std::any_of(
         mData.speakerSetup.speakers.cbegin(),
         mData.speakerSetup.speakers.cend(),
-        [](SpeakersData::ConstNode const & node) { return node.value->state == SpeakerIOState::solo; }) };
+        [](SpeakersData::ConstNode const & node) { return node.value->state == SliceState::solo; }) };
 
     if (mData.appData.stereoMode) {
-        auto const slicesState{ mData.speakerSetup.generalMute ? SpeakerIOState::muted : SpeakerIOState::normal };
+        auto const slicesState{ mData.speakerSetup.generalMute ? SliceState::muted : SliceState::normal };
         auto newLeftSlice{ std::make_unique<StereoSliceComponent>("L", mLookAndFeel, mSmallLookAndFeel) };
         auto newRightSlice{ std::make_unique<StereoSliceComponent>("R", mLookAndFeel, mSmallLookAndFeel) };
         newLeftSlice->setState(slicesState, false);
@@ -2147,7 +2147,7 @@ void MainContentComponent::setSourceColor(source_index_t const sourceIndex, juce
 }
 
 //==============================================================================
-void MainContentComponent::setSourceState(source_index_t const sourceIndex, SpeakerIOState const state)
+void MainContentComponent::setSourceState(source_index_t const sourceIndex, SliceState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2197,7 +2197,7 @@ void MainContentComponent::setSelectedSpeakers(juce::Array<output_patch_t> const
 }
 
 //==============================================================================
-void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, SpeakerIOState const state)
+void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, SliceState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2586,7 +2586,7 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
 
     if (mData.speakerSetup.generalMute) {
         for (auto& speaker : mData.speakerSetup.speakers) {
-            speaker.value->state = SpeakerIOState::muted;
+            speaker.value->state = SliceState::muted;
         }
     }
 
@@ -3016,7 +3016,7 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
 
             // reset source output
             setSourceDirectOut(sourceIndex, tl::nullopt);
-            setSourceState(sourceIndex, SpeakerIOState::normal);
+            setSourceState(sourceIndex, SliceState::normal);
         }
 
         auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
@@ -3032,7 +3032,7 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
                 mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getInactiveColor());
 
                 source_index_t const sourceIndex{ i + source_index_t::OFFSET };
-                setSourceState(sourceIndex, SpeakerIOState::muted);
+                setSourceState(sourceIndex, SliceState::muted);
                 setSourceDirectOut(sourceIndex, tl::nullopt);
             }
             ++i;
@@ -3068,7 +3068,7 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
             int playerIndex{};
             while (playerIndex < playerDirectOutSpeakers.size()) {
                 setSourceDirectOut(playerDirectOutSpeakers[playerIndex], speakerSetupDirectOutSpeakers[setupIndex]);
-                setSourceState(playerDirectOutSpeakers[playerIndex], SpeakerIOState::normal);
+                setSourceState(playerDirectOutSpeakers[playerIndex], SliceState::normal);
                 ++setupIndex;
                 ++playerIndex;
                 if (setupIndex == speakerSetupDirectOutSpeakers.size()

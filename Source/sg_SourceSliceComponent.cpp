@@ -85,7 +85,7 @@ void SourceSliceComponent::setHybridSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
-void SourceSliceComponent::muteSoloButtonClicked(SpeakerIOState const state)
+void SourceSliceComponent::muteSoloButtonClicked(SliceState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
