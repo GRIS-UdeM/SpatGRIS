@@ -277,7 +277,6 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     mShouldComputeSpeakers = true;
 }
 
-#if !USE_OLD_SPEAKER_SETUP_VIEW
 juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch,
                                                       juce::ValueTree parent,
                                                       int index)
@@ -304,52 +303,25 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
 
     return newSpeakerVt;
 }
-#endif
 
 //==============================================================================
 void EditSpeakersWindow::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    static auto const GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
-        auto const selectedRow{ tableListBox.getSelectedRow() };
-        if (selectedRow < 0) {
-            return tl::nullopt;
-        }
-        return selectedRow;
-    };
-
-    auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
-    auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
-    auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
-#endif
-
     if (button == &mAddSpeakerButton) {
 
         if (mMainContentComponent.getMaxSpeakerOutputPatch().get() >= MAX_NUM_SPEAKERS)
             return;
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
-        tl::optional<output_patch_t> outputPatch{};
-        tl::optional<int> index{};
-
-        if (selectedRow) {
-            outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
-            index = *selectedRow + 1;
-        }
-        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
-        mSpeakersTableListBox.getHeader ().setSortColumnId (sortColumnId, sortedForwards);
-#else
         auto [mainGroup, indexInMainGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
 
         auto const outputPatchToCopy = getSpeakerOutputPatchForRow(indexInMainGroup);
-
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, ++indexInMainGroup) };
 
         auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getCurSpeakerGroupAndIndex ();
         addNewSpeakerToVt(newOutputPatch, curGroup, ++indexInCurGroup);
-#endif
+
     } else if (button == &mSaveAsSpeakerSetupButton) {
 
         mShouldComputeSpeakers = true;
@@ -488,29 +460,6 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         }
         mMainContentComponent.setPinkNoiseGain(newPinkNoiseLevel);
     }
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    else if (button->getName().getIntValue() < DIRECT_OUT_BUTTON_ID_OFFSET) {
-        // Delete button
-        auto const row{ button->getName().getIntValue() };
-        auto const speakerId{ spatGrisData.speakerSetup.ordering[row] };
-        mMainContentComponent.removeSpeaker(speakerId);
-        updateWinContent();
-
-        mSpeakersTableListBox.deselectAllRows();
-
-        mShouldComputeSpeakers = true;
-    } else {
-        // Direct out
-        jassert(button->getName().getIntValue() >= DIRECT_OUT_BUTTON_ID_OFFSET);
-        auto const row{ button->getName().getIntValue() - DIRECT_OUT_BUTTON_ID_OFFSET };
-        auto const outputPatch{ getSpeakerOutputPatchForRow(row) };
-        mMainContentComponent.speakerDirectOutOnlyChanged(outputPatch, button->getToggleState());
-        updateWinContent();
-        mShouldComputeSpeakers = true;
-    }
-#endif
-
-    //computeSpeakers();
 }
 
 //==============================================================================
@@ -604,13 +553,9 @@ void EditSpeakersWindow::updateWinContent()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    mNumRows = spatGrisData.speakerSetup.speakers.size ();
-    mSpeakersTableListBox.updateContent();
-#else
     mSpeakerSetupContainer.reload (spatGrisData.speakerSetup.speakerSetupValueTree);
     mSpeakerSetupContainer.setSpatMode (spatGrisData.speakerSetup.spatMode);
-#endif
+
     mDiffusionSlider.setValue(spatGrisData.speakerSetup.diffusion);
     mDiffusionSlider.setEnabled(spatGrisData.project.spatMode == SpatMode::mbap
                                 || spatGrisData.project.spatMode == SpatMode::hybrid);
@@ -623,54 +568,7 @@ void EditSpeakersWindow::pushSelectionToMainComponent()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
-    if (selectedRows == mLastSelectedRows) {
-        return;
-    }
-
-    juce::Array<output_patch_t> selection{};
-    selection.ensureStorageAllocated(selectedRows.size());
-    for (int i{}; i < selectedRows.size(); ++i) {
-        auto const row{ selectedRows[i] };
-        auto const outputPatch{ getSpeakerOutputPatchForRow(row) };
-        selection.add(outputPatch);
-    }
-
-    mMainContentComponent.setSelectedSpeakers(std::move(selection));
-#else
     mMainContentComponent.setSelectedSpeakers(mSpeakerSetupContainer.getSelectedSpeakers());
-#endif
-}
-
-//==============================================================================
-#if USE_OLD_SPEAKER_SETUP_VIEW
-void EditSpeakersWindow::selectRow(tl::optional<int> const value)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    juce::MessageManagerLock const mmLock{};
-    mSpeakersTableListBox.selectRow(value.value_or(-1));
-    repaint();
-}
-#endif
-
-//==============================================================================
-void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const outputPatch)
-{
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    auto const getSelectedRow = [this](output_patch_t const id) {
-        juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
-        auto const & displayOrder{ spatGrisData.speakerSetup.ordering };
-        jassert(displayOrder.contains(id));
-        return displayOrder.indexOf(id);
-    };
-
-    selectRow(outputPatch.map(getSelectedRow));
-    pushSelectionToMainComponent ();
-#else
-    mSpeakerSetupContainer.selectSpeaker(outputPatch);
-#endif
 }
 
 //==============================================================================
@@ -707,11 +605,7 @@ void EditSpeakersWindow::resized()
     // speaker table
     auto const secondRowH{ 24 };
     auto const bottomPanelH{ 195 + secondRowH };
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    mSpeakersTableListBox.setSize(getWidth(), getHeight() - bottomPanelH);
-#else
     mSpeakerSetupContainer.setSize(getWidth(), getHeight() - bottomPanelH);
-#endif
 
     // first row of bottom panel with add speaker, save as, and save buttons
     auto const firstRowH{ 22 };
@@ -762,301 +656,6 @@ void EditSpeakersWindow::resized()
 }
 
 //==============================================================================
-#if USE_OLD_SPEAKER_SETUP_VIEW
-juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNumber) const
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const & data{ spatGrisData };
-    jassert(data.speakerSetup.speakers.size() > rowNumber);
-    auto const outputPatch{ getSpeakerOutputPatchForRow(rowNumber) };
-    auto const & speaker{ data.speakerSetup.speakers[outputPatch] };
-    switch (columnNumber) {
-    case Cols::X:
-        return juce::String{ speaker.position.getCartesian().x, 2 };
-    case Cols::Y:
-        return juce::String{ speaker.position.getCartesian().y, 2 };
-    case Cols::Z:
-        return juce::String{ speaker.position.getCartesian().z, 2 };
-    case Cols::AZIMUTH:
-        return juce::String{ degrees_t{ HALF_PI - speaker.position.getPolar().azimuth }.madePositive().get(), 1 };
-    case Cols::ELEVATION:
-        return juce::String{ degrees_t{ speaker.position.getPolar().elevation }.madePositive().get(), 1 };
-    case Cols::DISTANCE:
-        return juce::String{ speaker.position.getPolar().length, 2 };
-    case Cols::OUTPUT_PATCH:
-        return juce::String{ outputPatch.get() };
-    case Cols::GAIN:
-        return juce::String{ speaker.gain.get(), 1 };
-    case Cols::HIGHPASS:
-        return juce::String{
-            speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq.get(); }, float{}),
-            1
-        };
-    case Cols::DIRECT_TOGGLE:
-        return juce::String{ static_cast<int>(speaker.isDirectOutOnly) };
-    case Cols::DRAG_HANDLE:
-        return "=";
-    default:
-        jassertfalse;
-        return "";
-    }
-}
-
-//==============================================================================
-
-void EditSpeakersWindow::setText(int const columnNumber,
-                                 int const rowNumber,
-                                 juce::String const & newText,
-                                 bool const altDown)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock lock{ mMainContentComponent.getLock() };
-
-    auto const spatMode{ spatGrisData.speakerSetup.spatMode };
-
-    auto const isEditable = [&](int const col, SpeakerData const & speaker) {
-        switch (col) {
-        case Cols::OUTPUT_PATCH:
-        case Cols::GAIN:
-        case Cols::HIGHPASS:
-            return true;
-        case Cols::AZIMUTH:
-        case Cols::ELEVATION:
-            return spatMode == SpatMode::vbap;
-        case Cols::X:
-        case Cols::Y:
-        case Cols::Z:
-            return spatMode == SpatMode::mbap;
-        case Cols::DRAG_HANDLE:
-        case Cols::DIRECT_TOGGLE:
-        case Cols::DELETE_BUTTON:
-            return false;
-        case Cols::DISTANCE:
-            return spatMode == SpatMode::vbap && speaker.isDirectOutOnly;
-        default:
-            jassertfalse;
-        }
-        return false;
-    };
-
-    auto const & speakers{ spatGrisData.speakerSetup.speakers };
-
-    if (speakers.size() > rowNumber) {
-        auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
-        auto const outputPatch{ getSpeakerOutputPatchForRow(rowNumber) };
-        auto const & speaker{ speakers[outputPatch] };
-
-        if (!isEditable(columnNumber, speaker)) {
-            return;
-        }
-
-        switch (columnNumber) {
-        case Cols::X: {
-            auto const diff{ newText.getFloatValue() - speaker.position.getCartesian().x };
-            for (int i{}; i < selectedRows.size(); ++i) {
-                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & speaker_{ speakers[outputPatch_] };
-                auto const & oldPosition{ speaker_.position };
-                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
-                auto const newPosition{
-                    getLegalSpeakerPosition(oldPosition.translatedX(diff), spatMode, isDirectOutOnly, Cols::X)
-                };
-                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
-            }
-            mShouldComputeSpeakers = true;
-            break;
-        }
-        case Cols::Y: {
-            auto const diff{ newText.getFloatValue() - speaker.position.getCartesian().y };
-            for (int i{}; i < selectedRows.size(); ++i) {
-                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & speaker_{ speakers[outputPatch_] };
-                auto const & oldPosition{ speaker_.position };
-                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
-                auto const newPosition{
-                    getLegalSpeakerPosition(oldPosition.translatedY(diff), spatMode, isDirectOutOnly, Cols::Y)
-                };
-                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
-            }
-            mShouldComputeSpeakers = true;
-            break;
-        }
-        case Cols::Z: {
-            auto const diff{ newText.getFloatValue() - speaker.position.getCartesian().z };
-            for (int i{}; i < selectedRows.size(); ++i) {
-                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & speaker_{ speakers[outputPatch_] };
-                auto const & oldPosition{ speaker_.position };
-                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
-                auto const newPosition{
-                    getLegalSpeakerPosition(oldPosition.translatedZ(diff), spatMode, isDirectOutOnly, Cols::Z)
-                };
-                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
-            }
-            mShouldComputeSpeakers = true;
-            break;
-        }
-        case Cols::AZIMUTH: {
-            radians_t const diff{ degrees_t{ 90.0f } - degrees_t{ newText.getFloatValue() }
-                                  - degrees_t{ speaker.position.getPolar().azimuth } };
-            for (int i{}; i < selectedRows.size(); ++i) {
-                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & speaker_{ speakers[outputPatch_] };
-                auto const & oldPosition{ speaker_.position };
-                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
-                auto const newPosition{ getLegalSpeakerPosition(oldPosition.rotatedBalancedAzimuth(diff),
-                                                                spatMode,
-                                                                isDirectOutOnly,
-                                                                Cols::AZIMUTH) };
-                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
-            }
-            mShouldComputeSpeakers = true;
-            break;
-        }
-        case Cols::ELEVATION: {
-            radians_t const diff{ degrees_t{ newText.getFloatValue() }
-                                  - degrees_t{ speaker.position.getPolar().elevation } };
-            for (int i{}; i < selectedRows.size(); ++i) {
-                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & speaker_{ speakers[outputPatch_] };
-                auto const & oldPosition{ speaker_.position };
-                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
-                auto const newPosition{ getLegalSpeakerPosition(oldPosition.elevatedClipped(diff),
-                                                                spatMode,
-                                                                isDirectOutOnly,
-                                                                Cols::ELEVATION) };
-                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
-            }
-            mShouldComputeSpeakers = true;
-            break;
-        }
-        case Cols::DISTANCE: {
-            auto const diff{ newText.getFloatValue() - speaker.position.getPolar().length };
-            for (int i{}; i < selectedRows.size(); ++i) {
-                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & speaker_{ speakers[outputPatch_] };
-                auto const & oldPosition{ speaker_.position };
-                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
-                auto const newPosition{ getLegalSpeakerPosition(oldPosition.pushedWithPositiveRadius(diff),
-                                                                spatMode,
-                                                                isDirectOutOnly,
-                                                                Cols::DISTANCE) };
-                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
-            }
-            mShouldComputeSpeakers = true;
-            break;
-        }
-        case Cols::OUTPUT_PATCH: {
-            mMainContentComponent.setShowTriplets(false);
-            auto const & oldOutputPatch{ outputPatch };
-            output_patch_t newOutputPatch{ std::clamp(newText.getIntValue(), 1, MAX_NUM_SPEAKERS) };
-            if (newOutputPatch != oldOutputPatch) {
-                if (speakers.contains(newOutputPatch)) {
-                    juce::AlertWindow alert("Wrong output patch!    ",
-                                            "Sorry! Output patch number " + juce::String(newOutputPatch.get())
-                                                + " is already used.",
-                                            juce::AlertWindow::WarningIcon);
-                    alert.setLookAndFeel(&mLookAndFeel);
-                    alert.addButton("OK", 0, juce::KeyPress(juce::KeyPress::returnKey));
-                    alert.runModalLoop();
-                } else {
-                    mMainContentComponent.speakerOutputPatchChanged(oldOutputPatch, newOutputPatch);
-                }
-            }
-            mShouldComputeSpeakers = true;
-            break;
-        }
-        case Cols::GAIN: {
-            static constexpr dbfs_t MIN_GAIN{ -18.0f };
-            static constexpr dbfs_t MAX_GAIN{ 6.0f };
-            dbfs_t val{ newText.getFloatValue() };
-            auto diff = val - speaker.gain;
-            val = std::clamp(val, MIN_GAIN, MAX_GAIN);
-            mMainContentComponent.setSpeakerGain(outputPatch, val);
-            if (selectedRows.size() > 1) {
-                for (int i{}; i < selectedRows.size(); ++i) {
-                    auto const rowNum{ selectedRows[i] };
-                    if (rowNum == rowNumber) {
-                        continue;
-                    }
-                    if (altDown) {
-                        auto const g{ std::clamp(speaker.gain + diff, MIN_GAIN, MAX_GAIN) };
-                        mMainContentComponent.setSpeakerGain(outputPatch, g);
-                    } else {
-                        mMainContentComponent.setSpeakerGain(outputPatch, val);
-                    }
-                }
-            }
-            break;
-        }
-        case Cols::HIGHPASS: {
-            static constexpr hz_t OFF_FREQ{ 0.0f };
-            static constexpr hz_t MIN_FREQ{ 20.0f };
-            static constexpr hz_t MAX_FREQ{ 150.0f };
-            hz_t val{ newText.getFloatValue() };
-            auto diff = val
-                        - speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq; },
-                                                      hz_t{ OFF_FREQ });
-            auto mapValue = [&](hz_t value, hz_t modDiff) {
-                if (value <= OFF_FREQ && modDiff <= OFF_FREQ) {
-                    value = OFF_FREQ;
-                } else if (value < MIN_FREQ && value > OFF_FREQ && modDiff < OFF_FREQ) {
-                    value = OFF_FREQ;
-                } else {
-                    value = std::clamp(value, MIN_FREQ, MAX_FREQ);
-                }
-                return value;
-            };
-            val = mapValue(val, diff);
-            mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);
-            if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
-                for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
-                    auto const rowNum{ mSpeakersTableListBox.getSelectedRows()[i] };
-                    if (rowNum == rowNumber) {
-                        continue;
-                    }
-                    if (altDown) {
-                        auto g{ speaker.highpassData->freq + diff };
-                        g = mapValue(g, diff);
-                        mMainContentComponent.setSpeakerHighPassFreq(outputPatch, g);
-                    } else {
-                        mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);
-                    }
-                }
-            }
-            break;
-        }
-        case Cols::DIRECT_TOGGLE:
-            mMainContentComponent.setShowTriplets(false);
-            mMainContentComponent.speakerDirectOutOnlyChanged(outputPatch, newText.getIntValue());
-            mShouldComputeSpeakers = true;
-            break;
-        default:
-            break;
-        }
-    }
-    updateWinContent(); // necessary?
-    mMainContentComponent.refreshViewportConfig();
-}
-#endif
-//==============================================================================
-
-#if USE_OLD_SPEAKER_SETUP_VIEW
-bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & event)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const positionRelativeToSpeakersTableListBox{ event.getEventRelativeTo(&mSpeakersTableListBox).getPosition() };
-    auto const speakersTableListBoxBounds{ mSpeakersTableListBox.getBounds() };
-
-    auto const draggableWidth{ mSpeakersTableListBox.getHeader().getColumnWidth(Cols::DRAG_HANDLE) };
-    return speakersTableListBoxBounds.contains(positionRelativeToSpeakersTableListBox)
-           && positionRelativeToSpeakersTableListBox.getX() < draggableWidth;
-}
-#endif
-
-//==============================================================================
 SpeakerData const & EditSpeakersWindow::getSpeakerData(int const rowNum) const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1085,218 +684,6 @@ void EditSpeakersWindow::computeSpeakers()
         mShouldComputeSpeakers = false;
     }
 }
-
-#if USE_OLD_SPEAKER_SETUP_VIEW
-//==============================================================================
-// This is overloaded from TableListBoxModel, and should fill in the background of the whole row.
-void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
-                                            int const rowNumber,
-                                            int const /*width*/,
-                                            int const /*height*/,
-                                            bool const rowIsSelected)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
-    auto const & speakers{ spatGrisData.speakerSetup.speakers };
-    if (rowNumber >= speakers.size()) {
-        return;
-    }
-
-    if (rowIsSelected) {
-        // mMainContentComponent.handleSpeakerSelected(outputPatch);
-        g.fillAll(mLookAndFeel.getHighlightColour());
-    } else {
-        if (rowNumber % 2) {
-            g.fillAll(mLookAndFeel.getBackgroundColour().withBrightness(0.6f));
-        } else {
-            g.fillAll(mLookAndFeel.getBackgroundColour().withBrightness(0.7f));
-        }
-    }
-}
-
-//==============================================================================
-juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumber,
-                                                              int const columnId,
-                                                              bool const /*isRowSelected*/,
-                                                              Component * existingComponentToUpdate)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
-    auto const outputPatch{ getSpeakerOutputPatchForRow(rowNumber) };
-    auto const & data{ spatGrisData };
-    auto const & speaker{ data.speakerSetup.speakers[outputPatch] };
-
-    if (columnId == Cols::DIRECT_TOGGLE) {
-        auto * toggleButton{ dynamic_cast<juce::ToggleButton *>(existingComponentToUpdate) };
-        if (toggleButton == nullptr) {
-            toggleButton = new juce::ToggleButton();
-        }
-        toggleButton->setName(juce::String(rowNumber + DIRECT_OUT_BUTTON_ID_OFFSET));
-        toggleButton->setClickingTogglesState(true);
-        toggleButton->setBounds(4, 404, 88, 22);
-        toggleButton->addListener(this);
-        toggleButton->setToggleState(speaker.isDirectOutOnly, juce::dontSendNotification);
-        toggleButton->setLookAndFeel(&mLookAndFeel);
-        return toggleButton;
-    }
-    if (columnId == Cols::DELETE_BUTTON) {
-        auto * textButton{ dynamic_cast<juce::TextButton *>(existingComponentToUpdate) };
-        if (textButton == nullptr) {
-            textButton = new juce::TextButton();
-        }
-        textButton->setButtonText("X");
-        textButton->setName(juce::String(rowNumber));
-        textButton->setBounds(4, 404, 88, 22);
-        textButton->addListener(this);
-        textButton->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-        textButton->setLookAndFeel(&mLookAndFeel);
-        return textButton;
-    }
-
-    enum class EditionType { notEditable, editable, valueDraggable, reorderDraggable };
-
-    auto const & spatMode{ spatGrisData.speakerSetup.spatMode };
-
-    auto const getEditionType = [=]() -> EditionType {
-        switch (columnId) {
-        case Cols::DISTANCE:
-            if (spatMode == SpatMode::vbap && speaker.isDirectOutOnly) {
-                return EditionType::valueDraggable;
-            }
-            return EditionType::notEditable;
-        case Cols::X:
-        case Cols::Y:
-        case Cols::Z:
-            if (spatMode == SpatMode::mbap) {
-                return EditionType::valueDraggable;
-            }
-            return EditionType::notEditable;
-        case Cols::AZIMUTH:
-        case Cols::ELEVATION:
-            if (spatMode == SpatMode::vbap) {
-                return EditionType::valueDraggable;
-            }
-            return EditionType::notEditable;
-        case Cols::GAIN:
-        case Cols::HIGHPASS:
-            return EditionType::valueDraggable;
-        case Cols::OUTPUT_PATCH:
-            return EditionType::editable;
-        case Cols::DELETE_BUTTON:
-        case Cols::DIRECT_TOGGLE:
-            return EditionType::notEditable;
-        case Cols::DRAG_HANDLE:
-            return EditionType::reorderDraggable;
-        default:
-            jassertfalse;
-            return {};
-        }
-    };
-
-    static auto const GET_MOUSE_CURSOR = [](EditionType const editionType) {
-        switch (editionType) {
-        case EditionType::valueDraggable:
-            return juce::MouseCursor::StandardCursorType::UpDownResizeCursor;
-        case EditionType::reorderDraggable:
-            return juce::MouseCursor::StandardCursorType::DraggingHandCursor;
-        default:
-            return juce::MouseCursor::StandardCursorType::NormalCursor;
-        }
-    };
-
-    // The other columns are editable text columns, for which we use the custom juce::Label component
-    auto * textLabel{ dynamic_cast<EditableTextCustomComponent *>(existingComponentToUpdate) };
-    if (textLabel == nullptr) {
-        textLabel = new EditableTextCustomComponent{ *this };
-        if (columnId == Cols::DRAG_HANDLE) {
-            textLabel->setJustificationType(juce::Justification::centred);
-            textLabel->setEditable(false);
-            textLabel->setMouseCursor(juce::MouseCursor::StandardCursorType::DraggingHandCursor);
-        }
-    }
-
-    auto const editionType{ getEditionType() };
-    textLabel->setRowAndColumn(rowNumber, columnId);
-    textLabel->setMouseCursor(GET_MOUSE_CURSOR(editionType));
-    textLabel->setEditable(editionType == EditionType::editable || editionType == EditionType::valueDraggable);
-    textLabel->setColor(editionType != EditionType::notEditable);
-
-    return textLabel;
-}
-
-//==============================================================================
-void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    if (isMouseOverDragHandle(event)) {
-#if USE_OLD_SPEAKER_SETUP_VIEW
-        mDragStartY = event.getEventRelativeTo(&mSpeakersTableListBox).getPosition().getY();
-#endif
-    } else {
-        mDragStartY = tl::nullopt;
-    }
-    pushSelectionToMainComponent();
-}
-
-//==============================================================================
-/** This is used to reorder speakers only. Dragging to change values in the text editors is handled in
- * EditableTextCustomComponent::mouseDrag() */
-void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    if (!mDragStartY) {
-        return;
-    }
-
-    auto const eventRel{ event.getEventRelativeTo(&mSpeakersTableListBox).getPosition() };
-    auto const rowHeight{ mSpeakersTableListBox.getRowHeight() };
-    auto const yDiff{ eventRel.getY() - *mDragStartY };
-    auto const rowDiff{ narrow<int>(std::round(narrow<float>(yDiff) / narrow<float>(rowHeight))) };
-    auto const numRows{ mSpeakersTableListBox.getNumRows() };
-
-    if (rowDiff == 0) {
-        // no movement
-        return;
-    }
-
-    // TODO : make this work for multiple selections
-    auto const selectedRow{ mSpeakersTableListBox.getSelectedRow() };
-    if (selectedRow < 0 || selectedRow >= mSpeakersTableListBox.getNumRows()) {
-        jassertfalse;
-        return;
-    }
-
-    auto const newIndex{ std::clamp(selectedRow + rowDiff, 0, numRows - 1) };
-    if (newIndex == selectedRow) {
-        return;
-    }
-
-    auto order = spatGrisData.speakerSetup.ordering;
-    order.swap(selectedRow, newIndex);
-
-    mMainContentComponent.reorderSpeakers(order);
-    if (mSpeakersTableListBox.contains(eventRel)) {
-        *mDragStartY += rowDiff * rowHeight;
-    }
-    mSpeakersTableListBox.selectRow(newIndex);
-
-    updateWinContent();
-    mShouldComputeSpeakers = true;
-}
-
-//==============================================================================
-void EditSpeakersWindow::mouseUp(juce::MouseEvent const & /*event*/)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    computeSpeakers();
-}
-
-#else
 
 void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property)
 {
@@ -1424,7 +811,5 @@ void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & /*parent*/, juc
         mMainContentComponent.removeSpeaker (outputPatch, ! mSpeakerSetupContainer.isDeletingGroup());
     }
 }
-
-#endif
 
 } // namespace gris

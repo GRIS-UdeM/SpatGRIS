@@ -105,19 +105,11 @@ struct LabelComboBoxWrapper : public LabelWrapper
 //==============================================================================
 class EditSpeakersWindow final
     : public juce::DocumentWindow
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    , public juce::TableListBoxModel
-#else
     , public juce::ValueTree::Listener
-#endif
     , public juce::ToggleButton::Listener
     , public juce::TextEditor::Listener
     , public juce::Slider::Listener
 {
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    static constexpr auto DIRECT_OUT_BUTTON_ID_OFFSET = 1000;
-#endif
-
 public:
     struct Cols {
         static constexpr int DRAG_HANDLE = 1;
@@ -173,13 +165,8 @@ private:
     juce::Label mDiffusionLabel;
     juce::Slider mDiffusionSlider;
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    juce::TableListBox mSpeakersTableListBox;
-    friend EditableTextCustomComponent;
-    int mNumRows {};
-#else
     SpeakerSetupContainer mSpeakerSetupContainer;
-#endif
+
     juce::Font mFont;
 
     tl::optional<int> mDragStartY{};
@@ -195,11 +182,8 @@ public:
     EditSpeakersWindow() = delete;
     SG_DELETE_COPY_AND_MOVE(EditSpeakersWindow)
     //==============================================================================
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    void initComp();
-    void selectRow(tl::optional<int> value);
-#endif
-    void selectSpeaker(tl::optional<output_patch_t> outputPatch);
+
+    void selectSpeaker(tl::optional<output_patch_t> outputPatch) { mSpeakerSetupContainer.selectSpeaker(outputPatch); }
 
     void togglePolyhedraExtraWidgets();
 
@@ -211,19 +195,13 @@ private:
     bool isAddingGroup = false;
     //==============================================================================
     void pushSelectionToMainComponent();
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
-    void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
-    bool isMouseOverDragHandle (juce::MouseEvent const& event);
-#endif
 
     SpeakerData const & getSpeakerData(int rowNum) const;
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     void computeSpeakers();
     void addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition);
-#if !USE_OLD_SPEAKER_SETUP_VIEW
     juce::ValueTree addNewSpeakerToVt (const gris::output_patch_t& newOutputPatch, juce::ValueTree parent, int index);
-#endif
+
     //==============================================================================
     // VIRTUALS
     void buttonClicked(juce::Button * button) override;
@@ -233,27 +211,12 @@ private:
     bool keyPressed (const juce::KeyPress &key) override;
     void resized () override;
     void sliderValueChanged (juce::Slider* slider) override;
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    [[nodiscard]] int getNumRows () override { return this->mNumRows; }
-    void sortOrderChanged(int newSortColumnId, bool isForwards) override;
-    
-    void paintRowBackground(juce::Graphics & g, int rowNumber, int width, int height, bool rowIsSelected) override;
-    void paintCell(juce::Graphics &, int, int, int , int, bool ) override {}
-    [[nodiscard]] Component * refreshComponentForCell(int rowNumber,
-                                                      int columnId,
-                                                      bool isRowSelected,
-                                                      Component * existingComponentToUpdate) override;
-    void mouseDown(juce::MouseEvent const & event) override;
-
-    void mouseDrag(juce::MouseEvent const & event) override;
-    void mouseUp(juce::MouseEvent const & event) override;
-#else
     void valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property) override;
     void valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child) override;
     void valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent) override;
 
     juce::UndoManager& undoManager;
-#endif
+
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };

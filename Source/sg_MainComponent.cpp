@@ -596,9 +596,6 @@ void MainContentComponent::handleShowSpeakerEditWindow()
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
                                 + juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension();
         mEditSpeakersWindow = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, undoManager);
-#if USE_OLD_SPEAKER_SETUP_VIEW
-        mEditSpeakersWindow->initComp();
-#endif
     }
 }
 
