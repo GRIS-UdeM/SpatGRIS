@@ -33,12 +33,12 @@ AbstractSliceComponent::AbstractSliceComponent(GrisLookAndFeel & lnf, SmallGrisL
 }
 
 //==============================================================================
-void AbstractSliceComponent::setState(SliceState const state, bool const soloMode)
+void AbstractSliceComponent::setState(SpeakerIOState const state, bool const soloMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mMuteSoloComponent.setPortState(state);
-    mVuMeter.setMuted(soloMode ? state != SliceState::solo : state == SliceState::muted);
+    mVuMeter.setMuted(soloMode ? state != SpeakerIOState::solo : state == SpeakerIOState::muted);
 
     repaint();
 }

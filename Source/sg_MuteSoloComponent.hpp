@@ -42,7 +42,7 @@ public:
         virtual ~Listener() = default;
         SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
-        virtual void muteSoloButtonClicked(SliceState state) = 0;
+        virtual void muteSoloButtonClicked(SpeakerIOState state) = 0;
     };
 
 private:
@@ -61,7 +61,7 @@ public:
     ~MuteSoloComponent() override = default;
     SG_DELETE_COPY_AND_MOVE(MuteSoloComponent)
     //==============================================================================
-    void setPortState(SliceState state);
+    void setPortState(SpeakerIOState state);
     //==============================================================================
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;

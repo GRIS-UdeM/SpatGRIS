@@ -42,7 +42,7 @@ public:
         SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void setSelectedSpeakers(juce::Array<output_patch_t> selection) = 0;
-        virtual void setSpeakerState(output_patch_t outputPatch, SliceState state) = 0;
+        virtual void setSpeakerState(output_patch_t outputPatch, SpeakerIOState state) = 0;
     };
 
 private:
@@ -64,7 +64,7 @@ public:
     void setSelected(bool value);
     //==============================================================================
     void speakerIdButtonClicked(SpeakerIdButton * button) override;
-    void muteSoloButtonClicked(SliceState state) override;
+    void muteSoloButtonClicked(SpeakerIOState state) override;
 
 private:
     //==============================================================================

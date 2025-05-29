@@ -574,8 +574,8 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     // create the new speaker group and add it in the value tree
     juce::ValueTree newGroup(SPEAKER_GROUP);
     newGroup.setProperty(SPEAKER_GROUP_NAME, "new group", &undoManager);
-    newGroup.setProperty(UUID, juce::Uuid{}.toString(), &undoManager);
     newGroup.setProperty(CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar(groupPosition), &undoManager);
+    newGroup.setProperty (UUID, juce::Uuid {}.toString (), &undoManager);
     mainGroup.addChild(newGroup, indexInMainGroup + 1, &undoManager);
 
     output_patch_t newOutputPatch{};
@@ -622,10 +622,10 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
                              juce::VariantConverter<Position>::toVar(newSpeaker.position),
                              &undoManager);
     newSpeakerVt.setProperty(SPEAKER_PATCH_ID, newOutputPatch.get(), &undoManager);
-    newSpeakerVt.setProperty(UUID, juce::Uuid{}.toString(), &undoManager);
-    newSpeakerVt.setProperty(STATE, sliceStateToString(newSpeaker.state), &undoManager);
+    newSpeakerVt.setProperty(IO_STATE, IOStateToString(newSpeaker.state), &undoManager);
     newSpeakerVt.setProperty(GAIN, newSpeaker.gain.get(), &undoManager);
     newSpeakerVt.setProperty(DIRECT_OUT_ONLY, newSpeaker.isDirectOutOnly, &undoManager);
+    newSpeakerVt.setProperty (UUID, juce::Uuid ().toString (), nullptr);
 
     parent.addChild(newSpeakerVt, index, &undoManager);
 
