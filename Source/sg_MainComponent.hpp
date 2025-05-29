@@ -88,7 +88,7 @@ class MainContentComponent final
     std::unique_ptr<OscInput> mOscInput{};
 
     // Windows.
-    std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow {};
+    std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow{};
     std::unique_ptr<SettingsWindow> mPropertiesWindow{};
     std::unique_ptr<FlatViewWindow> mFlatViewWindow{};
     std::unique_ptr<AboutWindow> mAboutWindow{};
@@ -231,6 +231,16 @@ public:
             mSpeakersRefreshAsyncUpdater->triggerAsyncUpdate();
     }
 
+    /**
+     * @class SpeakersRefreshAsyncUpdater
+     * @brief Asynchronous updater for refreshing speaker UI components.
+     *
+     * This helper class is used by MainContentComponent to schedule and coalesce
+     * updates to the speaker-related UI components in the future.
+     * It inherits from juce::AsyncUpdater, allowing refresh requests to be triggered
+     * from any thread, but ensuring that the actual refresh operation (refreshSpeakers)
+     * is executed on the main (message) thread, and if many requests are made, only one will be processed.
+     */
     class SpeakersRefreshAsyncUpdater : public juce::AsyncUpdater
     {
     public:

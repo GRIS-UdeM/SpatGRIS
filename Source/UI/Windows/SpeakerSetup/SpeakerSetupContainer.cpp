@@ -16,6 +16,8 @@
 */
 
 #include "SpeakerSetupContainer.hpp"
+#include "SpeakerTreeComponent.hpp"
+
 namespace gris
 {
 SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlFile,
@@ -77,35 +79,29 @@ void SpeakerSetupContainer::reload(juce::ValueTree theSpeakerSetupVt)
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 }
 
-void SpeakerSetupContainer::resized ()
+void SpeakerSetupContainer::resized()
 {
-    auto bounds = getLocalBounds ().reduced (8);
-    auto header = bounds.removeFromTop (30);
-    header.removeFromLeft (20);
-    // this is taken from SpeakerTreeComponent::resized () and should be DRYed
-    {
-        constexpr auto fixedLeftColWidth{ 172 };
-        constexpr auto otherColWidth{ 60 };
-        constexpr auto dragColWidth { 40 };
+    auto bounds = getLocalBounds().reduced(8);
+    auto header = bounds.removeFromTop(30);
+    header.removeFromLeft(20);
 
-        id.setBounds(header.removeFromLeft(fixedLeftColWidth));
+    id.setBounds(header.removeFromLeft(SpeakerTreeComponent::fixedLeftColWidth - 28));
 
-        // then position the other components with a fixed width of otherColWidth
-        for (auto label : { &x, &y, &z, &azim, &elev, &radius, &gain, &highpass, &direct, &del })
-            label->setBounds(header.removeFromLeft(otherColWidth));
+    for (auto label : { &x, &y, &z, &azim, &elev, &radius, &gain, &highpass, &direct, &del })
+        label->setBounds(header.removeFromLeft(SpeakerTreeComponent::otherColWidth));
 
-        drag.setBounds (header.removeFromLeft (dragColWidth));
-    }
+    constexpr auto dragColWidth{ 40 };
+    drag.setBounds(header.removeFromLeft(dragColWidth));
 
-    auto buttons = bounds.removeFromBottom (22);
-    undoButton.setBounds (buttons.removeFromLeft (100));
-    buttons.removeFromLeft (6);
-    redoButton.setBounds (buttons.removeFromLeft (100));
-    buttons.removeFromLeft (6);
-    sortButton.setBounds (buttons.removeFromLeft (100));
+    auto buttons = bounds.removeFromBottom(22);
+    undoButton.setBounds(buttons.removeFromLeft(100));
+    buttons.removeFromLeft(6);
+    redoButton.setBounds(buttons.removeFromLeft(100));
+    buttons.removeFromLeft(6);
+    sortButton.setBounds(buttons.removeFromLeft(100));
 
-    bounds.removeFromBottom (4);
-    speakerSetupTreeView.setBounds (bounds);
+    bounds.removeFromBottom(4);
+    speakerSetupTreeView.setBounds(bounds);
 }
 
 void SpeakerSetupContainer::deleteSelectedItems ()

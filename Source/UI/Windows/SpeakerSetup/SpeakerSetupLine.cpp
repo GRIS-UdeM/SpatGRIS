@@ -18,7 +18,6 @@
 #include "SpeakerSetupLine.hpp"
 namespace gris
 {
-
 bool SpeakerSetupLine::isDeletingGroup = false;
 
 SpeakerSetupLine::SpeakerSetupLine(const juce::ValueTree & v,
@@ -187,4 +186,4 @@ void SpeakerSetupLine::treeChildrenChanged (const juce::ValueTree& parentTree)
         setOpen (true);
     }
 }
-}
+} // namespace gris

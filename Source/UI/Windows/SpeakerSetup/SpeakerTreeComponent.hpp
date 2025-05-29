@@ -55,7 +55,6 @@ private:
 
 //==============================================================================
 
-
 /**
  * @class SpeakerTreeComponent
  * @brief UI component for displaying and editing speaker or speaker group properties in a tree structure.
@@ -74,6 +73,9 @@ class SpeakerTreeComponent
     , public juce::Label::Listener
 {
 public:
+    static constexpr auto fixedLeftColWidth { 200 };
+    static constexpr auto otherColWidth { 60 };
+
     SpeakerTreeComponent(SpeakerSetupLine * owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
 
     ~SpeakerTreeComponent() { setLookAndFeel(nullptr); }
