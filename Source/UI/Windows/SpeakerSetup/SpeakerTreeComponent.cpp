@@ -327,6 +327,9 @@ tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const
 
 void SpeakerTreeComponent::valueTreePropertyChanged(juce::ValueTree & valueTree, const juce::Identifier & property)
 {
+    if (property == SPAT_MODE)
+        updateEnabledLabels ();
+
     if (valueTree != speakerTreeVt)
         return;
 
@@ -339,7 +342,7 @@ void SpeakerTreeComponent::valueTreePropertyChanged(juce::ValueTree & valueTree,
         updateAllPositionLabels();
 
     // only interested in this tree and property for now
-    if (property == SPAT_MODE || property == DIRECT_OUT_ONLY)
+    if (property == DIRECT_OUT_ONLY)
         updateEnabledLabels();
 }
 

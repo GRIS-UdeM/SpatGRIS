@@ -35,7 +35,7 @@ class EditableTextCustomComponent;
 class MainContentComponent;
 class GrisLookAndFeel;
 
-/** used to snap the elevation when calculating ring positions. 135.f is short-hand for the mid point
+/** This is used to snap the elevation when calculating ring positions. 135.f is short-hand for the mid point
     between 90° (max elevation going up) and 270° (max elevation going down): 90 + (360 − 270)/2 = 135.
 */
 static auto constexpr elevationHalfPoint{ 135.f };

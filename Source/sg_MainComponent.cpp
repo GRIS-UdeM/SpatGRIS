@@ -197,8 +197,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mVerticalLayout.setItemPosition(1, trueSize);
 
         mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
-        //TODO VB: put back
-        //handleShowSpeakerViewWindow();
+        handleShowSpeakerViewWindow();
     };
 
     //==============================================================================
@@ -269,9 +268,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     // init buffers properly
     audioParametersChanged();
-
-    //TODO VB: remove
-    juce::MessageManager::callAsync([this]() { handleShowSpeakerEditWindow(); });
 }
 
 //==============================================================================
@@ -3180,7 +3176,7 @@ void MainContentComponent::handleShowSpeakerTripletsFromSpeakerView(bool value)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const readLock{ mLock };
 
-    if (!mAudioProcessor->getSpatAlgorithm() || !mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
+    if (! mAudioProcessor || !mAudioProcessor->getSpatAlgorithm() || !mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
         return;
     }
 
