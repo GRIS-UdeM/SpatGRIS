@@ -249,12 +249,6 @@ void SpeakerTreeComponent::setPositionCoordinate(Position::Coordinate coordinate
     auto const spatMode{ getSpatMode().value_or(SpatMode::mbap) };
     auto const isDirectOut{ speakerTreeVt[DIRECT_OUT_ONLY] };
 
-    //// if this is a group, just set the clamped, legal local position
-    // if (isSpeakerGroup()) {
-    //     setPosition(getLegalSpeakerPosition(localPosition, spatMode, isDirectOut, coordinate));
-    //     return;
-    // }
-
     DBG(localPosition.toString());
 
     auto const parent{ speakerTreeVt.getParent() };

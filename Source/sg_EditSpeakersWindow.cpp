@@ -20,7 +20,6 @@
 #include "sg_EditSpeakersWindow.hpp"
 
 #include "AlgoGRIS/Data/sg_Narrow.hpp"
-#include "sg_EditableTextCustomComponent.hpp"
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 #include <numbers>
@@ -28,64 +27,6 @@
 
 namespace gris
 {
-//==============================================================================
-#if USE_OLD_SPEAKER_SETUP_VIEW
-static Position getLegalSpeakerPosition(Position const & position,
-                                        SpatMode const spatMode,
-                                        bool const isDirectOutOnly,
-                                        [[maybe_unused]] int const modifiedCol)
-{
-    using Col = EditSpeakersWindow::Cols;
-
-    jassert(modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION || modifiedCol == Col::DISTANCE
-            || modifiedCol == Col::X || modifiedCol == Col::Y || modifiedCol == Col::Z);
-
-    static auto const CONSTRAIN_CARTESIAN
-        = [](float const & valueModified, float & valueToAdjust, float & valueToTryToKeepIntact) {
-              auto const valueModified2{ valueModified * valueModified };
-              auto const lengthWithoutValueToAdjust{ valueModified2 + valueToTryToKeepIntact * valueToTryToKeepIntact };
-
-              if (lengthWithoutValueToAdjust > 1.0f) {
-                  auto const sign{ valueToTryToKeepIntact < 0.0f ? -1.0f : 1.0f };
-                  auto const length{ std::sqrt(1.0f - valueModified2) };
-                  valueToTryToKeepIntact = sign * length;
-                  valueToAdjust = 0.0f;
-                  return;
-              }
-
-              auto const sign{ valueToAdjust < 0.0f ? -1.0f : 1.0f };
-              auto const length{ std::sqrt(1.0f - lengthWithoutValueToAdjust) };
-              valueToAdjust = sign * length;
-          };
-
-    if (spatMode == SpatMode::mbap || isDirectOutOnly) {
-        return Position{ position.getCartesian().clampedToFarField() };
-    }
-
-    if (modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION) {
-        return position.normalized();
-    }
-
-    auto newPosition{ position.getCartesian() };
-
-    auto & x{ newPosition.x };
-    auto & y{ newPosition.y };
-    auto & z{ newPosition.z };
-    if (modifiedCol == Col::X) {
-        x = std::clamp(x, -1.0f, 1.0f);
-        CONSTRAIN_CARTESIAN(x, y, z);
-    } else if (modifiedCol == Col::Y) {
-        y = std::clamp(y, -1.0f, 1.0f);
-        CONSTRAIN_CARTESIAN(y, x, z);
-    } else {
-        jassert(modifiedCol == Col::Z);
-        z = std::clamp(z, -1.0f, 1.0f);
-        CONSTRAIN_CARTESIAN(z, x, y);
-    }
-    return Position{ newPosition };
-}
-#endif
-//==============================================================================
 LabelWrapper::LabelWrapper(GrisLookAndFeel & lookAndFeel)
 {
     label.setJustificationType(juce::Justification::right);
@@ -115,9 +56,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , spatGrisData(mainContentComponent.getData())
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
-#if ! USE_OLD_SPEAKER_SETUP_VIEW
     , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, spatGrisData.speakerSetup.speakerSetupValueTree, undoMan, [this]() { pushSelectionToMainComponent (); })
-#endif
     , mFont(juce::FontOptions().withHeight(14.f))
     , mRingSpeakers(lookAndFeel)
     , mRingElevation(lookAndFeel)
@@ -130,9 +69,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mPolyRadius(lookAndFeel)
     , mPolyAzimuthOffset(lookAndFeel)
     , mPolyElevOffset(lookAndFeel)
-#if ! USE_OLD_SPEAKER_SETUP_VIEW
     , undoManager (undoMan)
-#endif
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -256,13 +193,9 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                 || spatGrisData.project.spatMode == SpatMode::hybrid);
     mViewportWrapper.getContent()->addAndMakeVisible(mDiffusionSlider);
 
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    mViewportWrapper.getContent()->addAndMakeVisible(mSpeakersTableListBox);
-#else
     setDraggable (false);
     mViewportWrapper.getContent()->addAndMakeVisible(mSpeakerSetupContainer);
     mSpeakerSetupContainer.addValueTreeListener (this);
-#endif
 
     mViewportWrapper.repaint();
     mViewportWrapper.resized();
@@ -286,220 +219,6 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 }
 
 //==============================================================================
-EditSpeakersWindow::~EditSpeakersWindow()
-{
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    mSpeakersTableListBox.setModel(nullptr);
-#endif
-}
-
-//==============================================================================
-#if USE_OLD_SPEAKER_SETUP_VIEW
-void EditSpeakersWindow::initComp()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    mSpeakersTableListBox.setModel(this);
-
-    mSpeakersTableListBox.setColour(juce::ListBox::outlineColourId, mLookAndFeel.getWinBackgroundColour());
-    mSpeakersTableListBox.setColour(juce::ListBox::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-    mSpeakersTableListBox.setOutlineThickness(1);
-
-    auto & header{ mSpeakersTableListBox.getHeader() };
-    static auto constexpr DRAG_COL_WIDTH{ MIN_COL_WIDTH / 5 * 3 };
-    header.addColumn("",
-                     Cols::DRAG_HANDLE,
-                     DRAG_COL_WIDTH,
-                     DRAG_COL_WIDTH,
-                     DRAG_COL_WIDTH,
-                     juce::TableHeaderComponent::ColumnPropertyFlags::notResizableOrSortable);
-    header.addColumn("Output",
-                     Cols::OUTPUT_PATCH,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("X",
-                     Cols::X,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Y",
-                     Cols::Y,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Z",
-                     Cols::Z,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Azimuth",
-                     Cols::AZIMUTH,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Elevation",
-                     Cols::ELEVATION,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Distance",
-                     Cols::DISTANCE,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Gain (dB)",
-                     Cols::GAIN,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::notSortable);
-    header.addColumn("Highpass",
-                     Cols::HIGHPASS,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::notSortable);
-    header.addColumn("Direct",
-                     Cols::DIRECT_TOGGLE,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::notSortable);
-    header.addColumn("delete",
-                     Cols::DELETE_BUTTON,
-                     DEFAULT_COL_WIDTH,
-                     MIN_COL_WIDTH,
-                     MAX_COL_WIDTH,
-                     juce::TableHeaderComponent::notSortable);
-
-    mSpeakersTableListBox.setMultipleSelectionEnabled(true);
-
-    mNumRows = spatGrisData.speakerSetup.speakers.size();
-
-    mViewportWrapper.setBounds(0, 0, getWidth(), getHeight());
-    mViewportWrapper.correctSize(getWidth() - 8, getHeight());
-    mSpeakersTableListBox.setSize(getWidth(), 400);
-
-    mSpeakersTableListBox.updateContent();
-
-    mViewportWrapper.repaint();
-    mViewportWrapper.resized();
-    resized();
-}
-#endif
-
-//==============================================================================
-struct Sorter {
-    int id;
-    float value;
-    bool directOut;
-};
-
-//==============================================================================
-bool compareLessThan(Sorter const & a, Sorter const & b)
-{
-    if (a.directOut && b.directOut) {
-        return a.id < b.id;
-    }
-    if (a.directOut) {
-        return false;
-    }
-    if (b.directOut) {
-        return true;
-    }
-    if (a.value == b.value) {
-        return a.id < b.id;
-    }
-
-    return a.value < b.value;
-}
-
-//==============================================================================
-bool compareGreaterThan(Sorter const & a, Sorter const & b)
-{
-    if (a.directOut && b.directOut) {
-        return a.id > b.id;
-    }
-    if (a.directOut) {
-        return false;
-    }
-    if (b.directOut) {
-        return true;
-    }
-    if (a.value == b.value) {
-        return a.id > b.id;
-    }
-
-    return a.value > b.value;
-}
-
-//==============================================================================
-#if USE_OLD_SPEAKER_SETUP_VIEW
-void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    static auto const EXTRACT_VALUE = [](SpeakersData::ConstNode const & speaker, int const sortColumn) -> float {
-        auto const & position{ speaker.value->position };
-        switch (sortColumn) {
-        case Cols::X:
-            return position.getCartesian().x;
-        case Cols::Y:
-            return position.getCartesian().y;
-        case Cols::Z:
-            return position.getCartesian().z;
-        case Cols::AZIMUTH:
-            return position.getPolar().azimuth.get();
-        case Cols::ELEVATION:
-            return position.getPolar().elevation.get();
-        case Cols::DISTANCE:
-            return position.getPolar().length;
-        case Cols::OUTPUT_PATCH:
-            return static_cast<float>(speaker.key.get());
-        default:
-            jassertfalse;
-            return 0.0f;
-        }
-    };
-
-    if (newSortColumnId == 0) {
-        return;
-    }
-
-    auto const & speakers{ spatGrisData.speakerSetup.speakers };
-    std::vector<std::pair<float, output_patch_t>> valuesToSort{};
-    valuesToSort.reserve(narrow<size_t>(speakers.size()));
-    std::transform(speakers.cbegin(),
-                   speakers.cend(),
-                   std::back_inserter(valuesToSort),
-                   [newSortColumnId](SpeakersData::ConstNode const speaker) {
-                       return std::make_pair(EXTRACT_VALUE(speaker, newSortColumnId), speaker.key);
-                   });
-    if (isForwards) {
-        std::sort(valuesToSort.begin(), valuesToSort.end(), std::less());
-    } else {
-        std::sort(valuesToSort.begin(), valuesToSort.end(), std::greater_equal());
-    }
-    juce::Array<output_patch_t> newOrder{};
-    newOrder.resize(narrow<int>(valuesToSort.size()));
-    std::transform(valuesToSort.cbegin(),
-                   valuesToSort.cend(),
-                   newOrder.begin(),
-                   [](std::pair<float, output_patch_t> const & entry) { return entry.second; });
-
-    mMainContentComponent.reorderSpeakers(std::move(newOrder));
-    updateWinContent();
-}
-#endif
-//==============================================================================
 void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -521,51 +240,6 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 //==============================================================================
 void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition)
 {
-#if USE_OLD_SPEAKER_SETUP_VIEW
-    static auto constexpr GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
-        auto const selectedRow{ tableListBox.getSelectedRow() };
-        if (selectedRow < 0) {
-            return tl::nullopt;
-        }
-        return selectedRow;
-    };
-
-    auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
-    auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
-    auto const & speakers{ spatGrisData.speakerSetup.speakers };
-    auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
-
-    output_patch_t newOutputPatch{};
-
-    if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakers > MAX_NUM_SPEAKERS) {
-        return;
-    }
-
-    for (int i{}; i < numSpeakers; i++) {
-        tl::optional<output_patch_t> outputPatch{};
-        tl::optional<int> index{};
-
-        if (selectedRow) {
-            outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
-            index = *selectedRow;
-            *selectedRow += 1;
-        }
-
-        newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
-        mNumRows = speakers.size();
-
-        mMainContentComponent.setSpeakerPosition(newOutputPatch, getSpeakerPosition(i));
-    }
-    mMainContentComponent.requestSpeakerRefresh();
-    updateWinContent();
-    // TableList needs different sorting parameters to trigger the sorting function.
-    mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
-    // This is the real sorting!
-    mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
-    selectSpeaker(newOutputPatch);
-
-    mShouldComputeSpeakers = true;
-#else
     if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakers > MAX_NUM_SPEAKERS)
         return;
 
@@ -601,7 +275,6 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     selectSpeaker(newOutputPatch);
 
     mShouldComputeSpeakers = true;
-#endif
 }
 
 #if !USE_OLD_SPEAKER_SETUP_VIEW

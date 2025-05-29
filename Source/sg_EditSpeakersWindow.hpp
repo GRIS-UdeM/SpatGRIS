@@ -24,14 +24,10 @@
 #include "sg_Box.hpp"
 #include "UI/Windows/SpeakerSetup/SpeakerSetupContainer.hpp"
 
-#define USE_OLD_SPEAKER_SETUP_VIEW 0
 #define DEBUG_SPEAKER_EDITION 0
 
 namespace gris
 {
-#if USE_OLD_SPEAKER_SETUP_VIEW
-class EditableTextCustomComponent;
-#endif
 class MainContentComponent;
 class GrisLookAndFeel;
 
@@ -138,10 +134,6 @@ public:
         static constexpr int DELETE_BUTTON = 12;
     };
 
-//#if ! USE_OLD_SPEAKER_SETUP_VIEW
-//    void saveSpeakerSetup () { mSpeakerSetupContainer.saveSpeakerSetup(); }
-//#endif
-
 private:
     static auto constexpr MIN_COL_WIDTH = 50;
     static auto constexpr MAX_COL_WIDTH = 120;
@@ -201,7 +193,6 @@ public:
                        juce::UndoManager& undoMan);
     //==============================================================================
     EditSpeakersWindow() = delete;
-    ~EditSpeakersWindow() override;
     SG_DELETE_COPY_AND_MOVE(EditSpeakersWindow)
     //==============================================================================
 #if USE_OLD_SPEAKER_SETUP_VIEW

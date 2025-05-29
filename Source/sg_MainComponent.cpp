@@ -502,7 +502,6 @@ void MainContentComponent::handleOpenSpeakerSetup()
 }
 
 //==============================================================================
-#if 1//USE_OLD_SPEAKER_SETUP_VIEW
 void MainContentComponent::handleSaveSpeakerSetupAs()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -510,7 +509,6 @@ void MainContentComponent::handleSaveSpeakerSetupAs()
 
     [[maybe_unused]] auto const success{ saveSpeakerSetup(tl::nullopt) };
 }
-#endif
 
 //==============================================================================
 void MainContentComponent::closeSpeakersConfigurationWindow()
@@ -566,7 +564,6 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
     }
 }
 
-#if 1//USE_OLD_SPEAKER_SETUP_VIEW
 void MainContentComponent::saveAsEditedSpeakerSetup()
 {
     saveSpeakerSetup(tl::nullopt);
@@ -576,7 +573,7 @@ void MainContentComponent::saveEditedSpeakerSetup()
 {
     handleSaveSpeakerSetup();
 }
-#endif
+
 //==============================================================================
 void MainContentComponent::closePlayerWindow()
 {
@@ -2707,7 +2704,6 @@ void MainContentComponent::buttonPressed([[maybe_unused]] SpatButton * button)
 
 //==============================================================================
 
-#if 1//USE_OLD_SPEAKER_SETUP_VIEW
 void MainContentComponent::handleSaveSpeakerSetup()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2715,7 +2711,6 @@ void MainContentComponent::handleSaveSpeakerSetup()
 
     saveSpeakerSetup(mData.appData.lastSpeakerSetup);
 }
-#endif
 
 //==============================================================================
 bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)

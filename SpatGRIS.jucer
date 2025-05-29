@@ -145,10 +145,6 @@
           </GROUP>
           <FILE id="YCYrPZ" name="sg_Box.cpp" compile="1" resource="0" file="Source/sg_Box.cpp"/>
           <FILE id="KCs132" name="sg_Box.hpp" compile="0" resource="0" file="Source/sg_Box.hpp"/>
-          <FILE id="HHTNLR" name="sg_EditableTextCustomComponent.cpp" compile="1"
-                resource="0" file="Source/sg_EditableTextCustomComponent.cpp"/>
-          <FILE id="rOZ5jL" name="sg_EditableTextCustomComponent.hpp" compile="0"
-                resource="0" file="Source/sg_EditableTextCustomComponent.hpp"/>
         </GROUP>
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Windows">
           <GROUP id="{1252893F-FFF5-5BB8-9EDD-920C9A592D86}" name="SpeakerSetup">

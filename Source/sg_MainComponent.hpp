@@ -315,10 +315,8 @@ private:
     void handleResetSourcesPositions();
     void handleResetMeterClipping();
     void handleColorizeInputs();
-#if 1//USE_OLD_SPEAKER_SETUP_VIEW
     void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
-#endif
     void handleShowOscMonitorWindow();
 
     /** This is called by the SpeakersRefreshAsyncUpdater when MainContentComponent::requestSpeakerRefresh() is called.
@@ -350,9 +348,7 @@ private:
     bool loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption option);
     bool loadProject(juce::File const & file, bool discardCurrentProject);
     bool saveProject(tl::optional<juce::File> maybeFile);
-#if 1//USE_OLD_SPEAKER_SETUP_VIEW
     bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
-#endif
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
     [[nodiscard]] bool makeSureSpeakerSetupIsSavedToDisk() noexcept;
     void setTitles() const;
