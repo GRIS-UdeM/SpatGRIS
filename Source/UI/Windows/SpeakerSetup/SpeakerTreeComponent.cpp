@@ -17,7 +17,8 @@
 
 #include "SpeakerTreeComponent.hpp"
 #include "SpeakerSetupLine.hpp"
-#include <Data/StrongTypes/sg_CartesianVector.hpp>
+#include "Data/sg_LogicStrucs.hpp"
+#include "Data/StrongTypes/sg_CartesianVector.hpp"
 
 namespace gris
 {
@@ -215,10 +216,10 @@ juce::String SpeakerTreeComponent::getPositionCoordinateTrimmedText (Position::C
     };
 }
 
-void SpeakerTreeComponent::setPositionCoordinate (Position::Coordinate coordinate, float newValue)
+void SpeakerTreeComponent::setPositionCoordinate(Position::Coordinate coordinate, float newValue)
 {
     // get the current position and update the coordinate
-    auto position = [position{ getPosition() }, coordinate, newValue](){
+    auto localPosition = [position{ getPosition() }, coordinate, newValue]() {
         switch (coordinate) {
         case Position::Coordinate::x:
             return position.withX(newValue);
@@ -227,9 +228,9 @@ void SpeakerTreeComponent::setPositionCoordinate (Position::Coordinate coordinat
         case Position::Coordinate::z:
             return position.withZ(newValue);
         case Position::Coordinate::azimuth:
-            return Position {position.getPolar ().withAzimuth (radians_t (newValue))};
+            return Position{ position.getPolar().withAzimuth(radians_t(newValue)) };
         case Position::Coordinate::elevation:
-            return  Position { position.getPolar ().withElevation (radians_t (newValue)) };
+            return Position{ position.getPolar().withElevation(radians_t(newValue)) };
         case Position::Coordinate::radius:
             return Position{ position.getPolar().withRadius(newValue) };
         default:
@@ -238,10 +239,44 @@ void SpeakerTreeComponent::setPositionCoordinate (Position::Coordinate coordinat
         }
     }();
 
+#if 1
+    auto const spatMode{ getSpatMode().value_or(SpatMode::mbap) };
+    localPosition = getLegalSpeakerPosition(localPosition, spatMode, speakerTreeVt[DIRECT_OUT_ONLY], coordinate);
+    setPosition(localPosition);
+#else
+    //TODO: trying to clam speaker positions when they are in a group
     // clamp the position to a legal value and set it back
-    auto const spatMode {getSpatMode().value_or(SpatMode::mbap)};
-    position = getLegalSpeakerPosition (position, spatMode, speakerTreeVt[DIRECT_OUT_ONLY], coordinate);
-    setPosition (position);
+    auto const spatMode{ getSpatMode().value_or(SpatMode::mbap) };
+    auto const isDirectOut{ speakerTreeVt[DIRECT_OUT_ONLY] };
+
+    //// if this is a group, just set the clamped, legal local position
+    // if (isSpeakerGroup()) {
+    //     setPosition(getLegalSpeakerPosition(localPosition, spatMode, isDirectOut, coordinate));
+    //     return;
+    // }
+
+    DBG(localPosition.toString());
+
+    auto const parent{ speakerTreeVt.getParent() };
+    jassert(parent.hasProperty(CARTESIAN_POSITION));
+    auto const parentPosition{ juce::VariantConverter<Position>::fromVar(parent[CARTESIAN_POSITION]) };
+    DBG(parentPosition.toString());
+
+    // if this is a speaker we need to factor in the group position when clamping
+    if (auto absolutePosition = SpeakerData::getAbsoluteSpeakerPosition(speakerTreeVt)) {
+        DBG(absolutePosition->toString());
+        absolutePosition = getLegalSpeakerPosition(*absolutePosition, spatMode, isDirectOut, coordinate);
+        DBG(absolutePosition->toString());
+
+        // get speaker position and offset it by the group center
+        localPosition = { CartesianVector{ absolutePosition->getCartesian().x - parentPosition.getCartesian().x,
+                                           absolutePosition->getCartesian().y - parentPosition.getCartesian().y,
+                                           absolutePosition->getCartesian().z - parentPosition.getCartesian().z } };
+        DBG(localPosition.toString());
+
+        setPosition(localPosition);
+    }
+#endif
 }
 
 void SpeakerTreeComponent::setupCoordinateLabel(DraggableLabel & label, Position::Coordinate coordinate)
