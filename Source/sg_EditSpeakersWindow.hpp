@@ -103,6 +103,19 @@ struct LabelComboBoxWrapper : public LabelWrapper
 };
 
 //==============================================================================
+
+/**
+ * @class gris::EditSpeakersWindow
+ * @brief A window for editing speaker setups.
+ *
+ * This class provides a user interface for adding, removing, and configuring speakers and speaker groups.
+ * It supports direct manipulation of speaker parameters, group operations (such as adding rings or polyhedra of
+ * speakers), and integrates with the application's undo/redo system. The window interacts with the main content
+ * component and updates the speaker setup in real time. It also provides controls for pink noise testing and diffusion
+ * settings.
+ *
+ * @see gris::MainContentComponent, gris::SpeakerSetupContainer
+ */
 class EditSpeakersWindow final
     : public juce::DocumentWindow
     , public juce::ValueTree::Listener
