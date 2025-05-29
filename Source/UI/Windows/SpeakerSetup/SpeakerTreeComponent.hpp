@@ -17,14 +17,21 @@
 
 #pragma once
 #include "../../../sg_GrisLookAndFeel.hpp"
-#include "../../../../submodules/AlgoGRIS/StructGRIS/ValueTreeUtilities.hpp"
 #include <Data/sg_Position.hpp>
 #include <Data/sg_SpatMode.hpp>
+#include <StructGRIS/ValueTreeUtilities.hpp>
 
 namespace gris
 {
 class SpeakerSetupLine;
 
+/**
+ * @class DraggableLabel
+ * @brief A juce::Label subclass that supports vertical mouse drag events.
+ *
+ * DraggableLabel allows the user to drag the label vertically, triggering the public onMouseDragCallback member
+ * with the delta Y movement. This is useful for adjusting values interactively in the UI.
+ */
 class DraggableLabel : public juce::Label
 {
 public:
@@ -48,13 +55,26 @@ private:
 
 //==============================================================================
 
+
+/**
+ * @class SpeakerTreeComponent
+ * @brief UI component for displaying and editing speaker or speaker group properties in a tree structure.
+ *
+ * SpeakerTreeComponent provides a graphical interface for manipulating speaker positions and properties
+ * within a speaker setup. It supports editing coordinates, gain, highpass, and other parameters via
+ * draggable and editable labels. The component listens to changes in the underlying ValueTree and
+ * updates the UI accordingly. It also provides support for undo/redo operations and integrates with
+ * the application's look and feel.
+ *
+ * @see SpeakerGroupComponent, SpeakerComponent, SpeakerSetupLine
+ */
 class SpeakerTreeComponent
     : public juce::Component
     , public juce::ValueTree::Listener
     , public juce::Label::Listener
 {
 public:
-    SpeakerTreeComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    SpeakerTreeComponent(SpeakerSetupLine * owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
 
     ~SpeakerTreeComponent() { setLookAndFeel(nullptr); }
 
@@ -112,6 +132,12 @@ private:
 
 //==============================================================================
 
+/**
+ * @class SpeakerGroupComponent
+ * @brief Specialized SpeakerTreeComponent that represents a group of speakers.
+ *
+ * @see SpeakerTreeComponent
+ */
 class SpeakerGroupComponent : public SpeakerTreeComponent
 {
 public:
@@ -120,6 +146,12 @@ public:
 
 //==============================================================================
 
+/**
+ * @class SpeakerComponent
+ * @brief Specialized SpeakerTreeComponent that represents an individual speaker.
+ *
+ * @see SpeakerTreeComponent
+ */
 class SpeakerComponent : public SpeakerTreeComponent
 {
 public:

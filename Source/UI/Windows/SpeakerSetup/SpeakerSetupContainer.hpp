@@ -17,15 +17,27 @@
 
 #pragma once
 
-#include "../../../../submodules/AlgoGRIS/StructGRIS/ValueTreeUtilities.hpp"
 #include "SpeakerSetupLine.hpp"
 #include <Data/sg_LogicStrucs.hpp>
+#include <StructGRIS/ValueTreeUtilities.hpp>
 
 namespace gris
 {
-class SpeakerSetupContainer final : public juce::Component,
-    public juce::DragAndDropContainer,
-    private juce::Timer
+/**
+ * @class gris::SpeakerSetupContainer
+ * @brief A UI component for managing and displaying speaker setups in a tree view.
+ *
+ * This class provides a graphical interface for editing, selecting, and organizing speaker setups.
+ * It supports drag-and-drop, undo/redo, sorting, and selection callbacks. The container interacts
+ * with a JUCE ValueTree for data management and provides utility functions for manipulating speaker
+ * groups and individual speakers.
+ *
+ * @see SpeakerSetupLine
+ */
+class SpeakerSetupContainer final
+    : public juce::Component
+    , public juce::DragAndDropContainer
+    , private juce::Timer
 {
 public:
     SpeakerSetupContainer(const juce::File & speakerSetupXmlFile,

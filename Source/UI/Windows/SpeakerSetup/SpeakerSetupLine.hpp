@@ -21,6 +21,19 @@
 
 namespace gris
 {
+/**
+ * @class SpeakerSetupLine
+ * @brief Represents a line item in the speaker setup tree view.
+ *
+ * SpeakerSetupLine is a TreeViewItem that manages a single speaker or speaker group
+ * within the speaker setup UI. It provides functionality for selection, drag-and-drop,
+ * sorting, and interaction with the underlying ValueTree data model.
+ *
+ * It listens to changes in the associated ValueTree and updates the UI accordingly.
+ * SpeakerSetupLine also provides static utility methods for moving and selecting items
+ * within the tree, and for handling group deletion.
+ * @see SpeakerGroupComponent, SpeakerComponent, SpeakerSetupLine
+ */
 class SpeakerSetupLine final
     : public juce::TreeViewItem
     , private juce::ValueTree::Listener
@@ -39,7 +52,15 @@ public:
         return isSpeakerGroup() ? lineValueTree[SPEAKER_GROUP_NAME] : lineValueTree[SPEAKER_PATCH_ID];
     }
 
-    std::unique_ptr<juce::Component> createItemComponent () override;
+    /**
+     * @brief Creates the component representing this item in the tree view.
+     *
+     * This function is called by the TreeView to create either a SpeakerComponent or a SpeakerGroupComponent
+     * based on what this SpeakerSetupLine represents.
+     *
+     * @return A unique pointer to the created juce::Component.
+     */
+    std::unique_ptr<juce::Component> createItemComponent() override;
 
     void itemOpennessChanged (bool isNowOpen) override;
 
@@ -66,6 +87,7 @@ public:
     tl::optional<output_patch_t> getOutputPatch();
 
     static bool isDeletingGroup;
+
 private:
     juce::ValueTree lineValueTree;
     juce::UndoManager& undoManager;

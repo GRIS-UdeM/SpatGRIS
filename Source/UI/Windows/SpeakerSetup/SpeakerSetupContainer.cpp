@@ -34,8 +34,6 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     speakerSetupTreeView.setDefaultOpenness (true);
     speakerSetupTreeView.setMultiSelectEnabled (true);
 
-    // at this point vt is the whole speaker setup, but I think the lines should only care about groups or speakers, so
-    // only giving them the main group for now?
     mainSpeakerGroupLine.reset (new SpeakerSetupLine (speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
