@@ -127,7 +127,7 @@ protected:
 
 private:
     void valueTreePropertyChanged(juce::ValueTree & speakerTreeVt, const juce::Identifier & property) override;
-    void updateEnabledLabels();
+    void updateUiBasedOnSpatMode();
     void labelTextChanged(juce::Label * labelThatHasChanged) override;
     void editorShown(juce::Label *, juce::TextEditor &) override;
 };

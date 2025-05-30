@@ -49,7 +49,7 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     drag.setEditable(false);
     drag.setInterceptsMouseClicks(false, false);
 
-    updateEnabledLabels();
+    updateUiBasedOnSpatMode();
 }
 
 void SpeakerTreeComponent::setupDeleteButton()
@@ -354,7 +354,7 @@ tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const
 void SpeakerTreeComponent::valueTreePropertyChanged(juce::ValueTree & valueTree, const juce::Identifier & property)
 {
     if (property == SPAT_MODE)
-        updateEnabledLabels ();
+        updateUiBasedOnSpatMode ();
 
     if (valueTree != speakerTreeVt)
         return;
@@ -369,19 +369,38 @@ void SpeakerTreeComponent::valueTreePropertyChanged(juce::ValueTree & valueTree,
 
     // only interested in this tree and property for now
     if (property == DIRECT_OUT_ONLY)
-        updateEnabledLabels();
+        updateUiBasedOnSpatMode();
 }
 
-void SpeakerTreeComponent::updateEnabledLabels ()
+void SpeakerTreeComponent::updateUiBasedOnSpatMode ()
 {
-    if (auto const spatMode {getSpatMode()}; spatMode == SpatMode::vbap)
-    {
-        x.setEnabled (false);
-        y.setEnabled (false);
-        z.setEnabled (false);
-        azim.setEnabled (true);
-        elev.setEnabled (true);
-        radius.setEnabled (speakerTreeVt[DIRECT_OUT_ONLY]);
+    if (auto const spatMode{ getSpatMode() }; spatMode == SpatMode::vbap) {
+        x.setEnabled(false);
+        y.setEnabled(false);
+        z.setEnabled(false);
+
+        if (isSpeakerGroup()) {
+            // just disable all controls here
+            azim.setEnabled(false);
+            elev.setEnabled(false);
+            radius.setEnabled(false);
+
+            // reset the group position and move its speakers to the dome
+            setPosition(Position{ CartesianVector{ 0.f, 0.f, 0.f } });
+            for (auto child : speakerTreeVt) {
+                jassert(child.hasProperty(CARTESIAN_POSITION));
+                auto curChildPosition = juce::VariantConverter<Position>::fromVar(child[CARTESIAN_POSITION]);
+                child.setProperty(CARTESIAN_POSITION,
+                                  juce::VariantConverter<Position>::toVar(curChildPosition.normalized()),
+                                  &undoManager);
+            }
+        }
+        else
+        {
+            azim.setEnabled (true);
+            elev.setEnabled (true);
+            radius.setEnabled (speakerTreeVt[DIRECT_OUT_ONLY]);
+        }
     }
     else if (spatMode == SpatMode::mbap)
     {
