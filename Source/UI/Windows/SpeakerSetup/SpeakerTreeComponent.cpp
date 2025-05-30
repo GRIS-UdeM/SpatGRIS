@@ -236,38 +236,9 @@ void SpeakerTreeComponent::setPositionCoordinate(Position::Coordinate coordinate
         }
     }();
 
-#if 1
     auto const spatMode{ getSpatMode().value_or(SpatMode::mbap) };
     localPosition = getLegalSpeakerPosition(localPosition, spatMode, speakerTreeVt[DIRECT_OUT_ONLY], coordinate);
     setPosition(localPosition);
-#else
-    // TODO: trying to clam speaker positions when a group is displayed in dome mode
-    // clamp the position to a legal value and set it back
-    auto const spatMode{ getSpatMode().value_or(SpatMode::mbap) };
-    auto const isDirectOut{ speakerTreeVt[DIRECT_OUT_ONLY] };
-
-    DBG(localPosition.toString());
-
-    auto const parent{ speakerTreeVt.getParent() };
-    jassert(parent.hasProperty(CARTESIAN_POSITION));
-    auto const parentPosition{ juce::VariantConverter<Position>::fromVar(parent[CARTESIAN_POSITION]) };
-    DBG(parentPosition.toString());
-
-    // if this is a speaker we need to factor in the group position when clamping
-    if (auto absolutePosition = SpeakerData::getAbsoluteSpeakerPosition(speakerTreeVt)) {
-        DBG(absolutePosition->toString());
-        absolutePosition = getLegalSpeakerPosition(*absolutePosition, spatMode, isDirectOut, coordinate);
-        DBG(absolutePosition->toString());
-
-        // get speaker position and offset it by the group center
-        localPosition = { CartesianVector{ absolutePosition->getCartesian().x - parentPosition.getCartesian().x,
-                                           absolutePosition->getCartesian().y - parentPosition.getCartesian().y,
-                                           absolutePosition->getCartesian().z - parentPosition.getCartesian().z } };
-        DBG(localPosition.toString());
-
-        setPosition(localPosition);
-    }
-#endif
 }
 
 void SpeakerTreeComponent::setupCoordinateLabel(DraggableLabel & label, Position::Coordinate coordinate)
