@@ -54,26 +54,40 @@ void SpeakerSetupLine::itemDropped (const juce::DragAndDropTarget::SourceDetails
     moveItems (*getOwnerView (), selectedTrees, lineValueTree, insertIndex, undoManager);
 }
 
-void SpeakerSetupLine::moveItems (juce::TreeView& treeView, const juce::OwnedArray<juce::ValueTree>& items, juce::ValueTree newParent, int insertIndex, juce::UndoManager& undoManager)
+void SpeakerSetupLine::moveItems(juce::TreeView & treeView,
+                                 const juce::OwnedArray<juce::ValueTree> & items,
+                                 juce::ValueTree newParent,
+                                 int insertIndex,
+                                 juce::UndoManager & undoManager)
 {
-    if (items.size () > 0)
-    {
-        std::unique_ptr<juce::XmlElement> oldOpenness (treeView.getOpennessState (false));
+    if (items.size() > 0) {
+        std::unique_ptr<juce::XmlElement> oldOpenness(treeView.getOpennessState(false));
 
-        for (auto* v : items)
-        {
-            if (v->getParent ().isValid () && newParent != *v && ! newParent.isAChildOf (*v))
-            {
-                if (v->getParent () == newParent && newParent.indexOf (*v) < insertIndex)
+        for (auto * v : items) {
+            auto curParent{ v->getParent() };
+            if (curParent.isValid() && newParent != *v && !newParent.isAChildOf(*v)) {
+                if (curParent == newParent && newParent.indexOf(*v) < insertIndex)
                     --insertIndex;
 
-                v->getParent ().removeChild (*v, &undoManager);
-                newParent.addChild (*v, insertIndex, &undoManager);
+                curParent.removeChild(*v, &undoManager);
+
+                auto const childPosition
+                    = juce::VariantConverter<Position>::fromVar(v->getProperty(CARTESIAN_POSITION));
+                auto const prevParentPosition
+                    = juce::VariantConverter<Position>::fromVar(curParent[CARTESIAN_POSITION]);
+                auto const newParentPosition = juce::VariantConverter<Position>::fromVar(newParent[CARTESIAN_POSITION]);
+                auto const summedPosition = childPosition.getCartesian() + prevParentPosition.getCartesian()
+                                            - newParentPosition.getCartesian();
+                v->setProperty(CARTESIAN_POSITION,
+                               juce::VariantConverter<Position>::toVar(Position{ summedPosition }),
+                               &undoManager);
+
+                newParent.addChild(*v, insertIndex, &undoManager);
             }
         }
 
         if (oldOpenness != nullptr)
-            treeView.restoreOpennessState (*oldOpenness, false);
+            treeView.restoreOpennessState(*oldOpenness, false);
     }
 }
 
