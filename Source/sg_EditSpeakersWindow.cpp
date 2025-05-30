@@ -772,13 +772,12 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
 
 #if DEBUG_SPEAKER_EDITION
     if (childType == SPEAKER_GROUP)
-        DBG ("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_GROUP_NAME" << child[SPEAKER_GROUP_NAME].toString() << " and index " << juce::String (index));
+        DBG ("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_GROUP_NAME: " << child[SPEAKER_GROUP_NAME].toString() << " and index " << juce::String (index));
     else if (childType == SPEAKER)
-        DBG ("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_PATCH_ID" << child[SPEAKER_PATCH_ID].toString () << " and index " << juce::String (index));
+        DBG ("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_PATCH_ID: " << child[SPEAKER_PATCH_ID].toString () << " and index " << juce::String (index));
 #endif
 
-    // this is only useful when undoing
-    if (childType == SPEAKER && undoManager.isPerformingUndoRedo()) {
+    if (childType == SPEAKER) {
         int indexAdjustment{ 0 };
         if (parent[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME) {
             auto const mainGroup = parent.getParent();
