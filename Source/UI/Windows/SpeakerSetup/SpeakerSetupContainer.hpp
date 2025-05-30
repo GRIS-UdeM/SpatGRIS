@@ -76,7 +76,7 @@ public:
     std::pair<juce::ValueTree, int> getCurSpeakerGroupAndIndex ();
 
     void addValueTreeListener(juce::ValueTree::Listener * listener) { speakerSetupVt.addListener(listener); }
-    void setSpatMode(SpatMode spatMode) { speakerSetupVt.setProperty(SPAT_MODE, spatModeToString(spatMode), &undoManager); }
+    void setSpatMode(SpatMode spatMode) { speakerSetupVt.setProperty(SPAT_MODE, spatModeToString(spatMode), nullptr); }
 
     bool isDeletingGroup() { return SpeakerSetupLine::isDeletingGroup; }
 

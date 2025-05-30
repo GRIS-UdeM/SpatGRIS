@@ -123,27 +123,7 @@ class EditSpeakersWindow final
     , public juce::TextEditor::Listener
     , public juce::Slider::Listener
 {
-public:
-    struct Cols {
-        static constexpr int DRAG_HANDLE = 1;
-        static constexpr int OUTPUT_PATCH = 2;
-        static constexpr int X = 3;
-        static constexpr int Y = 4;
-        static constexpr int Z = 5;
-        static constexpr int AZIMUTH = 6;
-        static constexpr int ELEVATION = 7;
-        static constexpr int DISTANCE = 8;
-        static constexpr int GAIN = 9;
-        static constexpr int HIGHPASS = 10;
-        static constexpr int DIRECT_TOGGLE = 11;
-        static constexpr int DELETE_BUTTON = 12;
-    };
-
 private:
-    static auto constexpr MIN_COL_WIDTH = 50;
-    static auto constexpr MAX_COL_WIDTH = 120;
-    static auto constexpr DEFAULT_COL_WIDTH = 70;
-
     MainContentComponent & mMainContentComponent;
     const SpatGrisData& spatGrisData;
     GrisLookAndFeel & mLookAndFeel;

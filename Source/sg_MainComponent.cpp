@@ -891,6 +891,8 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
 
     // Speaker setup must be Dome or Cube, never Hybrid
     mData.speakerSetup.spatMode = newSpatMode == SpatMode::mbap ? SpatMode::mbap : SpatMode::vbap;
+    if (!mIsLoadingSpeakerSetupOrProjectFile)
+        mData.speakerSetup.speakerSetupValueTree.setProperty(SPAT_MODE, spatModeToString(spatMode), nullptr);
     mData.project.spatMode = newSpatMode;
     mControlPanel->setSpatMode(newSpatMode);
     setTitles();
@@ -2591,6 +2593,7 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
     }
 
     setSpatMode(newSpatMode);
+    speakerSetup->speakerSetupValueTree.setProperty(SPAT_MODE, spatModeToString (newSpatMode), nullptr);
     mIsLoadingSpeakerSetupOrProjectFile = false;
 
     if (mPlayerWindow != nullptr) {

@@ -202,9 +202,9 @@ juce::String SpeakerTreeComponent::getPositionCoordinateTrimmedText (Position::C
     case Position::Coordinate::z:
         return juce::String (position.getCartesian ().z, 3);
     case Position::Coordinate::azimuth:
-        return juce::String (position.getPolar ().azimuth.get (), 3);
+        return juce::String (position.getPolar ().azimuth.get () / radians_t::RADIAN_PER_DEGREE, 1);
     case Position::Coordinate::elevation:
-        return juce::String (position.getPolar ().elevation.get (), 3);
+        return juce::String (position.getPolar ().elevation.get () / radians_t::RADIAN_PER_DEGREE, 1);
     case Position::Coordinate::radius:
         return juce::String (position.getPolar ().length, 3);
     default:
@@ -225,9 +225,9 @@ void SpeakerTreeComponent::setPositionCoordinate(Position::Coordinate coordinate
         case Position::Coordinate::z:
             return position.withZ(newValue);
         case Position::Coordinate::azimuth:
-            return Position{ position.getPolar().withAzimuth(radians_t(newValue)) };
+            return Position{ position.getPolar().withAzimuth(radians_t(newValue * radians_t::RADIAN_PER_DEGREE)) };
         case Position::Coordinate::elevation:
-            return Position{ position.getPolar().withElevation(radians_t(newValue)) };
+            return Position{ position.getPolar().withElevation(radians_t(newValue * radians_t::RADIAN_PER_DEGREE)) };
         case Position::Coordinate::radius:
             return Position{ position.getPolar().withRadius(newValue) };
         default:
@@ -256,7 +256,8 @@ void SpeakerTreeComponent::setupCoordinateLabel(DraggableLabel & label, Position
             return;
 
         auto currentValue = label.getText().getFloatValue();
-        auto newValue = currentValue - deltaY * 0.01f;
+        auto const dragIncrement = (&label == &x || &label == &y || &label == &z) ? 0.01f : 0.5f;
+        auto newValue = currentValue - deltaY * dragIncrement;
 
         setPositionCoordinate (coordinate, newValue);
         updateAllPositionLabels ();
