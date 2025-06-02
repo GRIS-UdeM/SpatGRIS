@@ -21,6 +21,8 @@
 #include <Data/sg_SpatMode.hpp>
 #include <StructGRIS/ValueTreeUtilities.hpp>
 
+#define ENABLE_GROUP_MOVEMENT_IN_DOME 0
+
 namespace gris
 {
 class SpeakerSetupLine;
