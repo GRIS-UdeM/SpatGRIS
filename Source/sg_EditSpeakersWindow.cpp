@@ -252,12 +252,15 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     newGroup.setProperty (UUID, juce::Uuid {}.toString (), &undoManager);
     mainGroup.addChild(newGroup, indexInMainGroup + 1, &undoManager);
 
-    output_patch_t newOutputPatch{};
+    //get the output patch to copy, if it exists
+    tl::optional<output_patch_t> outputPatchToCopy;
+    if (spatGrisData.speakerSetup.ordering.contains (output_patch_t (indexInMainGroup)))
+        outputPatchToCopy = getSpeakerOutputPatchForRow (indexInMainGroup);
 
+    output_patch_t newOutputPatch {};
     for (int i{}; i < numSpeakers; ++i) {
 
         //create the speaker in main component
-        auto const outputPatchToCopy = getSpeakerOutputPatchForRow(indexInMainGroup);
         newOutputPatch = mMainContentComponent.addSpeaker(outputPatchToCopy, ++indexInMainGroup);
 
         //add the speaker to the value tree

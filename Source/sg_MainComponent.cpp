@@ -2274,7 +2274,7 @@ void MainContentComponent::refreshSpatAlgorithm()
         case AbstractSpatAlgorithm::Error::notEnoughCubeSpeakers:
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
                                                    "Disabled spatialization",
-                                                   "Cube spatialization requies at least 2 spatialized speakers.\n",
+                                                   "Cube spatialization requires at least 2 spatialized speakers.\n",
                                                    "Ok",
                                                    this);
             break;
