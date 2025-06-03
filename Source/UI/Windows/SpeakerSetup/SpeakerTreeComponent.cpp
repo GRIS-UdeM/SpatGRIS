@@ -107,12 +107,16 @@ void SpeakerTreeComponent::resized()
         // position the ID colum so it is a fixed width of fixedLeftColWidth fromt the left of the document window
         const auto windowOriginInThis = window->getLocalPoint(this, juce::Point<int>{ 0, 0 });
         const auto idColWidth = fixedLeftColWidth - windowOriginInThis.x;
-        id.setBounds(bounds.removeFromLeft(idColWidth));
+        id.setBounds(bounds.removeFromLeft(idColWidth - colGap));
+        bounds.removeFromLeft (colGap);
 
         // then position the other components with a fixed width of otherColWidth
         std::vector<juce::Component*> components = { &x, &y, &z, &azim, &elev, &radius, &gain, &highpass, &direct, &deleteButton, &drag };
         for (auto* component : components)
-            component->setBounds (bounds.removeFromLeft (otherColWidth));
+        {
+            component->setBounds (bounds.removeFromLeft (otherColWidth - colGap));
+            bounds.removeFromLeft (colGap);
+        }
     }
 }
 
