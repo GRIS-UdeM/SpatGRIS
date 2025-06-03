@@ -245,7 +245,7 @@ void SpeakerTreeComponent::setPositionCoordinate(Position::Coordinate coordinate
     localPosition = getLegalSpeakerPosition(localPosition, spatMode, speakerTreeVt[DIRECT_OUT_ONLY], coordinate);
     setPosition(localPosition);
 #else
-    // TODO: trying to clamp speaker positions when a group is displayed in dome mode
+    // TODO: https://github.com/GRIS-UdeM/SpatGRIS/issues/486. For now group movement is just disabled in dome
     // clamp the position to a legal value and set it back
     auto const spatMode{ getSpatMode().value_or(SpatMode::mbap) };
     auto const isDirectOut{ speakerTreeVt[DIRECT_OUT_ONLY] };
