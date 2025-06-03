@@ -290,10 +290,10 @@ void SpeakerTreeComponent::setupCoordinateLabel(DraggableLabel & label, Position
             return;
 
         auto currentValue = label.getText().getFloatValue();
-        auto const dragIncrement = (&label == &x || &label == &y || &label == &z) ? 0.01f : 0.5f;
+        auto const dragIncrement = (&label == &x || &label == &y || &label == &z || &label == &radius) ? 0.01f : 0.5f;
         auto newValue = currentValue - deltaY * dragIncrement;
 
-        setPositionCoordinate (coordinate, newValue);
+        setPositionCoordinate(coordinate, newValue);
         updateAllPositionLabels ();
     };
 
