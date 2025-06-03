@@ -489,10 +489,13 @@ void SpeakerComponent::setupGain ()
     addAndMakeVisible (gain);
 }
 
-void SpeakerComponent::setupHighPass ()
+void SpeakerComponent::setupHighPass()
 {
     highpass.setEditable(true);
-    highpass.setText(speakerTreeVt[HIGHPASS_FREQ], juce::dontSendNotification);
+    if (! isSpeakerGroup()) {
+        juce::String const highPass = speakerTreeVt.hasProperty(HIGHPASS_FREQ) ? speakerTreeVt[HIGHPASS_FREQ] : "0";
+        highpass.setText(highPass, juce::dontSendNotification);
+    }
 
     const auto getClampedFrequency = [](float freqValue, bool isIncreasing = false) {
         static constexpr hz_t OFF_FREQ{ 0.0f };
