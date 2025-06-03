@@ -327,6 +327,9 @@ void SpeakerTreeComponent::labelTextChanged (juce::Label* label)
 
     auto const currentId = id.getText ().getIntValue ();
     auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
+    if (clampedId != currentId)
+        id.setText (juce::String (clampedId), juce::dontSendNotification);
+
     // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
     // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
     // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
@@ -339,7 +342,7 @@ void SpeakerTreeComponent::editorShown (juce::Label* label, juce::TextEditor& ed
     if (isSpeakerGroup() || label != &id)
         return;
 
-    editor.setInputRestrictions (3, "12345678");
+    editor.setInputRestrictions (3, "0123456789");
 }
 
 void SpeakerTreeComponent::updateAllPositionLabels ()

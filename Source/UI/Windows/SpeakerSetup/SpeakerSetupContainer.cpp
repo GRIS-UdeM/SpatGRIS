@@ -36,7 +36,7 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     speakerSetupTreeView.setDefaultOpenness (true);
     speakerSetupTreeView.setMultiSelectEnabled (true);
 
-    mainSpeakerGroupLine.reset (new SpeakerSetupLine (speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
+    mainSpeakerGroupLine = std::make_unique<SpeakerSetupLine> (speakerSetupVt.getChild(0), undoManager, onSelectionChanged);
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
     auto setLabelText = [this](juce::Label& label, const juce::String & text) {
