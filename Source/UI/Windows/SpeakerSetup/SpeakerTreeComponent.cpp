@@ -40,7 +40,7 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     setupCoordinateLabel(z, Position::Coordinate::z);
     setupCoordinateLabel(azim, Position::Coordinate::azimuth);
     setupCoordinateLabel(elev, Position::Coordinate::elevation);
-    setupCoordinateLabel(radius, Position::Coordinate::radius);
+    setupCoordinateLabel(distance, Position::Coordinate::radius);
 
     setupDeleteButton ();
 
@@ -111,7 +111,7 @@ void SpeakerTreeComponent::resized()
         bounds.removeFromLeft (colGap);
 
         // then position the other components with a fixed width of otherColWidth
-        std::vector<juce::Component*> components = { &x, &y, &z, &azim, &elev, &radius, &gain, &highpass, &direct, &deleteButton, &drag };
+        std::vector<juce::Component*> components = { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &deleteButton, &drag };
         for (auto* component : components)
         {
             component->setBounds (bounds.removeFromLeft (otherColWidth - colGap));
@@ -290,7 +290,7 @@ void SpeakerTreeComponent::setupCoordinateLabel(DraggableLabel & label, Position
             return;
 
         auto currentValue = label.getText().getFloatValue();
-        auto const dragIncrement = (&label == &x || &label == &y || &label == &z || &label == &radius) ? 0.01f : 0.5f;
+        auto const dragIncrement = (&label == &x || &label == &y || &label == &z || &label == &distance) ? 0.01f : 0.5f;
         auto newValue = currentValue - deltaY * dragIncrement;
 
         setPositionCoordinate(coordinate, newValue);
@@ -352,7 +352,7 @@ void SpeakerTreeComponent::updateAllPositionLabels ()
     z.setText(getPositionCoordinateTrimmedText(Position::Coordinate::z), juce::dontSendNotification);
     azim.setText(getPositionCoordinateTrimmedText(Position::Coordinate::azimuth), juce::dontSendNotification);
     elev.setText(getPositionCoordinateTrimmedText(Position::Coordinate::elevation), juce::dontSendNotification);
-    radius.setText(getPositionCoordinateTrimmedText(Position::Coordinate::radius), juce::dontSendNotification);
+    distance.setText(getPositionCoordinateTrimmedText(Position::Coordinate::radius), juce::dontSendNotification);
 }
 
 tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const
@@ -397,7 +397,7 @@ void SpeakerTreeComponent::updateUiBasedOnSpatMode ()
             azim.setEnabled (false);
             elev.setEnabled (false);
 #endif
-            radius.setEnabled(false);
+            distance.setEnabled(false);
 
             // reset the group position and move its speakers to the dome
             setPosition(Position{ CartesianVector{ 0.f, 0.f, 0.f } });
@@ -413,7 +413,7 @@ void SpeakerTreeComponent::updateUiBasedOnSpatMode ()
         {
             azim.setEnabled (true);
             elev.setEnabled (true);
-            radius.setEnabled (speakerTreeVt[DIRECT_OUT_ONLY]);
+            distance.setEnabled (speakerTreeVt[DIRECT_OUT_ONLY]);
         }
     }
     else if (spatMode == SpatMode::mbap)
@@ -423,7 +423,7 @@ void SpeakerTreeComponent::updateUiBasedOnSpatMode ()
         z.setEnabled (true);
         azim.setEnabled (false);
         elev.setEnabled (false);
-        radius.setEnabled (false);
+        distance.setEnabled (false);
     }
     else
     {
@@ -432,7 +432,7 @@ void SpeakerTreeComponent::updateUiBasedOnSpatMode ()
         z.setEnabled (true);
         azim.setEnabled (true);
         elev.setEnabled (true);
-        radius.setEnabled (false);
+        distance.setEnabled (false);
     }
 }
 

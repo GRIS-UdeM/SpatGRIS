@@ -51,7 +51,7 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     setLabelText (z, "Z");
     setLabelText (azim, "Azimuth");
     setLabelText (elev, "Elevation");
-    setLabelText (radius, "Radius");
+    setLabelText (distance, "Distance");
     setLabelText (gain, "Gain");
     setLabelText (highpass, "Highpass");
     setLabelText (direct, "Direct");
@@ -87,7 +87,7 @@ void SpeakerSetupContainer::resized()
 
     id.setBounds(header.removeFromLeft(SpeakerTreeComponent::fixedLeftColWidth - 28));
 
-    for (auto label : { &x, &y, &z, &azim, &elev, &radius, &gain, &highpass, &direct, &del })
+    for (auto label : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
         label->setBounds(header.removeFromLeft(SpeakerTreeComponent::otherColWidth));
 
     constexpr auto dragColWidth{ 40 };

@@ -112,7 +112,7 @@ protected:
 
     juce::Label id;
 
-    DraggableLabel x, y, z, azim, elev, radius, gain, highpass, drag;
+    DraggableLabel x, y, z, azim, elev, distance, gain, highpass, drag;
 
     juce::DrawableButton deleteButton { "TrashButton", juce::DrawableButton::ImageOnButtonBackground };
 

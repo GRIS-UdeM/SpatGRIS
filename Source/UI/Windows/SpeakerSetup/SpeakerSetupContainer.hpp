@@ -86,7 +86,7 @@ private:
     juce::ValueTree speakerSetupVt;
 
     //header
-    juce::Label id, x, y, z, azim, elev, radius, gain, highpass, direct, del, drag;
+    juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
 
     juce::TreeView speakerSetupTreeView;
     juce::TextButton undoButton{ "Undo" }, redoButton{ "Redo" }, sortButton{ "Sort by ID" };
