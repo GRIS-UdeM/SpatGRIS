@@ -319,7 +319,10 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         auto [mainGroup, indexInMainGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
 
-        auto const outputPatchToCopy = getSpeakerOutputPatchForRow(indexInMainGroup);
+        tl::optional<output_patch_t> outputPatchToCopy;
+        if (spatGrisData.speakerSetup.ordering.contains (output_patch_t (indexInMainGroup)))
+            outputPatchToCopy = getSpeakerOutputPatchForRow (indexInMainGroup);
+
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, ++indexInMainGroup) };
 
         auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getCurSpeakerGroupAndIndex ();
