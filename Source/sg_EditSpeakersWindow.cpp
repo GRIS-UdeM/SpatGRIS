@@ -325,7 +325,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, ++indexInMainGroup) };
 
-        auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getCurSpeakerGroupAndIndex ();
+        auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex();
         addNewSpeakerToVt(newOutputPatch, curGroup, ++indexInCurGroup);
 
     } else if (button == &mSaveAsSpeakerSetupButton) {
