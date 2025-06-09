@@ -73,6 +73,8 @@ class MainContentComponent final
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
+    juce::UndoManager undoManager;
+
     enum class LoadSpeakerSetupOption { allowDiscardingUnsavedChanges, disallowDiscardingUnsavedChanges };
 
     juce::ReadWriteLock mLock{};
@@ -215,14 +217,39 @@ public:
     juce::Component * getControlsComponent() const;
 
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
-    void removeSpeaker(output_patch_t outputPatch);
+    void addSpeaker(const SpeakerData & speakerData, int index, output_patch_t newOutputPatch);
+    void removeSpeaker(output_patch_t outputPatch, bool shouldRefreshSpeakers = true);
     void reorderSpeakers(juce::Array<output_patch_t> newOrder);
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
 
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
 
-    void refreshSpeakers();
+    void requestSpeakerRefresh()
+    {
+        if (mSpeakersRefreshAsyncUpdater)
+            mSpeakersRefreshAsyncUpdater->triggerAsyncUpdate();
+    }
+
+    /**
+     * @class SpeakersRefreshAsyncUpdater
+     * @brief Asynchronous updater for refreshing speaker UI components.
+     *
+     * This helper class is used by MainContentComponent to schedule and coalesce
+     * updates to the speaker-related UI components in the future.
+     * It inherits from juce::AsyncUpdater, allowing refresh requests to be triggered
+     * from any thread, but ensuring that the actual refresh operation (refreshSpeakers)
+     * is executed on the main (message) thread, and if many requests are made, only one will be processed.
+     */
+    class SpeakersRefreshAsyncUpdater : public juce::AsyncUpdater
+    {
+    public:
+        SpeakersRefreshAsyncUpdater (MainContentComponent& owner) : mOwner (owner) {}
+        void handleAsyncUpdate () override { mOwner.refreshSpeakers (); }
+    private:
+        MainContentComponent& mOwner;
+    };
+    std::unique_ptr<SpeakersRefreshAsyncUpdater> mSpeakersRefreshAsyncUpdater;
 
     //==============================================================================
     // Commands.
@@ -302,6 +329,9 @@ private:
     void handleSaveSpeakerSetupAs();
     void handleShowOscMonitorWindow();
 
+    /** This is called by the SpeakersRefreshAsyncUpdater when MainContentComponent::requestSpeakerRefresh() is called.
+     */
+    void refreshSpeakers ();
     void refreshSourceSlices();
     void refreshSpeakerSlices();
 

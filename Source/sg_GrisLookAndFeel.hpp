@@ -28,7 +28,7 @@ namespace gris
 {
 //==============================================================================
 /** Custom Look And Feel */
-class GrisLookAndFeel : public juce::LookAndFeel_V3
+class GrisLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
     float constexpr static mFontSize = 10.f;
@@ -178,6 +178,12 @@ public:
                           float rotaryStartAngle,
                           float rotaryEndAngle,
                           juce::Slider & slider) override;
+
+    void drawTreeviewPlusMinusBox(juce::Graphics & g,
+                                  const juce::Rectangle<float> & area,
+                                  juce::Colour backgroundColour,
+                                  bool isOpen,
+                                  bool isMouseOver) override;
 
 private:
     JUCE_LEAK_DETECTOR(GrisLookAndFeel)

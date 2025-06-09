@@ -96,12 +96,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     , mSmallLookAndFeel(smallGrisLookAndFeel)
     , mMainWindow(mainWindow)
 {
-
-#if JUCE_DEBUG && RUN_UNIT_TEST
-    juce::UnitTestRunner testRunner;
-    testRunner.runAllTests();
-#endif
-
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
@@ -254,6 +248,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     initSpeakerSetup();
     initAudioManager();
     initAudioProcessor();
+
+    mSpeakersRefreshAsyncUpdater = std::make_unique<SpeakersRefreshAsyncUpdater> (*this);
 
     // juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
@@ -562,13 +558,11 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
     }
 }
 
-//==============================================================================
 void MainContentComponent::saveAsEditedSpeakerSetup()
 {
     saveSpeakerSetup(tl::nullopt);
 }
 
-//==============================================================================
 void MainContentComponent::saveEditedSpeakerSetup()
 {
     handleSaveSpeakerSetup();
@@ -595,9 +589,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
         auto const windowName = juce::String{ "Speaker Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
                                 + juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension();
-        mEditSpeakersWindow
-            = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
-        mEditSpeakersWindow->initComp();
+        mEditSpeakersWindow = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, undoManager);
     }
 }
 
@@ -899,6 +891,8 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
 
     // Speaker setup must be Dome or Cube, never Hybrid
     mData.speakerSetup.spatMode = newSpatMode == SpatMode::mbap ? SpatMode::mbap : SpatMode::vbap;
+    if (!mIsLoadingSpeakerSetupOrProjectFile)
+        mData.speakerSetup.speakerSetupValueTree.setProperty(SPAT_MODE, spatModeToString(spatMode), nullptr);
     mData.project.spatMode = newSpatMode;
     mControlPanel->setSpatMode(newSpatMode);
     setTitles();
@@ -1818,12 +1812,15 @@ void MainContentComponent::updatePeaks()
     for (auto const speaker : mData.speakerSetup.speakers) {
         auto const & peak{ speakerPeaks[speaker.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
-        mSpeakerSliceComponents[speaker.key].setLevel(dbPeak);
 
-        auto & exchanger{ viewPortData.hotSpeakersAlphaUpdaters[speaker.key] };
-        auto * ticket{ exchanger.acquire() };
-        ticket->get() = gainToSpeakerAlpha(peak);
-        exchanger.setMostRecent(ticket);
+        if (mSpeakerSliceComponents.contains(speaker.key)) {
+            mSpeakerSliceComponents[speaker.key].setLevel(dbPeak);
+
+            auto & exchanger{ viewPortData.hotSpeakersAlphaUpdaters[speaker.key] };
+            auto * ticket{ exchanger.acquire() };
+            ticket->get() = gainToSpeakerAlpha(peak);
+            exchanger.setMostRecent(ticket);
+        }
     }
 }
 
@@ -2277,7 +2274,7 @@ void MainContentComponent::refreshSpatAlgorithm()
         case AbstractSpatAlgorithm::Error::notEnoughCubeSpeakers:
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
                                                    "Disabled spatialization",
-                                                   "The Cubes need at least 2 speakers.\n",
+                                                   "Cube spatialization requires at least 2 spatialized speakers.\n",
                                                    "Ok",
                                                    this);
             break;
@@ -2450,9 +2447,10 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
     auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
 
     if (index) {
-        auto const isValidIndex{ *index >= 0 && *index < mData.speakerSetup.ordering.size() };
+        auto const actualIndex { *index };
+        auto const isValidIndex{ actualIndex >= 0 && actualIndex < mData.speakerSetup.ordering.size() };
         if (isValidIndex) {
-            mData.speakerSetup.ordering.insert(*index, newOutputPatch);
+            mData.speakerSetup.ordering.insert(actualIndex, newOutputPatch);
         } else {
             static constexpr auto AT_END = -1;
             mData.speakerSetup.ordering.insert(AT_END, newOutputPatch);
@@ -2466,17 +2464,72 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
     return newOutputPatch;
 }
 
+juce::String getJuceArrayString (const juce::Array<output_patch_t>& array)
+{
+    juce::String arrayString("(");
+
+    for (auto const& item : array)
+        arrayString << juce::String (item.get()) << " ";
+
+    arrayString = arrayString.trimEnd();
+    arrayString << ")";
+    return arrayString;
+}
+
 //==============================================================================
-void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
+void MainContentComponent::addSpeaker(const SpeakerData & speakerData, int index, output_patch_t newOutputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+#if DEBUG_SPEAKER_EDITION
+    DBG("MainContentComponent::addSpeaker() with output patch: "
+        << newOutputPatch.toString() << " and index: " << juce::String(index)
+        << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
+
+    if (!mData.speakerSetup.ordering.contains(newOutputPatch)) {
+        auto const isValidIndex{ index >= 0 && index < mData.speakerSetup.ordering.size() };
+        if (isValidIndex) {
+            mData.speakerSetup.ordering.insert(index, newOutputPatch);
+        } else {
+            static constexpr auto AT_END = -1;
+            mData.speakerSetup.ordering.insert(AT_END, newOutputPatch);
+        }
+
+        mData.speakerSetup.speakers.add(newOutputPatch, std::make_unique<SpeakerData>(speakerData));
+    }
+
+#if DEBUG_SPEAKER_EDITION
+    DBG("after MainContentComponent::addSpeaker() we got: " << mData.speakerSetup.speakers.toString()
+                                                            << " and ordering: "
+                                                            << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
+}
+
+//==============================================================================
+void MainContentComponent::removeSpeaker(output_patch_t const outputPatch, bool shouldRefreshSpeakers /*= true*/)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+#if DEBUG_SPEAKER_EDITION
+    DBG("removing speaker with output patch: " << outputPatch.toString()
+                                               << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
+
     juce::ScopedWriteLock const dataLock{ mLock };
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     mData.speakerSetup.ordering.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
 
-    refreshSpeakers();
+#if DEBUG_SPEAKER_EDITION
+    DBG("after removal we got: " << mData.speakerSetup.speakers.toString()
+                                 << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
+
+    if (shouldRefreshSpeakers)
+        requestSpeakerRefresh();
 }
 
 //==============================================================================
@@ -2540,6 +2593,7 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
     }
 
     setSpatMode(newSpatMode);
+    speakerSetup->speakerSetupValueTree.setProperty(SPAT_MODE, spatModeToString (newSpatMode), nullptr);
     mIsLoadingSpeakerSetupOrProjectFile = false;
 
     if (mPlayerWindow != nullptr) {
@@ -2643,6 +2697,7 @@ void MainContentComponent::buttonPressed([[maybe_unused]] SpatButton * button)
 }
 
 //==============================================================================
+
 void MainContentComponent::handleSaveSpeakerSetup()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2711,16 +2766,14 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
         maybeFile = fc.getResult();
     }
 
-    auto const & file{ *maybeFile };
-    auto const content{ mData.speakerSetup.toXml() };
-    auto const success{ content->writeTo(file) };
-
-    jassert(success);
+    auto const success = maybeFile->replaceWithText (mData.speakerSetup.speakerSetupValueTree.toXmlString ());
     if (success) {
         mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
+        setTitles ();
     }
-
-    setTitles();
+    else {
+        jassertfalse;   //could not save the file!
+    }
 
     return success;
 }
@@ -2785,7 +2838,6 @@ bool MainContentComponent::makeSureSpeakerSetupIsSavedToDisk() noexcept
     }
 
     jassert(pressedButton == BUTTON_OK);
-
     return saveSpeakerSetup(tl::nullopt);
 }
 
@@ -2821,12 +2873,14 @@ void MainContentComponent::timerCallback()
 
     mInfoPanel->setCpuLoad(cpuRunningAverage);
 
-    if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
-        mIsProcessForeground = juce::Process::isForegroundProcess();
+    //TODO: could this be related to this issue https://github.com/GRIS-UdeM/SpatGRIS/issues/476 ?
+    if (mIsProcessForeground != juce::Process::isForegroundProcess ()) {
+        mIsProcessForeground = juce::Process::isForegroundProcess ();
         if (mEditSpeakersWindow != nullptr && mIsProcessForeground) {
-            mEditSpeakersWindow->setAlwaysOnTop(true);
-        } else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
-            mEditSpeakersWindow->setAlwaysOnTop(false);
+            mEditSpeakersWindow->setAlwaysOnTop (true);
+        }
+        else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
+            mEditSpeakersWindow->setAlwaysOnTop (false);
         }
     }
 }
@@ -3111,7 +3165,7 @@ void MainContentComponent::handleShowSpeakerTripletsFromSpeakerView(bool value)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const readLock{ mLock };
 
-    if (!mAudioProcessor->getSpatAlgorithm() || !mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
+    if (! mAudioProcessor || !mAudioProcessor->getSpatAlgorithm() || !mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
         return;
     }
 

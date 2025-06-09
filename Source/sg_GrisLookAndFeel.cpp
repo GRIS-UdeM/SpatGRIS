@@ -30,6 +30,7 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->mLightColour = juce::Colour::fromRGB(235, 245, 250); // Colours::whiteSmoke;
     this->mDarkColour = juce::Colour::fromRGB(15, 10, 5);      // Colours::black;
     this->mGreyColour = juce::Colour::fromRGB(120, 120, 120);  // Colours::grey;
+
     this->mEditBgcolor = juce::Colour::fromRGB(172, 172, 172);
     this->mHlBgcolor = juce::Colour::fromRGB(190, 125, 18);
 
@@ -524,6 +525,19 @@ void GrisLookAndFeel::drawRotarySlider(juce::Graphics & g,
     juce::Path outlineArc;
     outlineArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.0);
     g.strokePath(outlineArc, juce::PathStrokeType(lineThickness));
+}
+
+void GrisLookAndFeel::drawTreeviewPlusMinusBox(juce::Graphics & g,
+                                               const juce::Rectangle<float> & area,
+                                               juce::Colour /*backgroundColour*/,
+                                               bool isOpen,
+                                               bool /*isMouseOver*/)
+{
+    juce::Path p;
+    p.addTriangle(0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
+
+    g.setColour(mLightColour);
+    g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
 }
 
 void SmallGrisLookAndFeel::drawToggleButton(juce::Graphics & g,
