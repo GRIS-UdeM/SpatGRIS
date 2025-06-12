@@ -171,6 +171,13 @@ public:
 
     void speakerDirectOutOnlyChanged(output_patch_t outputPatch, bool state);
     void speakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
+
+    /**
+     * Gets a speaker's central group coordinate. If the speaker is an individual speaker, returns its position.
+     * Right now this is used to send the center of a group to SpeakerView to better orient groups.
+     */
+    std::map<int, tl::optional<Position>> getSpeakersGroupCenters();
+
     void setSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
     void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
     void setOscPort(int newOscPort);
@@ -295,6 +302,8 @@ public:
 
     bool speakerViewShouldGrabFocus();
     void resetSpeakerViewShouldGrabFocus();
+
+
 
 private:
     //==============================================================================
