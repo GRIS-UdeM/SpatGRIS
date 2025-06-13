@@ -270,10 +270,13 @@ void SpeakerViewComponent::prepareSpeakersJson()
             mJsonSpeakers += ",";
             appendNumber(mJsonSpeakers, getAlpha());
             // if the speaker is in a group, add its center's position.
-            auto center_position = speaker_centers.at(speaker.key.get());
+
+            // This will insert a default tl::nullopt if the key is not in
+            // the map. In this case we can live with it.
+            auto center_position = speaker_centers[speaker.key.get()];
+
             if (center_position) {
               auto const & center_cartesion_pos = center_position->getCartesian();
-              std::cout << center_cartesion_pos.toString() << std::endl;
               mJsonSpeakers += ",[";
               appendNumber(mJsonSpeakers, center_cartesion_pos.x);
               mJsonSpeakers += ",";
