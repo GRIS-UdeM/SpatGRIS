@@ -19,6 +19,7 @@
 
 #include "sg_MainComponent.hpp"
 
+#include <map>
 #include "sg_AudioManager.hpp"
 #include "AlgoGRIS/Data/sg_CommandId.hpp"
 #include "sg_ControlPanel.hpp"
@@ -29,6 +30,7 @@
 #include "sg_ScopeGuard.hpp"
 #include "sg_TitledComponent.hpp"
 #include "AlgoGRIS/Data/sg_constants.hpp"
+#include "AlgoGRIS/StructGRIS/ValueTreeUtilities.hpp"
 #include "Misc/sg_DefaultFiles.hpp"
 
 namespace gris
@@ -2067,6 +2069,34 @@ void MainContentComponent::speakerOutputPatchChanged(output_patch_t const oldOut
 
     refreshSourceSlices();
     refreshSpeakerSlices();
+}
+
+std::map<output_patch_t, tl::optional<Position>> MainContentComponent::getSpeakersGroupCenters()
+{
+  std::map<output_patch_t, tl::optional<Position>> speaker_group_center{};
+  mData.speakerSetup.speakerSetupValueTree;
+  // the first child is the main speaker group where individual speakers and speaker groups are stored.
+  auto main_speaker_group = mData.speakerSetup.speakerSetupValueTree.getChild(0);
+  for (int i = 0; i < main_speaker_group.getNumChildren(); i++)
+  {
+      auto node = main_speaker_group.getChild(i);
+      // if the node is a speakergroup, search all the group for a child
+      // that has the right id and return the Position of the group.
+      if (node.getType () == SPEAKER_GROUP) {
+        auto sub_group = node;
+        Position center_position = juce::VariantConverter<Position>::fromVar(sub_group[CARTESIAN_POSITION]);
+        for (int j = 0; j < sub_group.getNumChildren(); j++) {
+          auto speaker = sub_group.getChild(j);
+          auto const speaker_patch_id = output_patch_t{speaker[SPEAKER_PATCH_ID]};
+          speaker_group_center[speaker_patch_id] = center_position;
+        }
+        // if the node is not a group it's a speaker and we don't care. If its id matches, return its position.
+      } else {
+        auto const speaker_patch_id = output_patch_t{node[SPEAKER_PATCH_ID]};
+        speaker_group_center[speaker_patch_id] = tl::nullopt;
+      }
+  }
+  return speaker_group_center;
 }
 
 //==============================================================================

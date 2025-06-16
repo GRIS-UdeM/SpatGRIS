@@ -226,6 +226,7 @@ void SpeakerViewComponent::prepareSpeakersJson()
     mJsonSpeakers.clear();
     mJsonSpeakers.reserve(4096);
     mJsonSpeakers += "[\"speakers\",";
+    auto speaker_centers = mMainContentComponent.getSpeakersGroupCenters();
     if (viewSettings.showSpeakers) {
         for (auto const & speaker : mData.warmData.speakers) {
             static constexpr auto DEFAULT_ALPHA = 0.75f;
@@ -249,6 +250,7 @@ void SpeakerViewComponent::prepareSpeakersJson()
                 isSelected
                 isDirectOutOnly
                 alpha
+                (group center position (if speaker is in a group))
             */
 
             auto const & pos{ speaker.value.position.getCartesian() };
@@ -267,6 +269,22 @@ void SpeakerViewComponent::prepareSpeakersJson()
             mJsonSpeakers += speaker.value.isDirectOutOnly ? "1" : "0";
             mJsonSpeakers += ",";
             appendNumber(mJsonSpeakers, getAlpha());
+            // if the speaker is in a group, add its center's position.
+
+            // This will insert a default tl::nullopt if the key is not in
+            // the map. In this case we can live with it.
+            auto center_position = speaker_centers[speaker.key];
+
+            if (center_position) {
+              auto const & center_cartesion_pos = center_position->getCartesian();
+              mJsonSpeakers += ",[";
+              appendNumber(mJsonSpeakers, center_cartesion_pos.x);
+              mJsonSpeakers += ",";
+              appendNumber(mJsonSpeakers, center_cartesion_pos.y);
+              mJsonSpeakers += ",";
+              appendNumber(mJsonSpeakers, center_cartesion_pos.z);
+              mJsonSpeakers += "]";
+            }
             mJsonSpeakers += "],";
 
             processedSpeakers++;

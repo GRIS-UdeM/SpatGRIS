@@ -171,6 +171,14 @@ public:
 
     void speakerDirectOutOnlyChanged(output_patch_t outputPatch, bool state);
     void speakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
+
+    /**
+     * Gets a map of <speaker output patch id> -> <optional speaker group center position>
+     * Basically this associates every speaker id with the center position of its parent group or with
+     * nullopt if its not part of a group.
+     */
+    std::map<output_patch_t, tl::optional<Position>> getSpeakersGroupCenters();
+    
     void setSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
     void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
     void setOscPort(int newOscPort);
@@ -295,6 +303,8 @@ public:
 
     bool speakerViewShouldGrabFocus();
     void resetSpeakerViewShouldGrabFocus();
+
+
 
 private:
     //==============================================================================
