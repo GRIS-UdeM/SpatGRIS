@@ -2085,7 +2085,7 @@ std::map<int, tl::optional<Position>> MainContentComponent::getSpeakersGroupCent
       if (node.getType () == SPEAKER_GROUP) {
         auto sub_group = node;
         Position center_position = juce::VariantConverter<Position>::fromVar(sub_group[CARTESIAN_POSITION]);
-        for (int j = 0; j < main_speaker_group.getNumChildren(); j++) {
+        for (int j = 0; j < sub_group.getNumChildren(); j++) {
           auto speaker = sub_group.getChild(j);
           int speaker_patch_id = juce::VariantConverter<int>::fromVar(speaker[SPEAKER_PATCH_ID]);
           speaker_group_center[speaker_patch_id] = center_position;
