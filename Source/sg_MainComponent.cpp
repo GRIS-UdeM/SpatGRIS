@@ -2096,7 +2096,6 @@ std::map<output_patch_t, tl::optional<Position>> MainContentComponent::getSpeake
         speaker_group_center[speaker_patch_id] = tl::nullopt;
       }
   }
-  // if for some reason the speaker wasn't found, just return a 0,0,0 position
   return speaker_group_center;
 }
 
