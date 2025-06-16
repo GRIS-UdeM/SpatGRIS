@@ -2071,9 +2071,9 @@ void MainContentComponent::speakerOutputPatchChanged(output_patch_t const oldOut
     refreshSpeakerSlices();
 }
 
-std::map<int, tl::optional<Position>> MainContentComponent::getSpeakersGroupCenters()
+std::map<output_patch_t, tl::optional<Position>> MainContentComponent::getSpeakersGroupCenters()
 {
-  std::map<int, tl::optional<Position>> speaker_group_center{};
+  std::map<output_patch_t, tl::optional<Position>> speaker_group_center{};
   mData.speakerSetup.speakerSetupValueTree;
   // the first child is the main speaker group where individual speakers and speaker groups are stored.
   auto main_speaker_group = mData.speakerSetup.speakerSetupValueTree.getChild(0);
@@ -2087,12 +2087,13 @@ std::map<int, tl::optional<Position>> MainContentComponent::getSpeakersGroupCent
         Position center_position = juce::VariantConverter<Position>::fromVar(sub_group[CARTESIAN_POSITION]);
         for (int j = 0; j < sub_group.getNumChildren(); j++) {
           auto speaker = sub_group.getChild(j);
-          int speaker_patch_id = juce::VariantConverter<int>::fromVar(speaker[SPEAKER_PATCH_ID]);
+          auto const speaker_patch_id = output_patch_t{speaker[SPEAKER_PATCH_ID]};
+          //int speaker_patch_id = juce::VariantConverter<int>::fromVar(speaker[SPEAKER_PATCH_ID]);
           speaker_group_center[speaker_patch_id] = center_position;
         }
         // if the node is not a group it's a speaker and we don't care. If its id matches, return its position.
       } else {
-        int speaker_patch_id = juce::VariantConverter<int>::fromVar(node[SPEAKER_PATCH_ID]);
+        auto const speaker_patch_id = output_patch_t{node[SPEAKER_PATCH_ID]};
         speaker_group_center[speaker_patch_id] = tl::nullopt;
       }
   }

@@ -273,7 +273,7 @@ void SpeakerViewComponent::prepareSpeakersJson()
 
             // This will insert a default tl::nullopt if the key is not in
             // the map. In this case we can live with it.
-            auto center_position = speaker_centers[speaker.key.get()];
+            auto center_position = speaker_centers[speaker.key];
 
             if (center_position) {
               auto const & center_cartesion_pos = center_position->getCartesian();

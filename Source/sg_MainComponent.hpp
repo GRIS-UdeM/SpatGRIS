@@ -177,8 +177,8 @@ public:
      * Basically this associates every speaker id with the center position of its parent group or with
      * nullopt if its not part of a group.
      */
-    std::map<int, tl::optional<Position>> getSpeakersGroupCenters();
-
+    std::map<output_patch_t, tl::optional<Position>> getSpeakersGroupCenters();
+    
     void setSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
     void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
     void setOscPort(int newOscPort);
