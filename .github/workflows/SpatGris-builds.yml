@@ -90,7 +90,7 @@ jobs:
 
   Build-macOS:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - name: Check out repository code with submodules
         uses: actions/checkout@v2
@@ -105,21 +105,40 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
+
       - name: Generate Xcode project
         run: |
           chmod +x submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX/build/Release/Projucer.app/Contents/MacOS/Projucer
           submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX/build/Release/Projucer.app/Contents/MacOS/Projucer --resave SpatGRIS.jucer
-      - name: build
+
+      - name: build mac arm64
         run: |
           xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
             -configuration Release \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-      - name: Upload build artifacts
+            CODE_SIGNING_ALLOWED=NO \
+            -arch arm64
+
+      - name: Upload mac arm64 build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SpatGRIS-Build-macOS
+          name: SpatGRIS-Build-macOS-arm64
+          path: Builds/MacOSX/build/Release/*
+
+      - name: build mac x86_64
+        run: |
+          xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
+            -configuration Release \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            -arch x86_64
+
+      - name: Upload mac x86_64 build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpatGRIS-Build-macOS-x86_64
           path: Builds/MacOSX/build/Release/*
 
   Build-Windows:
