@@ -67,11 +67,11 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentCom
 {
 
     mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
-    // There was a mixup at some point and input and output udp ports were inverted.
-    mUdpReceiverSocket->bindToPort(DEFAULT_UDP_OUTPUT_PORT, "127.0.0.1");
-
-    mUDPOutputPort = DEFAULT_UDP_INPUT_PORT;
     mUDPOutputAddress = "127.0.0.1";
+    // There was a mixup at some point and input and output udp ports were inverted.
+    mUDPOutputPort = DEFAULT_UDP_INPUT_PORT;
+    mUdpReceiverSocket->bindToPort(DEFAULT_UDP_OUTPUT_PORT);
+
 }
 
 //==============================================================================
@@ -89,7 +89,7 @@ bool SpeakerViewComponent::setUDPInputPort(int const port)
   mUdpReceiverSocket->shutdown();
   mUdpReceiverSocket.reset();
   mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
-  success = mUdpReceiverSocket->bindToPort(port, "127.0.0.1");
+  success = mUdpReceiverSocket->bindToPort(port, mUDPOutputAddress);
   return success;
 }
 
@@ -551,7 +551,7 @@ void SpeakerViewComponent::sendUDP()
     if (!mJsonSGInfos.empty()) {{
             [[maybe_unused]] int numBytesWrittenSGInfos
                 = udpSenderSocket.write(mUDPOutputAddress,
-                                        DEFAULT_UDP_INPUT_PORT,
+                                        mUDPOutputPort,
                                         mJsonSGInfos.c_str(),
                                         static_cast<int>(mJsonSGInfos.size()));
             jassert(!(numBytesWrittenSGInfos < 0));
