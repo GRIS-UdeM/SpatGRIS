@@ -65,11 +65,25 @@ class SettingsComponent final
     juce::Label mOscInputPortLabel{ "", "OSC Input Port :" };
     juce::TextEditor mOscInputPortTextEditor{};
 
+    juce::Label mSpeakerViewInputPortLabel{ "", "SpeakerView Input Port :" };
+    juce::TextEditor mSpeakerViewInputPortTextEditor{};
+
+    juce::Label mSpeakerViewOutputAddressLabel{ "", "SpeakerView Output Address :" };
+    juce::TextEditor mSpeakerViewOutputAddressTextEditor{};
+
+    juce::Label mSpeakerViewOutputPortLabel{ "", "SpeakerView Output Port :" };
+    juce::TextEditor mSpeakerViewOutputPortTextEditor{};
+
     juce::TextButton mSaveSettingsButton;
 
 public:
+    int mInitialOSCPort;
+    int mInitialUDPInputPort;
+    int mInitialUDPOutputPort;
+    juce::String mInitialUDPOutputAddress;
+
     //==============================================================================
-    SettingsComponent(MainContentComponent & parent, int oscPort, GrisLookAndFeel & lookAndFeel);
+    SettingsComponent(MainContentComponent & parent, GrisLookAndFeel & lookAndFeel);
     //==============================================================================
     SettingsComponent() = delete;
     ~SettingsComponent() override;
@@ -78,8 +92,9 @@ public:
 
     void buttonClicked(juce::Button * button) override;
 
-    void placeComponents();
+    void textEditorFocusLost(juce::TextEditor & text_editor) override;
 
+    void placeComponents();
 private:
     //==============================================================================
     void fillComboBoxes();

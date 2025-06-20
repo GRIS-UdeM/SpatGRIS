@@ -38,7 +38,7 @@ class SpeakerModel;
 //==============================================================================
 /**
  * @brief Manages network interaction with the SpeakerView process.
- * 
+ *
  * The communication is based on JSON over raw UDP sockets.
  * The protocol is documented in [doc/SpeakerView.md](SpeakerView.md) at the root of the repository.
  */
@@ -51,7 +51,7 @@ private:
     ViewportData mData{};
     juce::Thread::ThreadID mHighResTimerThreadID;
 
-    juce::DatagramSocket mUdpReceiverSocket;
+    std::unique_ptr<juce::DatagramSocket> mUdpReceiverSocket;
     static constexpr int mMaxBufferSize = 1024;
 
     std::string mJsonSources;
@@ -92,6 +92,12 @@ public:
     auto const & getLock() const noexcept { return mLock; }
     //==============================================================================
     void hiResTimerCallback() override;
+
+    int getUDPInputPort();
+    bool setUDPInputPort(int const port);
+
+    int mUDPOutputPort;
+    juce::String mUDPOutputAddress;
 
 private:
     //==============================================================================

@@ -178,10 +178,18 @@ public:
      * nullopt if its not part of a group.
      */
     std::map<output_patch_t, tl::optional<Position>> getSpeakersGroupCenters();
-    
+
     void setSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
     void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
     void setOscPort(int newOscPort);
+    int getOscPort();
+    void setUDPInputPort(int port);
+    int getUDPInputPort();
+    void setUDPOutputPort(int port);
+    int getUDPOutputPort();
+    void setUDPOutputAddress(juce::String port);
+    juce::String getUDPOutputAddress();
+
     void setSpeakerSetupDiffusion(float diffusion);
 
     void setPinkNoiseGain(tl::optional<dbfs_t> gain);
