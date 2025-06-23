@@ -176,7 +176,7 @@ void SpeakerViewComponent::shouldKillSpeakerViewProcess(bool shouldKill)
     if (shouldKill) {
         // asking SpeakView to quit itself. SpeakView will send stop message before closing
         prepareSGInfos();
-        sendUDP();
+        sendSpatGRISUDP();
     }
 }
 
@@ -330,7 +330,24 @@ void SpeakerViewComponent::hiResTimerCallback()
     prepareSpeakersJson();
     prepareSGInfos();
 
-    sendUDP();
+    if (mTicksSinceKeepalive == 9 || mOldJsonSources != mJsonSources) {
+      sendSourcesUDP();
+      mOldJsonSources = mJsonSources;
+    }
+
+    if (mTicksSinceKeepalive == 9 || mOldJsonSpeakers != mJsonSpeakers) {
+      sendSpeakersUDP();
+      mOldJsonSpeakers = mJsonSpeakers;
+    }
+
+    if (mTicksSinceKeepalive == 9 || mOldJsonSGInfos != mJsonSGInfos) {
+      sendSpatGRISUDP();
+      mOldJsonSGInfos = mJsonSGInfos;
+    }
+
+    mTicksSinceKeepalive+=1;
+    mTicksSinceKeepalive%=10;
+
 }
 
 //==============================================================================
@@ -531,7 +548,7 @@ void SpeakerViewComponent::listenUDP()
 }
 
 //==============================================================================
-void SpeakerViewComponent::sendUDP()
+void SpeakerViewComponent::sendSourcesUDP()
 {
     {
         [[maybe_unused]] int numBytesWrittenSources = udpSenderSocket.write(mUDPOutputAddress,
@@ -540,14 +557,20 @@ void SpeakerViewComponent::sendUDP()
                                                                             static_cast<int>(mJsonSources.size()));
         jassert(!(numBytesWrittenSources < 0));
     }
+}
+void SpeakerViewComponent::sendSpeakersUDP()
 {
+    {
         [[maybe_unused]] int numBytesWrittenSpeakers = udpSenderSocket.write(mUDPOutputAddress,
                                                                              mUDPOutputPort,
                                                                              mJsonSpeakers.c_str(),
                                                                              static_cast<int>(mJsonSpeakers.size()));
         jassert(!(numBytesWrittenSpeakers < 0));
     }
+}
 
+void SpeakerViewComponent::sendSpatGRISUDP()
+{
     if (!mJsonSGInfos.empty()) {{
             [[maybe_unused]] int numBytesWrittenSGInfos
                 = udpSenderSocket.write(mUDPOutputAddress,

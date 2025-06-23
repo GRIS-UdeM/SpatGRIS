@@ -54,9 +54,20 @@ private:
     std::unique_ptr<juce::DatagramSocket> mUdpReceiverSocket;
     static constexpr int mMaxBufferSize = 1024;
 
+    // We use the json strings to see if the data has changed.
+    // It would maybe be a bit more efficient to avoid playing with
+    // strings unless we are sure that the data has changed.
+    std::string mOldJsonSGInfos = "nothing";
+    std::string mOldJsonSpeakers = "nothing";
+    std::string mOldJsonSources = "nothing";
+
     std::string mJsonSources;
     std::string mJsonSpeakers;
     std::string mJsonSGInfos;
+
+    // We still want to send udp packets even if nothing at all
+    // has changed.
+    uint32_t mTicksSinceKeepalive = 0;
 
     const juce::String remoteHostname = "127.0.0.1";
     juce::DatagramSocket udpSenderSocket;
@@ -106,7 +117,9 @@ private:
     void prepareSGInfos();
     bool isHiResTimerThread();
     void listenUDP();
-    void sendUDP();
+    void sendSpeakersUDP();
+    void sendSourcesUDP();
+    void sendSpatGRISUDP();
     void emptyUDPReceiverBuffer();
 
     //==============================================================================
