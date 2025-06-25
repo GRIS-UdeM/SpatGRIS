@@ -93,7 +93,11 @@ public:
     //==============================================================================
     void hiResTimerCallback() override;
 
-    int getUDPInputPort();
+    int getUDPInputPort() const;
+    /**
+     * Tries to set the udp input port to the given port. Reverts to the old port and show a warning
+     * if it fails.
+     */
     bool setUDPInputPort(int const port);
 
     int mUDPOutputPort;

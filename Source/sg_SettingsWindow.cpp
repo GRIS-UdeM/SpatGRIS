@@ -22,6 +22,8 @@
 #include "sg_AudioManager.hpp"
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
+#include "sg_SpeakerViewComponent.hpp"
+
 
 #include <bitset>
 
@@ -51,15 +53,16 @@ bool isNotPowerOfTwo(int const value)
 } // namespace
 
 //==============================================================================
-SettingsComponent::SettingsComponent(MainContentComponent & parent, GrisLookAndFeel & lookAndFeel)
+SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(parent)
+    , mSVComponent(sVComponent)
     , mLookAndFeel(lookAndFeel)
 {
 
     mInitialOSCPort = parent.getOscPort();
-    mInitialUDPInputPort = parent.getUDPInputPort();
-    mInitialUDPOutputPort = parent.getUDPOutputPort();
-    mInitialUDPOutputAddress = parent.getUDPOutputAddress();
+    mInitialUDPInputPort = mSVComponent.getUDPInputPort();
+    mInitialUDPOutputPort = mSVComponent.mUDPOutputPort;
+    mInitialUDPOutputAddress = mSVComponent.mUDPOutputAddress;
 
     auto initLabel = [this](juce::Label & label) {
         label.setJustificationType(juce::Justification::Flags::centredRight);
@@ -88,7 +91,7 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, GrisLookAndF
           };
 
     auto initTextEditor
-        = [this](juce::TextEditor & edit, juce::String tooltip, juce::String default_val) {
+        = [this](juce::TextEditor & edit, juce::StringRef tooltip, juce::StringRef default_val) {
           edit.setTooltip(tooltip);
           edit.setTextToShowWhenEmpty("", mLookAndFeel.getOffColour());
           edit.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
@@ -162,15 +165,21 @@ SettingsComponent::~SettingsComponent()
     }
     auto const newUDPInputPort{ mSpeakerViewInputPortTextEditor.getText().getIntValue() };
     if (newUDPInputPort != mInitialUDPInputPort) {
-        mMainContentComponent.setUDPInputPort(newUDPInputPort);
+        if (mSVComponent.setUDPInputPort(newUDPInputPort)) {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Could not change SpeakerView input port",
+                                                   "Could not change the SpeakerView input port to "+ juce::String(newUDPInputPort) + " . Some other application may have the same port open ?\n",
+                                                   "Ok",
+                                                   &mMainContentComponent);
+        }
     }
     auto const newUDPOutputPort{ mSpeakerViewOutputPortTextEditor.getText().getIntValue() };
     if (newUDPOutputPort != mInitialUDPOutputPort) {
-        mMainContentComponent.setUDPOutputPort(newUDPOutputPort);
+        mSVComponent.mUDPOutputPort = newUDPOutputPort;
     }
     auto const newUDPOutputAddress{ mSpeakerViewOutputAddressTextEditor.getText()};
     if (newUDPOutputAddress != mInitialUDPOutputAddress) {
-        mMainContentComponent.setUDPOutputAddress(newUDPOutputAddress);
+        mSVComponent.mUDPOutputAddress = newUDPOutputAddress;
     }
 }
 
@@ -206,52 +215,52 @@ void SettingsComponent::placeComponents()
 {
     auto yPosition = PADDING;
 
-    auto const skip = [&yPosition]() { yPosition += LINE_SKIP; };
-    auto const skipSection = [&yPosition]() { yPosition += SECTION_SKIP; };
+    auto const addLineGap = [&yPosition]() { yPosition += LINE_SKIP; };
+    auto const addSectionGap = [&yPosition]() { yPosition += SECTION_SKIP; };
 
     //==============================================================================
     mAudioSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mDeviceTypeLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mDeviceTypeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mInputDeviceLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mInputDeviceCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mOutputDeviceLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOutputDeviceCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mSampleRateLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mSampleRateCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mBufferSize.setTopLeftPosition(LEFT_COL_START, yPosition);
     mBufferSizeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skipSection();
+    addSectionGap();
 
     //==============================================================================
     mGeneralSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mOscInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOscInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mSpeakerViewInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mSpeakerViewInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mSpeakerViewOutputAddressLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mSpeakerViewOutputAddressTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mSpeakerViewOutputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mSpeakerViewOutputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skipSection();
+    addSectionGap();
 
     mSaveSettingsButton.setTopRightPosition(RIGHT_COL_START + RIGHT_COL_WIDTH, yPosition);
 
@@ -410,10 +419,10 @@ void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
 }
 
 //==============================================================================
-SettingsWindow::SettingsWindow(MainContentComponent & parent, int const oscPort, GrisLookAndFeel & grisLookAndFeel)
+SettingsWindow::SettingsWindow(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & grisLookAndFeel)
     : DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(parent)
-    , mPropertiesComponent(parent, grisLookAndFeel)
+    , mPropertiesComponent(parent, sVComponent, grisLookAndFeel)
 {
     setAlwaysOnTop(true);
     setContentNonOwned(&mPropertiesComponent, true);

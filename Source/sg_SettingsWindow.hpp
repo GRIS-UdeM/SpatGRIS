@@ -20,6 +20,7 @@
 #pragma once
 
 #include "sg_Configuration.hpp"
+#include "sg_SpeakerViewComponent.hpp"
 
 namespace gris
 {
@@ -37,6 +38,7 @@ class SettingsComponent final
     juce::StringArray mOutputDevices{};
 
     MainContentComponent & mMainContentComponent;
+    SpeakerViewComponent & mSVComponent;
     GrisLookAndFeel & mLookAndFeel;
 
     int mOscPortWhenLoaded;
@@ -83,7 +85,7 @@ public:
     juce::String mInitialUDPOutputAddress;
 
     //==============================================================================
-    SettingsComponent(MainContentComponent & parent, GrisLookAndFeel & lookAndFeel);
+    SettingsComponent(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & lookAndFeel);
     //==============================================================================
     SettingsComponent() = delete;
     ~SettingsComponent() override;
@@ -113,7 +115,7 @@ class SettingsWindow final : public juce::DocumentWindow
 
 public:
     //==============================================================================
-    SettingsWindow(MainContentComponent & parent, int oscPort, GrisLookAndFeel & grisLookAndFeel);
+    SettingsWindow(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & grisLookAndFeel);
     //==============================================================================
     SettingsWindow() = delete;
     ~SettingsWindow() override = default;

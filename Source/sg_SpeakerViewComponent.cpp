@@ -63,15 +63,13 @@ static void appendNumber(std::string & str, int val)
 
 //==============================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
-    : mMainContentComponent(mainContentComponent)
+    : mMainContentComponent(mainContentComponent),
+      mUDPOutputAddress("127.0.0.1"),
+      // There was a mixup at some point and input and output udp ports were inverted.
+      mUDPOutputPort(DEFAULT_UDP_INPUT_PORT)
 {
-
     mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
-    mUDPOutputAddress = "127.0.0.1";
-    // There was a mixup at some point and input and output udp ports were inverted.
-    mUDPOutputPort = DEFAULT_UDP_INPUT_PORT;
     mUdpReceiverSocket->bindToPort(DEFAULT_UDP_OUTPUT_PORT);
-
 }
 
 //==============================================================================
@@ -82,18 +80,20 @@ SpeakerViewComponent::~SpeakerViewComponent()
 
 bool SpeakerViewComponent::setUDPInputPort(int const port)
 {
-  bool success = false;
+  int oldPort = getUDPInputPort();
   juce::ScopedLock const lock{ mLock };
   // Apparently, calling bindToPort when a socket is already bound results in
   // failure every time so we reconstruct the socket.
-  mUdpReceiverSocket->shutdown();
-  mUdpReceiverSocket.reset();
   mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
-  success = mUdpReceiverSocket->bindToPort(port, mUDPOutputAddress);
+  bool success = mUdpReceiverSocket->bindToPort(port, mUDPOutputAddress);
+  if (!success) {
+    mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
+    mUdpReceiverSocket->bindToPort(oldPort, mUDPOutputAddress);
+  }
   return success;
 }
 
-int SpeakerViewComponent::getUDPInputPort()
+int SpeakerViewComponent::getUDPInputPort() const
 {
   return mUdpReceiverSocket->getBoundPort();
 }
