@@ -721,8 +721,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return false;
     }
 
-    juce::Thread::RealtimeOptions threadOptions;
-    mRecordersThread.startRealtimeThread(threadOptions.withPriority(9));
+    mRecordersThread.startThread(juce::Thread::Priority::highest);
 
     return true;
 }
