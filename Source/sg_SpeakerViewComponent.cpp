@@ -65,10 +65,13 @@ static void appendNumber(std::string & str, int val)
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
     : mMainContentComponent(mainContentComponent),
       mUDPOutputAddress("127.0.0.1"),
-      // There was a mixup at some point and input and output udp ports were inverted.
+      // We use the DEFAULT_UDP_INPUT_PORT for the output socket because the naming was
+      // inverted at some point. We should fix this inversion when we migrate these constants
+      // from algoGRIS into spatGRIS
       mUDPOutputPort(DEFAULT_UDP_INPUT_PORT)
 {
     mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
+    // Same naming inversion as explained by the comment above.
     mUdpReceiverSocket->bindToPort(DEFAULT_UDP_OUTPUT_PORT);
 }
 

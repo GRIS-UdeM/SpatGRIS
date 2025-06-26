@@ -130,7 +130,6 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewC
     mOscInputPortTextEditor.setInputRestrictions(5, "0123456789");
 
     initLabel(mSpeakerViewInputPortLabel);
-    // DEFAULT_UDP_INPUT_PORT and DEFAULT_UDP_OUTPUT_PORT were inverted at some point...
     initTextEditor(mSpeakerViewInputPortTextEditor, "SpeakerView Data Input port", juce::String{mInitialUDPInputPort});
     mSpeakerViewInputPortTextEditor.setInputRestrictions(5, "0123456789");
 
@@ -140,7 +139,6 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewC
     mSpeakerViewOutputAddressTextEditor.setInputRestrictions(15, "0123456789.");
 
     initLabel(mSpeakerViewOutputPortLabel);
-    // same as before, DEFAULT_UDP_INPUT_PORT and DEFAULT_UDP_OUTPUT_PORT were inverted at some point...
     initTextEditor(mSpeakerViewOutputPortTextEditor, "SpeakerViewData Output Port", juce::String{mInitialUDPOutputPort});
     mSpeakerViewOutputPortTextEditor.setInputRestrictions(5, "0123456789");
 
