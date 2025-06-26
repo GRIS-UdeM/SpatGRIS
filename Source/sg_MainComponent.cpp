@@ -602,7 +602,7 @@ void MainContentComponent::handleShowPreferences()
     juce::ScopedReadLock const lock{ mLock };
 
     if (mPropertiesWindow == nullptr) {
-        mPropertiesWindow.reset(new SettingsWindow{ *this, mData.project.oscPort, mLookAndFeel });
+        mPropertiesWindow.reset(new SettingsWindow{ *this, *mSpeakerViewComponent, mLookAndFeel });
         mPropertiesWindow->centreAroundComponent(this, mPropertiesWindow->getWidth(), mPropertiesWindow->getHeight());
     }
 }
@@ -2135,13 +2135,13 @@ void MainContentComponent::setSpeakerHighPassFreq(output_patch_t const outputPat
 void MainContentComponent::setOscPort(int const newOscPort)
 {
     juce::ScopedWriteLock const lock{ mLock };
-    auto oldPort = mData.project.oscPort;
+    const auto oldPort = mData.project.oscPort;
     mData.project.oscPort = newOscPort;
     if (!mOscInput) {
         return;
     }
     mOscInput->closeConnection();
-    bool success = mOscInput->startConnection(newOscPort);
+    const bool success = mOscInput->startConnection(newOscPort);
     // rollback if it didn't work
     if (!success) {
         juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
@@ -2157,49 +2157,9 @@ void MainContentComponent::setOscPort(int const newOscPort)
     }
 }
 
-int MainContentComponent::getOscPort()
+int MainContentComponent::getOscPort() const
 {
     return mData.project.oscPort;
-}
-
-void MainContentComponent::setUDPInputPort(int const newPort)
-{
-    int oldPort = mSpeakerViewComponent->getUDPInputPort();
-    bool success = mSpeakerViewComponent->setUDPInputPort(newPort);
-    if (!success) {
-              juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
-                                                     "Could not change SpeakerView input port",
-                                                     "Could not change the SpeakerView input port to "+ juce::String(newPort) + " . Some other application may have the same port open ?\n",
-                                                     "Ok",
-                                                     this);
-
-        mSpeakerViewComponent->setUDPInputPort(oldPort);
-    }
-}
-
-int MainContentComponent::getUDPInputPort()
-{
-    return mSpeakerViewComponent->getUDPInputPort();
-}
-
-void MainContentComponent::setUDPOutputPort(int const newPort)
-{
-    mSpeakerViewComponent->mUDPOutputPort = newPort;
-}
-
-int MainContentComponent::getUDPOutputPort()
-{
-    return mSpeakerViewComponent->mUDPOutputPort;
-}
-
-void MainContentComponent::setUDPOutputAddress(juce::String const newAddress)
-{
-    mSpeakerViewComponent->mUDPOutputAddress = newAddress;
-}
-
-juce::String MainContentComponent::getUDPOutputAddress()
-{
-    return mSpeakerViewComponent->mUDPOutputAddress;
 }
 
 //==============================================================================

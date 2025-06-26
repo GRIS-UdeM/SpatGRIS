@@ -65,11 +65,6 @@ private:
     std::string mJsonSpeakers;
     std::string mJsonSGInfos;
 
-    // We still want to send udp packets even if nothing at all
-    // has changed.
-    uint32_t mTicksSinceKeepalive = 0;
-
-    const juce::String remoteHostname = "127.0.0.1";
     juce::DatagramSocket udpSenderSocket;
 
     bool mKillSpeakerViewProcess{};
@@ -78,7 +73,8 @@ public:
     //==============================================================================
     static constexpr auto SPHERE_RADIUS = 0.03f;
     static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
-    //==============================================================================
+    static inline const juce::String localhost{"127.0.0.1"};
+  //==============================================================================
     explicit SpeakerViewComponent(MainContentComponent & mainContentComponent);
 
     ~SpeakerViewComponent() override;
@@ -104,7 +100,11 @@ public:
     //==============================================================================
     void hiResTimerCallback() override;
 
-    int getUDPInputPort();
+    int getUDPInputPort() const;
+    /**
+     * Tries to set the udp input port to the given port. Reverts to the old port and show a warning
+     * if it fails.
+     */
     bool setUDPInputPort(int const port);
 
     int mUDPOutputPort;

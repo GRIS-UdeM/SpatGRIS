@@ -22,6 +22,8 @@
 #include "sg_AudioManager.hpp"
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
+#include "sg_SpeakerViewComponent.hpp"
+
 
 #include <bitset>
 
@@ -51,15 +53,16 @@ bool isNotPowerOfTwo(int const value)
 } // namespace
 
 //==============================================================================
-SettingsComponent::SettingsComponent(MainContentComponent & parent, GrisLookAndFeel & lookAndFeel)
+SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(parent)
+    , mSVComponent(sVComponent)
     , mLookAndFeel(lookAndFeel)
 {
 
     mInitialOSCPort = parent.getOscPort();
-    mInitialUDPInputPort = parent.getUDPInputPort();
-    mInitialUDPOutputPort = parent.getUDPOutputPort();
-    mInitialUDPOutputAddress = parent.getUDPOutputAddress();
+    mInitialUDPInputPort = mSVComponent.getUDPInputPort();
+    mInitialUDPOutputPort = mSVComponent.mUDPOutputPort;
+    mInitialUDPOutputAddress = mSVComponent.mUDPOutputAddress;
 
     auto initLabel = [this](juce::Label & label) {
         label.setJustificationType(juce::Justification::Flags::centredRight);
@@ -88,7 +91,7 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, GrisLookAndF
           };
 
     auto initTextEditor
-        = [this](juce::TextEditor & edit, juce::String tooltip, juce::String default_val) {
+        = [this](juce::TextEditor & edit, juce::StringRef tooltip, juce::StringRef default_val) {
           edit.setTooltip(tooltip);
           edit.setTextToShowWhenEmpty("", mLookAndFeel.getOffColour());
           edit.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
@@ -120,14 +123,15 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, GrisLookAndF
     initComboBox(mBufferSizeCombo);
 
     //==============================================================================
-    initSectionLabel(mGeneralSectionLabel);
+    initSectionLabel(mSpatNetworkSettings);
 
     initLabel(mOscInputPortLabel);
     initTextEditor(mOscInputPortTextEditor, "Port Socket OSC Input", juce::String{mInitialOSCPort});
     mOscInputPortTextEditor.setInputRestrictions(5, "0123456789");
 
+    initSectionLabel(mSpeakerViewNetworkSettings);
+
     initLabel(mSpeakerViewInputPortLabel);
-    // DEFAULT_UDP_INPUT_PORT and DEFAULT_UDP_OUTPUT_PORT were inverted at some point...
     initTextEditor(mSpeakerViewInputPortTextEditor, "SpeakerView Data Input port", juce::String{mInitialUDPInputPort});
     mSpeakerViewInputPortTextEditor.setInputRestrictions(5, "0123456789");
 
@@ -137,7 +141,6 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, GrisLookAndF
     mSpeakerViewOutputAddressTextEditor.setInputRestrictions(15, "0123456789.");
 
     initLabel(mSpeakerViewOutputPortLabel);
-    // same as before, DEFAULT_UDP_INPUT_PORT and DEFAULT_UDP_OUTPUT_PORT were inverted at some point...
     initTextEditor(mSpeakerViewOutputPortTextEditor, "SpeakerViewData Output Port", juce::String{mInitialUDPOutputPort});
     mSpeakerViewOutputPortTextEditor.setInputRestrictions(5, "0123456789");
 
@@ -162,15 +165,21 @@ SettingsComponent::~SettingsComponent()
     }
     auto const newUDPInputPort{ mSpeakerViewInputPortTextEditor.getText().getIntValue() };
     if (newUDPInputPort != mInitialUDPInputPort) {
-        mMainContentComponent.setUDPInputPort(newUDPInputPort);
+        if (mSVComponent.setUDPInputPort(newUDPInputPort)) {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Could not change SpeakerView input port",
+                                                   "Could not change the SpeakerView input port to "+ juce::String(newUDPInputPort) + " . Some other application may have the same port open ?\n",
+                                                   "Ok",
+                                                   &mMainContentComponent);
+        }
     }
     auto const newUDPOutputPort{ mSpeakerViewOutputPortTextEditor.getText().getIntValue() };
     if (newUDPOutputPort != mInitialUDPOutputPort) {
-        mMainContentComponent.setUDPOutputPort(newUDPOutputPort);
+        mSVComponent.mUDPOutputPort = newUDPOutputPort;
     }
     auto const newUDPOutputAddress{ mSpeakerViewOutputAddressTextEditor.getText()};
     if (newUDPOutputAddress != mInitialUDPOutputAddress) {
-        mMainContentComponent.setUDPOutputAddress(newUDPOutputAddress);
+        mSVComponent.mUDPOutputAddress = newUDPOutputAddress;
     }
 }
 
@@ -206,52 +215,55 @@ void SettingsComponent::placeComponents()
 {
     auto yPosition = PADDING;
 
-    auto const skip = [&yPosition]() { yPosition += LINE_SKIP; };
-    auto const skipSection = [&yPosition]() { yPosition += SECTION_SKIP; };
+    auto const addLineGap = [&yPosition]() { yPosition += LINE_SKIP; };
+    auto const addSectionGap = [&yPosition]() { yPosition += SECTION_SKIP; };
 
     //==============================================================================
     mAudioSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mDeviceTypeLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mDeviceTypeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mInputDeviceLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mInputDeviceCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mOutputDeviceLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOutputDeviceCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mSampleRateLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mSampleRateCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mBufferSize.setTopLeftPosition(LEFT_COL_START, yPosition);
     mBufferSizeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skipSection();
+    addSectionGap();
 
     //==============================================================================
-    mGeneralSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    skip();
+    mSpatNetworkSettings.setTopLeftPosition(LEFT_COL_START, yPosition);
+    addLineGap();
 
     mOscInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOscInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addSectionGap();
+
+    mSpeakerViewNetworkSettings.setTopLeftPosition(LEFT_COL_START, yPosition);
+    addLineGap();
 
     mSpeakerViewInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mSpeakerViewInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mSpeakerViewOutputAddressLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mSpeakerViewOutputAddressTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mSpeakerViewOutputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mSpeakerViewOutputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skipSection();
+    addSectionGap();
 
     mSaveSettingsButton.setTopRightPosition(RIGHT_COL_START + RIGHT_COL_WIDTH, yPosition);
 
@@ -393,7 +405,7 @@ void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
     juce::IPAddress ip = juce::IPAddress(textEditor.getText());
     if (ip.toString() != textEditor.getText())
     {
-      textEditor.setText("127.0.0.1");
+      textEditor.setText(localhost);
     }
   }
   // Validate UDP ports (can't have UDP port < 1024 or > 65535)
@@ -401,19 +413,19 @@ void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
       &textEditor == &mSpeakerViewInputPortTextEditor ||
       &textEditor == &mSpeakerViewOutputPortTextEditor ||
       &textEditor == &mOscInputPortTextEditor) {
-    if (textEditor.getText().getIntValue() < 1024) {
-        textEditor.setText("1024");
-    } else if (textEditor.getText().getIntValue() > 65535) {
-      textEditor.setText("65535");
+    if (textEditor.getText().getIntValue() < minUDPPort) {
+        textEditor.setText(minUDPPortString);
+    } else if (textEditor.getText().getIntValue() > maxUDPPort) {
+      textEditor.setText(maxUDPPortString);
     }
   }
 }
 
 //==============================================================================
-SettingsWindow::SettingsWindow(MainContentComponent & parent, int const oscPort, GrisLookAndFeel & grisLookAndFeel)
+SettingsWindow::SettingsWindow(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & grisLookAndFeel)
     : DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(parent)
-    , mPropertiesComponent(parent, grisLookAndFeel)
+    , mPropertiesComponent(parent, sVComponent, grisLookAndFeel)
 {
     setAlwaysOnTop(true);
     setContentNonOwned(&mPropertiesComponent, true);
