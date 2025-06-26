@@ -33,27 +33,12 @@ class GrisLookAndFeel : public juce::LookAndFeel_V4
 public:
     float constexpr static mFontSize = 10.f;
 
-// <<<<<<< HEAD
-//     juce::Font mFont = juce::Font(juce::FontOptions(BinaryData::SinkinSans400Regular_otf,
-//                                                     narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize),
-//                                                     juce::Font::plain));
-//     juce::Font mBigFont = juce::Font(juce::FontOptions(BinaryData::SinkinSans400Regular_otf,
-//                                                        narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize),
-//                                                        juce::Font::plain));
-//     juce::Font mBiggerFont = juce::Font(juce::FontOptions(BinaryData::SinkinSans400Regular_otf,
-//                                                           narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize),
-//                                                           juce::Font::plain));
-//     juce::Font mMonoFont = juce::Font(juce::FontOptions(BinaryData::FreeFarsiMono_otf,
-//                                                         narrow<size_t>(BinaryData::FreeFarsiMono_otfSize),
-//                                                         juce::Font::plain));
-// =======
     juce::FontOptions const sinkinSansOptions { juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, BinaryData::SinkinSans400Regular_otfSize))};
     juce::Font mSmallerFont { sinkinSansOptions.withHeight(mFontSize - 3) };
     juce::Font mSmallFont   { sinkinSansOptions.withHeight(mFontSize - 1) };
     juce::Font mFont        { sinkinSansOptions.withHeight(mFontSize) };
     juce::Font mBigFont     { sinkinSansOptions.withHeight(mFontSize + 3) };
     juce::Font mBiggerFont  { sinkinSansOptions.withHeight(mFontSize + 6) };
-// >>>>>>> a52c600c (Update to JUCE 8 (#469))
 
     juce::FontOptions freeFarsiMonoOptions {juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::FreeFarsiMono_otf, BinaryData::FreeFarsiMono_otfSize))};
     juce::Font mMonoFont    { freeFarsiMonoOptions.withHeight(mFontSize + 8) };
@@ -77,17 +62,6 @@ public:
     juce::Colour mSubColor;
     juce::Colour mInactiveColor;
 
-// <<<<<<< HEAD
-// public:
-//     //==============================================================================
-//     juce::Font mSmallFont = juce::Font(juce::FontOptions(BinaryData::SinkinSans400Regular_otf,
-//                                                          narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize),
-//                                                          juce::Font::plain));
-//     juce::Font mSmallerFont = juce::Font(juce::FontOptions(BinaryData::SinkinSans400Regular_otf,
-//                                                            narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize),
-//                                                            juce::Font::plain));
-// =======
-// >>>>>>> a52c600c (Update to JUCE 8 (#469))
     //==============================================================================
     GrisLookAndFeel();
     ~GrisLookAndFeel() override = default;
