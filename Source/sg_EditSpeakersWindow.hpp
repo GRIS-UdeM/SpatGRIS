@@ -31,81 +31,11 @@ namespace gris
 class MainContentComponent;
 class GrisLookAndFeel;
 
-<<<<<<< HEAD
 /** This is used to snap the elevation when calculating ring positions. 135.f is short-hand for the mid point
-=======
-
-/** used to snap the elevation when calculating ring positions. 135.f is short-hand for the mid point
->>>>>>> bdc78f98 (rebase)
     between 90° (max elevation going up) and 270° (max elevation going down): 90 + (360 − 270)/2 = 135.
 */
 static auto constexpr elevationHalfPoint{ 135.f };
 
-<<<<<<< HEAD
-=======
-//==============================================================================
-
-// Helper struct to trigger static_assert for unsupported types
-template<typename T>
-struct always_false : std::false_type {
-};
-
-struct LabelWrapper {
-    explicit LabelWrapper(GrisLookAndFeel & lookAndFeel);
-    virtual ~LabelWrapper() { label.setLookAndFeel(nullptr); }
-    virtual void setVisible(bool visible) { label.setVisible(visible); }
-
-    juce::Label label;
-};
-
-struct LabelTextEditorWrapper : public LabelWrapper
-{
-    explicit LabelTextEditorWrapper(GrisLookAndFeel & lookAndFeel);
-    ~LabelTextEditorWrapper() { editor.setLookAndFeel(nullptr); }
-
-    template<typename T>
-    T getTextAs()
-    {
-        auto const text{ editor.getText() };
-
-        if constexpr (std::is_same_v<T, juce::String>)
-            return text;
-        else if constexpr (std::is_same_v<T, int>)
-            return text.getIntValue();
-        else if constexpr (std::is_same_v<T, float>)
-            return text.getFloatValue();
-        else if constexpr (std::is_same_v<T, double>)
-            return text.getDoubleValue();
-        else
-            static_assert(always_false<T>::value, "Unsupported type");
-
-        return {};
-    }
-
-    void setVisible(bool visible) override
-    {
-        LabelWrapper::setVisible(visible);
-        editor.setVisible(visible);
-    }
-
-    juce::TextEditor editor;
-};
-
-struct LabelComboBoxWrapper : public LabelWrapper
-{
-    explicit LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel);
-
-    int getSelectionAsInt(){ return comboBox.getText().getIntValue(); }
-    void setVisible(bool visible) override
-    {
-        LabelWrapper::setVisible(visible);
-        comboBox.setVisible(visible);
-    }
-
-    juce::ComboBox comboBox{};
-};
-
->>>>>>> bdc78f98 (rebase)
 //==============================================================================
 
 // Helper struct to trigger static_assert for unsupported types
@@ -245,14 +175,8 @@ public:
     EditSpeakersWindow() = delete;
     SG_DELETE_COPY_AND_MOVE(EditSpeakersWindow)
     //==============================================================================
-<<<<<<< HEAD
 
     void selectSpeaker(tl::optional<output_patch_t> outputPatch) { mSpeakerSetupContainer.selectSpeaker(outputPatch); }
-=======
-    void initComp();
-    void selectRow(tl::optional<int> value);
-    void selectSpeaker(tl::optional<output_patch_t> outputPatch);
->>>>>>> bdc78f98 (rebase)
 
     void togglePolyhedraExtraWidgets();
 
@@ -268,20 +192,15 @@ private:
     SpeakerData const & getSpeakerData(int rowNum) const;
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     void computeSpeakers();
-<<<<<<< HEAD
     void addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition);
     juce::ValueTree addNewSpeakerToVt (const gris::output_patch_t& newOutputPatch, juce::ValueTree parent, int index);
 
-=======
-    void addSpeakerGroup(int numSpeakers, std::function<Position(int)> getSpeakerPosition);
->>>>>>> bdc78f98 (rebase)
     //==============================================================================
     // VIRTUALS
     void buttonClicked(juce::Button * button) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void textEditorFocusLost(juce::TextEditor &) override;
     void closeButtonPressed() override;
-<<<<<<< HEAD
     bool keyPressed (const juce::KeyPress &key) override;
     void resized () override;
     void sliderValueChanged (juce::Slider* slider) override;
@@ -290,21 +209,6 @@ private:
     void valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent) override;
 
     juce::UndoManager& undoManager;
-=======
-    bool keyPressed(const juce::KeyPress & key) override;
-    void sliderValueChanged(juce::Slider * slider) override;
-    void sortOrderChanged(int newSortColumnId, bool isForwards) override;
-    void resized() override;
-    void paintRowBackground(juce::Graphics & g, int rowNumber, int width, int height, bool rowIsSelected) override;
-    void paintCell(juce::Graphics &, int, int, int , int, bool ) override {}
-    [[nodiscard]] Component * refreshComponentForCell(int rowNumber,
-                                                      int columnId,
-                                                      bool isRowSelected,
-                                                      Component * existingComponentToUpdate) override;
-    void mouseDown(juce::MouseEvent const & event) override;
-    void mouseDrag(juce::MouseEvent const & event) override;
-    void mouseUp(juce::MouseEvent const & event) override;
->>>>>>> bdc78f98 (rebase)
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };

@@ -113,6 +113,9 @@ private:
     void sendUDP();
     void emptyUDPReceiverBuffer();
 
+    void writeSourcesJson();
+    void writeSpeakersJson();
+
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerViewComponent)
 }; // class SpeakerViewComponent
