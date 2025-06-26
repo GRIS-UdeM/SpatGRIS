@@ -433,10 +433,10 @@ void SpeakerViewComponent::listenUDP()
                 const auto keys = jsonResult.getDynamicObject()->getProperties();
 
                 for (int i{}; i < keys.size(); ++i) {
-                    auto & property = keys.getName(i).toString();
+                    std::string property = keys.getName(i).toString().toStdString();
                     juce::var value = keys.getValueAt(i);
 
-                    if (property.compare(juce::String("selSpkNum")) == 0) {
+                    if (property == "selSpkNum") {
                         juce::String selSpkNumValues = value;
                         auto spkIsSelectedWithMouseStr = selSpkNumValues.fromLastOccurrenceOf(",", false, true);
                         selSpkNumValues = selSpkNumValues.dropLastCharacters(spkIsSelectedWithMouseStr.length() + 1);
@@ -450,77 +450,77 @@ void SpeakerViewComponent::listenUDP()
                                 mMainContentComponent.setSelectedSpeakers(juce::Array<output_patch_t>{ speaker });
                             });
                         }
-                    } else if (property.compare(juce::String("keepSVTop")) == 0) {
+                    } else if (property == "keepSVTop") {
                         auto keepSVOnTopValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, keepSVOnTopValue] {
                             mMainContentComponent.handleKeepSVOnTopFromSpeakerView(keepSVOnTopValue);
                         });
-                    } else if (property.compare(juce::String("showHall")) == 0) {
+                    } else if (property == "showHall") {
                         auto showHallValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showHallValue] {
                             mMainContentComponent.handleShowHallFromSpeakerView(showHallValue);
                         });
-                    } else if (property.compare(juce::String("showSrcNum")) == 0) {
+                    } else if (property == "showSrcNum") {
                         auto showSrcValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSrcValue] {
                             mMainContentComponent.handleShowSourceNumbersFromSpeakerView(showSrcValue);
                         });
-                    } else if (property.compare(juce::String("showSpkNum")) == 0) {
+                    } else if (property == "showSpkNum") {
                         auto showSpkValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSpkValue] {
                             mMainContentComponent.handleShowSpeakerNumbersFromSpeakerView(showSpkValue);
                         });
-                    } else if (property.compare(juce::String("showSpks")) == 0) {
+                    } else if (property == "showSpks") {
                         auto showSpksValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSpksValue] {
                             mMainContentComponent.handleShowSpeakersFromSpeakerView(showSpksValue);
                         });
-                    } else if (property.compare(juce::String("showSpkTriplets")) == 0) {
+                    } else if (property == "showSpkTriplets") {
                         auto showSpksTripletsValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSpksTripletsValue] {
                             mMainContentComponent.handleShowSpeakerTripletsFromSpeakerView(showSpksTripletsValue);
                         });
-                    } else if (property.compare(juce::String("showSrcActivity")) == 0) {
+                    } else if (property == "showSrcActivity") {
                         auto showSrcActivityValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSrcActivityValue] {
                             mMainContentComponent.handleShowSourceActivityFromSpeakerView(showSrcActivityValue);
                         });
-                    } else if (property.compare(juce::String("showSpkLevel")) == 0) {
+                    } else if (property == "showSpkLevel") {
                         auto showSpkLevelValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSpkLevelValue] {
                             mMainContentComponent.handleShowSpeakerLevelFromSpeakerView(showSpkLevelValue);
                         });
-                    } else if (property.compare(juce::String("showSphereCube")) == 0) {
+                    } else if (property == "showSphereCube") {
                         auto showSphereOrCubeValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSphereOrCubeValue] {
                             mMainContentComponent.handleShowSphereOrCubeFromSpeakerView(showSphereOrCubeValue);
                         });
-                    } else if (property.compare(juce::String("resetSrcPos")) == 0) {
+                    } else if (property == "resetSrcPos") {
                         if (static_cast<int>(value) != 0) {
                             juce::MessageManager::callAsync(
                                 [this] { mMainContentComponent.handleResetSourcesPositionsFromSpeakerView(); });
                         }
-                    } else if (property.compare(juce::String("genMute")) == 0) {
+                    } else if (property == "genMute") {
                         auto generalMute = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, generalMute] {
                             mMainContentComponent.handleGeneralMuteFromSpeakerView(generalMute);
                         });
-                    } else if (property.compare(juce::String("winPos")) == 0) {
+                    } else if (property == "winPos") {
                         auto winPosValue = value;
                         juce::MessageManager::callAsync([this, winPosValue] {
                             mMainContentComponent.handleWindowPositionFromSpeakerView(winPosValue);
                         });
-                    } else if (property.compare(juce::String("winSize")) == 0) {
+                    } else if (property == "winSize") {
                         auto winSizeValue = value;
                         juce::MessageManager::callAsync([this, winSizeValue] {
                             mMainContentComponent.handleWindowSizeFromSpeakerView(winSizeValue);
                         });
-                    } else if (property.compare(juce::String("camPos")) == 0) {
+                    } else if (property == "camPos") {
                         auto camPosValue = value;
                         juce::MessageManager::callAsync([this, camPosValue] {
                             mMainContentComponent.handleCameraPositionFromSpeakerView(camPosValue);
                         });
-                    } else if (property.compare(juce::String("quitting")) == 0) {
+                    } else if (property == "quitting") {
                         bool quittingValue = value;
                         if (quittingValue) {
                             stopTimer();

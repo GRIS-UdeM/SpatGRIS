@@ -2356,7 +2356,6 @@ void MainContentComponent::refreshViewportConfig() const
     if (!mAudioProcessor) {
         return;
     }
-
     auto const & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
 
     auto const newConfig{ mData.toViewportConfig() };
