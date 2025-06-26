@@ -63,16 +63,42 @@ static void appendNumber(std::string & str, int val)
 
 //==============================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
-    : mMainContentComponent(mainContentComponent)
+    : mMainContentComponent(mainContentComponent),
+      mUDPOutputAddress(localhost),
+      // We use the DEFAULT_UDP_INPUT_PORT for the output socket because the naming was
+      // inverted at some point. We should fix this inversion when we migrate these constants
+      // from algoGRIS into spatGRIS
+      mUDPOutputPort(DEFAULT_UDP_INPUT_PORT)
 {
-    mUdpReceiverSocket.bindToPort(DEFAULT_UDP_OUTPUT_PORT, "127.0.0.1");
+    mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
+    // Same naming inversion as explained by the comment above.
+    mUdpReceiverSocket->bindToPort(DEFAULT_UDP_OUTPUT_PORT);
 }
 
 //==============================================================================
 SpeakerViewComponent::~SpeakerViewComponent()
 {
     stopTimer();
-    mUdpReceiverSocket.shutdown();
+}
+
+bool SpeakerViewComponent::setUDPInputPort(int const port)
+{
+  int oldPort = getUDPInputPort();
+  juce::ScopedLock const lock{ mLock };
+  // Apparently, calling bindToPort when a socket is already bound results in
+  // failure every time so we reconstruct the socket.
+  mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
+  bool success = mUdpReceiverSocket->bindToPort(port, mUDPOutputAddress);
+  if (!success) {
+    mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
+    mUdpReceiverSocket->bindToPort(oldPort, mUDPOutputAddress);
+  }
+  return success;
+}
+
+int SpeakerViewComponent::getUDPInputPort() const
+{
+  return mUdpReceiverSocket->getBoundPort();
 }
 
 //==============================================================================
@@ -395,7 +421,7 @@ void SpeakerViewComponent::listenUDP()
     juce::String senderAddress;
     int senderPort;
     char receiveBuffer[mMaxBufferSize];
-    auto packetSize = mUdpReceiverSocket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
+    auto packetSize = mUdpReceiverSocket->read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
 
     if (packetSize > 0) {
         juce::String receivedData(receiveBuffer, packetSize);
@@ -510,16 +536,16 @@ void SpeakerViewComponent::listenUDP()
 //==============================================================================
 void SpeakerViewComponent::sendUDP()
 {
- {
-        [[maybe_unused]] int numBytesWrittenSources = udpSenderSocket.write(remoteHostname,
-                                                                            DEFAULT_UDP_INPUT_PORT,
+    {
+        [[maybe_unused]] int numBytesWrittenSources = udpSenderSocket.write(mUDPOutputAddress,
+                                                                            mUDPOutputPort,
                                                                             mJsonSources.c_str(),
                                                                             static_cast<int>(mJsonSources.size()));
         jassert(!(numBytesWrittenSources < 0));
     }
 {
-        [[maybe_unused]] int numBytesWrittenSpeakers = udpSenderSocket.write(remoteHostname,
-                                                                             DEFAULT_UDP_INPUT_PORT,
+        [[maybe_unused]] int numBytesWrittenSpeakers = udpSenderSocket.write(mUDPOutputAddress,
+                                                                             mUDPOutputPort,
                                                                              mJsonSpeakers.c_str(),
                                                                              static_cast<int>(mJsonSpeakers.size()));
         jassert(!(numBytesWrittenSpeakers < 0));
@@ -527,8 +553,8 @@ void SpeakerViewComponent::sendUDP()
 
     if (!mJsonSGInfos.empty()) {{
             [[maybe_unused]] int numBytesWrittenSGInfos
-                = udpSenderSocket.write(remoteHostname,
-                                        DEFAULT_UDP_INPUT_PORT,
+                = udpSenderSocket.write(mUDPOutputAddress,
+                                        mUDPOutputPort,
                                         mJsonSGInfos.c_str(),
                                         static_cast<int>(mJsonSGInfos.size()));
             jassert(!(numBytesWrittenSGInfos < 0));
@@ -543,7 +569,7 @@ void SpeakerViewComponent::emptyUDPReceiverBuffer()
     int senderPort;
     char receiveBuffer[mMaxBufferSize];
     [[maybe_unused]] auto packetSize
-        = mUdpReceiverSocket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
+        = mUdpReceiverSocket->read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
 }
 
 } // namespace gris

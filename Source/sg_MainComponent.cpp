@@ -602,7 +602,7 @@ void MainContentComponent::handleShowPreferences()
     juce::ScopedReadLock const lock{ mLock };
 
     if (mPropertiesWindow == nullptr) {
-        mPropertiesWindow.reset(new SettingsWindow{ *this, mData.project.oscPort, mLookAndFeel });
+        mPropertiesWindow.reset(new SettingsWindow{ *this, *mSpeakerViewComponent, mLookAndFeel });
         mPropertiesWindow->centreAroundComponent(this, mPropertiesWindow->getWidth(), mPropertiesWindow->getHeight());
     }
 }
@@ -2135,12 +2135,31 @@ void MainContentComponent::setSpeakerHighPassFreq(output_patch_t const outputPat
 void MainContentComponent::setOscPort(int const newOscPort)
 {
     juce::ScopedWriteLock const lock{ mLock };
+    const auto oldPort = mData.project.oscPort;
     mData.project.oscPort = newOscPort;
     if (!mOscInput) {
         return;
     }
     mOscInput->closeConnection();
-    mOscInput->startConnection(newOscPort);
+    const bool success = mOscInput->startConnection(newOscPort);
+    // rollback if it didn't work
+    if (!success) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                               "Could not change OSC input port",
+                                               "Could not change the OSC input port to "+ juce::String(newOscPort) + " . Some other application may have the same port open ?\n",
+                                               "Ok",
+
+                                               this);
+
+        mData.project.oscPort = oldPort;
+        // we don't check if this one works, lets hope it does.
+        mOscInput->startConnection(oldPort);
+    }
+}
+
+int MainContentComponent::getOscPort() const
+{
+    return mData.project.oscPort;
 }
 
 //==============================================================================

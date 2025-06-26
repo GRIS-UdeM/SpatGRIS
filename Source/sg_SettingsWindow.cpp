@@ -22,6 +22,8 @@
 #include "sg_AudioManager.hpp"
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
+#include "sg_SpeakerViewComponent.hpp"
+
 
 #include <bitset>
 
@@ -51,11 +53,17 @@ bool isNotPowerOfTwo(int const value)
 } // namespace
 
 //==============================================================================
-SettingsComponent::SettingsComponent(MainContentComponent & parent, int const oscPort, GrisLookAndFeel & lookAndFeel)
+SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(parent)
+    , mSVComponent(sVComponent)
     , mLookAndFeel(lookAndFeel)
-    , mOscPortWhenLoaded(oscPort)
 {
+
+    mInitialOSCPort = parent.getOscPort();
+    mInitialUDPInputPort = mSVComponent.getUDPInputPort();
+    mInitialUDPOutputPort = mSVComponent.mUDPOutputPort;
+    mInitialUDPOutputAddress = mSVComponent.mUDPOutputAddress;
+
     auto initLabel = [this](juce::Label & label) {
         label.setJustificationType(juce::Justification::Flags::centredRight);
         label.setFont(mLookAndFeel.getFont());
@@ -82,6 +90,18 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, int const os
               addAndMakeVisible(combo);
           };
 
+    auto initTextEditor
+        = [this](juce::TextEditor & edit, juce::StringRef tooltip, juce::StringRef default_val) {
+          edit.setTooltip(tooltip);
+          edit.setTextToShowWhenEmpty("", mLookAndFeel.getOffColour());
+          edit.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+          edit.setLookAndFeel(&mLookAndFeel);
+          edit.setBounds(0, 0, RIGHT_COL_WIDTH, COMPONENT_HEIGHT);
+          edit.setText(juce::String{ default_val });
+          edit.addListener(this);
+          addAndMakeVisible(edit);
+        };
+
     auto & audioManager{ AudioManager::getInstance() };
 
     //==============================================================================
@@ -103,17 +123,26 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, int const os
     initComboBox(mBufferSizeCombo);
 
     //==============================================================================
-    initSectionLabel(mGeneralSectionLabel);
+    initSectionLabel(mSpatNetworkSettings);
 
     initLabel(mOscInputPortLabel);
-    mOscInputPortTextEditor.setTooltip("Port Socket OSC Input");
-    mOscInputPortTextEditor.setTextToShowWhenEmpty("", mLookAndFeel.getOffColour());
-    mOscInputPortTextEditor.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    mOscInputPortTextEditor.setLookAndFeel(&mLookAndFeel);
-    mOscInputPortTextEditor.setBounds(0, 0, RIGHT_COL_WIDTH, COMPONENT_HEIGHT);
+    initTextEditor(mOscInputPortTextEditor, "Port Socket OSC Input", juce::String{mInitialOSCPort});
     mOscInputPortTextEditor.setInputRestrictions(5, "0123456789");
-    mOscInputPortTextEditor.setText(juce::String{ oscPort });
-    addAndMakeVisible(mOscInputPortTextEditor);
+
+    initSectionLabel(mSpeakerViewNetworkSettings);
+
+    initLabel(mSpeakerViewInputPortLabel);
+    initTextEditor(mSpeakerViewInputPortTextEditor, "SpeakerView Data Input port", juce::String{mInitialUDPInputPort});
+    mSpeakerViewInputPortTextEditor.setInputRestrictions(5, "0123456789");
+
+    initLabel(mSpeakerViewOutputAddressLabel);
+    initTextEditor(mSpeakerViewOutputAddressTextEditor, "SpeakerViewData Output Address", mInitialUDPOutputAddress);
+    // we want an ip address here
+    mSpeakerViewOutputAddressTextEditor.setInputRestrictions(15, "0123456789.");
+
+    initLabel(mSpeakerViewOutputPortLabel);
+    initTextEditor(mSpeakerViewOutputPortTextEditor, "SpeakerViewData Output Port", juce::String{mInitialUDPOutputPort});
+    mSpeakerViewOutputPortTextEditor.setInputRestrictions(5, "0123456789");
 
     //==============================================================================
     mSaveSettingsButton.setButtonText("Apply");
@@ -131,10 +160,27 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, int const os
 SettingsComponent::~SettingsComponent()
 {
     auto const newOscPort{ mOscInputPortTextEditor.getText().getIntValue() };
-    if (newOscPort == mOscPortWhenLoaded) {
-        return;
+    if (newOscPort != mInitialOSCPort) {
+        mMainContentComponent.setOscPort(newOscPort);
     }
-    mMainContentComponent.setOscPort(newOscPort);
+    auto const newUDPInputPort{ mSpeakerViewInputPortTextEditor.getText().getIntValue() };
+    if (newUDPInputPort != mInitialUDPInputPort) {
+        if (mSVComponent.setUDPInputPort(newUDPInputPort)) {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Could not change SpeakerView input port",
+                                                   "Could not change the SpeakerView input port to "+ juce::String(newUDPInputPort) + " . Some other application may have the same port open ?\n",
+                                                   "Ok",
+                                                   &mMainContentComponent);
+        }
+    }
+    auto const newUDPOutputPort{ mSpeakerViewOutputPortTextEditor.getText().getIntValue() };
+    if (newUDPOutputPort != mInitialUDPOutputPort) {
+        mSVComponent.mUDPOutputPort = newUDPOutputPort;
+    }
+    auto const newUDPOutputAddress{ mSpeakerViewOutputAddressTextEditor.getText()};
+    if (newUDPOutputAddress != mInitialUDPOutputAddress) {
+        mSVComponent.mUDPOutputAddress = newUDPOutputAddress;
+    }
 }
 
 //==============================================================================
@@ -169,40 +215,55 @@ void SettingsComponent::placeComponents()
 {
     auto yPosition = PADDING;
 
-    auto const skip = [&yPosition]() { yPosition += LINE_SKIP; };
-    auto const skipSection = [&yPosition]() { yPosition += SECTION_SKIP; };
+    auto const addLineGap = [&yPosition]() { yPosition += LINE_SKIP; };
+    auto const addSectionGap = [&yPosition]() { yPosition += SECTION_SKIP; };
 
     //==============================================================================
     mAudioSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mDeviceTypeLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mDeviceTypeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mInputDeviceLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mInputDeviceCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mOutputDeviceLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOutputDeviceCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mSampleRateLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mSampleRateCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mBufferSize.setTopLeftPosition(LEFT_COL_START, yPosition);
     mBufferSizeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skipSection();
+    addSectionGap();
 
     //==============================================================================
-    mGeneralSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    skip();
+    mSpatNetworkSettings.setTopLeftPosition(LEFT_COL_START, yPosition);
+    addLineGap();
 
     mOscInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOscInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skipSection();
+    addSectionGap();
+
+    mSpeakerViewNetworkSettings.setTopLeftPosition(LEFT_COL_START, yPosition);
+    addLineGap();
+
+    mSpeakerViewInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mSpeakerViewInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    addLineGap();
+
+    mSpeakerViewOutputAddressLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mSpeakerViewOutputAddressTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    addLineGap();
+
+    mSpeakerViewOutputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mSpeakerViewOutputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    addSectionGap();
 
     mSaveSettingsButton.setTopRightPosition(RIGHT_COL_START + RIGHT_COL_WIDTH, yPosition);
 
@@ -336,11 +397,35 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
     }
 }
 
+void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
+{
+
+  if (&textEditor == &mSpeakerViewOutputAddressTextEditor) {
+    // Validate IP address (thanks https://forum.juce.com/t/how-to-achive-ip-address-validation-for-taxteditor/12036/6 )
+    juce::IPAddress ip = juce::IPAddress(textEditor.getText());
+    if (ip.toString() != textEditor.getText())
+    {
+      textEditor.setText(localhost);
+    }
+  }
+  // Validate UDP ports (can't have UDP port < 1024 or > 65535)
+  else if (
+      &textEditor == &mSpeakerViewInputPortTextEditor ||
+      &textEditor == &mSpeakerViewOutputPortTextEditor ||
+      &textEditor == &mOscInputPortTextEditor) {
+    if (textEditor.getText().getIntValue() < minUDPPort) {
+        textEditor.setText(minUDPPortString);
+    } else if (textEditor.getText().getIntValue() > maxUDPPort) {
+      textEditor.setText(maxUDPPortString);
+    }
+  }
+}
+
 //==============================================================================
-SettingsWindow::SettingsWindow(MainContentComponent & parent, int const oscPort, GrisLookAndFeel & grisLookAndFeel)
+SettingsWindow::SettingsWindow(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & grisLookAndFeel)
     : DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(parent)
-    , mPropertiesComponent(parent, oscPort, grisLookAndFeel)
+    , mPropertiesComponent(parent, sVComponent, grisLookAndFeel)
 {
     setAlwaysOnTop(true);
     setContentNonOwned(&mPropertiesComponent, true);
