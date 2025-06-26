@@ -35,6 +35,8 @@ struct SourceData;
 class MainContentComponent;
 class SpeakerModel;
 
+constexpr juce::String localhost = "127.0.0.1";
+
 //==============================================================================
 /**
  * @brief Manages network interaction with the SpeakerView process.
@@ -58,7 +60,6 @@ private:
     std::string mJsonSpeakers;
     std::string mJsonSGInfos;
 
-    const juce::String remoteHostname = "127.0.0.1";
     juce::DatagramSocket udpSenderSocket;
 
     bool mKillSpeakerViewProcess{};

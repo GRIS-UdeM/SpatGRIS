@@ -400,7 +400,7 @@ void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
     juce::IPAddress ip = juce::IPAddress(textEditor.getText());
     if (ip.toString() != textEditor.getText())
     {
-      textEditor.setText("127.0.0.1");
+      textEditor.setText(localhost);
     }
   }
   // Validate UDP ports (can't have UDP port < 1024 or > 65535)
@@ -408,10 +408,10 @@ void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
       &textEditor == &mSpeakerViewInputPortTextEditor ||
       &textEditor == &mSpeakerViewOutputPortTextEditor ||
       &textEditor == &mOscInputPortTextEditor) {
-    if (textEditor.getText().getIntValue() < 1024) {
-        textEditor.setText("1024");
-    } else if (textEditor.getText().getIntValue() > 65535) {
-      textEditor.setText("65535");
+    if (textEditor.getText().getIntValue() < minUDPPort) {
+        textEditor.setText(minUDPPortString);
+    } else if (textEditor.getText().getIntValue() > maxUDPPort) {
+      textEditor.setText(maxUDPPortString);
     }
   }
 }
