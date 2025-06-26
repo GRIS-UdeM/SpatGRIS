@@ -157,6 +157,10 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mViewportWrapper.getContent()->addAndMakeVisible(mPinkNoiseToggleButton);
 
     mPinkNoiseGainSlider.setTextValueSuffix(" dB");
+// <<<<<<< HEAD
+// =======
+    mPinkNoiseGainSlider.setBounds(170, 500, 60, 60);
+// >>>>>>> 04a0edc4 (rebase)
     mPinkNoiseGainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     mPinkNoiseGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
                                              juce::MathConstants<float>::pi * 2.7f,
