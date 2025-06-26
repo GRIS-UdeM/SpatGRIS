@@ -433,7 +433,7 @@ void SpeakerViewComponent::listenUDP()
                 const auto keys = jsonResult.getDynamicObject()->getProperties();
 
                 for (int i{}; i < keys.size(); ++i) {
-                    auto property = keys.getName(i).toString();
+                    const auto property = keys.getName(i).toString();
                     juce::var value = keys.getValueAt(i);
 
                     if (property == "selSpkNum") {
