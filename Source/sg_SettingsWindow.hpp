@@ -34,11 +34,11 @@ class SettingsComponent final
     , public juce::ComboBox::Listener
     , public juce::TextEditor::Listener
 {
-    const juce::String localhost = "127.0.0.1";
+    static inline const juce::String localhost = "127.0.0.1";
     static constexpr int maxUDPPort = 65535;
-    const juce::String maxUDPPortString = "65535";
+    static inline const juce::String maxUDPPortString = "65535";
     static constexpr int minUDPPort = 1024;
-    const juce::String minUDPPortString = "1024";
+    static inline const juce::String minUDPPortString = "1024";
 
     juce::StringArray mInputDevices{};
     juce::StringArray mOutputDevices{};
