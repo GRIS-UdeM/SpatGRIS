@@ -201,7 +201,6 @@ private:
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void textEditorFocusLost(juce::TextEditor &) override;
     void closeButtonPressed() override;
-<<<<<<< HEAD
     bool keyPressed (const juce::KeyPress &key) override;
     void resized () override;
     void sliderValueChanged (juce::Slider* slider) override;
@@ -210,22 +209,6 @@ private:
     void valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent) override;
 
     juce::UndoManager& undoManager;
-
-=======
-    bool keyPressed(const juce::KeyPress & key) override;
-    void sliderValueChanged(juce::Slider * slider) override;
-    void sortOrderChanged(int newSortColumnId, bool isForwards) override;
-    void resized() override;
-    void paintRowBackground(juce::Graphics & g, int rowNumber, int width, int height, bool rowIsSelected) override;
-    void paintCell(juce::Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
-    [[nodiscard]] Component * refreshComponentForCell(int rowNumber,
-                                                      int columnId,
-                                                      bool isRowSelected,
-                                                      Component * existingComponentToUpdate) override;
-    void mouseDown(juce::MouseEvent const & event) override;
-    void mouseDrag(juce::MouseEvent const & event) override;
-    void mouseUp(juce::MouseEvent const & event) override;
->>>>>>> 3ca1ede9 (clang-formatting)
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };
