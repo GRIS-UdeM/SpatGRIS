@@ -183,12 +183,6 @@ public:
     void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
     void setOscPort(int newOscPort);
     int getOscPort() const;
-    void setUDPInputPort(int port);
-    int getUDPInputPort() const;
-    void setUDPOutputPort(int port);
-    int getUDPOutputPort() const;
-    void setUDPOutputAddress(juce::String port);
-    juce::String getUDPOutputAddress();
 
     void setSpeakerSetupDiffusion(float diffusion);
 

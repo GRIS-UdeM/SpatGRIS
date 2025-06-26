@@ -602,7 +602,7 @@ void MainContentComponent::handleShowPreferences()
     juce::ScopedReadLock const lock{ mLock };
 
     if (mPropertiesWindow == nullptr) {
-      mPropertiesWindow.reset(new SettingsWindow{ *this, *mSpeakerViewComponent, mLookAndFeel });
+        mPropertiesWindow.reset(new SettingsWindow{ *this, *mSpeakerViewComponent, mLookAndFeel });
         mPropertiesWindow->centreAroundComponent(this, mPropertiesWindow->getWidth(), mPropertiesWindow->getHeight());
     }
 }
@@ -2160,21 +2160,6 @@ void MainContentComponent::setOscPort(int const newOscPort)
 int MainContentComponent::getOscPort() const
 {
     return mData.project.oscPort;
-}
-
-void MainContentComponent::setUDPInputPort(int const newPort)
-{
-    int oldPort = mSpeakerViewComponent->getUDPInputPort();
-    bool success = mSpeakerViewComponent->setUDPInputPort(newPort);
-    if (!success) {
-              juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
-                                                     "Could not change SpeakerView input port",
-                                                     "Could not change the SpeakerView input port to "+ juce::String(newPort) + " . Some other application may have the same port open ?\n",
-                                                     "Ok",
-                                                     this);
-
-        mSpeakerViewComponent->setUDPInputPort(oldPort);
-    }
 }
 
 //==============================================================================
