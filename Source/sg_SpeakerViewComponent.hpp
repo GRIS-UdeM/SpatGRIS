@@ -69,6 +69,8 @@ private:
 
     bool mKillSpeakerViewProcess{};
 
+    uint32_t mTicksSinceKeepalive{};
+
 public:
     //==============================================================================
     static constexpr auto SPHERE_RADIUS = 0.03f;
