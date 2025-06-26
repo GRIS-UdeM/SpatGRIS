@@ -694,9 +694,10 @@ tl::optional<ProjectData> ProjectData::fromXml(juce::XmlElement const & xml)
 //==============================================================================
 bool ProjectData::operator==(ProjectData const & other) const noexcept
 {
-    return other.ordering == ordering && other.spatGainsInterpolation == spatGainsInterpolation && other.oscPort == oscPort
-           && other.masterGain == masterGain && other.mbapDistanceAttenuationData == mbapDistanceAttenuationData
-           && other.sources == sources && other.spatMode == spatMode;
+    return other.ordering == ordering && other.spatGainsInterpolation == spatGainsInterpolation
+           && other.oscPort == oscPort && other.masterGain == masterGain
+           && other.mbapDistanceAttenuationData == mbapDistanceAttenuationData && other.sources == sources
+           && other.spatMode == spatMode;
 }
 
 //==============================================================================

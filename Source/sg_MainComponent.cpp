@@ -968,7 +968,7 @@ void MainContentComponent::numSourcesChanged(int const numSources)
     if (numSources > mData.project.sources.size()) {
         source_index_t const firstNewIndex{ mData.project.sources.size() + 1 };
         source_index_t const lastNewIndex{ numSources };
-        const auto numSourcesToAdd{ numSources - mData.project.sources.size()};
+        const auto numSourcesToAdd{ numSources - mData.project.sources.size() };
 
         for (int i{}; i < numSourcesToAdd; ++i) {
             std::optional<source_index_t> sourceIndex;
@@ -2052,7 +2052,7 @@ void MainContentComponent::projectSourceIndexChanged(source_index_t oldSourceInd
     sources.add(newSourceIndex, std::make_unique<SourceData>(sources[oldSourceIndex]));
     sources.remove(oldSourceIndex);
 
-    auto & order { mData.project.ordering };
+    auto & order{ mData.project.ordering };
     order.set(order.indexOf(oldSourceIndex), newSourceIndex);
 
     refreshSourceSlices();
@@ -2536,7 +2536,6 @@ source_index_t MainContentComponent::addSource(std::optional<source_index_t> sou
     mData.project.sources.add(newSourceIndex, std::move(newSource));
 
     return newSourceIndex;
-
 }
 
 //==============================================================================
