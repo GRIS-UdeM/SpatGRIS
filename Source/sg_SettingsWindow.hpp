@@ -27,13 +27,6 @@ namespace gris
 class MainContentComponent;
 class GrisLookAndFeel;
 
-constexpr juce::String localhost = "127.0.0.1";
-constexpr int maxUDPPort = 65535;
-constexpr juce::String maxUDPPortString = "65535";
-constexpr int minUDPPort = 1024;
-constexpr juce::String minUDPPortString = "1024";
-
-
 //==============================================================================
 class SettingsComponent final
     : public juce::Component
@@ -41,6 +34,12 @@ class SettingsComponent final
     , public juce::ComboBox::Listener
     , public juce::TextEditor::Listener
 {
+    const juce::String localhost = "127.0.0.1";
+    static constexpr int maxUDPPort = 65535;
+    const juce::String maxUDPPortString = "65535";
+    static constexpr int minUDPPort = 1024;
+    const juce::String minUDPPortString = "1024";
+
     juce::StringArray mInputDevices{};
     juce::StringArray mOutputDevices{};
 

@@ -35,8 +35,6 @@ struct SourceData;
 class MainContentComponent;
 class SpeakerModel;
 
-constexpr juce::String localhost = "127.0.0.1";
-
 //==============================================================================
 /**
  * @brief Manages network interaction with the SpeakerView process.
@@ -68,7 +66,8 @@ public:
     //==============================================================================
     static constexpr auto SPHERE_RADIUS = 0.03f;
     static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
-    //==============================================================================
+    const juce::String localhost = "127.0.0.1";
+  //==============================================================================
     explicit SpeakerViewComponent(MainContentComponent & mainContentComponent);
 
     ~SpeakerViewComponent() override;
