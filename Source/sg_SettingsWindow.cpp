@@ -123,11 +123,13 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewC
     initComboBox(mBufferSizeCombo);
 
     //==============================================================================
-    initSectionLabel(mGeneralSectionLabel);
+    initSectionLabel(mSpatNetworkSettings);
 
     initLabel(mOscInputPortLabel);
     initTextEditor(mOscInputPortTextEditor, "Port Socket OSC Input", juce::String{mInitialOSCPort});
     mOscInputPortTextEditor.setInputRestrictions(5, "0123456789");
+
+    initSectionLabel(mSpeakerViewNetworkSettings);
 
     initLabel(mSpeakerViewInputPortLabel);
     initTextEditor(mSpeakerViewInputPortTextEditor, "SpeakerView Data Input port", juce::String{mInitialUDPInputPort});
@@ -241,11 +243,14 @@ void SettingsComponent::placeComponents()
     addSectionGap();
 
     //==============================================================================
-    mGeneralSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mSpatNetworkSettings.setTopLeftPosition(LEFT_COL_START, yPosition);
     addLineGap();
 
     mOscInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOscInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    addSectionGap();
+
+    mSpeakerViewNetworkSettings.setTopLeftPosition(LEFT_COL_START, yPosition);
     addLineGap();
 
     mSpeakerViewInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);

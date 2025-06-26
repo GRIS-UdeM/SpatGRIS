@@ -68,18 +68,21 @@ class SettingsComponent final
     juce::ComboBox mBufferSizeCombo;
 
     //==============================================================================
-    juce::Label mGeneralSectionLabel{ "", "General Settings" };
+    juce::Label mSpatNetworkSettings{ "", "Spatialisation Data Network Settings" };
 
     juce::Label mOscInputPortLabel{ "", "OSC Input Port :" };
     juce::TextEditor mOscInputPortTextEditor{};
 
-    juce::Label mSpeakerViewInputPortLabel{ "", "SpeakerView Input Port :" };
+
+    juce::Label mSpeakerViewNetworkSettings{ "", "SpeakerView Network Settings :" };
+
+    juce::Label mSpeakerViewInputPortLabel{ "", "UDP Input Port :" };
     juce::TextEditor mSpeakerViewInputPortTextEditor{};
 
-    juce::Label mSpeakerViewOutputAddressLabel{ "", "SpeakerView Output Address :" };
+    juce::Label mSpeakerViewOutputAddressLabel{ "", "UDP Output Address :" };
     juce::TextEditor mSpeakerViewOutputAddressTextEditor{};
 
-    juce::Label mSpeakerViewOutputPortLabel{ "", "SpeakerView Output Port :" };
+    juce::Label mSpeakerViewOutputPortLabel{ "", "UDP Output Port :" };
     juce::TextEditor mSpeakerViewOutputPortTextEditor{};
 
     juce::TextButton mSaveSettingsButton;
