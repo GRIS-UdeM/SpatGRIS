@@ -122,11 +122,14 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
         }
     } else {
         auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
+
+        auto activeChannel{ std::begin(mAudioProcessor->getAudioData().config->sourcesAudioConfig) };
         for (int i{}; i < numInputChannelsToCopy; ++i) {
-            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
-            auto const * sourceData{ inputChannelData[i] };
+            source_index_t const sourceIndex{ activeChannel->key };
+            auto const * sourceData{ inputChannelData[sourceIndex.get() - source_index_t::OFFSET] };
             auto * destinationData{ mInputBuffer[sourceIndex].getWritePointer(0) };
             std::copy_n(sourceData, numSamples, destinationData);
+            ++activeChannel;
         }
     }
 
