@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "sg_GeneralMuteButton.h"
 #include "sg_LayoutComponent.hpp"
 #include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
 #include "sg_GeneralMuteButton.h"
