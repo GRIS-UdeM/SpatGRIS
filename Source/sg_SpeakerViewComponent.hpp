@@ -54,6 +54,13 @@ private:
     std::unique_ptr<juce::DatagramSocket> mUdpReceiverSocket;
     static constexpr int mMaxBufferSize = 1024;
 
+    // We use the json strings to see if the data has changed.
+    // It would maybe be a bit more efficient to avoid playing with
+    // strings unless we are sure that the data has changed.
+    std::string mOldJsonSGInfos = "nothing";
+    std::string mOldJsonSpeakers = "nothing";
+    std::string mOldJsonSources = "nothing";
+
     std::string mJsonSources;
     std::string mJsonSpeakers;
     std::string mJsonSGInfos;
@@ -62,11 +69,38 @@ private:
 
     bool mKillSpeakerViewProcess{};
 
+    uint32_t mTicksSinceKeepalive{};
+
 public:
     //==============================================================================
     static constexpr auto SPHERE_RADIUS = 0.03f;
     static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
     static inline const juce::String localhost{"127.0.0.1"};
+
+
+/**
+ * @brief This macro creates a `juce::Identifier` variable with the same name as its string content,
+ * reducing boilerplate and ensuring consistency between the variable name and its value.
+ */
+#define MAKE_IDENTIFIER(name) static inline const juce::Identifier name{ #name };
+    MAKE_IDENTIFIER(selSpkNum)
+    MAKE_IDENTIFIER(keepSVTop)
+    MAKE_IDENTIFIER(showHall)
+    MAKE_IDENTIFIER(showSrcNum)
+    MAKE_IDENTIFIER(showSpkNum)
+    MAKE_IDENTIFIER(showSpks)
+    MAKE_IDENTIFIER(showSpkTriplets)
+    MAKE_IDENTIFIER(showSrcActivity)
+    MAKE_IDENTIFIER(showSpkLevel)
+    MAKE_IDENTIFIER(showSphereCube)
+    MAKE_IDENTIFIER(resetSrcPos)
+    MAKE_IDENTIFIER(genMute)
+    MAKE_IDENTIFIER(winPos)
+    MAKE_IDENTIFIER(winSize)
+    MAKE_IDENTIFIER(camPos)
+    MAKE_IDENTIFIER(quitting)
+#undef MAKE_IDENTIFIER
+
   //==============================================================================
     explicit SpeakerViewComponent(MainContentComponent & mainContentComponent);
 
@@ -110,7 +144,9 @@ private:
     void prepareSGInfos();
     bool isHiResTimerThread();
     void listenUDP();
-    void sendUDP();
+    void sendSpeakersUDP();
+    void sendSourcesUDP();
+    void sendSpatGRISUDP();
     void emptyUDPReceiverBuffer();
 
     //==============================================================================
