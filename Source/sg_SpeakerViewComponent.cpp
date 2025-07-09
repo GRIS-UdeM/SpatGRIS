@@ -536,12 +536,6 @@ void SpeakerViewComponent::listenUDP()
                         juce::MessageManager::callAsync([this, camPosValue] {
                             mMainContentComponent.handleCameraPositionFromSpeakerView(camPosValue);
                         });
-                    } else if (property == quitting) {
-                        bool quittingValue = value;
-                        if (quittingValue) {
-                            stopTimer();
-                            emptyUDPReceiverBuffer();
-                        }
                     }
                 }
             }
