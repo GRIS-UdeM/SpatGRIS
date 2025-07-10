@@ -2074,7 +2074,6 @@ void MainContentComponent::speakerOutputPatchChanged(output_patch_t const oldOut
 std::map<output_patch_t, tl::optional<Position>> MainContentComponent::getSpeakersGroupCenters()
 {
   std::map<output_patch_t, tl::optional<Position>> speaker_group_center{};
-  mData.speakerSetup.speakerSetupValueTree;
   // the first child is the main speaker group where individual speakers and speaker groups are stored.
   auto main_speaker_group = mData.speakerSetup.speakerSetupValueTree.getChild(0);
   for (int i = 0; i < main_speaker_group.getNumChildren(); i++)
