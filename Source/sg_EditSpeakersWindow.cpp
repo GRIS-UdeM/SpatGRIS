@@ -397,9 +397,18 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
                         { -1.f, 1.f, 1.f },    { -1.f, 1.f, -1.f }, { -1.f, -1.f, 1.f }, { -1.f, -1.f, -1.f } };
 
                 static constexpr std::array<Vec3, 12> dodecahedron = {
-                    Vec3{ 0.f, 1.f, 1.618f }, { 0.f, 1.f, -1.618f }, { 0.f, -1.f, 1.618f }, { 0.f, -1.f, -1.618f },
-                    { 1.f, 1.618f, 0.f },     { 1.f, -1.618f, 0.f }, { -1.f, 1.618f, 0.f }, { -1.f, -1.618f, 0.f },
-                    { 1.618f, 0.f, 1.f },     { 1.618f, 0.f, -1.f }, { -1.618f, 0.f, 1.f }, { -1.618f, 0.f, -1.f }
+                    Vec3{ 0.f, 1.f, 1.618f },
+                        { -1.618f, 0.f, 1.f },
+                        { 0.f, -1.f, 1.618f },
+                        { 0.f, -1.f, -1.618f },
+                        { 1.f, 1.618f, 0.f },
+                        { 1.f, -1.618f, 0.f },
+                        { -1.f, 1.618f, 0.f },
+                        { -1.f, -1.618f, 0.f },
+                        { 1.618f, 0.f, 1.f },
+                        { 1.618f, 0.f, -1.f },
+                        { 0.f, 1.f, -1.618f },
+                        { -1.618f, 0.f, -1.f }
                 };
 
                 static constexpr std::array<Vec3, 20> icosahedron
