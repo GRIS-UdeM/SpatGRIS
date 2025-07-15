@@ -83,8 +83,6 @@ public:
 
     ~SpeakerTreeComponent() { setLookAndFeel(nullptr); }
 
-    void paint(juce::Graphics & g) override;
-
     void resized() override;
 
     void setPosition(Position position)
@@ -105,7 +103,6 @@ public:
 protected:
     void setupCoordinateLabel(DraggableLabel & label, Position::Coordinate coordinate);
     void setupStringLabel(juce::Label & label, juce::StringRef text);
-    void setupIdLabel ();
     void setupDeleteButton ();
 
     void updateAllPositionLabels();
@@ -132,7 +129,15 @@ private:
     void valueTreePropertyChanged(juce::ValueTree & speakerTreeVt, const juce::Identifier & property) override;
     void updateUiBasedOnSpatMode();
     void labelTextChanged(juce::Label * labelThatHasChanged) override;
-    void editorShown(juce::Label *, juce::TextEditor &) override;
+    /**
+     * The delete button behaviour depends on wether or not we are a speaker group
+     */
+    virtual void deleteButtonBehaviour() = 0;
+    /**
+     * This is called in "updateUiBasedOnSpatMode". Speakers and groups of speakers
+     * behave differently when the mode is vbap.
+     */
+    virtual void setVbapSphericalCoordinateBehaviour() = 0;
 };
 
 //==============================================================================
@@ -147,6 +152,11 @@ class SpeakerGroupComponent : public SpeakerTreeComponent
 {
 public:
     SpeakerGroupComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    void paint(juce::Graphics & g) override;
+private:
+    void labelTextChanged(juce::Label * labelThatHasChanged) override;
+    void deleteButtonBehaviour() override;
+    void setVbapSphericalCoordinateBehaviour() override;
 };
 
 //==============================================================================
@@ -161,8 +171,12 @@ class SpeakerComponent : public SpeakerTreeComponent
 {
 public:
     SpeakerComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    void paint(juce::Graphics & g) override;
 private:
     void setupGain ();
     void setupHighPass ();
+    void deleteButtonBehaviour() override;
+    void setVbapSphericalCoordinateBehaviour() override;
+    void editorShown(juce::Label *, juce::TextEditor &) override;
 };
 } // namespace gris
