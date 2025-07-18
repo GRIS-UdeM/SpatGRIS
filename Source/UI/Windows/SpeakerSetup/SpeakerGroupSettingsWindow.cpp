@@ -60,5 +60,9 @@ void SpeakerGroupSettingsComponent::sliderValueChanged(juce::Slider* slider) {
 }
 
 void SpeakerGroupSettingsComponent::resized() {
+    auto sliderLeft = 120;
+    yawSlider.setBounds (sliderLeft, 20, getWidth() - sliderLeft - 10, 20);
+    pitchSlider.setBounds (sliderLeft, 50, getWidth() - sliderLeft - 10, 20);
+    rollSlider.setBounds (sliderLeft, 50, getWidth() - sliderLeft - 10, 20);
 }
 } // namespace gris
