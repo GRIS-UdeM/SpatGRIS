@@ -273,23 +273,6 @@ void SpeakerTreeComponent::setupStringLabel (juce::Label & label, juce::StringRe
     addAndMakeVisible(label);
 }
 
-void SpeakerTreeComponent::labelTextChanged (juce::Label* label)
-{
-    if (label != &id)
-        return;
-
-    auto const currentId = id.getText ().getIntValue ();
-    auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
-    if (clampedId != currentId)
-        id.setText (juce::String (clampedId), juce::dontSendNotification);
-
-    // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
-    // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
-    // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
-    // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
-    speakerTreeVt.setProperty (NEXT_SPEAKER_PATCH_ID, clampedId, nullptr);
-}
-
 void SpeakerTreeComponent::updateAllPositionLabels ()
 {
     x.setText(getPositionCoordinateTrimmedText(Position::Coordinate::x), juce::dontSendNotification);
@@ -366,11 +349,18 @@ SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine* owner,
   id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(SPEAKER_GROUP_NAME, &undoManager));
   id.setEditable (true);
   addAndMakeVisible(id);
+  auto cogImage = juce::ImageFileFormat::loadFrom(juce::File::getCurrentWorkingDirectory().getChildFile("Resources/cog_icon.png"));
+  groupSettingsButton.addListener(this);
+  groupSettingsButton.setImages(false, true, true, cogImage, 1.0f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite);
+  groupSettingsButton.setTooltip (TRANS ("Speaker group orientation"));
+  addAndMakeVisible (groupSettingsButton);
 }
 
-// we have nothing particular to do with the labels when we are a group.
-void SpeakerGroupComponent::labelTextChanged(juce::Label * labelThatHasChanged)
-{
+void SpeakerGroupComponent::buttonClicked (juce::Button* button) {
+    if (settingsWindow == nullptr) {
+        settingsWindow = std::make_unique<SpeakerGroupSettingsWindow>(*this);
+        settingsWindow->centreAroundComponent(this, settingsWindow->getWidth(), settingsWindow->getHeight());
+    }
   return;
 }
 
@@ -404,7 +394,7 @@ void SpeakerGroupComponent::paint(juce::Graphics & g)
 
 void SpeakerGroupComponent::setVbapSphericalCoordinateBehaviour()
 {
-            // just disable all controls here
+    // just disable all controls here
 #if ENABLE_GROUP_MOVEMENT_IN_DOME
     azim.setEnabled(true);
     elev.setEnabled(true);
@@ -422,6 +412,33 @@ void SpeakerGroupComponent::setVbapSphericalCoordinateBehaviour()
         child.setProperty(CARTESIAN_POSITION,
                           juce::VariantConverter<Position>::toVar(curChildPosition.normalized()),
                           &undoManager);
+    }
+}
+
+void SpeakerGroupComponent::closeSettingsWindow()
+{
+    settingsWindow.reset();
+}
+
+void SpeakerGroupComponent::resized()
+{
+    if (auto * window = findParentComponentOfClass<juce::DocumentWindow>()) {
+        auto bounds = getLocalBounds();
+
+        const auto windowOriginInThis = window->getLocalPoint(this, juce::Point<int>{ 0, 0 });
+        groupSettingsButton.setBounds(bounds.removeFromLeft(groupSettingsButtonWidth));
+
+        const auto idColWidth = fixedLeftColWidth - groupSettingsButtonWidth - windowOriginInThis.x;
+        id.setBounds(bounds.removeFromLeft(idColWidth - colGap));
+        bounds.removeFromLeft (colGap);
+
+        // then position the other components with a fixed width of otherColWidth
+        std::vector<juce::Component*> components = { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &deleteButton, &drag };
+        for (auto* component : components)
+        {
+            component->setBounds (bounds.removeFromLeft (otherColWidth - colGap));
+            bounds.removeFromLeft (colGap);
+        }
     }
 }
 
@@ -540,6 +557,23 @@ void SpeakerComponent::setupHighPass()
     };
 
     addAndMakeVisible(highpass);
+}
+
+void SpeakerComponent::labelTextChanged (juce::Label* label)
+{
+    if (label != &id)
+        return;
+
+    auto const currentId = id.getText ().getIntValue ();
+    auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
+    if (clampedId != currentId)
+        id.setText (juce::String (clampedId), juce::dontSendNotification);
+
+    // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
+    // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
+    // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
+    // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
+    speakerTreeVt.setProperty (NEXT_SPEAKER_PATCH_ID, clampedId, nullptr);
 }
 
 } // namespace gris
