@@ -5,15 +5,16 @@ namespace gris
 {
 
 SpeakerGroupSettingsWindow::SpeakerGroupSettingsWindow(SpeakerGroupComponent& parent)
-    : DocumentWindow("Group Rotation Settings", lookAndFeel.getBackgroundColour(), allButtons),
-      parent(parent),
+    : parent(parent),
+      DocumentWindow(parent.speakerTreeVt[SPEAKER_GROUP_NAME].toString() + " Rotation Settings", lookAndFeel.getBackgroundColour(), allButtons),
+
       settingsComponent(parent, lookAndFeel)
 {
     setAlwaysOnTop(true);
     setContentNonOwned(&settingsComponent, true);
     setResizable(false, false);
     setUsingNativeTitleBar(true);
-    centreWithSize(200, 200);
+    centreWithSize(500, 200);
     setVisible(true);
 }
 
@@ -37,7 +38,7 @@ SpeakerGroupSettingsComponent::SpeakerGroupSettingsComponent(SpeakerGroupCompone
     };
     auto initSlider = [this](juce::Slider & slider) {
         slider.setRange (0, 360.0);
-        slider.setTextValueSuffix("°");
+        slider.setTextValueSuffix(juce::String::fromUTF8(u8"\u00B0"));
         addAndMakeVisible (slider);
         slider.addListener(this);
     };
@@ -60,9 +61,9 @@ void SpeakerGroupSettingsComponent::sliderValueChanged(juce::Slider* slider) {
 }
 
 void SpeakerGroupSettingsComponent::resized() {
-    auto sliderLeft = 120;
+    constexpr auto sliderLeft = 60;
     yawSlider.setBounds (sliderLeft, 20, getWidth() - sliderLeft - 10, 20);
     pitchSlider.setBounds (sliderLeft, 50, getWidth() - sliderLeft - 10, 20);
-    rollSlider.setBounds (sliderLeft, 50, getWidth() - sliderLeft - 10, 20);
+    rollSlider.setBounds (sliderLeft, 80, getWidth() - sliderLeft - 10, 20);
 }
 } // namespace gris
