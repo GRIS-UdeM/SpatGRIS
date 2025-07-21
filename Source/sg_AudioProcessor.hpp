@@ -48,6 +48,13 @@ public:
     [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mLock; }
     void processAudio(SourceAudioBuffer & sourceBuffer,
                       SpeakerAudioBuffer & speakerBuffer,
+#if USE_FORK_UNION
+    #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
+                      AtomicSpeakerBuffer & atomicSpeakerBuffer,
+    #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
+                      ThreadSpeakerBuffer & threadSpeakerBuffer,
+    #endif
+#endif
                       juce::AudioBuffer<float> & stereoBuffer) noexcept;
 
     auto & getAudioData() { return mAudioData; }
@@ -55,6 +62,20 @@ public:
 
     auto const & getSpatAlgorithm() const { return mSpatAlgorithm; }
     auto & getSpatAlgorithm() { return mSpatAlgorithm; }
+
+#if USE_FORK_UNION
+#if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
+    void AbstractSpatAlgorithm::clearAtomicSpeakerBuffer (AtomicSpeakerBuffer& atomicSpeakerBuffer) noexcept
+    {
+        mSpatAlgorithm->clearAtomicSpeakerBuffer (atomicSpeakerBuffer);
+    }
+#elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
+    void silenceThreadSpeakerBuffer (ThreadSpeakerBuffer& threadSpeakerBuffer) noexcept
+    {
+        mSpatAlgorithm->silenceThreadSpeakerBuffer(threadSpeakerBuffer);
+    }
+#endif
+#endif
 
 private:
     //==============================================================================

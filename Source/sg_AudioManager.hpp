@@ -82,6 +82,16 @@ private:
     juce::AudioDeviceManager mAudioDeviceManager{};
     SourceAudioBuffer mInputBuffer{};
     SpeakerAudioBuffer mOutputBuffer{};
+
+#if USE_FORK_UNION
+    #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
+    AtomicSpeakerBuffer atomicSpeakerBuffer;
+    #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
+    // so here we have N threads each containing M speakers,each containing O samples
+    ThreadSpeakerBuffer threadSpeakerBuffer;
+    #endif
+#endif
+
     juce::AudioBuffer<float> mStereoOutputBuffer{};
     tl::optional<StereoRouting> mStereoRouting{};
     // Recording

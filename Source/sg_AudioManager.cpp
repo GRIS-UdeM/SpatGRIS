@@ -95,6 +95,14 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     // TODO: should not process if stereo mode is hrtf
     mOutputBuffer.silence();
 
+#if USE_FORK_UNION
+#if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
+    mAudioProcessor->clearAtomicSpeakerBuffer (atomicSpeakerBuffer);
+#elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
+    mAudioProcessor->silenceThreadSpeakerBuffer (threadSpeakerBuffer);
+#endif
+#endif
+
     std::for_each_n(outputChannelData, totalNumOutputChannels, [numSamples](float * const data) {
         std::fill_n(data, numSamples, 0.0f);
     });
@@ -131,7 +139,16 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     }
 
     // do the actual processing
-    mAudioProcessor->processAudio(mInputBuffer, mOutputBuffer, mStereoOutputBuffer);
+    mAudioProcessor->processAudio(mInputBuffer,
+                                  mOutputBuffer,
+#if USE_FORK_UNION
+    #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
+                                  atomicSpeakerBuffer,
+    #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
+                                  threadSpeakerBuffer,
+    #endif
+#endif
+                                  mStereoOutputBuffer);
 
     // copy buffers to output
     if (mStereoRouting) {
@@ -145,6 +162,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
             std::copy_n(mStereoOutputBuffer.getReadPointer(1), numSamples, outputChannelData[rightIndex]);
         }
     } else {
+        //TODO VB: actually, why is there a copy at all?
         mOutputBuffer.copyToPhysicalOutput(outputChannelData, totalNumOutputChannels);
     }
 
