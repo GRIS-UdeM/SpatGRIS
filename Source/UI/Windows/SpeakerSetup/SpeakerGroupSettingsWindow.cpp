@@ -15,6 +15,7 @@ SpeakerGroupSettingsWindow::SpeakerGroupSettingsWindow(SpeakerGroupComponent& pa
     setResizable(false, false);
     setUsingNativeTitleBar(true);
     centreWithSize(500, 200);
+    setBackgroundColour(lookAndFeel.getBackgroundColour());
     setVisible(true);
 }
 
@@ -36,18 +37,21 @@ SpeakerGroupSettingsComponent::SpeakerGroupSettingsComponent(SpeakerGroupCompone
         addAndMakeVisible(label);
         label.attachToComponent (&associatedSlider, true);
     };
-    auto initSlider = [this](juce::Slider & slider) {
+    auto initSlider = [this](juce::Slider & slider, float value) {
         slider.setRange (0, 360.0);
         slider.setTextValueSuffix(juce::String::fromUTF8(u8"\u00B0"));
+        slider.setValue(value);
+        slider.setLookAndFeel(&lookAndFeel);
         addAndMakeVisible (slider);
         slider.addListener(this);
     };
+    auto tv = speakerGroupComponent.speakerTreeVt;
     initLabel(yawLabel, yawSlider, "Yaw");
     initLabel(pitchLabel, pitchSlider, "Pitch");
     initLabel(rollLabel, rollSlider, "Roll");
-    initSlider(yawSlider);
-    initSlider(pitchSlider);
-    initSlider(rollSlider);
+    initSlider(yawSlider, tv.getProperty(YAW, 0.0));
+    initSlider(pitchSlider, tv.getProperty(PITCH, 0.0));
+    initSlider(rollSlider, tv.getProperty(ROLL, 0.0));
 }
 
 void SpeakerGroupSettingsComponent::sliderValueChanged(juce::Slider* slider) {
