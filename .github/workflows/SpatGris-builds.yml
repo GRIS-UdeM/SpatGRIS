@@ -97,6 +97,11 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Use latest Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
       - name: Build Projucer
         run: |
           cd submodules/AlgoGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX
