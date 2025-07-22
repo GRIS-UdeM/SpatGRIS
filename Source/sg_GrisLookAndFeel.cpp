@@ -72,7 +72,7 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->setColour(juce::AlertWindow::textColourId, this->mLightColour);
 
 #if WIN32
-    this->mFontSize = 16.f;
+    this->mFontSize = 12.f;
 #else
     this->mFontSize = 10.f;
 #endif
