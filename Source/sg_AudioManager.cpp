@@ -78,7 +78,7 @@ void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputC
                                                     float * const * outputChannelData,
                                                     int totalNumOutputChannels,
                                                     int numSamples,
-                                                    const juce::AudioIODeviceCallbackContext & context)
+                                                    const juce::AudioIODeviceCallbackContext & /*context*/)
 {
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);

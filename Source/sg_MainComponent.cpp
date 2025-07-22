@@ -966,8 +966,8 @@ void MainContentComponent::numSourcesChanged(int const numSources)
             std::optional<int> index{};
 
             // Get first available source index
-            for (source_index_t i{ 1 }; mData.project.ordering.contains(i); ++i) {
-                index = i.get();
+            for (source_index_t j{ 1 }; mData.project.ordering.contains(j); ++j) {
+                index = j.get();
             }
 
             addSource(sourceIndex, *index);

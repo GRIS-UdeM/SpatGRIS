@@ -33,17 +33,16 @@ class GrisLookAndFeel : public juce::LookAndFeel_V3
     float mFontSize;
 
     juce::Font mFont = juce::Font(juce::FontOptions(BinaryData::SinkinSans400Regular_otf,
-                                                    narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize),
+                                                    BinaryData::SinkinSans400Regular_otfSize,
                                                     juce::Font::plain));
     juce::Font mBigFont = juce::Font(juce::FontOptions(BinaryData::SinkinSans400Regular_otf,
-                                                       narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize),
+                                                       BinaryData::SinkinSans400Regular_otfSize,
                                                        juce::Font::plain));
     juce::Font mBiggerFont = juce::Font(juce::FontOptions(BinaryData::SinkinSans400Regular_otf,
-                                                          narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize),
+                                                          BinaryData::SinkinSans400Regular_otfSize,
                                                           juce::Font::plain));
-    juce::Font mMonoFont = juce::Font(juce::FontOptions(BinaryData::FreeFarsiMono_otf,
-                                                        narrow<size_t>(BinaryData::FreeFarsiMono_otfSize),
-                                                        juce::Font::plain));
+    juce::Font mMonoFont = juce::Font(
+        juce::FontOptions(BinaryData::FreeFarsiMono_otf, BinaryData::FreeFarsiMono_otfSize, juce::Font::plain));
 
     juce::Colour mBackGroundAndFieldColour;
     juce::Colour mWinBackGroundAndFieldColour;
@@ -66,10 +65,10 @@ class GrisLookAndFeel : public juce::LookAndFeel_V3
 public:
     //==============================================================================
     juce::Font mSmallFont = juce::Font(juce::FontOptions(BinaryData::SinkinSans400Regular_otf,
-                                                         narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize),
+                                                         BinaryData::SinkinSans400Regular_otfSize,
                                                          juce::Font::plain));
     juce::Font mSmallerFont = juce::Font(juce::FontOptions(BinaryData::SinkinSans400Regular_otf,
-                                                           narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize),
+                                                           BinaryData::SinkinSans400Regular_otfSize,
                                                            juce::Font::plain));
     //==============================================================================
     GrisLookAndFeel();
