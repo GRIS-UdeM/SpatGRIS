@@ -73,6 +73,8 @@ GrisLookAndFeel::GrisLookAndFeel()
 
 #if WIN32
     this->mFontSize = 12.f;
+#elif JUCE_LINUX
+	this->mFontSize = 14.f;
 #else
     this->mFontSize = 10.f;
 #endif
