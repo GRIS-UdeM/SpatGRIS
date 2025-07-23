@@ -108,9 +108,9 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
                                   SpeakerAudioBuffer & speakerBuffer,
 #if USE_FORK_UNION
     #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
-                                  AtomicSpeakerBuffer & atomicSpeakerBuffer,
+                                  ForkUnionBuffer & forkUnionBuffer,
     #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
-                                  ThreadSpeakerBuffer & threadSpeakerBuffer,
+                                  ForkUnionBuffer & forkUnionBuffer,
     #endif
 #endif
                                   juce::AudioBuffer<float> & stereoBuffer) noexcept
@@ -142,12 +142,8 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
         mSpatAlgorithm->process(*mAudioData.config,
                                 sourceBuffer,
                                 speakerBuffer,
-#if USE_FORK_UNION
-    #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
-                                atomicSpeakerBuffer,
-    #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
-                                threadSpeakerBuffer,
-    #endif
+#if USE_FORK_UNION && (FU_METHOD == FU_USE_ARRAY_OF_ATOMICS || FU_METHOD == FU_USE_BUFFER_PER_THREAD)
+                                forkUnionBuffer,
 #endif
                                 stereoBuffer,
                                 sourcePeaks,

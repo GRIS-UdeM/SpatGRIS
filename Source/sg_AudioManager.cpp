@@ -95,12 +95,8 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     // TODO: should not process if stereo mode is hrtf
     mOutputBuffer.silence();
 
-#if USE_FORK_UNION
-#if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
-    mAudioProcessor->clearAtomicSpeakerBuffer (atomicSpeakerBuffer);
-#elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
-    mAudioProcessor->silenceThreadSpeakerBuffer (threadSpeakerBuffer);
-#endif
+#if USE_FORK_UNION && (FU_METHOD == FU_USE_ARRAY_OF_ATOMICS || FU_METHOD == FU_USE_BUFFER_PER_THREAD)
+    mAudioProcessor->silenceForkUnionBuffer (forkUnionBuffer);
 #endif
 
     std::for_each_n(outputChannelData, totalNumOutputChannels, [numSamples](float * const data) {
@@ -141,12 +137,8 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     // do the actual processing
     mAudioProcessor->processAudio(mInputBuffer,
                                   mOutputBuffer,
-#if USE_FORK_UNION
-    #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
-                                  atomicSpeakerBuffer,
-    #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
-                                  threadSpeakerBuffer,
-    #endif
+#if USE_FORK_UNION && (FU_METHOD == FU_USE_ARRAY_OF_ATOMICS || FU_METHOD == FU_USE_BUFFER_PER_THREAD)
+                                  forkUnionBuffer,
 #endif
                                   mStereoOutputBuffer);
 

@@ -50,9 +50,9 @@ public:
                       SpeakerAudioBuffer & speakerBuffer,
 #if USE_FORK_UNION
     #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
-                      AtomicSpeakerBuffer & atomicSpeakerBuffer,
+                      ForkUnionBuffer & forkUnionBuffer,
     #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
-                      ThreadSpeakerBuffer & threadSpeakerBuffer,
+                      ForkUnionBuffer & forkUnionBuffer,
     #endif
 #endif
                       juce::AudioBuffer<float> & stereoBuffer) noexcept;
@@ -63,18 +63,11 @@ public:
     auto const & getSpatAlgorithm() const { return mSpatAlgorithm; }
     auto & getSpatAlgorithm() { return mSpatAlgorithm; }
 
-#if USE_FORK_UNION
-#if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
-    void AbstractSpatAlgorithm::clearAtomicSpeakerBuffer (AtomicSpeakerBuffer& atomicSpeakerBuffer) noexcept
+#if USE_FORK_UNION && (FU_METHOD == FU_USE_ARRAY_OF_ATOMICS || FU_METHOD == FU_USE_BUFFER_PER_THREAD)
+    void silenceForkUnionBuffer(ForkUnionBuffer & forkUnionBuffer) noexcept
     {
-        mSpatAlgorithm->clearAtomicSpeakerBuffer (atomicSpeakerBuffer);
+        mSpatAlgorithm->silenceForkUnionBuffer(forkUnionBuffer);
     }
-#elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
-    void silenceThreadSpeakerBuffer (ThreadSpeakerBuffer& threadSpeakerBuffer) noexcept
-    {
-        mSpatAlgorithm->silenceThreadSpeakerBuffer(threadSpeakerBuffer);
-    }
-#endif
 #endif
 
 private:
