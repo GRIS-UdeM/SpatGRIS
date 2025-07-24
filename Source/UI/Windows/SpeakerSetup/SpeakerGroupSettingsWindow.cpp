@@ -33,7 +33,6 @@ SpeakerGroupSettingsComponent::SpeakerGroupSettingsComponent(SpeakerGroupCompone
         label.setJustificationType(juce::Justification::Flags::centredRight);
         label.setFont(lookAndFeel.getFont());
         label.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-        label.setLookAndFeel(&lookAndFeel);
         addAndMakeVisible(label);
         label.attachToComponent (&associatedSlider, true);
     };
@@ -41,7 +40,6 @@ SpeakerGroupSettingsComponent::SpeakerGroupSettingsComponent(SpeakerGroupCompone
         slider.setRange (0, 360.0);
         slider.setTextValueSuffix(juce::String::fromUTF8(u8"\u00B0"));
         slider.setValue(value);
-        slider.setLookAndFeel(&lookAndFeel);
         addAndMakeVisible (slider);
         slider.addListener(this);
     };
@@ -52,6 +50,12 @@ SpeakerGroupSettingsComponent::SpeakerGroupSettingsComponent(SpeakerGroupCompone
     initSlider(yawSlider, tv.getProperty(YAW, 0.0));
     initSlider(pitchSlider, tv.getProperty(PITCH, 0.0));
     initSlider(rollSlider, tv.getProperty(ROLL, 0.0));
+    setLookAndFeel(&lookAndFeel);
+}
+
+SpeakerGroupSettingsComponent::~SpeakerGroupSettingsComponent()
+{
+    setLookAndFeel(nullptr);
 }
 
 void SpeakerGroupSettingsComponent::sliderValueChanged(juce::Slider* slider) {
