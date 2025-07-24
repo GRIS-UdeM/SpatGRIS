@@ -59,7 +59,7 @@ void SpeakerTreeComponent::setupDeleteButton()
     deleteButton.setClickingTogglesState(false);
 
     deleteButton.onClick = [this]() {
-        this->deleteButtonBehaviour();
+        deleteButtonBehaviour();
     };
 
     addAndMakeVisible(deleteButton);
