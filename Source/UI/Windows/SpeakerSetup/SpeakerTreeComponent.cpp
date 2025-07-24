@@ -47,7 +47,6 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     drag.setEditable(false);
     drag.setInterceptsMouseClicks(false, false);
 
-    updateUiBasedOnSpatMode();
 }
 
 void SpeakerTreeComponent::setupDeleteButton()
@@ -353,6 +352,7 @@ SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine* owner,
   groupSettingsButton.addListener(this);
   groupSettingsButton.setImages(false, true, true, cogImage, 1.0f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite);
   groupSettingsButton.setTooltip (TRANS ("Speaker group orientation"));
+  updateUiBasedOnSpatMode();
   addAndMakeVisible (groupSettingsButton);
 }
 
@@ -455,6 +455,7 @@ SpeakerComponent::SpeakerComponent(SpeakerSetupLine* owner,
     setupGain();
 
     setupHighPass ();
+    updateUiBasedOnSpatMode();
 
     direct.getToggleStateValue ().referTo (speakerTreeVt.getPropertyAsValue (DIRECT_OUT_ONLY, &undoManager));
     addAndMakeVisible (direct);

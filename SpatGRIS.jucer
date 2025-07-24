@@ -309,6 +309,7 @@
           <FILE id="A6XBb2" name="sg_vbap.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Implementations/sg_vbap.hpp"/>
         </GROUP>
         <GROUP id="{7FDD40C6-2AE5-E830-5A85-10F236714CFD}" name="StructGRIS">
+          <FILE id="URw4kp" name="Quaternion.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/StructGRIS/Quaternion.hpp"/>
           <FILE id="KvvtwK" name="ValueTreeUtilities.cpp" compile="1" resource="0"
                 file="submodules/AlgoGRIS/StructGRIS/ValueTreeUtilities.cpp"/>
           <FILE id="WdzVx1" name="ValueTreeUtilities.hpp" compile="0" resource="0"

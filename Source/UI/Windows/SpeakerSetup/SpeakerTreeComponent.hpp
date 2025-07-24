@@ -121,10 +121,6 @@ protected:
     SpeakerSetupLine* speakerSetupLine;
 
     tl::optional<SpatMode> getSpatMode () const;
-
-private:
-    void valueTreePropertyChanged(juce::ValueTree & speakerTreeVt, const juce::Identifier & property) override;
-    void updateUiBasedOnSpatMode();
     /**
      * The delete button behaviour depends on wether or not we are a speaker group
      */
@@ -134,6 +130,12 @@ private:
      * behave differently when the mode is vbap.
      */
     virtual void setVbapSphericalCoordinateBehaviour() = 0;
+
+protected:
+    void updateUiBasedOnSpatMode();
+
+private:
+    void valueTreePropertyChanged(juce::ValueTree & speakerTreeVt, const juce::Identifier & property) override;
 };
 
 class SpeakerGroupSettingsWindow;
@@ -152,12 +154,13 @@ public:
     void paint(juce::Graphics & g) override;
     void resized() override;
     void closeSettingsWindow();
+protected:
+  void deleteButtonBehaviour() override;
+  void setVbapSphericalCoordinateBehaviour() override;
 private:
     static constexpr uint32_t groupSettingsButtonWidth = 20;
     juce::ImageButton groupSettingsButton;
     std::unique_ptr<SpeakerGroupSettingsWindow> settingsWindow;
-    void deleteButtonBehaviour() override;
-    void setVbapSphericalCoordinateBehaviour() override;
     void buttonClicked (juce::Button* button) override;
 
 };
@@ -175,11 +178,12 @@ class SpeakerComponent : public SpeakerTreeComponent,
 public:
     SpeakerComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
     void paint(juce::Graphics & g) override;
+protected:
+  void deleteButtonBehaviour() override;
+  void setVbapSphericalCoordinateBehaviour() override;
 private:
     void setupGain ();
     void setupHighPass ();
-    void deleteButtonBehaviour() override;
-    void setVbapSphericalCoordinateBehaviour() override;
     void editorShown(juce::Label *, juce::TextEditor &) override;
     void labelTextChanged(juce::Label * labelThatHasChanged) override;
 };
