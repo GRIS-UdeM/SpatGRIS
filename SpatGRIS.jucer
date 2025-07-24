@@ -389,7 +389,7 @@
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
-                       recommendedWarnings="GCC"/>
+                       recommendedWarnings="GCC" extraCompilerFlags="-fdiagnostics-color=always"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        linkTimeOptimisation="1" recommendedWarnings="GCC"/>
       </CONFIGURATIONS>
