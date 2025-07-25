@@ -14,7 +14,7 @@ class SpeakerGroupSettingsComponent : public juce::Component,
     SpeakerGroupSettingsComponent() = delete;
     SG_DELETE_COPY_AND_MOVE(SpeakerGroupSettingsComponent);
 
-    void resized();
+    void resized() override;
 
  private:
     GrisLookAndFeel& lookAndFeel;
