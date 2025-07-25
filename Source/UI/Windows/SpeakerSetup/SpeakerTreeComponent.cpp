@@ -359,7 +359,7 @@ SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine* owner,
 }
 
 void SpeakerGroupComponent::buttonClicked (juce::Button* button) {
-    if (settingsWindow == nullptr) {
+    if (button == &groupSettingsButton && settingsWindow == nullptr) {
         settingsWindow = std::make_unique<SpeakerGroupSettingsWindow>(*this);
         settingsWindow->centreAroundComponent(this, settingsWindow->getWidth(), settingsWindow->getHeight());
     }
