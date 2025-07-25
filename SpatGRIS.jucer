@@ -7,6 +7,7 @@
               defines="JUCE_MODAL_LOOPS_PERMITTED=1" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
+      <FILE id="PUwJqY" name="cog_icon.png" compile="0" resource="1" file="Resources/cog_icon.png"/>
       <FILE id="FbCRQM" name="FreeFarsi-Mono.otf" compile="0" resource="1"
             file="Source/FreeFarsi-Mono.otf" xcodeResource="1"/>
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
@@ -148,6 +149,10 @@
         </GROUP>
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Windows">
           <GROUP id="{1252893F-FFF5-5BB8-9EDD-920C9A592D86}" name="SpeakerSetup">
+            <FILE id="lDRxIX" name="SpeakerGroupSettingsWindow.cpp" compile="1"
+                  resource="0" file="Source/UI/Windows/SpeakerSetup/SpeakerGroupSettingsWindow.cpp"/>
+            <FILE id="aXl45u" name="SpeakerGroupSettingsWindow.hpp" compile="0"
+                  resource="0" file="Source/UI/Windows/SpeakerSetup/SpeakerGroupSettingsWindow.hpp"/>
             <FILE id="LWfuDv" name="SpeakerSetupContainer.cpp" compile="1" resource="0"
                   file="Source/UI/Windows/SpeakerSetup/SpeakerSetupContainer.cpp"/>
             <FILE id="YE6iq2" name="SpeakerSetupContainer.hpp" compile="0" resource="0"
@@ -305,6 +310,8 @@
           <FILE id="A6XBb2" name="sg_vbap.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Implementations/sg_vbap.hpp"/>
         </GROUP>
         <GROUP id="{7FDD40C6-2AE5-E830-5A85-10F236714CFD}" name="StructGRIS">
+          <FILE id="jnKwXy" name="Quaternion.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/StructGRIS/Quaternion.cpp"/>
+          <FILE id="URw4kp" name="Quaternion.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/StructGRIS/Quaternion.hpp"/>
           <FILE id="KvvtwK" name="ValueTreeUtilities.cpp" compile="1" resource="0"
                 file="submodules/AlgoGRIS/StructGRIS/ValueTreeUtilities.cpp"/>
           <FILE id="WdzVx1" name="ValueTreeUtilities.hpp" compile="0" resource="0"
@@ -385,7 +392,7 @@
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
-                       recommendedWarnings="GCC"/>
+                       recommendedWarnings="GCC" extraCompilerFlags="-fdiagnostics-color=always"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        linkTimeOptimisation="1" recommendedWarnings="GCC"/>
       </CONFIGURATIONS>

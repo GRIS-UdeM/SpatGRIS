@@ -697,7 +697,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
     auto const newVal{ vt[property] };
 
     if (vt.getType() == SPEAKER_GROUP) {
-        if (property == CARTESIAN_POSITION) {
+        if (property == CARTESIAN_POSITION || property == YAW || property == PITCH || property == ROLL) {
             for (auto speakerVt : vt) {
                 jassert(speakerVt.getType() == SPEAKER);
                 output_patch_t const outputPatch{ speakerVt.getProperty(SPEAKER_PATCH_ID) };

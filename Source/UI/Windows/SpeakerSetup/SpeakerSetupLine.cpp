@@ -16,6 +16,9 @@
 */
 
 #include "SpeakerSetupLine.hpp"
+#include "SpeakerTreeComponent.hpp"
+#include "SpeakerGroupSettingsWindow.hpp"
+
 namespace gris
 {
 bool SpeakerSetupLine::isDeletingGroup = false;
