@@ -10,6 +10,7 @@ SpeakerGroupSettingsWindow::SpeakerGroupSettingsWindow(SpeakerGroupComponent& pa
 
       settingsComponent(parent, lookAndFeel)
 {
+    setOpaque (true);
     setAlwaysOnTop(true);
     setContentNonOwned(&settingsComponent, true);
     setResizable(false, false);
