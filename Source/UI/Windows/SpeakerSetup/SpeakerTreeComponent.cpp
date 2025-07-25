@@ -19,6 +19,7 @@
 #include "SpeakerSetupLine.hpp"
 #include "Data/sg_LogicStrucs.hpp"
 #include "Data/StrongTypes/sg_CartesianVector.hpp"
+#include "Data/StrongTypes/sg_CartesianVector.hpp"
 
 namespace gris
 {
@@ -345,15 +346,17 @@ SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine* owner,
                                              juce::UndoManager & undoMan)
     : SpeakerTreeComponent(owner, v, undoMan)
 {
-  id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(SPEAKER_GROUP_NAME, &undoManager));
-  id.setEditable (true);
-  addAndMakeVisible(id);
-  auto cogImage = juce::ImageFileFormat::loadFrom(juce::File::getCurrentWorkingDirectory().getChildFile("Resources/cog_icon.png"));
-  groupSettingsButton.addListener(this);
-  groupSettingsButton.setImages(false, true, true, cogImage, 1.0f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite);
-  groupSettingsButton.setTooltip (TRANS ("Speaker group orientation"));
-  updateUiBasedOnSpatMode();
-  addAndMakeVisible (groupSettingsButton);
+    id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(SPEAKER_GROUP_NAME, &undoManager));
+    id.setEditable (true);
+    addAndMakeVisible(id);
+
+    auto cogImage = juce::ImageCache::getFromMemory(BinaryData::cog_icon_png, BinaryData::cog_icon_pngSize);
+
+    groupSettingsButton.addListener(this);
+    groupSettingsButton.setImages(false, true, true, cogImage, 1.0f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite);
+    groupSettingsButton.setTooltip (TRANS ("Speaker group orientation"));
+    updateUiBasedOnSpatMode();
+    addAndMakeVisible (groupSettingsButton);
 }
 
 void SpeakerGroupComponent::buttonClicked (juce::Button* button) {
