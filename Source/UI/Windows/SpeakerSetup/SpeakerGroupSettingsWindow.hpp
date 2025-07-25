@@ -2,11 +2,8 @@
 #include "../../../sg_GrisLookAndFeel.hpp"
 #include "SpeakerTreeComponent.hpp"
 
-
 namespace gris
 {
-
-class SpeakerGroupComponent;
 
 class SpeakerGroupSettingsComponent : public juce::Component,
                                       public juce::Slider::Listener

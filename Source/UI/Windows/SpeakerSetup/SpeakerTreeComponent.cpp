@@ -15,11 +15,10 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "SpeakerTreeComponent.hpp"
-#include "SpeakerSetupLine.hpp"
+#include "Data/StrongTypes/sg_CartesianVector.hpp"
 #include "Data/sg_LogicStrucs.hpp"
-#include "Data/StrongTypes/sg_CartesianVector.hpp"
-#include "Data/StrongTypes/sg_CartesianVector.hpp"
+#include "SpeakerGroupSettingsWindow.hpp"
+#include "SpeakerSetupLine.hpp"
 
 namespace gris
 {

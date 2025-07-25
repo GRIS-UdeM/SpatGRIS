@@ -21,7 +21,6 @@
 #include <Data/sg_Position.hpp>
 #include <Data/sg_SpatMode.hpp>
 #include <StructGRIS/ValueTreeUtilities.hpp>
-#include "SpeakerGroupSettingsWindow.hpp"
 
 #define ENABLE_GROUP_MOVEMENT_IN_DOME 0
 
