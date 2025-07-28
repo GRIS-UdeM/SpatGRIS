@@ -751,6 +751,36 @@ void AudioManager::initInputBuffer(juce::Array<source_index_t> const & sources)
     mInputBuffer.init(sources);
 }
 
+#if USE_FORK_UNION
+void AudioManager::initForkUnionBuffer (int newBufferSize, tl::optional<int> numSpeakers)
+{
+#if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
+    if (numSpeakers.has_value ())
+        forkUnionBuffer.resize (*numSpeakers);
+
+    for (int i = 0; i < numSpeakers; ++i) {
+        forkUnionBuffer[i].clear ();
+        for (int j = 0; j < newBufferSize; ++j)
+            forkUnionBuffer[i].emplace_back (0.0f);
+    }
+#elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
+    // so we have a buffer for each hardware thread
+    auto const numThreads = std::thread::hardware_concurrency ();
+    forkUnionBuffer.resize (numThreads);
+
+    for (auto& curThreadSpeakerBuffer : forkUnionBuffer) {
+        // then within each thread we need a buffer for each speaker
+        if (numSpeakers.has_value())
+            curThreadSpeakerBuffer.resize (*numSpeakers);
+
+        // and each speaker buffer contains bufferSize samples
+        for (auto& curSpeakerBuffer : curThreadSpeakerBuffer)
+            curSpeakerBuffer.assign (newBufferSize, 0.f);
+    }
+#endif
+}
+#endif
+
 //==============================================================================
 void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers)
 {
@@ -758,6 +788,10 @@ void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers
     jassert(mAudioProcessor);
     juce::ScopedLock const lock{ mAudioProcessor->getLock() };
     mOutputBuffer.init(speakers);
+
+#if USE_FORK_UNION
+    initForkUnionBuffer (SpeakerAudioBuffer::MAX_NUM_SAMPLES, speakers.size());
+#endif
 }
 
 //==============================================================================
@@ -769,6 +803,10 @@ void AudioManager::setBufferSize(int const newBufferSize)
     mInputBuffer.setNumSamples(newBufferSize);
     mOutputBuffer.setNumSamples(newBufferSize);
     mStereoOutputBuffer.setSize(2, newBufferSize);
+
+#if USE_FORK_UNION
+    initForkUnionBuffer (newBufferSize, tl::nullopt);
+#endif
 }
 
 //==============================================================================
