@@ -333,6 +333,13 @@ void GrisLookAndFeel::drawLinearSliderBackground(juce::Graphics & g,
 }
 
 //==============================================================================
+void GrisLookAndFeel::drawPopupMenuBackground(juce::Graphics & g, int /*width*/, int /*height*/)
+{
+    g.setColour(this->mBackGroundAndFieldColour);
+    g.fillAll();
+}
+
+//==============================================================================
 void GrisLookAndFeel::fillTextEditorBackground(juce::Graphics & g,
                                                int /*width*/,
                                                int /*height*/,
