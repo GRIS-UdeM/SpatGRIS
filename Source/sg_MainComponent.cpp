@@ -2528,7 +2528,7 @@ source_index_t MainContentComponent::addSource(std::optional<source_index_t> sou
         }
     }
 
-    auto const newSourceIndex{ ++getFirstAvailableProjectSourceIndex() };
+    auto const newSourceIndex{ getFirstAvailableProjectSourceIndex() };
 
     if (index) {
         auto const isValidIndex{ *index >= 0 && !mData.project.ordering.contains(static_cast<source_index_t>(*index)) };
@@ -2591,7 +2591,7 @@ source_index_t MainContentComponent::getFirstAvailableProjectSourceIndex() const
 
     source_index_t firstAvailableIndex{};
     for (source_index_t i{ 1 }; mData.project.ordering.contains(i); ++i) {
-        firstAvailableIndex = i;
+        firstAvailableIndex = static_cast<source_index_t>(i.get() + 1);
     }
 
     return firstAvailableIndex;

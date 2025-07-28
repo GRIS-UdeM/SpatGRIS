@@ -52,7 +52,7 @@ On Linux, the name of the executable must be SpeakerView.x86_64.
 
 #### 1. Install dependencies
 
-Download and extract [Juce 7.0.1](https://github.com/juce-framework/JUCE/releases/tag/7.0.1)
+Download and extract [Juce 8.0.8](https://github.com/juce-framework/JUCE/releases/tag/8.0.8)
 
 ##### Additional dependencies on Linux :
 

@@ -360,7 +360,6 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
 
     juce::Thread::RealtimeOptions threadOptions;
     mPlayerThread.startRealtimeThread(threadOptions.withPriority(9));
-
     reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
                            currentAudioDevice->getCurrentSampleRate());
     return true;

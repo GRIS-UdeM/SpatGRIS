@@ -126,7 +126,7 @@ void SourceIdButton::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
 }
 
 //==============================================================================
-void SourceIdButton::textEditorEscapeKeyPressed(juce::TextEditor & textEditor)
+void SourceIdButton::textEditorEscapeKeyPressed([[maybe_unused]] juce::TextEditor & textEditor)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -135,7 +135,7 @@ void SourceIdButton::textEditorEscapeKeyPressed(juce::TextEditor & textEditor)
 }
 
 //==============================================================================
-void SourceIdButton::textEditorFocusLost(juce::TextEditor & textEditor)
+void SourceIdButton::textEditorFocusLost([[maybe_unused]] juce::TextEditor & textEditor)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
