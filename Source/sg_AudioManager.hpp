@@ -98,8 +98,8 @@ private:
     juce::TimeSliceThread mPlayerThread{ "SpatGRIS player thread" };
     juce::AudioFormat * mAudioFormat{};
     bool mFormatsRegistered{};
-    bool mIsPlaying{};
-    bool mIsPlayerLoading{};
+    std::atomic<bool> mIsPlaying{};
+    std::atomic<bool> mIsPlayerLoading{};
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 

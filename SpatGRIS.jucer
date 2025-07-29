@@ -4,8 +4,7 @@
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" cppLanguageStandard="latest" jucerFormatVersion="1"
               displaySplashScreen="1" maxBinaryFileSize="1048576" addUsingNamespaceToJuceHeader="0"
-              defines="JUCE_MODAL_LOOPS_PERMITTED=1" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS"
-              projectLineFeed="&#10;">
+              defines="JUCE_MODAL_LOOPS_PERMITTED=1" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="PUwJqY" name="cog_icon.png" compile="0" resource="1" file="Resources/cog_icon.png"/>
@@ -454,7 +453,7 @@
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_osc" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
   </MODULES>
-  <JUCEOPTIONS JUCE_ASIO="1" JUCE_JACK="1" JUCE_WEB_BROWSER="0"/>
+  <JUCEOPTIONS JUCE_ASIO="1" JUCE_WEB_BROWSER="0" JUCE_JACK="1"/>
   <LIVE_SETTINGS>
     <OSX/>
     <LINUX/>
