@@ -130,6 +130,10 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
         // Create the menu bar.
         mMenuBar.reset(new juce::MenuBarComponent(this));
+        mMenuBar->setColour(juce::TextButton::textColourOffId, grisLookAndFeel.getLightColour());
+        mMenuBar->setColour(juce::TextButton::textColourOnId, grisLookAndFeel.getLightColour());
+        mMenuBar->setColour(juce::TextButton::buttonColourId, grisLookAndFeel.getWinBackgroundColour());
+        mMenuBar->setColour(juce::TextButton::buttonOnColourId, grisLookAndFeel.getOnColour());
         addAndMakeVisible(mMenuBar.get());
 
         // SpeakerViewComponent 3D view
