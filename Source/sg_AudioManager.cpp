@@ -83,7 +83,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
 
-    if (!mAudioProcessor) {
+    if (!mAudioProcessor || mIsPlayerLoading) {
         return;
     }
 
@@ -122,11 +122,14 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
         }
     } else {
         auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
+
+        auto activeChannel{ std::begin(mAudioProcessor->getAudioData().config->sourcesAudioConfig) };
         for (int i{}; i < numInputChannelsToCopy; ++i) {
-            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
-            auto const * sourceData{ inputChannelData[i] };
+            source_index_t const sourceIndex{ activeChannel->key };
+            auto const * sourceData{ inputChannelData[sourceIndex.get() - source_index_t::OFFSET] };
             auto * destinationData{ mInputBuffer[sourceIndex].getWritePointer(0) };
             std::copy_n(sourceData, numSamples, destinationData);
+            ++activeChannel;
         }
     }
 
@@ -355,7 +358,8 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
         }
     }
 
-    mPlayerThread.startThread(juce::Thread::Priority::highest);
+    juce::Thread::RealtimeOptions threadOptions;
+    mPlayerThread.startRealtimeThread(threadOptions.withPriority(9));
     reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
                            currentAudioDevice->getCurrentSampleRate());
     return true;
@@ -397,6 +401,14 @@ void AudioManager::stopPlaying()
 bool AudioManager::isPlaying() const
 {
     return mIsPlaying;
+}
+
+//==============================================================================
+void AudioManager::setPlayerLoading(bool const playerIsLoading)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mIsPlayerLoading = playerIsLoading;
 }
 
 //==============================================================================

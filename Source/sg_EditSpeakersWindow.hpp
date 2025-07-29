@@ -209,7 +209,6 @@ private:
     void valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent) override;
 
     juce::UndoManager& undoManager;
-
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };
