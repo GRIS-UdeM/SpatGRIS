@@ -15,10 +15,10 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "SpeakerTreeComponent.hpp"
-#include "SpeakerSetupLine.hpp"
-#include "Data/sg_LogicStrucs.hpp"
 #include "Data/StrongTypes/sg_CartesianVector.hpp"
+#include "Data/sg_LogicStrucs.hpp"
+#include "SpeakerGroupSettingsWindow.hpp"
+#include "SpeakerSetupLine.hpp"
 
 namespace gris
 {
@@ -32,8 +32,6 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
 {
     speakerSetupVt.addListener(this);
     setInterceptsMouseClicks(false, true);
-
-    setupIdLabel ();
 
     setupCoordinateLabel(x, Position::Coordinate::x);
     setupCoordinateLabel(y, Position::Coordinate::y);
@@ -49,7 +47,6 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     drag.setEditable(false);
     drag.setInterceptsMouseClicks(false, false);
 
-    updateUiBasedOnSpatMode();
 }
 
 void SpeakerTreeComponent::setupDeleteButton()
@@ -62,41 +59,10 @@ void SpeakerTreeComponent::setupDeleteButton()
     deleteButton.setClickingTogglesState(false);
 
     deleteButton.onClick = [this]() {
-        auto parent = speakerTreeVt.getParent();
-
-        if (speakerTreeVt.getType() == SPEAKER) {
-            parent.removeChild(speakerTreeVt, &undoManager);
-        } else if (isSpeakerGroup()) {
-            SpeakerSetupLine::isDeletingGroup = true;
-
-            auto const numSpeakers { speakerTreeVt.getNumChildren()};
-            if (numSpeakers >= 1) {
-                //remove all but the first child
-                for (int i = numSpeakers - 1; i >= 1; --i)
-                    speakerTreeVt.removeChild (i, &undoManager);
-
-                SpeakerSetupLine::isDeletingGroup = false;
-
-                //this last one will trigger a call to MainContentComponent::refreshSpeakers()
-                speakerTreeVt.removeChild (0, &undoManager);
-
-                //and finally delete the group
-                parent.removeChild (speakerTreeVt, &undoManager);
-            }
-        }
+        deleteButtonBehaviour();
     };
 
     addAndMakeVisible(deleteButton);
-}
-
-void SpeakerTreeComponent::paint(juce::Graphics & g)
-{
-    if (speakerSetupLine->isSelected())
-        g.fillAll(lnf.mHlBgcolor);
-    else if (isSpeakerGroup())
-        g.fillAll(lnf.mBackGroundAndFieldColour.darker(.5f));
-    else if (speakerSetupLine->getIndexInParent() % 2 == 0)
-        g.fillAll(lnf.mGreyColour);
 }
 
 void SpeakerTreeComponent::resized()
@@ -306,45 +272,6 @@ void SpeakerTreeComponent::setupStringLabel (juce::Label & label, juce::StringRe
     addAndMakeVisible(label);
 }
 
-void SpeakerTreeComponent::setupIdLabel ()
-{
-    id.setEditable (true);
-    id.addListener (this);
-
-    if (isSpeakerGroup ()) {
-        id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(SPEAKER_GROUP_NAME, &undoManager));
-    } else {
-        id.setText(speakerTreeVt[SPEAKER_PATCH_ID], juce::dontSendNotification);
-    }
-
-    addAndMakeVisible (id);
-}
-
-void SpeakerTreeComponent::labelTextChanged (juce::Label* label)
-{
-    if (isSpeakerGroup () || label != &id)
-        return;
-
-    auto const currentId = id.getText ().getIntValue ();
-    auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
-    if (clampedId != currentId)
-        id.setText (juce::String (clampedId), juce::dontSendNotification);
-
-    // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
-    // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
-    // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
-    // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
-    speakerTreeVt.setProperty (NEXT_SPEAKER_PATCH_ID, clampedId, nullptr);
-}
-
-void SpeakerTreeComponent::editorShown (juce::Label* label, juce::TextEditor& editor)
-{
-    if (isSpeakerGroup() || label != &id)
-        return;
-
-    editor.setInputRestrictions (3, "0123456789");
-}
-
 void SpeakerTreeComponent::updateAllPositionLabels ()
 {
     x.setText(getPositionCoordinateTrimmedText(Position::Coordinate::x), juce::dontSendNotification);
@@ -388,33 +315,8 @@ void SpeakerTreeComponent::updateUiBasedOnSpatMode ()
         y.setEnabled(false);
         z.setEnabled(false);
 
-        if (isSpeakerGroup()) {
-            // just disable all controls here
-#if ENABLE_GROUP_MOVEMENT_IN_DOME
-            azim.setEnabled(true);
-            elev.setEnabled(true);
-#else
-            azim.setEnabled (false);
-            elev.setEnabled (false);
-#endif
-            distance.setEnabled(false);
-
-            // reset the group position and move its speakers to the dome
-            setPosition(Position{ CartesianVector{ 0.f, 0.f, 0.f } });
-            for (auto child : speakerTreeVt) {
-                jassert(child.hasProperty(CARTESIAN_POSITION));
-                auto curChildPosition = juce::VariantConverter<Position>::fromVar(child[CARTESIAN_POSITION]);
-                child.setProperty(CARTESIAN_POSITION,
-                                  juce::VariantConverter<Position>::toVar(curChildPosition.normalized()),
-                                  &undoManager);
-            }
-        }
-        else
-        {
-            azim.setEnabled (true);
-            elev.setEnabled (true);
-            distance.setEnabled (speakerTreeVt[DIRECT_OUT_ONLY]);
-        }
+        // the behaviour changes if we are a SpeakerComponent or a SpeakerGroupComponent
+        setVbapSphericalCoordinateBehaviour();
     }
     else if (spatMode == SpatMode::mbap)
     {
@@ -443,6 +345,103 @@ SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine* owner,
                                              juce::UndoManager & undoMan)
     : SpeakerTreeComponent(owner, v, undoMan)
 {
+    id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(SPEAKER_GROUP_NAME, &undoManager));
+    id.setEditable (true);
+    addAndMakeVisible(id);
+
+    auto cogImage = juce::ImageCache::getFromMemory(BinaryData::cog_icon_png, BinaryData::cog_icon_pngSize);
+
+    groupSettingsButton.addListener(this);
+    groupSettingsButton.setImages(false, true, true, cogImage, 1.0f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite);
+    groupSettingsButton.setTooltip (TRANS ("Speaker group orientation"));
+    updateUiBasedOnSpatMode();
+    addAndMakeVisible (groupSettingsButton);
+}
+
+void SpeakerGroupComponent::buttonClicked (juce::Button* button) {
+    if (button == &groupSettingsButton && settingsWindow == nullptr) {
+        settingsWindow = std::make_unique<SpeakerGroupSettingsWindow>(*this);
+        settingsWindow->centreAroundComponent(this, settingsWindow->getWidth(), settingsWindow->getHeight());
+    }
+  return;
+}
+
+void SpeakerGroupComponent::deleteButtonBehaviour() {
+    auto parent = speakerTreeVt.getParent();
+    SpeakerSetupLine::isDeletingGroup = true;
+
+    auto const numSpeakers { speakerTreeVt.getNumChildren()};
+    if (numSpeakers >= 1) {
+        //remove all but the first child
+        for (int i = numSpeakers - 1; i >= 1; --i)
+          speakerTreeVt.removeChild (i, &undoManager);
+
+        SpeakerSetupLine::isDeletingGroup = false;
+
+        //this last one will trigger a call to MainContentComponent::refreshSpeakers()
+        speakerTreeVt.removeChild (0, &undoManager);
+
+        //and finally delete the group
+        parent.removeChild (speakerTreeVt, &undoManager);
+    }
+}
+
+void SpeakerGroupComponent::paint(juce::Graphics & g)
+{
+    if (speakerSetupLine->isSelected())
+        g.fillAll(lnf.mHlBgcolor);
+    else
+        g.fillAll(lnf.mBackGroundAndFieldColour.darker(.5f));
+}
+
+void SpeakerGroupComponent::setVbapSphericalCoordinateBehaviour()
+{
+    // just disable all controls here
+#if ENABLE_GROUP_MOVEMENT_IN_DOME
+    azim.setEnabled(true);
+    elev.setEnabled(true);
+#else
+    azim.setEnabled (false);
+    elev.setEnabled (false);
+#endif
+    distance.setEnabled(false);
+
+    // reset the group position and move its speakers to the dome
+    setPosition(Position{ CartesianVector{ 0.f, 0.f, 0.f } });
+    for (auto child : speakerTreeVt) {
+        jassert(child.hasProperty(CARTESIAN_POSITION));
+        auto curChildPosition = juce::VariantConverter<Position>::fromVar(child[CARTESIAN_POSITION]);
+        child.setProperty(CARTESIAN_POSITION,
+                          juce::VariantConverter<Position>::toVar(curChildPosition.normalized()),
+                          &undoManager);
+    }
+}
+
+void SpeakerGroupComponent::closeSettingsWindow()
+{
+    settingsWindow.reset();
+}
+
+void SpeakerGroupComponent::resized()
+{
+    if (auto * window = findParentComponentOfClass<juce::DocumentWindow>()) {
+        auto bounds = getLocalBounds();
+
+        const auto windowOriginInThis = window->getLocalPoint(this, juce::Point<int>{ 0, 0 });
+        groupSettingsButton.setBounds(bounds.removeFromLeft(groupSettingsButtonWidth));
+
+        const auto idColWidth = fixedLeftColWidth - groupSettingsButtonWidth - windowOriginInThis.x;
+        id.setBounds(bounds.removeFromLeft(idColWidth - colGap));
+        bounds.removeFromLeft (colGap);
+
+        // then position the other components with a fixed width of otherColWidth
+        std::vector<juce::Component*> components = { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &deleteButton, &drag };
+        for (auto* component : components)
+        {
+            component->setBounds (bounds.removeFromLeft (otherColWidth - colGap));
+            bounds.removeFromLeft (colGap);
+        }
+    }
 }
 
 //==============================================================================
@@ -452,12 +451,32 @@ SpeakerComponent::SpeakerComponent(SpeakerSetupLine* owner,
                                    juce::UndoManager & undoMan)
     : SpeakerTreeComponent(owner, v, undoMan)
 {
+    id.setEditable (true);
+    id.addListener (this);
+    setupStringLabel(id, speakerTreeVt[SPEAKER_PATCH_ID].toString());
     setupGain();
 
     setupHighPass ();
+    updateUiBasedOnSpatMode();
 
     direct.getToggleStateValue ().referTo (speakerTreeVt.getPropertyAsValue (DIRECT_OUT_ONLY, &undoManager));
     addAndMakeVisible (direct);
+}
+
+void SpeakerComponent::paint(juce::Graphics & g)
+{
+    if (speakerSetupLine->isSelected())
+        g.fillAll(lnf.mHlBgcolor);
+    else if(speakerSetupLine->getIndexInParent() % 2 == 0)
+        g.fillAll(lnf.mGreyColour);
+}
+
+void SpeakerComponent::editorShown (juce::Label* label, juce::TextEditor& editor)
+{
+    if (label != &id)
+        return;
+
+    editor.setInputRestrictions (3, "0123456789");
 }
 
 void SpeakerComponent::setupGain ()
@@ -492,13 +511,24 @@ void SpeakerComponent::setupGain ()
     addAndMakeVisible (gain);
 }
 
+void SpeakerComponent::setVbapSphericalCoordinateBehaviour()
+{
+    azim.setEnabled (true);
+    elev.setEnabled (true);
+    distance.setEnabled (speakerTreeVt[DIRECT_OUT_ONLY]);
+}
+
+void SpeakerComponent::deleteButtonBehaviour()
+{
+    auto parent = speakerTreeVt.getParent();
+    parent.removeChild(speakerTreeVt, &undoManager);
+}
+
 void SpeakerComponent::setupHighPass()
 {
     highpass.setEditable(true);
-    if (! isSpeakerGroup()) {
-        juce::String const highPass = speakerTreeVt.hasProperty(HIGHPASS_FREQ) ? speakerTreeVt[HIGHPASS_FREQ] : "0";
-        highpass.setText(highPass, juce::dontSendNotification);
-    }
+    juce::String const highPass = speakerTreeVt.hasProperty(HIGHPASS_FREQ) ? speakerTreeVt[HIGHPASS_FREQ] : "0";
+    highpass.setText(highPass, juce::dontSendNotification);
 
     const auto getClampedFrequency = [](float freqValue, bool isIncreasing = false) {
         static constexpr hz_t OFF_FREQ{ 0.0f };
@@ -530,6 +560,23 @@ void SpeakerComponent::setupHighPass()
     };
 
     addAndMakeVisible(highpass);
+}
+
+void SpeakerComponent::labelTextChanged (juce::Label* label)
+{
+    if (label != &id)
+        return;
+
+    auto const currentId = id.getText ().getIntValue ();
+    auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
+    if (clampedId != currentId)
+        id.setText (juce::String (clampedId), juce::dontSendNotification);
+
+    // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
+    // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
+    // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
+    // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
+    speakerTreeVt.setProperty (NEXT_SPEAKER_PATCH_ID, clampedId, nullptr);
 }
 
 } // namespace gris
