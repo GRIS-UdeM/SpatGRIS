@@ -764,32 +764,33 @@ void AudioManager::initInputBuffer(juce::Array<source_index_t> const & sources)
 }
 
 #if USE_FORK_UNION
-void AudioManager::initForkUnionBuffer (int newBufferSize, tl::optional<int> numSpeakers)
+void AudioManager::initForkUnionBuffer([[maybe_unused]] int newBufferSize,
+                                       [[maybe_unused]] tl::optional<int> numSpeakers)
 {
-#if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
-    if (numSpeakers.has_value ())
-        forkUnionBuffer.resize (*numSpeakers);
+    #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
+    if (numSpeakers.has_value())
+        forkUnionBuffer.resize(*numSpeakers);
 
     for (int i = 0; i < numSpeakers; ++i) {
-        forkUnionBuffer[i].clear ();
+        forkUnionBuffer[i].clear();
         for (int j = 0; j < newBufferSize; ++j)
-            forkUnionBuffer[i].emplace_back (0.0f);
+            forkUnionBuffer[i].emplace_back(0.0f);
     }
-#elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
+    #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
     // so we have a buffer for each hardware thread
-    auto const numThreads = std::thread::hardware_concurrency ();
-    forkUnionBuffer.resize (numThreads);
+    auto const numThreads = std::thread::hardware_concurrency();
+    forkUnionBuffer.resize(numThreads);
 
-    for (auto& curThreadSpeakerBuffer : forkUnionBuffer) {
+    for (auto & curThreadSpeakerBuffer : forkUnionBuffer) {
         // then within each thread we need a buffer for each speaker
         if (numSpeakers.has_value())
-            curThreadSpeakerBuffer.resize (*numSpeakers);
+            curThreadSpeakerBuffer.resize(*numSpeakers);
 
         // and each speaker buffer contains bufferSize samples
-        for (auto& curSpeakerBuffer : curThreadSpeakerBuffer)
-            curSpeakerBuffer.assign (newBufferSize, 0.f);
+        for (auto & curSpeakerBuffer : curThreadSpeakerBuffer)
+            curSpeakerBuffer.assign(newBufferSize, 0.f);
     }
-#endif
+    #endif
 }
 #endif
 
