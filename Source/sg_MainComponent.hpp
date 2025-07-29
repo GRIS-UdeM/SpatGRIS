@@ -168,6 +168,7 @@ public:
     void setSourcePosition(source_index_t sourceIndex, Position position, float azimuthSpan, float zenithSpan);
 
     void resetSourcePosition(source_index_t sourceIndex);
+    void projectSourceIndexChanged(source_index_t oldSourceIndex, source_index_t newSourceIndex);
 
     void speakerDirectOutOnlyChanged(output_patch_t outputPatch, bool state);
     void speakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
@@ -195,6 +196,9 @@ public:
     void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     void setShowTriplets(bool state);
     void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) override;
+    void setSourceNewSourceIndex(source_index_t oldSourceIndex, source_index_t newSourceIndex) override;
+
+    [[nodiscard]] source_index_t getNextProjectSourceIndex(source_index_t currentSourceIndex) override;
 
     template<typename T>
     void setSpeakerPosition(output_patch_t const outputPatch, T const & position)
@@ -225,6 +229,12 @@ public:
     void recordButtonPressed();
 
     juce::Component * getControlsComponent() const;
+
+    source_index_t addSource(std::optional<source_index_t> sourceToCopy, std::optional<int> index);
+    void removeSource(source_index_t sourceIndex);
+    void reorderSources(juce::Array<source_index_t> newOrder);
+    [[nodiscard]] source_index_t getMaxProjectSourceIndex() const;
+    [[nodiscard]] source_index_t getFirstAvailableProjectSourceIndex() const;
 
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
     void addSpeaker(const SpeakerData & speakerData, int index, output_patch_t newOutputPatch);
