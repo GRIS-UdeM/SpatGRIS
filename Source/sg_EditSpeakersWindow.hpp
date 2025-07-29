@@ -135,6 +135,7 @@ private:
     juce::TextButton mSaveSpeakerSetupButton;
 
     //add ring of speakers
+    juce::Label mRingTitle;
     LabelTextEditorWrapper mRingSpeakers;
     LabelTextEditorWrapper mRingElevation;
     LabelTextEditorWrapper mRingRadius;
@@ -142,13 +143,12 @@ private:
     juce::TextButton mAddRingButton;
 
     // add polyhedron of speakers
+    juce::Label mPolyTitle;
     LabelComboBoxWrapper mPolyFaces;
     LabelTextEditorWrapper mPolyX;
     LabelTextEditorWrapper mPolyY;
     LabelTextEditorWrapper mPolyZ;
     LabelTextEditorWrapper mPolyRadius;
-    LabelTextEditorWrapper mPolyAzimuthOffset;
-    LabelTextEditorWrapper mPolyElevOffset;
 
     juce::TextButton mAddPolyButton;
 

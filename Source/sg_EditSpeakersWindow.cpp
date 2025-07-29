@@ -67,8 +67,6 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mPolyY(lookAndFeel)
     , mPolyZ(lookAndFeel)
     , mPolyRadius(lookAndFeel)
-    , mPolyAzimuthOffset(lookAndFeel)
-    , mPolyElevOffset(lookAndFeel)
     , undoManager (undoMan)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -84,6 +82,17 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupButton(mAddSpeakerButton, "Add Speaker");
     setupButton(mSaveAsSpeakerSetupButton, "Save As...");
     setupButton(mSaveSpeakerSetupButton, "Save");
+
+    auto setupLabel = [this](juce::Label& label, juce::StringRef labelText) {
+
+      // Sound diffusion controls
+      label.setText(labelText, juce::NotificationType::dontSendNotification);
+      label.setFont(mLookAndFeel.getFont());
+      label.setLookAndFeel(&mLookAndFeel);
+      label.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
+      mViewportWrapper.getContent()->addAndMakeVisible(label);
+
+    }
 
     auto setupWrapper = [this](LabelWrapper * w,
                                juce::StringRef labelText,
@@ -134,18 +143,6 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupWrapper(&mPolyY, "Y", "Y position for the center of the polyhedron.", "0", 4, "-0123456789.");
     setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0.15", 4, "-0123456789.");
     setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", ".05", 4, "0123456789.");
-    setupWrapper(&mPolyAzimuthOffset,
-                 "Azimuth offset",
-                 "Azimuth rotation for the polyhedron shape, in degrees.",
-                 "0",
-                 3,
-                 "0123456789");
-    setupWrapper(&mPolyElevOffset,
-                 "Elevation offset",
-                 "Azimuth rotation for the polyhedron shape, in degrees.",
-                 "0",
-                 3,
-                 "0123456789");
     setupButton(mAddPolyButton, "Add Polyhedron");
     togglePolyhedraExtraWidgets();
 
@@ -176,6 +173,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mDiffusionLabel.setFont(mLookAndFeel.getFont());
     mDiffusionLabel.setLookAndFeel(&mLookAndFeel);
     mDiffusionLabel.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
+
     mViewportWrapper.getContent()->addAndMakeVisible(mDiffusionLabel);
 
     mDiffusionSlider.setTooltip("Adjuts the spreading range of sources sound");
@@ -380,8 +378,6 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         auto const getSpeakerPosition = [this](int i) -> Position {
             const auto numFaces = mPolyFaces.getSelectionAsInt();
             const auto radius = mPolyRadius.getTextAs<float>();
-            const auto azimOffset = mPolyAzimuthOffset.getTextAs<float>() * PI.get() / 180.0f; // Convert to radians
-            const auto elevOffset = mPolyElevOffset.getTextAs<float>() * PI.get() / 180.0f;    // Convert to radians
 
             using Vec3 = std::array<float, 3>;
             const auto vertices = [&numFaces]() -> std::span<const Vec3> {
@@ -442,19 +438,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             const auto y = radius * curVertex[1] / norm;
             const auto z = radius * curVertex[2] / norm;
 
-            // Apply azimuth rotation (around Z-axis)
-            const auto sinAzim{ std::sin(azimOffset) };
-            const auto cosAzim{ std::cos(azimOffset) };
-            const auto xAzim = x * cosAzim - y * sinAzim;
-            const auto yAzim = x * sinAzim + y * cosAzim;
-
-            // Apply elevation rotation (around Y-axis)
-            const auto sinElev{ std::sin(elevOffset) };
-            const auto cosElev{ std::cos(elevOffset) };
-            const auto xRot = xAzim * cosElev + z * sinElev;
-            const auto zRot = -xAzim * sinElev + z * cosElev;
-
-            return Position { CartesianVector{ xRot, yAzim, zRot } };
+            return Position { CartesianVector{ x, y, z } };
         };
         isAddingGroup = true;
         addSpeakerGroup(numFaces, groupPosition, getSpeakerPosition);
@@ -651,11 +635,6 @@ void EditSpeakersWindow::resized()
     startingX += shortlabelW + shortEditorW;
     positionWidget(&mPolyRadius, startingX, thirdRowY, 50, 40);
     startingX += 50 + 40;
-    positionWidget(&mPolyAzimuthOffset, startingX, thirdRowY, 90, 40);
-    startingX += 90 + 40;
-    positionWidget(&mPolyElevOffset, startingX, thirdRowY, 100, 40);
-    mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, 24);
-
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, 24);
     mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, 60);
     mDiffusionLabel.setBounds(getWidth() - 247, getHeight() - 70, 160, 24);
