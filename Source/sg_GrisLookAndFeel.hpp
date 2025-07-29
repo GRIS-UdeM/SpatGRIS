@@ -51,6 +51,8 @@ public:
     juce::Colour mGreyColour;
     juce::Colour mEditBgcolor;
     juce::Colour mHlBgcolor;
+    // Use this for buttons that should stand out a little bit.
+    juce::Colour mImportantColor;
     juce::Colour mOnColor;
     juce::Colour mOnColorOver;
     juce::Colour mOnColorDown;

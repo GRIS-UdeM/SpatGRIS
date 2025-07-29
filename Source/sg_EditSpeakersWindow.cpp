@@ -80,6 +80,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     };
 
     setupButton(mAddSpeakerButton, "Add Speaker");
+    mAddSpeakerButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
     setupButton(mSaveAsSpeakerSetupButton, "Save As...");
     setupButton(mSaveSpeakerSetupButton, "Save");
 
@@ -91,8 +92,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
       label.setLookAndFeel(&mLookAndFeel);
       label.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
       mViewportWrapper.getContent()->addAndMakeVisible(label);
-
-    }
+    };
 
     auto setupWrapper = [this](LabelWrapper * w,
                                juce::StringRef labelText,
@@ -120,13 +120,16 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     };
 
     // Generate ring of speakers.
+    setupLabel(mRingTitle, "Ring parameters:");
     setupWrapper(&mRingSpeakers, "# of speakers", "Number of speakers in the ring.", "8", 3, "0123456789");
     setupWrapper(&mRingElevation, "Elevation", "Elevation angle of the ring.", "0.0", 6, "-0123456789.");
     setupWrapper(&mRingRadius, "Distance", "Distance of the speakers from the center.", "1.0", 6, "0123456789.");
     setupWrapper(&mRingOffsetAngle, "Offset Angle", "Offset angle of the first speaker.", "0.0", 6, "-0123456789.");
     setupButton(mAddRingButton, "Add Ring");
+    mAddRingButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
 
     // Polyhedron of speakers.
+    setupLabel(mPolyTitle, "Polyhedron parameters:");
     setupWrapper(&mPolyFaces,
                  "# of faces",
                  "Number of faces/speakers for the polyhedron.",
@@ -144,6 +147,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0.15", 4, "-0123456789.");
     setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", ".05", 4, "0123456789.");
     setupButton(mAddPolyButton, "Add Polyhedron");
+    mAddPolyButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
+
     togglePolyhedraExtraWidgets();
 
     // Pink noise controls.
@@ -169,12 +174,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mViewportWrapper.getContent()->addAndMakeVisible(mPinkNoiseGainSlider);
 
     // Sound diffusion controls
-    mDiffusionLabel.setText("Global Sound Diffusion", juce::NotificationType::dontSendNotification);
-    mDiffusionLabel.setFont(mLookAndFeel.getFont());
-    mDiffusionLabel.setLookAndFeel(&mLookAndFeel);
-    mDiffusionLabel.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
-
-    mViewportWrapper.getContent()->addAndMakeVisible(mDiffusionLabel);
+    setupLabel(mDiffusionLabel, "Global Sound Diffusion");
 
     mDiffusionSlider.setTooltip("Adjuts the spreading range of sources sound");
     mDiffusionSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -594,51 +594,77 @@ void EditSpeakersWindow::resized()
     mViewportWrapper.correctSize(getWidth() - 10, getHeight() - 30);
 
     // speaker table
-    auto const secondRowH{ 24 };
-    auto const bottomPanelH{ 195 + secondRowH };
+    auto const rowH{ 24 };
+    auto const bottomPanelH{ 195 + rowH };
     mSpeakerSetupContainer.setSize(getWidth(), getHeight() - bottomPanelH);
 
-    // first row of bottom panel with add speaker, save as, and save buttons
-    auto const firstRowH{ 22 };
-    auto const firstRowY{ getHeight() - 180 };
-    mAddSpeakerButton.setBounds(5, firstRowY, 100, firstRowH);
-    mSaveAsSpeakerSetupButton.setBounds(getWidth() - 210, firstRowY, 100, firstRowH);
-    mSaveSpeakerSetupButton.setBounds(getWidth() - 105, firstRowY, 100, firstRowH);
+    // first row of bottom panel with add speaker
+    auto const rowsStart = getHeight() - 200;
+    auto const rowSpacing{ 10 };
+    auto const firstRowY{ rowsStart };
+    mAddSpeakerButton.setBounds(getWidth() - 105, firstRowY, 100, rowH);
 
     // second row of bottom panel with rings of speakers
-    auto const secondRowY{ getHeight() - 140 };
+    auto const secondRowY{ rowsStart + rowH + rowSpacing };
     auto const positionWidget = [](LabelWrapper * w, int x, int y, int lw, int ew) {
-        w->label.setBounds(x, y, lw, secondRowH);
+        // the fine adjustment (+1 y on the label position and +1 -2 on
+        // the editor's y and height are there to match the size of the
+        // comboboxes and the positionning with the one of the buttons.
+        w->label.setBounds(x, y + 1, lw, rowH);
         if (auto * lew{ dynamic_cast<LabelTextEditorWrapper *>(w) })
-            lew->editor.setBounds(x + lw, y, ew, secondRowH);
+            lew->editor.setBounds(x + lw, y + 1, ew, rowH - 2);
         else if (auto * lcw{ dynamic_cast<LabelComboBoxWrapper *>(w) })
-            lcw->comboBox.setBounds(x + lw, y, ew, secondRowH);
+            lcw->comboBox.setBounds(x + lw, y + 1, ew, rowH - 2);
     };
+    auto currentX = 130;
+    auto const labelW{ 80 };
+    auto const shortLabelW{ 33 };
 
-    positionWidget(&mRingSpeakers, 5, secondRowY, 80, 40);
-    positionWidget(&mRingElevation, 120, secondRowY, 80, 60);
-    positionWidget(&mRingRadius, 255, secondRowY, 80, 60);
-    positionWidget(&mRingOffsetAngle, 400, secondRowY, 80, 60);
-    mAddRingButton.setBounds(getWidth() - 105, secondRowY, 100, 24);
+    auto const editorW{ 60 };
+    auto const increment{ 140 };
+
+    mRingTitle.setBounds(5, secondRowY, currentX, rowH);
+    positionWidget(&mRingSpeakers, currentX, secondRowY, labelW, editorW);
+    currentX += increment;
+    positionWidget(&mRingElevation, currentX, secondRowY, labelW, editorW);
+    currentX += increment;
+    positionWidget(&mRingRadius, currentX, secondRowY, labelW, editorW);
+    currentX += increment;
+    positionWidget(&mRingOffsetAngle, currentX, secondRowY, labelW, editorW);
+    currentX += increment;
+    mAddRingButton.setBounds(getWidth() - 105, secondRowY, 100, rowH);
 
     // third row of bottom panel with polyhedra controls
-    auto const thirdRowY{ secondRowY + secondRowH + 2 };
-    positionWidget(&mPolyFaces, 5, thirdRowY, 70, 50);
-    auto startingX{ 120 };
-    auto const shortlabelW{ 30 };
-    auto const shortEditorW{ 40 };
-    positionWidget(&mPolyX, startingX, thirdRowY, shortlabelW, shortEditorW);
-    startingX += shortlabelW + shortEditorW;
-    positionWidget(&mPolyY, startingX, thirdRowY, shortlabelW, shortEditorW);
-    startingX += shortlabelW + shortEditorW;
-    positionWidget(&mPolyZ, startingX, thirdRowY, shortlabelW, shortEditorW);
-    startingX += shortlabelW + shortEditorW;
-    positionWidget(&mPolyRadius, startingX, thirdRowY, 50, 40);
-    startingX += 50 + 40;
-    mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, 24);
-    mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, 60);
-    mDiffusionLabel.setBounds(getWidth() - 247, getHeight() - 70, 160, 24);
-    mDiffusionSlider.setBounds(getWidth() - 88, getHeight() - 95, 60, 60);
+    auto const thirdRowY{ rowsStart + (rowH + rowSpacing) * 2 };
+    currentX = 130 ;
+    mPolyTitle.setBounds(5, thirdRowY, currentX, rowH);
+    positionWidget(&mPolyFaces, currentX, thirdRowY, labelW, editorW);
+    currentX += labelW + editorW;
+    positionWidget(&mPolyX, currentX, thirdRowY, shortLabelW, editorW);
+    currentX += shortLabelW + editorW;
+    positionWidget(&mPolyY, currentX, thirdRowY, shortLabelW, editorW);
+    currentX += shortLabelW + editorW + 1;
+    positionWidget(&mPolyZ, currentX, thirdRowY, shortLabelW, editorW);
+    // +2 just to align the editors a bit better.
+    currentX += shortLabelW + editorW;
+    positionWidget(&mPolyRadius, currentX, thirdRowY, labelW, editorW);
+    mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, rowH);
+
+    // "Fourth" row with pink noise, diffusion and the save buttons.
+    // This row needs to be placed a bit lower due to the height of the knobs.
+    auto const sliderHeight{ 60 };
+    auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 + sliderHeight};
+    mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, rowH);
+    mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, sliderHeight);
+    mDiffusionLabel.setBounds(260, getHeight() - 70, 160, rowH);
+    mDiffusionSlider.setBounds(260+165, getHeight() - 95, 60, sliderHeight);
+    mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, rowH);
+
+    // save buttons. the getHeight() - 57 are there to match the position of the buttons
+    // to the middle of the two ToggleButtons on the same line.
+    mSaveAsSpeakerSetupButton.setBounds(getWidth() - 210, getHeight() - 57, 100, rowH);
+    mSaveSpeakerSetupButton.setBounds(getWidth() - 105, getHeight() - 57, 100, rowH);
+
 }
 
 //==============================================================================
