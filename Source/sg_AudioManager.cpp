@@ -95,7 +95,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     // TODO: should not process if stereo mode is hrtf
     mOutputBuffer.silence();
 
-#if USE_FORK_UNION && (FU_METHOD == FU_USE_ARRAY_OF_ATOMICS || FU_METHOD == FU_USE_BUFFER_PER_THREAD)
+#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
     mAudioProcessor->silenceForkUnionBuffer (forkUnionBuffer);
 #endif
 
@@ -140,7 +140,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     // do the actual processing
     mAudioProcessor->processAudio(mInputBuffer,
                                   mOutputBuffer,
-#if USE_FORK_UNION && (FU_METHOD == FU_USE_ARRAY_OF_ATOMICS || FU_METHOD == FU_USE_BUFFER_PER_THREAD)
+#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
                                   forkUnionBuffer,
 #endif
                                   mStereoOutputBuffer);
@@ -762,11 +762,11 @@ void AudioManager::initInputBuffer(juce::Array<source_index_t> const & sources)
     mInputBuffer.init(sources);
 }
 
-#if USE_FORK_UNION
+#if SG_USE_FORK_UNION
 void AudioManager::initForkUnionBuffer([[maybe_unused]] int newBufferSize,
                                        [[maybe_unused]] tl::optional<int> numSpeakers)
 {
-    #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
+    #if SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS
     if (numSpeakers.has_value())
         forkUnionBuffer.resize(*numSpeakers);
 
@@ -775,7 +775,7 @@ void AudioManager::initForkUnionBuffer([[maybe_unused]] int newBufferSize,
         for (int j = 0; j < newBufferSize; ++j)
             forkUnionBuffer[i].emplace_back(0.0f);
     }
-    #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
+    #elif SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD
     // so we have a buffer for each hardware thread
     auto const numThreads = std::thread::hardware_concurrency();
     forkUnionBuffer.resize(numThreads);
@@ -801,7 +801,7 @@ void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers
     juce::ScopedLock const lock{ mAudioProcessor->getLock() };
     mOutputBuffer.init(speakers);
 
-#if USE_FORK_UNION
+#if SG_USE_FORK_UNION
     initForkUnionBuffer (SpeakerAudioBuffer::MAX_NUM_SAMPLES, speakers.size());
 #endif
 }
@@ -816,7 +816,7 @@ void AudioManager::setBufferSize(int const newBufferSize)
     mOutputBuffer.setNumSamples(newBufferSize);
     mStereoOutputBuffer.setSize(2, newBufferSize);
 
-#if USE_FORK_UNION
+#if SG_USE_FORK_UNION
     initForkUnionBuffer (newBufferSize, tl::nullopt);
 #endif
 }

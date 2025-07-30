@@ -82,7 +82,7 @@ private:
     juce::AudioDeviceManager mAudioDeviceManager{};
     SourceAudioBuffer mInputBuffer{};
     SpeakerAudioBuffer mOutputBuffer{};
-#if USE_FORK_UNION && (FU_METHOD == FU_USE_ARRAY_OF_ATOMICS || FU_METHOD == FU_USE_BUFFER_PER_THREAD)
+#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
     ForkUnionBuffer forkUnionBuffer;
 #endif
 
@@ -140,7 +140,7 @@ public:
     juce::Array<juce::File> & getAudioFiles();
 
     void initInputBuffer(juce::Array<source_index_t> const & sources);
-#if USE_FORK_UNION
+#if SG_USE_FORK_UNION
     void initForkUnionBuffer (int bufferSize, tl::optional<int> speakerCount);
 #endif
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);

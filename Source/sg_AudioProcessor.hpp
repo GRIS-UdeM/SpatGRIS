@@ -48,10 +48,10 @@ public:
     [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mLock; }
     void processAudio(SourceAudioBuffer & sourceBuffer,
                       SpeakerAudioBuffer & speakerBuffer,
-#if USE_FORK_UNION
-    #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
+#if SG_USE_FORK_UNION
+    #if SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS
                       ForkUnionBuffer & forkUnionBuffer,
-    #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
+    #elif SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD
                       ForkUnionBuffer & forkUnionBuffer,
     #endif
 #endif
@@ -63,7 +63,7 @@ public:
     auto const & getSpatAlgorithm() const { return mSpatAlgorithm; }
     auto & getSpatAlgorithm() { return mSpatAlgorithm; }
 
-#if USE_FORK_UNION && (FU_METHOD == FU_USE_ARRAY_OF_ATOMICS || FU_METHOD == FU_USE_BUFFER_PER_THREAD)
+#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
     void silenceForkUnionBuffer(ForkUnionBuffer & forkUnionBuffer) noexcept
     {
         if (mSpatAlgorithm)

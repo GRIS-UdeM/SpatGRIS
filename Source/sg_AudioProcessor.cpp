@@ -106,10 +106,10 @@ void AudioProcessor::processOutputModifiersAndPeaks(SpeakerAudioBuffer & speaker
 //==============================================================================
 void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
                                   SpeakerAudioBuffer & speakerBuffer,
-#if USE_FORK_UNION
-    #if FU_METHOD == FU_USE_ARRAY_OF_ATOMICS
+#if SG_USE_FORK_UNION
+    #if SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS
                                   ForkUnionBuffer & forkUnionBuffer,
-    #elif FU_METHOD == FU_USE_BUFFER_PER_THREAD
+    #elif SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD
                                   ForkUnionBuffer & forkUnionBuffer,
     #endif
 #endif
@@ -142,7 +142,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
         mSpatAlgorithm->process(*mAudioData.config,
                                 sourceBuffer,
                                 speakerBuffer,
-#if USE_FORK_UNION && (FU_METHOD == FU_USE_ARRAY_OF_ATOMICS || FU_METHOD == FU_USE_BUFFER_PER_THREAD)
+#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
                                 forkUnionBuffer,
 #endif
                                 stereoBuffer,
