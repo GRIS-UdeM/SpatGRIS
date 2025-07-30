@@ -33,6 +33,7 @@ GrisLookAndFeel::GrisLookAndFeel()
 
     this->mEditBgcolor = juce::Colour::fromRGB(172, 172, 172);
     this->mHlBgcolor = juce::Colour::fromRGB(190, 125, 18);
+    this->mImportantColor = juce::Colour::fromRGB(169,143,100);
 
     this->mOnColor = juce::Colour::fromRGB(255, 165, 25);
     this->mOnColorOver = juce::Colour::fromRGB(255, 184, 75);
