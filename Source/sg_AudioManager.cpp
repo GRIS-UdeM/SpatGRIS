@@ -157,7 +157,6 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
             std::copy_n(mStereoOutputBuffer.getReadPointer(1), numSamples, outputChannelData[rightIndex]);
         }
     } else {
-        //TODO VB: actually, why is there a copy at all?
         mOutputBuffer.copyToPhysicalOutput(outputChannelData, totalNumOutputChannels);
     }
 
