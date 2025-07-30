@@ -98,7 +98,8 @@ private:
     juce::TimeSliceThread mPlayerThread{ "SpatGRIS player thread" };
     juce::AudioFormat * mAudioFormat{};
     bool mFormatsRegistered{};
-    bool mIsPlaying{};
+    std::atomic<bool> mIsPlaying{};
+    std::atomic<bool> mIsPlayerLoading{};
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -126,6 +127,7 @@ public:
     void startPlaying();
     void stopPlaying();
     bool isPlaying() const;
+    void setPlayerLoading(bool const playerIsLoading);
     void unloadPlayer();
     void setPosition(double const newPos);
     void reloadPlayerAudioFiles(int currentBufferSize, double currentSampleRate);

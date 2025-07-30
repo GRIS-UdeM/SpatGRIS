@@ -159,6 +159,7 @@ public:
                                     float /*maxSliderPos*/,
                                     juce::Slider::SliderStyle /*style*/,
                                     juce::Slider & slider) override;
+    void drawPopupMenuBackground(juce::Graphics & g, int width, int height) override;
     void fillTextEditorBackground(juce::Graphics & g, int width, int height, juce::TextEditor & t) override;
     void drawTextEditorOutline(juce::Graphics & g, int width, int height, juce::TextEditor & t) override;
     void drawToggleButton(juce::Graphics & g,

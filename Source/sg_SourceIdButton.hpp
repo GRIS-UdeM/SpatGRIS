@@ -32,6 +32,7 @@ class SourceIdButton final
     : public MinSizedComponent
     , private SmallToggleButton::Listener
     , private juce::ChangeListener
+    , private juce::TextEditor::Listener
 {
 public:
     //==============================================================================
@@ -44,6 +45,7 @@ public:
         //==============================================================================
         virtual void sourceIdButtonColorChanged(SourceIdButton * button, juce::Colour color) = 0;
         virtual void sourceIdButtonCopyColorToNextSource(SourceIdButton * button, juce::Colour color) = 0;
+        virtual void sourceIdButtonSourceIndexChanged(SourceIdButton * button, source_index_t newSourceIndex) = 0;
     };
 
 private:
@@ -51,6 +53,7 @@ private:
     Listener & mListener;
 
     SmallToggleButton mButton;
+    juce::CallOutBox * mSourceIndexCallBox;
 
 public:
     //==============================================================================
@@ -71,6 +74,9 @@ private:
     //==============================================================================
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
     void smallButtonClicked(SmallToggleButton * button, bool state, bool isLeftMouseButton) override;
+    void textEditorReturnKeyPressed(juce::TextEditor &) override;
+    void textEditorEscapeKeyPressed(juce::TextEditor &) override;
+    void textEditorFocusLost(juce::TextEditor &) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(SourceIdButton)
 };

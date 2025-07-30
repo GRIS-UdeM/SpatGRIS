@@ -52,17 +52,22 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->setColour(juce::TextEditor::backgroundColourId, this->mEditBgcolor);
     this->setColour(juce::TextEditor::highlightColourId, this->mHlBgcolor);
     this->setColour(juce::TextEditor::shadowColourId, this->mEditBgcolor);
+    this->setColour(juce::TextEditor::textColourId, this->mDarkColour);
 
     this->setColour(juce::TextButton::buttonColourId, this->mEditBgcolor);
+    this->setColour(juce::TextButton::textColourOnId, this->mDarkColour);
+    this->setColour(juce::TextButton::textColourOffId, this->mDarkColour);
 
     this->setColour(juce::ComboBox::backgroundColourId, this->mEditBgcolor);
     this->setColour(juce::ComboBox::outlineColourId, this->mEditBgcolor);
+    this->setColour(juce::ComboBox::textColourId, this->mDarkColour);
 
     this->setColour(juce::Slider::thumbColourId, this->mLightColour);
     this->setColour(juce::Slider::rotarySliderFillColourId, this->mOnColor);
     this->setColour(juce::Slider::trackColourId, this->mDarkColour);
     this->setColour(juce::Slider::textBoxBackgroundColourId, this->mEditBgcolor);
     this->setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+    this->setColour(juce::Slider::textBoxTextColourId, this->mDarkColour);
 
     this->setColour(juce::TooltipWindow::ColourIds::backgroundColourId,
                     this->mBackGroundAndFieldColour.withBrightness(0.8f));
@@ -331,6 +336,13 @@ void GrisLookAndFeel::drawLinearSliderBackground(juce::Graphics & g,
         g.fillPath(on);
         g.fillPath(off);
     }
+}
+
+//==============================================================================
+void GrisLookAndFeel::drawPopupMenuBackground(juce::Graphics & g, int /*width*/, int /*height*/)
+{
+    g.setColour(this->mBackGroundAndFieldColour);
+    g.fillAll();
 }
 
 //==============================================================================

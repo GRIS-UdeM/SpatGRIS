@@ -19,14 +19,14 @@
 
 #pragma once
 
-#include "sg_LayoutComponent.hpp"
 #include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
+#include "AlgoGRIS/Data/sg_constants.hpp"
 #include "sg_GeneralMuteButton.h"
+#include "sg_LayoutComponent.hpp"
 #include "sg_RecordButton.hpp"
 #include "sg_SpatSlider.hpp"
 #include "sg_SubPanelComponent.hpp"
 #include "sg_TitledComponent.hpp"
-#include "AlgoGRIS/Data/sg_constants.hpp"
 
 namespace gris
 {

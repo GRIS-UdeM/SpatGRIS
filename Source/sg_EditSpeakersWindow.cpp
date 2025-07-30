@@ -56,8 +56,6 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , spatGrisData(mainContentComponent.getData())
     , mLookAndFeel(lookAndFeel)
     , mViewportWrapper(lookAndFeel)
-    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, spatGrisData.speakerSetup.speakerSetupValueTree, undoMan, [this]() { pushSelectionToMainComponent (); })
-    , mFont(juce::FontOptions().withHeight(14.f))
     , mRingSpeakers(lookAndFeel)
     , mRingElevation(lookAndFeel)
     , mRingRadius(lookAndFeel)
@@ -67,6 +65,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mPolyY(lookAndFeel)
     , mPolyZ(lookAndFeel)
     , mPolyRadius(lookAndFeel)
+    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, spatGrisData.speakerSetup.speakerSetupValueTree, undoMan, [this]() { pushSelectionToMainComponent (); })
+    , mFont(juce::FontOptions().withHeight(14.f))
     , undoManager (undoMan)
 {
     JUCE_ASSERT_MESSAGE_THREAD;

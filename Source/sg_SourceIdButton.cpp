@@ -29,6 +29,7 @@ SourceIdButton::SourceIdButton(source_index_t const sourceIndex,
     : mListener(listener)
 
     , mButton(false, juce::String{ sourceIndex.get() }, "Change color", *this, lookAndFeel)
+    , mSourceIndexCallBox{ nullptr }
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -79,6 +80,20 @@ void SourceIdButton::smallButtonClicked([[maybe_unused]] SmallToggleButton * but
         return;
     }
 
+    auto const mods{ juce::ModifierKeys::getCurrentModifiers() };
+    if (isLeftMouseButton && mods.isAltDown()) {
+        auto sourceIndexTxtEditor{ std::make_unique<juce::TextEditor>() };
+
+        sourceIndexTxtEditor->setJustification(juce::Justification::centred);
+        sourceIndexTxtEditor->setInputRestrictions(3, "1234567890");
+        sourceIndexTxtEditor->addListener(this);
+        sourceIndexTxtEditor->setSize(30, 20);
+
+        mSourceIndexCallBox
+            = &juce::CallOutBox::launchAsynchronously(std::move(sourceIndexTxtEditor), getScreenBounds(), nullptr);
+        return;
+    }
+
     auto colourSelector{ std::make_unique<juce::ColourSelector>(juce::ColourSelector::showColourAtTop
                                                                     | juce::ColourSelector::showSliders
                                                                     | juce::ColourSelector::showColourspace,
@@ -91,6 +106,41 @@ void SourceIdButton::smallButtonClicked([[maybe_unused]] SmallToggleButton * but
     colourSelector->setSize(300, 400);
 
     juce::CallOutBox::launchAsynchronously(std::move(colourSelector), getScreenBounds(), nullptr);
+}
+
+//==============================================================================
+void SourceIdButton::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto const srcIdx = textEditor.getText().getIntValue();
+
+    if (srcIdx < 1 || srcIdx > MAX_NUM_SOURCES) {
+        return;
+    }
+
+    mSourceIndexCallBox->dismiss();
+    mSourceIndexCallBox = nullptr;
+
+    mListener.sourceIdButtonSourceIndexChanged(this, static_cast<source_index_t>(srcIdx));
+}
+
+//==============================================================================
+void SourceIdButton::textEditorEscapeKeyPressed([[maybe_unused]] juce::TextEditor & textEditor)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mSourceIndexCallBox->dismiss();
+    mSourceIndexCallBox = nullptr;
+}
+
+//==============================================================================
+void SourceIdButton::textEditorFocusLost([[maybe_unused]] juce::TextEditor & textEditor)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mSourceIndexCallBox->dismiss();
+    mSourceIndexCallBox = nullptr;
 }
 
 } // namespace gris
