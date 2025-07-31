@@ -106,6 +106,13 @@ void AudioProcessor::processOutputModifiersAndPeaks(SpeakerAudioBuffer & speaker
 //==============================================================================
 void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
                                   SpeakerAudioBuffer & speakerBuffer,
+#if SG_USE_FORK_UNION
+    #if SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS
+                                  ForkUnionBuffer & forkUnionBuffer,
+    #elif SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD
+                                  ForkUnionBuffer & forkUnionBuffer,
+    #endif
+#endif
                                   juce::AudioBuffer<float> & stereoBuffer) noexcept
 {
     // Skip if the user is editing the speaker setup.
@@ -132,7 +139,15 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
         fillWithPinkNoise(data.data(), numSamples, narrow<int>(data.size()), *mAudioData.config->pinkNoiseGain);
     } else {
         // Process spat algorithm
-        mSpatAlgorithm->process(*mAudioData.config, sourceBuffer, speakerBuffer, stereoBuffer, sourcePeaks, nullptr);
+        mSpatAlgorithm->process(*mAudioData.config,
+                                sourceBuffer,
+                                speakerBuffer,
+#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
+                                forkUnionBuffer,
+#endif
+                                stereoBuffer,
+                                sourcePeaks,
+                                nullptr);
 
         // Process direct outs
         for (auto const & directOutPair : mAudioData.config->directOutPairs) {

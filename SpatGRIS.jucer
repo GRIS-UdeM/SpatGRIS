@@ -4,7 +4,7 @@
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" cppLanguageStandard="latest" jucerFormatVersion="1"
               displaySplashScreen="1" maxBinaryFileSize="1048576" addUsingNamespaceToJuceHeader="0"
-              defines="JUCE_MODAL_LOOPS_PERMITTED=1" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS">
+              defines="JUCE_MODAL_LOOPS_PERMITTED=1" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS&#10;../../submodules/AlgoGRIS/submodules/fork_union/include">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="PUwJqY" name="cog_icon.png" compile="0" resource="1" file="Resources/cog_icon.png"/>
@@ -367,8 +367,8 @@
                sendAppleEventsPermissionText="SpatGris requires the ability to send Apple events to facilitate communication with SpeakerView."
                applicationCategory="public.app-category.music">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
-                       targetName="SpatGRIS" fastMath="1" macOSDeploymentTarget="10.11"/>
+        <CONFIGURATION name="Debug" osxCompatibility="10.13 SDK" isDebug="1" optimisation="1"
+                       targetName="SpatGRIS" fastMath="1" macOSDeploymentTarget="10.13"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        osxArchitecture="Native" fastMath="1"/>
       </CONFIGURATIONS>
@@ -389,7 +389,8 @@
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL"
+                extraLinkerFlags="-latomic">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
                        recommendedWarnings="GCC" extraCompilerFlags="-fdiagnostics-color=always"/>
