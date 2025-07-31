@@ -60,9 +60,9 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewC
 {
 
     mInitialOSCPort = parent.getOscPort();
-    mInitialUDPInputPort = mSVComponent.getUDPInputPort();
-    mInitialUDPOutputPort = mSVComponent.mUDPOutputPort;
-    mInitialUDPOutputAddress = mSVComponent.mUDPOutputAddress;
+    mInitialExtraUDPInputPort = mSVComponent.getExtraUDPInputPort();
+    mInitialExtraUDPOutputPort = mSVComponent.getExtraUDPOutputPort();
+    mInitialExtraUDPOutputAddress = mSVComponent.getExtraUDPOutputAddress();
 
     auto initLabel = [this](juce::Label & label) {
         label.setJustificationType(juce::Justification::Flags::centredRight);
@@ -132,16 +132,18 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewC
     initSectionLabel(mSpeakerViewNetworkSettings);
 
     initLabel(mSpeakerViewInputPortLabel);
-    initTextEditor(mSpeakerViewInputPortTextEditor, "SpeakerView Data Input port", juce::String{mInitialUDPInputPort});
+    juce::String inputPortText = mInitialExtraUDPInputPort ? juce::String(*mInitialExtraUDPInputPort) : "";
+    initTextEditor(mSpeakerViewInputPortTextEditor, "Standalone SpeakerView Data Input port", inputPortText);
     mSpeakerViewInputPortTextEditor.setInputRestrictions(5, "0123456789");
 
     initLabel(mSpeakerViewOutputAddressLabel);
-    initTextEditor(mSpeakerViewOutputAddressTextEditor, "SpeakerViewData Output Address", mInitialUDPOutputAddress);
+    initTextEditor(mSpeakerViewOutputAddressTextEditor, "Standalone SpeakerViewData Output Address", mInitialExtraUDPOutputAddress.value_or(""));
     // we want an ip address here
     mSpeakerViewOutputAddressTextEditor.setInputRestrictions(15, "0123456789.");
 
     initLabel(mSpeakerViewOutputPortLabel);
-    initTextEditor(mSpeakerViewOutputPortTextEditor, "SpeakerViewData Output Port", juce::String{mInitialUDPOutputPort});
+    juce::String outputPortText = mInitialExtraUDPOutputPort ? juce::String(*mInitialExtraUDPOutputPort) : "";
+    initTextEditor(mSpeakerViewOutputPortTextEditor, "Standalone SpeakerViewData Output Port", outputPortText);
     mSpeakerViewOutputPortTextEditor.setInputRestrictions(5, "0123456789");
 
     //==============================================================================
@@ -164,22 +166,30 @@ SettingsComponent::~SettingsComponent()
         mMainContentComponent.setOscPort(newOscPort);
     }
     auto const newUDPInputPort{ mSpeakerViewInputPortTextEditor.getText().getIntValue() };
-    if (newUDPInputPort != mInitialUDPInputPort) {
-        if (mSVComponent.setUDPInputPort(newUDPInputPort)) {
+    if (newUDPInputPort != mInitialExtraUDPInputPort) {
+        if (!mSVComponent.setExtraUDPInputPort(newUDPInputPort)) {
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
-                                                   "Could not change SpeakerView input port",
-                                                   "Could not change the SpeakerView input port to "+ juce::String(newUDPInputPort) + " . Some other application may have the same port open ?\n",
+                                                   "Could not change standalone SpeakerView input port",
+                                                   "Could not change the standalone SpeakerView input port to "
+                                                       + juce::String(newUDPInputPort)
+                                                       + " . Some other application may have the same port open ?\n",
                                                    "Ok",
                                                    &mMainContentComponent);
         }
     }
-    auto const newUDPOutputPort{ mSpeakerViewOutputPortTextEditor.getText().getIntValue() };
-    if (newUDPOutputPort != mInitialUDPOutputPort) {
-        mSVComponent.mUDPOutputPort = newUDPOutputPort;
+    auto const newUDPOutputPortTextValue = mSpeakerViewOutputPortTextEditor.getText();
+    auto const newUDPOutputPort{ newUDPOutputPortTextValue.getIntValue() };
+    auto const newUDPOutputAddress{ mSpeakerViewOutputAddressTextEditor.getText() };
+
+    // if both udp output port and address are still the same, nothing left to do.
+    if (newUDPOutputPort == mInitialExtraUDPOutputPort && newUDPOutputAddress == mInitialExtraUDPOutputAddress) {
+        return;
     }
-    auto const newUDPOutputAddress{ mSpeakerViewOutputAddressTextEditor.getText()};
-    if (newUDPOutputAddress != mInitialUDPOutputAddress) {
-        mSVComponent.mUDPOutputAddress = newUDPOutputAddress;
+    if (newUDPOutputPortTextValue == "" || newUDPOutputAddress == "") {
+        // If any of port of address is the empty string, disable extra standalone SpeakerView sender.
+        mSVComponent.disableExtraUDPOutput();
+    } else {
+        mSVComponent.setExtraUDPOutput(newUDPOutputPort, newUDPOutputAddress);
     }
 }
 
@@ -399,26 +409,25 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 
 void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
 {
-
-  if (&textEditor == &mSpeakerViewOutputAddressTextEditor) {
-    // Validate IP address (thanks https://forum.juce.com/t/how-to-achive-ip-address-validation-for-taxteditor/12036/6 )
-    juce::IPAddress ip = juce::IPAddress(textEditor.getText());
-    if (ip.toString() != textEditor.getText())
-    {
-      textEditor.setText(localhost);
+    if (&textEditor == &mSpeakerViewOutputAddressTextEditor && textEditor.getText() != "") {
+        // Validate IP address (thanks
+        // https://forum.juce.com/t/how-to-achive-ip-address-validation-for-taxteditor/12036/6 )
+        juce::IPAddress ip = juce::IPAddress(textEditor.getText());
+        if (ip.toString() != textEditor.getText()) {
+            textEditor.setText(localhost);
+        }
     }
-  }
-  // Validate UDP ports (can't have UDP port < 1024 or > 65535)
-  else if (
-      &textEditor == &mSpeakerViewInputPortTextEditor ||
-      &textEditor == &mSpeakerViewOutputPortTextEditor ||
-      &textEditor == &mOscInputPortTextEditor) {
-    if (textEditor.getText().getIntValue() < minUDPPort) {
-        textEditor.setText(minUDPPortString);
-    } else if (textEditor.getText().getIntValue() > maxUDPPort) {
-      textEditor.setText(maxUDPPortString);
+    // Validate UDP ports (can't have UDP port < 1024 or > 65535).
+    else if ((&textEditor == &mSpeakerViewInputPortTextEditor
+              || &textEditor == &mSpeakerViewOutputPortTextEditor && textEditor.getText() != "")
+             || &textEditor == &mOscInputPortTextEditor) {
+        // We allow empty values for the extraUDP ports to represent a null option..
+        if (textEditor.getText().getIntValue() < minUDPPort) {
+            textEditor.setText(minUDPPortString);
+        } else if (textEditor.getText().getIntValue() > maxUDPPort) {
+            textEditor.setText(maxUDPPortString);
+        }
     }
-  }
 }
 
 //==============================================================================

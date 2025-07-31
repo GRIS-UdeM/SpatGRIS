@@ -67,12 +67,11 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentCom
       // We use the DEFAULT_UDP_INPUT_PORT for the output socket because the naming was
       // inverted at some point. We should fix this inversion when we migrate these constants
       // from algoGRIS into spatGRIS
-    , mUDPOutputPort(DEFAULT_UDP_INPUT_PORT)
-    , mUDPOutputAddress(localhost)
+    , mUDPDefaultOutputPort(DEFAULT_UDP_INPUT_PORT)
+    , mUDPDefaultOutputAddress(localhost)
 {
-    mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
     // Same naming inversion as explained by the comment above.
-    mUdpReceiverSocket->bindToPort(DEFAULT_UDP_OUTPUT_PORT);
+    mUdpReceiverSocket.bindToPort(DEFAULT_UDP_OUTPUT_PORT);
 }
 
 //==============================================================================
@@ -81,24 +80,54 @@ SpeakerViewComponent::~SpeakerViewComponent()
     stopTimer();
 }
 
-bool SpeakerViewComponent::setUDPInputPort(int const port)
+bool SpeakerViewComponent::setExtraUDPInputPort(int const port)
 {
-  int oldPort = getUDPInputPort();
-  juce::ScopedLock const lock{ mLock };
-  // Apparently, calling bindToPort when a socket is already bound results in
-  // failure every time so we reconstruct the socket.
-  mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
-  bool success = mUdpReceiverSocket->bindToPort(port, mUDPOutputAddress);
-  if (!success) {
-    mUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
-    mUdpReceiverSocket->bindToPort(oldPort, mUDPOutputAddress);
-  }
-  return success;
+    auto oldPort = getExtraUDPInputPort();
+    juce::ScopedLock const lock{ mLock };
+    // Apparently, calling bindToPort when a socket is already bound results in
+    // failure every time so we reconstruct the socket.
+    extraUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
+    bool success = extraUdpReceiverSocket->bindToPort(port);
+    if (oldPort && !success) {
+        extraUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
+        extraUdpReceiverSocket->bindToPort(*oldPort);
+    }
+    return success;
 }
 
-int SpeakerViewComponent::getUDPInputPort() const
+void SpeakerViewComponent::disableExtraUDPInput()
 {
-  return mUdpReceiverSocket->getBoundPort();
+    juce::ScopedLock const lock{ mLock };
+    extraUdpReceiverSocket.reset();
+}
+
+tl::optional<int> SpeakerViewComponent::getExtraUDPInputPort() const
+{
+  return extraUdpReceiverSocket ? tl::optional<int>{ extraUdpReceiverSocket->getBoundPort() } : tl::nullopt;
+}
+
+void SpeakerViewComponent::setExtraUDPOutput(int const port, const juce::StringRef address) {
+    mUDPExtraOutputPort = port;
+    mUDPExtraOutputAddress = address;
+    if (!extraUdpSenderSocket) {
+      extraUdpSenderSocket = std::make_unique<juce::DatagramSocket>();
+    }
+}
+
+void SpeakerViewComponent::disableExtraUDPOutput() {
+    mUDPExtraOutputPort = tl::nullopt;
+    mUDPExtraOutputAddress = tl::nullopt;
+    extraUdpSenderSocket.reset();
+}
+
+tl::optional<int> SpeakerViewComponent::getExtraUDPOutputPort() const
+{
+    return mUDPExtraOutputPort;
+}
+
+tl::optional<juce::String> SpeakerViewComponent::getExtraUDPOutputAddress() const
+{
+    return mUDPExtraOutputAddress;
 }
 
 //==============================================================================
@@ -179,7 +208,7 @@ void SpeakerViewComponent::shouldKillSpeakerViewProcess(bool shouldKill)
     if (shouldKill) {
         // asking SpeakView to quit itself. SpeakView will send stop message before closing
         prepareSGInfos();
-        sendSpatGRISUDP();
+        sendUDP(mJsonSGInfos);
     }
 }
 
@@ -327,25 +356,28 @@ void SpeakerViewComponent::hiResTimerCallback()
 
     juce::ScopedLock const lock{ mLock };
 
-    listenUDP();
+    listenUDP(mUdpReceiverSocket);
+    if (extraUdpReceiverSocket) {
+        listenUDP(*extraUdpReceiverSocket);
+    }
 
     prepareSourcesJson();
     prepareSpeakersJson();
     prepareSGInfos();
 
     if (mTicksSinceKeepalive == 9 || mOldJsonSources != mJsonSources) {
-      sendSourcesUDP();
-      mOldJsonSources = mJsonSources;
+        sendUDP(mJsonSources);
+        mOldJsonSources = mJsonSources;
     }
 
     if (mTicksSinceKeepalive == 9 || mOldJsonSpeakers != mJsonSpeakers) {
-      sendSpeakersUDP();
-      mOldJsonSpeakers = mJsonSpeakers;
+        sendUDP(mJsonSpeakers);
+        mOldJsonSpeakers = mJsonSpeakers;
     }
 
     if (mTicksSinceKeepalive == 9 || mOldJsonSGInfos != mJsonSGInfos) {
-      sendSpatGRISUDP();
-      mOldJsonSGInfos = mJsonSGInfos;
+        sendUDP(mJsonSGInfos);
+        mOldJsonSGInfos = mJsonSGInfos;
     }
 
     mTicksSinceKeepalive+=1;
@@ -429,7 +461,7 @@ bool SpeakerViewComponent::isHiResTimerThread()
 }
 
 //==============================================================================
-void SpeakerViewComponent::listenUDP()
+void SpeakerViewComponent::listenUDP(juce::DatagramSocket& socket)
 {
     if (!isHiResTimerThread()) {
         return;
@@ -438,7 +470,7 @@ void SpeakerViewComponent::listenUDP()
     juce::String senderAddress;
     int senderPort;
     char receiveBuffer[mMaxBufferSize];
-    auto packetSize = mUdpReceiverSocket->read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
+    auto packetSize = socket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
 
     if (packetSize > 0) {
         juce::String receivedData(receiveBuffer, packetSize);
@@ -543,38 +575,16 @@ void SpeakerViewComponent::listenUDP()
     }
 }
 
-//==============================================================================
-void SpeakerViewComponent::sendSourcesUDP()
+void SpeakerViewComponent::sendUDP(const std::string & toSend)
 {
-    {
-        [[maybe_unused]] int numBytesWrittenSources = udpSenderSocket.write(mUDPOutputAddress,
-                                                                            mUDPOutputPort,
-                                                                            mJsonSources.c_str(),
-                                                                            static_cast<int>(mJsonSources.size()));
-        jassert(!(numBytesWrittenSources < 0));
-    }
-}
-void SpeakerViewComponent::sendSpeakersUDP()
-{
-    {
-        [[maybe_unused]] int numBytesWrittenSpeakers = udpSenderSocket.write(mUDPOutputAddress,
-                                                                             mUDPOutputPort,
-                                                                             mJsonSpeakers.c_str(),
-                                                                             static_cast<int>(mJsonSpeakers.size()));
-        jassert(!(numBytesWrittenSpeakers < 0));
-    }
-}
-
-void SpeakerViewComponent::sendSpatGRISUDP()
-{
-    if (!mJsonSGInfos.empty()) {{
-            [[maybe_unused]] int numBytesWrittenSGInfos
-                = udpSenderSocket.write(mUDPOutputAddress,
-                                        mUDPOutputPort,
-                                        mJsonSGInfos.c_str(),
-                                        static_cast<int>(mJsonSGInfos.size()));
-            jassert(!(numBytesWrittenSGInfos < 0));
-        }
+    auto cStrToSend = toSend.c_str();
+    auto size = static_cast<int>(toSend.size());
+    [[maybe_unused]] int bytesWritten = udpSenderSocket.write(mUDPDefaultOutputAddress, mUDPDefaultOutputPort, cStrToSend, size);
+    jassert(!(bytesWritten < 0));
+    if (extraUdpSenderSocket) {
+        [[maybe_unused]] int bytesWritten
+            = extraUdpSenderSocket->write(*mUDPExtraOutputAddress, *mUDPExtraOutputPort, cStrToSend, size);
+        jassert(!(bytesWritten < 0));
     }
 }
 
@@ -585,7 +595,7 @@ void SpeakerViewComponent::emptyUDPReceiverBuffer()
     int senderPort;
     char receiveBuffer[mMaxBufferSize];
     [[maybe_unused]] auto packetSize
-        = mUdpReceiverSocket->read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
+        = mUdpReceiverSocket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
 }
 
 } // namespace gris
