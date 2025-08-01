@@ -64,10 +64,14 @@ static void appendNumber(std::string & str, int val)
 //==============================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
     : mMainContentComponent(mainContentComponent)
-      // We use the DEFAULT_UDP_INPUT_PORT for the output socket because the naming was
-      // inverted at some point. We should fix this inversion when we migrate these constants
-      // from algoGRIS into spatGRIS
+    // We use the DEFAULT_UDP_INPUT_PORT for the output socket because the naming was
+    // inverted at some point. We should fix this inversion when we migrate these constants
+    // from algoGRIS into spatGRIS
     , mUDPDefaultOutputPort(DEFAULT_UDP_INPUT_PORT)
+    // Pre-sets the extra output port to the default SpeakerView listening port.
+    // This does not activate the extra listenUDP call, it just saves keypresses for
+    // the user.
+    , mUDPExtraOutputPort(DEFAULT_UDP_INPUT_PORT)
     , mUDPDefaultOutputAddress(localhost)
 {
     // Same naming inversion as explained by the comment above.
