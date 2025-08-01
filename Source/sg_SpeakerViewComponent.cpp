@@ -68,12 +68,28 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentCom
     // inverted at some point. We should fix this inversion when we migrate these constants
     // from algoGRIS into spatGRIS
     , mUDPDefaultOutputPort(DEFAULT_UDP_INPUT_PORT)
-    // Pre-sets the extra output port to the default SpeakerView listening port.
-    // This does not activate the extra listenUDP call, it just saves keypresses for
-    // the user.
-    , mUDPExtraOutputPort(DEFAULT_UDP_INPUT_PORT)
     , mUDPDefaultOutputAddress(localhost)
 {
+
+    auto projectExtraOutPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
+    auto projectExtraOutAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
+    auto projectExtraOutInput = mainContentComponent.getData().project.standaloneSpeakerViewInputPort;
+
+    // If the project doesn't have a standaloneSpeakerViewOutputPort, pre-sets the extra output port to the default SpeakerView listening port.
+    // This does not activate the extra listenUDP call, it just saves keypresses for
+    // the user.
+    if (!projectExtraOutPort) {
+        mUDPExtraOutputPort = DEFAULT_UDP_INPUT_PORT;
+    } else {
+        mUDPExtraOutputPort = projectExtraOutPort;
+    }
+    mUDPExtraOutputAddress = projectExtraOutAddress;
+    // If we have an address, enable sending to the extra standalone SpeakerView.
+    // we have a default port so we don't need to check for nullopt on mUDPExtraOutputPort
+    if (projectExtraOutAddress) {
+        setExtraUDPOutput(*mUDPExtraOutputPort, *mUDPExtraOutputAddress);
+    }
+
     // Same naming inversion as explained by the comment above.
     mUdpReceiverSocket.bindToPort(DEFAULT_UDP_OUTPUT_PORT);
 }
