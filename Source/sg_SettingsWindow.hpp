@@ -74,7 +74,7 @@ class SettingsComponent final
     juce::TextEditor mOscInputPortTextEditor{};
 
 
-    juce::Label mSpeakerViewNetworkSettings{ "", "SpeakerView Network Settings :" };
+    juce::Label mSpeakerViewNetworkSettings{ "", "Standalone SpeakerView Network Settings :" };
 
     juce::Label mSpeakerViewInputPortLabel{ "", "UDP Input Port :" };
     juce::TextEditor mSpeakerViewInputPortTextEditor{};
@@ -89,9 +89,18 @@ class SettingsComponent final
 
 public:
     int mInitialOSCPort;
-    int mInitialUDPInputPort;
-    int mInitialUDPOutputPort;
-    juce::String mInitialUDPOutputAddress;
+    /**
+     * UDP input port for an extra networked SpeakerView
+     */
+    tl::optional<int> mInitialExtraUDPInputPort;
+    /**
+     * UDP output port for an extra networked SpeakerView
+     */
+    tl::optional<int> mInitialExtraUDPOutputPort;
+    /**
+     * IP address for an extra networked SpeakerView
+     */
+    tl::optional<juce::String> mInitialExtraUDPOutputAddress;
 
     //==============================================================================
     SettingsComponent(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & lookAndFeel);

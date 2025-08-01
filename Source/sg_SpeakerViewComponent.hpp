@@ -51,7 +51,7 @@ private:
     ViewportData mData{};
     juce::Thread::ThreadID mHighResTimerThreadID;
 
-    std::unique_ptr<juce::DatagramSocket> mUdpReceiverSocket;
+    juce::DatagramSocket mUdpReceiverSocket;
     static constexpr int mMaxBufferSize = 1024;
 
     // We use the json strings to see if the data has changed.
@@ -66,6 +66,15 @@ private:
     std::string mJsonSGInfos;
 
     juce::DatagramSocket udpSenderSocket;
+    /**
+     * This socket is optionaly used to send udp data to a standalone SpeakerView instance
+     * (potentially on another computer).
+     */
+    std::unique_ptr<juce::DatagramSocket> extraUdpSenderSocket;
+    /**
+     * This socket is optionaly used to receive udp data from a standalone SpeakerView instanc
+     */
+    std::unique_ptr<juce::DatagramSocket> extraUdpReceiverSocket;
 
     bool mKillSpeakerViewProcess{};
 
@@ -127,15 +136,22 @@ public:
     //==============================================================================
     void hiResTimerCallback() override;
 
-    int getUDPInputPort() const;
+    tl::optional<int> getExtraUDPInputPort() const;
+    tl::optional<int> getExtraUDPOutputPort() const;
+    tl::optional<juce::String> getExtraUDPOutputAddress() const;
+
+    void disableExtraUDPOutput();
+    void disableExtraUDPInput();
     /**
-     * Tries to set the udp input port to the given port. Reverts to the old port and show a warning
+     * Tries to set the extra udp input port to the given port. Reverts to the old port and show a warning
      * if it fails.
      */
-    bool setUDPInputPort(int const port);
+    bool setExtraUDPInputPort(int const port);
 
-    int mUDPOutputPort;
-    juce::String mUDPOutputAddress;
+    void setExtraUDPOutput(int const port, const juce::StringRef address);
+
+    int mUDPDefaultOutputPort;
+    juce::String mUDPDefaultOutputAddress;
 
 private:
     //==============================================================================
@@ -143,11 +159,15 @@ private:
     void prepareSpeakersJson();
     void prepareSGInfos();
     bool isHiResTimerThread();
-    void listenUDP();
+    void listenUDP(juce::DatagramSocket & socket);
+    void sendUDP(const std::string & content);
     void sendSpeakersUDP();
     void sendSourcesUDP();
     void sendSpatGRISUDP();
     void emptyUDPReceiverBuffer();
+
+    tl::optional<int> mUDPExtraOutputPort;
+    tl::optional<juce::String> mUDPExtraOutputAddress;
 
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerViewComponent)
