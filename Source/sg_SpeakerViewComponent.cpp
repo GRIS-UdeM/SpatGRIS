@@ -64,34 +64,23 @@ static void appendNumber(std::string & str, int val)
 //==============================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
     : mMainContentComponent(mainContentComponent)
-    // We use the DEFAULT_UDP_INPUT_PORT for the output socket because the naming was
-    // inverted at some point. We should fix this inversion when we migrate these constants
-    // from algoGRIS into spatGRIS
-    , mUDPDefaultOutputPort(DEFAULT_UDP_INPUT_PORT)
+    , mUDPDefaultOutputPort(DEFAULT_UDP_OUTPUT_PORT)
     , mUDPDefaultOutputAddress(localhost)
 {
 
-    auto projectExtraOutPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
-    auto projectExtraOutAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
-    auto projectExtraOutInput = mainContentComponent.getData().project.standaloneSpeakerViewInputPort;
-
-    // If the project doesn't have a standaloneSpeakerViewOutputPort, pre-sets the extra output port to the default SpeakerView listening port.
-    // This does not activate the extra listenUDP call, it just saves keypresses for
-    // the user.
-    if (!projectExtraOutPort) {
-        mUDPExtraOutputPort = DEFAULT_UDP_INPUT_PORT;
-    } else {
-        mUDPExtraOutputPort = projectExtraOutPort;
+    auto mUDPExtraOutputPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
+    auto mUDPExtraOutputAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
+    auto extraUDPInputPort = mainContentComponent.getData().project.standaloneSpeakerViewInputPort;
+    if (extraUDPInputPort) {
+        setExtraUDPInputPort(*extraUDPInputPort);
     }
-    mUDPExtraOutputAddress = projectExtraOutAddress;
-    // If we have an address, enable sending to the extra standalone SpeakerView.
-    // we have a default port so we don't need to check for nullopt on mUDPExtraOutputPort
-    if (projectExtraOutAddress) {
+
+    // If we have an address and port, enable sending to the extra standalone SpeakerView.
+    if (mUDPExtraOutputPort && mUDPExtraOutputAddress) {
         setExtraUDPOutput(*mUDPExtraOutputPort, *mUDPExtraOutputAddress);
     }
 
-    // Same naming inversion as explained by the comment above.
-    mUdpReceiverSocket.bindToPort(DEFAULT_UDP_OUTPUT_PORT);
+    mUdpReceiverSocket.bindToPort(DEFAULT_UDP_INPUT_PORT);
 }
 
 //==============================================================================

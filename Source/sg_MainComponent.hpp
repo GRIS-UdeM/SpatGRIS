@@ -185,6 +185,16 @@ public:
     void setOscPort(int newOscPort);
     int getOscPort() const;
 
+    /**
+     * Set the standalone speakerview input port value in the project data (to be saved to xml)
+     */
+    void setStandaloneSpeakerViewInputPort(tl::optional<int> port);
+    /**
+     * Set the standalone speakerview output port and address value in the project data.
+     */
+    void setStandaloneSpeakerViewOutput(tl::optional<int> port, tl::optional<juce::String> address);
+
+
     void setSpeakerSetupDiffusion(float diffusion);
 
     void setPinkNoiseGain(tl::optional<dbfs_t> gain);

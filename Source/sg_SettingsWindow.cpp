@@ -64,6 +64,12 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewC
     mInitialExtraUDPOutputPort = mSVComponent.getExtraUDPOutputPort();
     mInitialExtraUDPOutputAddress = mSVComponent.getExtraUDPOutputAddress();
 
+    // If the project doesn't have a standaloneSpeakerViewOutputPort, pre-sets the extra output port to the default SpeakerView listening port.
+    // This does not activate the extra listenUDP call, it just saves keypresses for
+    // the user.
+    if (!mInitialExtraUDPOutputPort) {
+        mInitialExtraUDPOutputPort = DEFAULT_UDP_OUTPUT_PORT;
+    }
     auto initLabel = [this](juce::Label & label) {
         label.setJustificationType(juce::Justification::Flags::centredRight);
         label.setFont(mLookAndFeel.getFont());
@@ -165,8 +171,13 @@ SettingsComponent::~SettingsComponent()
     if (newOscPort != mInitialOSCPort) {
         mMainContentComponent.setOscPort(newOscPort);
     }
-    auto const newUDPInputPort{ mSpeakerViewInputPortTextEditor.getText().getIntValue() };
-    if (newUDPInputPort != mInitialExtraUDPInputPort) {
+    auto const newUDPInputPortTextValue = mSpeakerViewInputPortTextEditor.getText();
+    auto const newUDPInputPort{ newUDPInputPortTextValue.getIntValue() };
+    if (newUDPInputPortTextValue == "") {
+        mMainContentComponent.setStandaloneSpeakerViewInputPort(tl::nullopt);
+        mSVComponent.disableExtraUDPInput();
+    }
+    else if (newUDPInputPort != mInitialExtraUDPInputPort) {
         if (!mSVComponent.setExtraUDPInputPort(newUDPInputPort)) {
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
                                                    "Could not change standalone SpeakerView input port",
@@ -175,6 +186,8 @@ SettingsComponent::~SettingsComponent()
                                                        + " . Some other application may have the same port open ?\n",
                                                    "Ok",
                                                    &mMainContentComponent);
+        } else {
+            mMainContentComponent.setStandaloneSpeakerViewInputPort(newUDPInputPort);
         }
     }
     auto const newUDPOutputPortTextValue = mSpeakerViewOutputPortTextEditor.getText();
@@ -188,8 +201,11 @@ SettingsComponent::~SettingsComponent()
     if (newUDPOutputPortTextValue == "" || newUDPOutputAddress == "") {
         // If any of port of address is the empty string, disable extra standalone SpeakerView sender.
         mSVComponent.disableExtraUDPOutput();
+        mMainContentComponent.setStandaloneSpeakerViewOutput(tl::nullopt, tl::nullopt);
     } else {
         mSVComponent.setExtraUDPOutput(newUDPOutputPort, newUDPOutputAddress);
+        mMainContentComponent.setStandaloneSpeakerViewOutput(newUDPOutputPort, newUDPOutputAddress);
+
     }
 }
 
@@ -418,8 +434,8 @@ void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
         }
     }
     // Validate UDP ports (can't have UDP port < 1024 or > 65535).
-    else if ((&textEditor == &mSpeakerViewInputPortTextEditor
-              || &textEditor == &mSpeakerViewOutputPortTextEditor && textEditor.getText() != "")
+    else if (((&textEditor == &mSpeakerViewInputPortTextEditor
+              || &textEditor == &mSpeakerViewOutputPortTextEditor) && textEditor.getText() != "")
              || &textEditor == &mOscInputPortTextEditor) {
         // We allow empty values for the extraUDP ports to represent a null option..
         if (textEditor.getText().getIntValue() < minUDPPort) {

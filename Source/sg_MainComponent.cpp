@@ -136,9 +136,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mMenuBar->setColour(juce::TextButton::buttonOnColourId, grisLookAndFeel.getOnColour());
         addAndMakeVisible(mMenuBar.get());
 
-        // SpeakerViewComponent 3D view
-        mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
-
         // Box Main
         mMainLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::vertical, false, true, grisLookAndFeel);
@@ -196,8 +193,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(sashPosition))) };
         mVerticalLayout.setItemPosition(1, trueSize);
 
-        mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
-        handleShowSpeakerViewWindow();
     };
 
     //==============================================================================
@@ -251,6 +246,12 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     initAppData();
     initGui();
     initProject();
+
+    // SpeakerViewComponent 3D view (need project data before initialization)
+    mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
+    mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
+    handleShowSpeakerViewWindow();
+
     initSpeakerSetup();
     initAudioManager();
     initAudioProcessor();
@@ -2188,6 +2189,18 @@ void MainContentComponent::setOscPort(int const newOscPort)
         mOscInput->startConnection(oldPort);
     }
 }
+
+void MainContentComponent::setStandaloneSpeakerViewInputPort(tl::optional<int> port)
+{
+    mData.project.standaloneSpeakerViewInputPort = port;
+}
+
+void MainContentComponent::setStandaloneSpeakerViewOutput(tl::optional<int> port, tl::optional<juce::String> address)
+{
+    mData.project.standaloneSpeakerViewOutputPort = port;
+    mData.project.standaloneSpeakerViewOutputAddress = address;
+}
+
 
 int MainContentComponent::getOscPort() const
 {
