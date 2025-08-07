@@ -173,7 +173,7 @@ SettingsComponent::~SettingsComponent()
     }
     auto const newUDPInputPortTextValue = mSpeakerViewInputPortTextEditor.getText();
     auto const newUDPInputPort{ newUDPInputPortTextValue.getIntValue() };
-    if (newUDPInputPortTextValue == "") {
+    if (newUDPInputPortTextValue.isEmpty()) {
         mMainContentComponent.setStandaloneSpeakerViewInputPort(tl::nullopt);
         mSVComponent.disableExtraUDPInput();
     }
@@ -434,9 +434,12 @@ void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
         }
     }
     // Validate UDP ports (can't have UDP port < 1024 or > 65535).
-    else if (((&textEditor == &mSpeakerViewInputPortTextEditor
-              || &textEditor == &mSpeakerViewOutputPortTextEditor) && textEditor.getText() != "")
-             || &textEditor == &mOscInputPortTextEditor) {
+
+    else if (&textEditor == &mOscInputPortTextEditor
+             || (textEditor.getText().isNotEmpty()
+                 && (&textEditor == &mSpeakerViewInputPortTextEditor
+                     || &textEditor == &mSpeakerViewOutputPortTextEditor)))
+    {
         // We allow empty values for the extraUDP ports to represent a null option..
         if (textEditor.getText().getIntValue() < minUDPPort) {
             textEditor.setText(minUDPPortString);

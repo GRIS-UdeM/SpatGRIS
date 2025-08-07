@@ -68,16 +68,16 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentCom
     , mUDPDefaultOutputAddress(localhost)
 {
 
-    auto mUDPExtraOutputPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
-    auto mUDPExtraOutputAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
-    auto extraUDPInputPort = mainContentComponent.getData().project.standaloneSpeakerViewInputPort;
+    const auto uDPExtraOutputPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
+    const auto uDPExtraOutputAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
+    const auto extraUDPInputPort = mainContentComponent.getData().project.standaloneSpeakerViewInputPort;
     if (extraUDPInputPort) {
         setExtraUDPInputPort(*extraUDPInputPort);
     }
 
     // If we have an address and port, enable sending to the extra standalone SpeakerView.
-    if (mUDPExtraOutputPort && mUDPExtraOutputAddress) {
-        setExtraUDPOutput(*mUDPExtraOutputPort, *mUDPExtraOutputAddress);
+    if (uDPExtraOutputPort && uDPExtraOutputAddress) {
+        setExtraUDPOutput(*uDPExtraOutputPort, *uDPExtraOutputAddress);
     }
 
     mUdpReceiverSocket.bindToPort(DEFAULT_UDP_INPUT_PORT);
