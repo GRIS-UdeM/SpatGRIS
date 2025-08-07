@@ -64,18 +64,23 @@ static void appendNumber(std::string & str, int val)
 //==============================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
     : mMainContentComponent(mainContentComponent)
-    // We use the DEFAULT_UDP_INPUT_PORT for the output socket because the naming was
-    // inverted at some point. We should fix this inversion when we migrate these constants
-    // from algoGRIS into spatGRIS
-    , mUDPDefaultOutputPort(DEFAULT_UDP_INPUT_PORT)
-    // Pre-sets the extra output port to the default SpeakerView listening port.
-    // This does not activate the extra listenUDP call, it just saves keypresses for
-    // the user.
-    , mUDPExtraOutputPort(DEFAULT_UDP_INPUT_PORT)
+    , mUDPDefaultOutputPort(DEFAULT_UDP_OUTPUT_PORT)
     , mUDPDefaultOutputAddress(localhost)
 {
-    // Same naming inversion as explained by the comment above.
-    mUdpReceiverSocket.bindToPort(DEFAULT_UDP_OUTPUT_PORT);
+
+    const auto uDPExtraOutputPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
+    const auto uDPExtraOutputAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
+    const auto extraUDPInputPort = mainContentComponent.getData().project.standaloneSpeakerViewInputPort;
+    if (extraUDPInputPort) {
+        setExtraUDPInputPort(*extraUDPInputPort);
+    }
+
+    // If we have an address and port, enable sending to the extra standalone SpeakerView.
+    if (uDPExtraOutputPort && uDPExtraOutputAddress) {
+        setExtraUDPOutput(*uDPExtraOutputPort, *uDPExtraOutputAddress);
+    }
+
+    mUdpReceiverSocket.bindToPort(DEFAULT_UDP_INPUT_PORT);
 }
 
 //==============================================================================
