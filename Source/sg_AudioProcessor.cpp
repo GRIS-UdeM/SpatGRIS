@@ -19,14 +19,14 @@
 
 #include "sg_AudioProcessor.hpp"
 
-#include "AlgoGRIS/Containers/sg_StaticMap.hpp"
-#include "AlgoGRIS/Containers/sg_StrongArray.hpp"
-#include "AlgoGRIS/Containers/sg_TaggedAudioBuffer.hpp"
-#include "AlgoGRIS/Data/sg_Narrow.hpp"
-#include "AlgoGRIS/Data/sg_constants.hpp"
+#include "Containers/sg_StaticMap.hpp"
+#include "Containers/sg_StrongArray.hpp"
+#include "Containers/sg_TaggedAudioBuffer.hpp"
+#include "Data/sg_Narrow.hpp"
+#include "Data/sg_constants.hpp"
 #include "sg_AudioManager.hpp"
 #include "sg_MainComponent.hpp"
-#include "AlgoGRIS/sg_PinkNoiseGenerator.hpp"
+#include "sg_PinkNoiseGenerator.hpp"
 
 #include <array>
 

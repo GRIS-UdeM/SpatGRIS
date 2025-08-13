@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "AlgoGRIS/Containers/sg_LogBuffer.hpp"
-#include "AlgoGRIS/Containers/sg_OwnedMap.hpp"
-#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
-#include "AlgoGRIS/Data/sg_constants.hpp"
+#include "Containers/sg_LogBuffer.hpp"
+#include "Containers/sg_OwnedMap.hpp"
+#include "Data/sg_LogicStrucs.hpp"
+#include "Data/sg_constants.hpp"
 #include "sg_AboutWindow.hpp"
 #include "sg_AddRemoveSourcesWindow.hpp"
 #include "sg_AudioProcessor.hpp"

@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/StrongTypes/sg_CartesianVector.hpp"
-#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
-#include "AlgoGRIS/Data/sg_constants.hpp"
-#include "AlgoGRIS/Data/sg_SpatMode.hpp"
+#include "Data/StrongTypes/sg_CartesianVector.hpp"
+#include "Data/sg_LogicStrucs.hpp"
+#include "Data/sg_constants.hpp"
+#include "Data/sg_SpatMode.hpp"
 #include "sg_Warnings.hpp"
 
 #include <JuceHeader.h>

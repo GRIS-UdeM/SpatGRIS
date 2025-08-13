@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/sg_Narrow.hpp"
+#include "Data/sg_Narrow.hpp"
 #include "sg_MinSizedComponent.hpp"
 
 namespace gris

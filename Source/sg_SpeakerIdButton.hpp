@@ -20,9 +20,9 @@
 #pragma once
 
 
-#include "AlgoGRIS/Data/StrongTypes/sg_OutputPatch.hpp"
+#include "Data/StrongTypes/sg_OutputPatch.hpp"
 #include "sg_SmallToggleButton.hpp"
-#include "AlgoGRIS/Data/sg_constants.hpp"
+#include "Data/sg_constants.hpp"
 
 namespace gris
 {

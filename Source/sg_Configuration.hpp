@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
+#include "Data/sg_LogicStrucs.hpp"
 
 #include <JuceHeader.h>
 

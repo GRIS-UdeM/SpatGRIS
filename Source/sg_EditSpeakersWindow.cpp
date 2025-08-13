@@ -19,7 +19,7 @@
 
 #include "sg_EditSpeakersWindow.hpp"
 
-#include "AlgoGRIS/Data/sg_Narrow.hpp"
+#include "Data/sg_Narrow.hpp"
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 #include <numbers>

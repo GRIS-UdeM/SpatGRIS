@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/sg_Macros.hpp"
+#include "Data/sg_Macros.hpp"
 
 #include <JuceHeader.h>
 

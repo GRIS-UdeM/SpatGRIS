@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-#include "../../submodules/AlgoGRIS/tl/optional.hpp"
+#include <tl/optional.hpp>
 
 namespace gris
 {
