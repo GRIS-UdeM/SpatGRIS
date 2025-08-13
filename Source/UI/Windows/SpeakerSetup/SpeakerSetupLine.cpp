@@ -25,10 +25,26 @@ bool SpeakerSetupLine::isDeletingGroup = false;
 
 SpeakerSetupLine::SpeakerSetupLine(const juce::ValueTree & v,
                                    juce::UndoManager & um,
-                                   std::function<void()> selectionChanged)
+                                   std::function<void()> selectionChanged,
+                                   SpeakerSetupTreeView & parent)
     : lineValueTree(v)
     , undoManager(um)
     , onSelectionChanged(selectionChanged)
+    , parent(parent)
+{
+    lineValueTree.addListener(this);
+}
+
+SpeakerSetupLine::SpeakerSetupLine(const juce::ValueTree & v,
+                                   juce::UndoManager & um,
+                                   std::function<void()> selectionChanged,
+                                   SpeakerSetupTreeView & parent,
+                                   std::unique_ptr<juce::XmlElement> && opennessState)
+    : lineValueTree(v)
+    , undoManager(um)
+    , onSelectionChanged(selectionChanged)
+    , parent(parent)
+    , opennessState(std::move(opennessState))
 {
     lineValueTree.addListener(this);
 }
@@ -49,12 +65,23 @@ void SpeakerSetupLine::itemOpennessChanged (bool isNowOpen)
         clearSubItems ();
 }
 
+void SpeakerSetupLine::resetScroll()
+{
+    if (!this->opennessState) {
+        return;
+    }
+    auto scrollpos = this->opennessState->getDoubleAttribute("scrollPos");
+    this->parent.requestScrollReset(scrollpos);
+}
+
 void SpeakerSetupLine::itemDropped (const juce::DragAndDropTarget::SourceDetails&, int insertIndex)
 {
     juce::OwnedArray<juce::ValueTree> selectedTrees;
     getSelectedTreeViewItems (*getOwnerView (), selectedTrees);
 
     moveItems (*getOwnerView (), selectedTrees, lineValueTree, insertIndex, undoManager);
+    if (opennessState != nullptr)
+        parent.restoreOpennessState(*opennessState, true);
 }
 
 void SpeakerSetupLine::moveItems(juce::TreeView & treeView,
@@ -64,8 +91,6 @@ void SpeakerSetupLine::moveItems(juce::TreeView & treeView,
                                  juce::UndoManager & undoManager)
 {
     if (items.size() > 0) {
-        std::unique_ptr<juce::XmlElement> oldOpenness(treeView.getOpennessState(false));
-
         for (auto * v : items) {
             auto curParent{ v->getParent() };
             if (curParent.isValid() && newParent != *v && !newParent.isAChildOf(*v)) {
@@ -88,9 +113,6 @@ void SpeakerSetupLine::moveItems(juce::TreeView & treeView,
                 newParent.addChild(*v, insertIndex, &undoManager);
             }
         }
-
-        if (oldOpenness != nullptr)
-            treeView.restoreOpennessState(*oldOpenness, false);
     }
 }
 
@@ -118,34 +140,19 @@ void SpeakerSetupLine::selectChildSpeaker(tl::optional<output_patch_t> const out
     }
 }
 
-struct ValueTreeComparator
-{
+struct ValueTreeComparator {
     int compareElements(const juce::ValueTree & first, const juce::ValueTree & second)
     {
-        // Try to get SPEAKER_PATCH_ID or SPEAKER_GROUP_NAME from each ValueTree
-        juce::String firstStr, secondStr;
-
-        if (first.hasProperty(SPEAKER_PATCH_ID))
-            firstStr = first[SPEAKER_PATCH_ID].toString();
-        else if (first.hasProperty(SPEAKER_GROUP_NAME))
-            firstStr = first[SPEAKER_GROUP_NAME].toString();
-        else
-            jassertfalse;
-
-        if (second.hasProperty(SPEAKER_PATCH_ID))
-            secondStr = second[SPEAKER_PATCH_ID].toString();
-        else if (second.hasProperty(SPEAKER_GROUP_NAME))
-            secondStr = second[SPEAKER_GROUP_NAME].toString();
-        else
-            jassertfalse;
-
+        juce::String firstStr = SpeakerSetupLine::getStringFromValueTree(first);
+        juce::String secondStr = SpeakerSetupLine::getStringFromValueTree(second);
         // Compare as strings
         return firstStr.compareNatural(secondStr);
     }
 };
 
-void SpeakerSetupLine::sort(juce::ValueTree vt /*= {valueTree}}*/)
+void SpeakerSetupLine::sort(juce::ValueTree vt)
 {
+    opennessState = parent.getOpennessState(true);
     if (!vt.isValid())
         vt = lineValueTree;
 
@@ -171,6 +178,10 @@ void SpeakerSetupLine::sort(juce::ValueTree vt /*= {valueTree}}*/)
     vt.removeAllChildren(&undoManager);
     for (const auto & speaker : allChildren)
         vt.appendChild(speaker, &undoManager);
+    if (opennessState) {
+        parent.restoreOpennessState(*opennessState, true);
+        resetScroll();
+    }
 }
 
 tl::optional<output_patch_t> SpeakerSetupLine::getOutputPatch ()
@@ -186,7 +197,11 @@ void SpeakerSetupLine::refreshSubItems ()
     clearSubItems ();
 
     for (int i = 0; i < lineValueTree.getNumChildren (); ++i)
-        addSubItem (new SpeakerSetupLine (lineValueTree.getChild (i), undoManager, onSelectionChanged));
+        addSubItem (new SpeakerSetupLine (lineValueTree.getChild (i), undoManager, onSelectionChanged, parent));
+    if (opennessState) {
+        parent.restoreOpennessState(*opennessState, true);
+        resetScroll();
+    }
 }
 
 void SpeakerSetupLine::itemSelectionChanged(bool /*isNowSelected*/)
@@ -196,11 +211,34 @@ void SpeakerSetupLine::itemSelectionChanged(bool /*isNowSelected*/)
 
 void SpeakerSetupLine::treeChildrenChanged (const juce::ValueTree& parentTree)
 {
+    opennessState = parent.getOpennessState(true);
+
     if (parentTree == lineValueTree)
     {
         refreshSubItems ();
         treeHasChanged ();
-        setOpen (true);
+    }
+    if(opennessState) {
+        parent.restoreOpennessState(*opennessState, true);
+        resetScroll();
     }
 }
+
+juce::String SpeakerSetupLine::getStringFromValueTree(const juce::ValueTree & valueTree)
+{
+    juce::String str;
+    if (valueTree.hasProperty(SPEAKER_PATCH_ID))
+        str = valueTree[SPEAKER_PATCH_ID].toString();
+    else if (valueTree.hasProperty(SPEAKER_GROUP_NAME))
+        str = valueTree[SPEAKER_GROUP_NAME].toString();
+    else
+        jassertfalse;
+    return str;
+}
+
+juce::String SpeakerSetupLine::getUniqueName() const
+{
+  return getStringFromValueTree(lineValueTree);
+}
+
 } // namespace gris

@@ -539,6 +539,7 @@ void EditSpeakersWindow::togglePolyhedraExtraWidgets()
     mPolyRadius.setVisible(showExtendedPolyWidgets);
 }
 
+
 //==============================================================================
 void EditSpeakersWindow::updateWinContent()
 {
@@ -552,6 +553,7 @@ void EditSpeakersWindow::updateWinContent()
                                 || spatGrisData.project.spatMode == SpatMode::hybrid);
 
     togglePolyhedraExtraWidgets();
+    mSpeakerSetupContainer.mainSpeakerGroupLine->resetScroll();
 }
 
 //==============================================================================
@@ -808,6 +810,7 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
 
 void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & /*parent*/, juce::ValueTree & child, [[maybe_unused]] int index)
 {
+
     auto const childType { child.getType () };
 
 #if DEBUG_SPEAKER_EDITION
