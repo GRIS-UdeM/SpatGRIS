@@ -73,10 +73,30 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
 
 void SpeakerSetupContainer::reload(juce::ValueTree theSpeakerSetupVt)
 {
+    // Note: we also have logic in SpeakerSetupLine::refreshSubItems() to restore the openness of our tree.
+    // It would seem like only one of those would be enough but currently both are required to restore the state properly
+
+    // cache the current node openness and scroll position
+    const auto cachedOpenness = speakerSetupTreeView.getOpennessState(true);
+
+    // rebuild everything
     speakerSetupVt = theSpeakerSetupVt;
     speakerSetupTreeView.setRootItem (nullptr);
-    mainSpeakerGroupLine.reset (new SpeakerSetupLine (speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
+    mainSpeakerGroupLine.reset(new SpeakerSetupLine (speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
+    speakerSetupTreeView.restoreOpennessState(*cachedOpenness, true);
+
+    // try to match and restore the previous scroll position
+    auto& viewport = speakerSetupTreeView.getViewport()->getVerticalScrollBar();
+    const auto maxRangeLimit = viewport.getMaximumRangeLimit();
+    const auto currentRangeSize = viewport.getCurrentRangeSize();
+    const auto maxScrollValue = maxRangeLimit - currentRangeSize;
+
+    auto cachedPosition = cachedOpenness->getDoubleAttribute("scrollPos");
+    if (maxScrollValue < cachedPosition)
+        cachedPosition = maxScrollValue;
+
+    viewport.setCurrentRangeStart(cachedPosition);
 }
 
 void SpeakerSetupContainer::resized()

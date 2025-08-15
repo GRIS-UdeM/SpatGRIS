@@ -75,6 +75,7 @@ public:
     std::pair<juce::ValueTree, int> getMainSpeakerGroupAndIndex ();
 
     void addValueTreeListener(juce::ValueTree::Listener * listener) { speakerSetupVt.addListener(listener); }
+
     void setSpatMode(SpatMode spatMode) { speakerSetupVt.setProperty(SPAT_MODE, spatModeToString(spatMode), nullptr); }
 
     bool isDeletingGroup() { return SpeakerSetupLine::isDeletingGroup; }
@@ -88,6 +89,7 @@ private:
     juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
 
     juce::TreeView speakerSetupTreeView;
+
     juce::TextButton undoButton{ "Undo" }, redoButton{ "Redo" }, sortButton{ "Sort by ID" };
 
     std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
