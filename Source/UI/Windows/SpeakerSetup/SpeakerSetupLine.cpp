@@ -174,6 +174,9 @@ tl::optional<output_patch_t> SpeakerSetupLine::getOutputPatch ()
 
 void SpeakerSetupLine::refreshSubItems()
 {
+    // Note: we also have logic in SpeakerSetupContainer::reload() to restore the openness of our tree.
+    // It would seem like only one of those would be enough but currently both are required to restore the state properly
+
     // by default the addSubItem() call below will automatically open the sub-item, so if they are
     // currently closed we cache their UUID here and restore the closedness after the addSubItem() call
     std::unordered_set<juce::String> closedSubItems;
@@ -197,12 +200,6 @@ void SpeakerSetupLine::refreshSubItems()
         if (closedSubItems.contains(childTree[UUID]))
             childItem->setOpen(false);
     }
-
-    for (int i = 0; i < getNumSubItems(); ++i)
-        if (auto* item = dynamic_cast<SpeakerSetupLine*>(getSubItem(i)))
-            if (closedSubItems.contains(item->lineValueTree[UUID]))
-                item->setOpen(false);
-
 }
 
 void SpeakerSetupLine::itemSelectionChanged(bool /*isNowSelected*/)

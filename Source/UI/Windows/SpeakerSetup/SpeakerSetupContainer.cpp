@@ -73,6 +73,9 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
 
 void SpeakerSetupContainer::reload(juce::ValueTree theSpeakerSetupVt)
 {
+    // Note: we also have logic in SpeakerSetupLine::refreshSubItems() to restore the openness of our tree.
+    // It would seem like only one of those would be enough but currently both are required to restore the state properly
+
     // cache the current node openness and scroll position
     const auto cachedOpenness = speakerSetupTreeView.getOpennessState(true);
 
