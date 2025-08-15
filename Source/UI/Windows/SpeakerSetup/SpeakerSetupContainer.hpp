@@ -18,7 +18,6 @@
 #pragma once
 
 #include "SpeakerSetupLine.hpp"
-#include "SpeakerSetupTreeView.hpp"
 #include <Data/sg_LogicStrucs.hpp>
 #include <StructGRIS/ValueTreeUtilities.hpp>
 
@@ -76,10 +75,10 @@ public:
     std::pair<juce::ValueTree, int> getMainSpeakerGroupAndIndex ();
 
     void addValueTreeListener(juce::ValueTree::Listener * listener) { speakerSetupVt.addListener(listener); }
+
     void setSpatMode(SpatMode spatMode) { speakerSetupVt.setProperty(SPAT_MODE, spatModeToString(spatMode), nullptr); }
 
     bool isDeletingGroup() { return SpeakerSetupLine::isDeletingGroup; }
-    std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
 
 private:
     GrisLookAndFeel grisLookAndFeel;
@@ -89,14 +88,14 @@ private:
     //header
     juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
 
-    SpeakerSetupTreeView speakerSetupTreeView;
+    juce::TreeView speakerSetupTreeView;
+
     juce::TextButton undoButton{ "Undo" }, redoButton{ "Redo" }, sortButton{ "Sort by ID" };
 
+    std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
 
     juce::UndoManager& undoManager;
     std::function<void ()> onSelectionChanged;
-
-    std::unique_ptr<juce::XmlElement> opennessState;
 
     void timerCallback() override;
 

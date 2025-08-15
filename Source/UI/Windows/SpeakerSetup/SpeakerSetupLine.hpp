@@ -18,7 +18,6 @@
 #pragma once
 
 #include "SpeakerTreeComponent.hpp"
-#include "SpeakerSetupTreeView.hpp"
 
 namespace gris
 {
@@ -40,9 +39,8 @@ class SpeakerSetupLine final
     , private juce::ValueTree::Listener
 {
 public:
-    SpeakerSetupLine(const juce::ValueTree & v, juce::UndoManager & um, std::function<void()> selectionChanged, SpeakerSetupTreeView & parent);
+    SpeakerSetupLine(const juce::ValueTree & v, juce::UndoManager & um, std::function<void()> selectionChanged);
 
-    SpeakerSetupLine(const juce::ValueTree & v, juce::UndoManager & um, std::function<void()> selectionChanged, SpeakerSetupTreeView & parent, std::unique_ptr<juce::XmlElement> && opennessState);
     juce::String getUniqueName() const override;
 
     bool isSpeakerGroup() const { return lineValueTree.getType () == SPEAKER_GROUP; }
@@ -89,20 +87,12 @@ public:
     tl::optional<output_patch_t> getOutputPatch();
 
     static bool isDeletingGroup;
-    /**
-     * Get a string identifier from a value tree. This will return the output_patch_t for speakers
-     * and the group name for a group. As a result of this, group names now need to be unique
-     */
-    static juce::String getStringFromValueTree(const juce::ValueTree& valueTree);
-
-    std::unique_ptr<juce::XmlElement> opennessState;
-    void resetScroll();
 
 private:
     juce::ValueTree lineValueTree;
     juce::UndoManager& undoManager;
     std::function<void ()> onSelectionChanged;
-    SpeakerSetupTreeView & parent;
+
     void refreshSubItems ();
     void itemSelectionChanged(bool isNowSelected) override;
 

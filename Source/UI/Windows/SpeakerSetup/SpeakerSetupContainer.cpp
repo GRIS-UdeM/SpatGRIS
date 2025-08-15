@@ -36,7 +36,7 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     speakerSetupTreeView.setDefaultOpenness (true);
     speakerSetupTreeView.setMultiSelectEnabled (true);
 
-    mainSpeakerGroupLine = std::make_unique<SpeakerSetupLine> (speakerSetupVt.getChild(0), undoManager, onSelectionChanged, speakerSetupTreeView);
+    mainSpeakerGroupLine = std::make_unique<SpeakerSetupLine> (speakerSetupVt.getChild(0), undoManager, onSelectionChanged);
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
     auto setLabelText = [this](juce::Label& label, const juce::String & text) {
@@ -73,11 +73,27 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
 
 void SpeakerSetupContainer::reload(juce::ValueTree theSpeakerSetupVt)
 {
+    // cache the current node openness and scroll position
+    const auto cachedOpenness = speakerSetupTreeView.getOpennessState(true);
+
+    // rebuild everything
     speakerSetupVt = theSpeakerSetupVt;
     speakerSetupTreeView.setRootItem (nullptr);
-    auto opennessState = std::move(mainSpeakerGroupLine->opennessState);
-    mainSpeakerGroupLine.reset(new SpeakerSetupLine (speakerSetupVt.getChild(0), undoManager, onSelectionChanged, speakerSetupTreeView, std::move(opennessState)));
+    mainSpeakerGroupLine.reset(new SpeakerSetupLine (speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
+    speakerSetupTreeView.restoreOpennessState(*cachedOpenness, true);
+
+    // try to match and restore the previous scroll position
+    auto& viewport = speakerSetupTreeView.getViewport()->getVerticalScrollBar();
+    const auto maxRangeLimit = viewport.getMaximumRangeLimit();
+    const auto currentRangeSize = viewport.getCurrentRangeSize();
+    const auto maxScrollValue = maxRangeLimit - currentRangeSize;
+
+    auto cachedPosition = cachedOpenness->getDoubleAttribute("scrollPos");
+    if (maxScrollValue < cachedPosition)
+        cachedPosition = maxScrollValue;
+
+    viewport.setCurrentRangeStart(cachedPosition);
 }
 
 void SpeakerSetupContainer::resized()

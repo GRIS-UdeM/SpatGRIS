@@ -553,7 +553,6 @@ void EditSpeakersWindow::updateWinContent()
                                 || spatGrisData.project.spatMode == SpatMode::hybrid);
 
     togglePolyhedraExtraWidgets();
-    mSpeakerSetupContainer.mainSpeakerGroupLine->resetScroll();
 }
 
 //==============================================================================
