@@ -653,7 +653,7 @@ void EditSpeakersWindow::resized()
     // "Fourth" row with pink noise, diffusion and the save buttons.
     // This row needs to be placed a bit lower due to the height of the knobs.
     auto const sliderHeight{ 60 };
-    auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 + sliderHeight};
+    [[maybe_unused]] auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 + sliderHeight};
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, rowH);
     mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, sliderHeight);
     mDiffusionLabel.setBounds(260, getHeight() - 70, 160, rowH);
