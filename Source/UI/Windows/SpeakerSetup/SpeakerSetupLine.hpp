@@ -41,7 +41,7 @@ class SpeakerSetupLine final
 public:
     SpeakerSetupLine(const juce::ValueTree & v, juce::UndoManager & um, std::function<void()> selectionChanged);
 
-    juce::String getUniqueName() const override { return lineValueTree.getType().toString(); }
+    juce::String getUniqueName() const override;
 
     bool isSpeakerGroup() const { return lineValueTree.getType () == SPEAKER_GROUP; }
 
@@ -94,7 +94,6 @@ private:
     std::function<void ()> onSelectionChanged;
 
     void refreshSubItems ();
-
     void itemSelectionChanged(bool isNowSelected) override;
 
     void valueTreeChildAdded (juce::ValueTree& parentTree, juce::ValueTree&) override { treeChildrenChanged (parentTree); }

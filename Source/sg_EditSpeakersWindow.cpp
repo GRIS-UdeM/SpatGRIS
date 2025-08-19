@@ -539,6 +539,7 @@ void EditSpeakersWindow::togglePolyhedraExtraWidgets()
     mPolyRadius.setVisible(showExtendedPolyWidgets);
 }
 
+
 //==============================================================================
 void EditSpeakersWindow::updateWinContent()
 {
@@ -808,6 +809,7 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
 
 void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & /*parent*/, juce::ValueTree & child, [[maybe_unused]] int index)
 {
+
     auto const childType { child.getType () };
 
 #if DEBUG_SPEAKER_EDITION
