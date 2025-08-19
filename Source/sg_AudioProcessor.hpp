@@ -19,11 +19,10 @@
 
 #pragma once
 
+#include <JuceHeader.h>
 #include "sg_AbstractSpatAlgorithm.hpp"
 #include "Data/sg_AudioStructs.hpp"
 #include "Containers/sg_TaggedAudioBuffer.hpp"
-
-#include <JuceHeader.h>
 
 namespace gris
 {
