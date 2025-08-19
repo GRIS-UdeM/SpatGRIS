@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.3.7"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="4.0.0"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" cppLanguageStandard="latest" jucerFormatVersion="1"
               displaySplashScreen="1" maxBinaryFileSize="1048576" addUsingNamespaceToJuceHeader="0"
