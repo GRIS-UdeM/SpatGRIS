@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/sg_SpatMode.hpp"
+#include "Data/sg_SpatMode.hpp"
 #include "sg_LayoutComponent.hpp"
 #include "sg_SmallToggleButton.hpp"
 

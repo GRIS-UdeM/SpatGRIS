@@ -591,9 +591,9 @@ void SpeakerViewComponent::sendUDP(const std::string & toSend)
     [[maybe_unused]] int bytesWritten = udpSenderSocket.write(mUDPDefaultOutputAddress, mUDPDefaultOutputPort, cStrToSend, size);
     jassert(!(bytesWritten < 0));
     if (extraUdpSenderSocket) {
-        [[maybe_unused]] int bytesWritten
+        [[maybe_unused]] int extraBytesWritten
             = extraUdpSenderSocket->write(*mUDPExtraOutputAddress, *mUDPExtraOutputPort, cStrToSend, size);
-        jassert(!(bytesWritten < 0));
+        jassert(!(extraBytesWritten < 0));
     }
 }
 

@@ -19,7 +19,7 @@
 
 #include "SpeakerSetupLine.hpp"
 #include <Data/sg_LogicStrucs.hpp>
-#include <StructGRIS/ValueTreeUtilities.hpp>
+#include <Utilities/ValueTreeUtilities.hpp>
 
 namespace gris
 {

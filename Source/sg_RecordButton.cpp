@@ -20,7 +20,7 @@
 #include "sg_RecordButton.hpp"
 
 #include "sg_GrisLookAndFeel.hpp"
-#include "AlgoGRIS/Data/sg_Narrow.hpp"
+#include "Data/sg_Narrow.hpp"
 
 namespace gris
 {

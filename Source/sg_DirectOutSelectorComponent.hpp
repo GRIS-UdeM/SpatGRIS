@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/StrongTypes/sg_OutputPatch.hpp"
-#include "AlgoGRIS/tl/optional.hpp"
+#include "Data/StrongTypes/sg_OutputPatch.hpp"
+#include "tl/optional.hpp"
 #include "sg_SpatButton.hpp"
 
 namespace gris

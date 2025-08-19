@@ -20,7 +20,7 @@
 #pragma once
 
 #include "sg_LayoutComponent.hpp"
-#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
+#include "Data/sg_LogicStrucs.hpp"
 #include "sg_SmallToggleButton.hpp"
 
 namespace gris

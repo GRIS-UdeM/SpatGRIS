@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
-#include "AlgoGRIS/Data/sg_constants.hpp"
+#include "Data/sg_LogicStrucs.hpp"
+#include "Data/sg_constants.hpp"
 #include "sg_GeneralMuteButton.h"
 #include "sg_LayoutComponent.hpp"
 #include "sg_RecordButton.hpp"

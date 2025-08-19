@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/sg_LogicStrucs.hpp"
-#include "AlgoGRIS/tl/optional.hpp"
+#include "Data/sg_LogicStrucs.hpp"
+#include "tl/optional.hpp"
 #include "sg_Box.hpp"
 #include "UI/Windows/SpeakerSetup/SpeakerSetupContainer.hpp"
 

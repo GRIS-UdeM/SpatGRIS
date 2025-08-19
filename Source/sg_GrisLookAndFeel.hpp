@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "AlgoGRIS/Data/sg_Macros.hpp"
-#include "AlgoGRIS/Data/sg_Narrow.hpp"
+#include "Data/sg_Macros.hpp"
+#include "Data/sg_Narrow.hpp"
 
 #include "BinaryData.h"
 

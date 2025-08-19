@@ -21,16 +21,16 @@
 
 #include <map>
 #include "sg_AudioManager.hpp"
-#include "AlgoGRIS/Data/sg_CommandId.hpp"
+#include "Data/sg_CommandId.hpp"
 #include "sg_ControlPanel.hpp"
 #include "sg_FatalError.hpp"
 #include "sg_GrisLookAndFeel.hpp"
-#include "AlgoGRIS/Data/sg_LegacyLbapPosition.hpp"
+#include "Data/sg_LegacyLbapPosition.hpp"
 #include "sg_MainWindow.hpp"
 #include "sg_ScopeGuard.hpp"
 #include "sg_TitledComponent.hpp"
-#include "AlgoGRIS/Data/sg_constants.hpp"
-#include "AlgoGRIS/StructGRIS/ValueTreeUtilities.hpp"
+#include "Data/sg_constants.hpp"
+#include <Utilities/ValueTreeUtilities.hpp>
 #include "Misc/sg_DefaultFiles.hpp"
 
 namespace gris

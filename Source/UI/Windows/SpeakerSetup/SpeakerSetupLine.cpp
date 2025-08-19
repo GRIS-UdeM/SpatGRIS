@@ -57,7 +57,7 @@ void SpeakerSetupLine::itemDropped (const juce::DragAndDropTarget::SourceDetails
     moveItems (*getOwnerView (), selectedTrees, lineValueTree, insertIndex, undoManager);
 }
 
-void SpeakerSetupLine::moveItems(juce::TreeView & treeView,
+void SpeakerSetupLine::moveItems(juce::TreeView & /*treeView*/,
                                  const juce::OwnedArray<juce::ValueTree> & items,
                                  juce::ValueTree newParent,
                                  int insertIndex,
