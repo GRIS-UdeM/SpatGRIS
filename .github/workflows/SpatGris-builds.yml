@@ -20,7 +20,6 @@ jobs:
           export TZ=Etc/UTC
           sudo apt-get update
           sudo apt-get install -y git curl unzip sudo wget lsb-release software-properties-common make build-essential tzdata
-
       - name: Check out repository code with submodules
         uses: actions/checkout@v2
         with:
@@ -92,7 +91,6 @@ jobs:
           export TZ=Etc/UTC
           apt-get update
           apt-get install -y git curl unzip sudo wget lsb-release software-properties-common make build-essential tzdata
-
       - name: Check out repository code with submodules
         uses: actions/checkout@v2
         with:
@@ -138,28 +136,88 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build Projucer
+      - name: Setup codesigning
+        env:
+          GLL_APPLE_DEVELOPER_ID_APPLICATION: ${{ secrets.GLL_APPLE_DEVELOPER_ID_APPLICATION }}
+          GLL_APPLE_DEVELOPER_ID_INSTALLER: ${{ secrets.GLL_APPLE_DEVELOPER_ID_INSTALLER }}
+          GLL_APPLE_DEVELOPER_ID_PASSWORD: ${{ secrets.GLL_APPLE_DEVELOPER_ID_PASSWORD }}
         run: |
+          set +x
+          if [[ -n "$GLL_APPLE_DEVELOPER_ID_APPLICATION" ]]; then
+            echo "$GLL_APPLE_DEVELOPER_ID_APPLICATION" | base64 --decode > spatgris-app-cert.p12
+            export CODESIGN_APP_SECUREFILEPATH=$PWD/spatgris-app-cert.p12
+          fi
+
+          if [[ -n "$GLL_APPLE_DEVELOPER_ID_INSTALLER" ]]; then
+            echo "$GLL_APPLE_DEVELOPER_ID_INSTALLER" | base64 --decode > spatgris-installer-cert.p12
+            export CODESIGN_INSTALLER_SECUREFILEPATH=$PWD/spatgris-installer-cert.p12
+          fi
+
+          KEY_CHAIN=build.keychain
+          security create-keychain -p github "$KEY_CHAIN"
+          security default-keychain -s "$KEY_CHAIN"
+          security unlock-keychain -p github "$KEY_CHAIN"
+
+          if [[ -f "$CODESIGN_APP_SECUREFILEPATH" ]]; then
+            security import "$CODESIGN_APP_SECUREFILEPATH" -A -k "$KEY_CHAIN" -P "$GLL_APPLE_DEVELOPER_ID_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/pkgbuild  > /dev/null 2>&1
+          fi
+
+          if [[ -f "$CODESIGN_INSTALLER_SECUREFILEPATH" ]]; then
+            security import "$CODESIGN_INSTALLER_SECUREFILEPATH" -A -k "$KEY_CHAIN" -P "$GLL_APPLE_DEVELOPER_ID_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/pkgbuild  > /dev/null 2>&1
+          fi
+
+          security set-key-partition-list -S apple-tool:,apple: -s -k github "$KEY_CHAIN"
+
+          rm -f "$CODESIGN_APP_SECUREFILEPATH" "$CODESIGN_INSTALLER_SECUREFILEPATH"
+          set -x
+
+      - name: Build Projucer
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
+        run: |
+          security unlock-keychain -p github build.keychain
           cd submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX
-          xcodebuild -project Projucer.xcodeproj \
-            -configuration Release \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" ]]; then
+            xcodebuild -project Projucer.xcodeproj \
+              -configuration Release \
+              CODE_SIGNING_REQUIRED=YES \
+              CODE_SIGNING_ALLOWED=YES
+          else
+            xcodebuild -project Projucer.xcodeproj \
+              -configuration Release \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO
+          fi
 
       - name: Generate Xcode project
         run: |
+          security unlock-keychain -p github build.keychain
           chmod +x submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX/build/Release/Projucer.app/Contents/MacOS/Projucer
           submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX/build/Release/Projucer.app/Contents/MacOS/Projucer --resave SpatGRIS.jucer
 
-      - name: build mac arm64
+      - name: Build and sign mac arm64
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
         run: |
-          xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
-            -configuration Release \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -arch arm64
+          security unlock-keychain -p github build.keychain
+          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" ]]; then
+            security unlock-keychain -p github build.keychain
+            xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
+              -configuration Release \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=YES \
+              CODE_SIGNING_ALLOWED=YES \
+              OTHER_CODE_SIGN_FLAGS="--timestamp --options=runtime" \
+              -arch arm64
+          else
+            xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
+              -configuration Release \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO \
+              -arch arm64
+          fi
 
       - name: Upload mac arm64 build artifacts
         uses: actions/upload-artifact@v4
@@ -167,20 +225,93 @@ jobs:
           name: SpatGRIS-Build-macOS-arm64
           path: Builds/MacOSX/build/Release/*
 
-      - name: build mac x86_64
+      - name: Build and sign mac x86_64
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
         run: |
-          xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
-            -configuration Release \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -arch x86_64
+          security unlock-keychain -p github build.keychain
+          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" ]]; then
+            security unlock-keychain -p github build.keychain
+            xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
+              -configuration Release \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=YES \
+              CODE_SIGNING_ALLOWED=YES \
+              OTHER_CODE_SIGN_FLAGS="--timestamp --options=runtime" \
+              -arch x86_64
+          else
+            xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
+              -configuration Release \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO \
+              -arch x86_64
+          fi
 
       - name: Upload mac x86_64 build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: SpatGRIS-Build-macOS-x86_64
           path: Builds/MacOSX/build/Release/*
+
+      - name: Create universal binary and sign
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
+        run: |
+          security unlock-keychain -p github build.keychain
+          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" ]]; then
+            security unlock-keychain -p github build.keychain
+            mkdir -p Builds/MacOSX/build/Release-Universal
+
+            # Create universal binary by merging both architectures
+            lipo -create \
+              Builds/MacOSX/build/Release/SpatGRIS.app/Contents/MacOS/SpatGRIS \
+              -output Builds/MacOSX/build/Release-Universal/SpatGRIS
+
+            # Copy the arm64 app bundle structure
+            cp -R Builds/MacOSX/build/Release/SpatGRIS.app Builds/MacOSX/build/Release-Universal/
+
+            # Replace the binary with the universal one
+            mv Builds/MacOSX/build/Release-Universal/SpatGRIS Builds/MacOSX/build/Release-Universal/SpatGRIS.app/Contents/MacOS/SpatGRIS
+
+            # Sign the universal binary
+            codesign --force --timestamp --options=runtime --sign "Gael Lane Lepine" Builds/MacOSX/build/Release-Universal/SpatGRIS.app
+          fi
+
+      - name: Notarize app
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
+          GLL_APPLE_APP_PASSWORD: ${{ secrets.GLL_APPLE_APP_PASSWORD }}
+        run: |
+          security unlock-keychain -p github build.keychain
+          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" && -n "$GLL_APPLE_APP_PASSWORD" ]]; then
+            security unlock-keychain -p github build.keychain
+
+            # Create zip for notarization
+            cd Builds/MacOSX/build/Release-Universal
+            zip -r SpatGRIS-Universal.zip SpatGRIS.app
+
+            # Submit for notarization
+            xcrun notarytool submit SpatGRIS-Universal.zip \
+              --team-id "62PMMWH49Z" \
+              --apple-id "glanelepine@gmail.com" \
+              --password "$GLL_APPLE_APP_PASSWORD" \
+              --progress \
+              --wait
+
+            # Staple the notarization
+            xcrun stapler staple SpatGRIS.app
+            xcrun stapler validate SpatGRIS.app
+          fi
+
+      - name: Upload signed universal build artifacts
+        if: env.GLL_APPLE_CODESIGN_APPLICATION != ''
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpatGRIS-Build-macOS-Universal-Signed
+          path: Builds/MacOSX/build/Release-Universal/*
 
   Build-Windows:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
