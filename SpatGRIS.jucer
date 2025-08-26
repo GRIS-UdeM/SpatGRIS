@@ -111,8 +111,8 @@
                   file="Source/sg_ControlPanel.hpp"/>
             <FILE id="ewzh9t" name="sg_GeneralMuteButton.cpp" compile="1" resource="0"
                   file="Source/sg_GeneralMuteButton.cpp"/>
-            <FILE id="vpLQIF" name="sg_GeneralMuteButton.h" compile="0" resource="0"
-                  file="Source/sg_GeneralMuteButton.h"/>
+            <FILE id="vpLQIF" name="sg_GeneralMuteButton.hpp" compile="0" resource="0"
+                  file="Source/sg_GeneralMuteButton.hpp"/>
             <FILE id="Vvls6a" name="sg_InfoPanel.cpp" compile="1" resource="0"
                   file="Source/sg_InfoPanel.cpp"/>
             <FILE id="f7lFiY" name="sg_InfoPanel.hpp" compile="0" resource="0"
