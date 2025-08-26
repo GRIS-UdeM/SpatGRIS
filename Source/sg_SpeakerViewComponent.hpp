@@ -19,23 +19,29 @@
 
 #pragma once
 
-#include "sg_CartesianVector.hpp"
-#include "sg_LogicStrucs.hpp"
+#include "Data/StrongTypes/sg_CartesianVector.hpp"
+#include "Data/sg_LogicStrucs.hpp"
+#include "Data/sg_constants.hpp"
+#include "Data/sg_SpatMode.hpp"
 #include "sg_Warnings.hpp"
-#include "sg_constants.hpp"
 
 #include <JuceHeader.h>
-
+#include <vector>
 namespace gris
 {
 struct SpeakerData;
-enum class SpatMode;
 struct SourceData;
 
 class MainContentComponent;
 class SpeakerModel;
 
 //==============================================================================
+/**
+ * @brief Manages network interaction with the SpeakerView process.
+ *
+ * The communication is based on JSON over raw UDP sockets.
+ * The protocol is documented in [doc/SpeakerView.md](SpeakerView.md) at the root of the repository.
+ */
 class SpeakerViewComponent final : public juce::HighResolutionTimer
 {
 private:
@@ -48,17 +54,63 @@ private:
     juce::DatagramSocket mUdpReceiverSocket;
     static constexpr int mMaxBufferSize = 1024;
 
-    juce::Array<juce::var> mJsonSources;
-    juce::Array<juce::var> mJsonSpeakers;
-    std::unique_ptr<juce::DynamicObject> mJsonSGInfos;
+    // We use the json strings to see if the data has changed.
+    // It would maybe be a bit more efficient to avoid playing with
+    // strings unless we are sure that the data has changed.
+    std::string mOldJsonSGInfos = "nothing";
+    std::string mOldJsonSpeakers = "nothing";
+    std::string mOldJsonSources = "nothing";
+
+    std::string mJsonSources;
+    std::string mJsonSpeakers;
+    std::string mJsonSGInfos;
+
+    juce::DatagramSocket udpSenderSocket;
+    /**
+     * This socket is optionaly used to send udp data to a standalone SpeakerView instance
+     * (potentially on another computer).
+     */
+    std::unique_ptr<juce::DatagramSocket> extraUdpSenderSocket;
+    /**
+     * This socket is optionaly used to receive udp data from a standalone SpeakerView instanc
+     */
+    std::unique_ptr<juce::DatagramSocket> extraUdpReceiverSocket;
 
     bool mKillSpeakerViewProcess{};
+
+    uint32_t mTicksSinceKeepalive{};
 
 public:
     //==============================================================================
     static constexpr auto SPHERE_RADIUS = 0.03f;
     static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
-    //==============================================================================
+    static inline const juce::String localhost{"127.0.0.1"};
+
+
+/**
+ * @brief This macro creates a `juce::Identifier` variable with the same name as its string content,
+ * reducing boilerplate and ensuring consistency between the variable name and its value.
+ */
+#define MAKE_IDENTIFIER(name) static inline const juce::Identifier name{ #name };
+    MAKE_IDENTIFIER(selSpkNum)
+    MAKE_IDENTIFIER(keepSVTop)
+    MAKE_IDENTIFIER(showHall)
+    MAKE_IDENTIFIER(showSrcNum)
+    MAKE_IDENTIFIER(showSpkNum)
+    MAKE_IDENTIFIER(showSpks)
+    MAKE_IDENTIFIER(showSpkTriplets)
+    MAKE_IDENTIFIER(showSrcActivity)
+    MAKE_IDENTIFIER(showSpkLevel)
+    MAKE_IDENTIFIER(showSphereCube)
+    MAKE_IDENTIFIER(resetSrcPos)
+    MAKE_IDENTIFIER(genMute)
+    MAKE_IDENTIFIER(winPos)
+    MAKE_IDENTIFIER(winSize)
+    MAKE_IDENTIFIER(camPos)
+    MAKE_IDENTIFIER(quitting)
+#undef MAKE_IDENTIFIER
+
+  //==============================================================================
     explicit SpeakerViewComponent(MainContentComponent & mainContentComponent);
 
     ~SpeakerViewComponent() override;
@@ -84,13 +136,38 @@ public:
     //==============================================================================
     void hiResTimerCallback() override;
 
+    tl::optional<int> getExtraUDPInputPort() const;
+    tl::optional<int> getExtraUDPOutputPort() const;
+    tl::optional<juce::String> getExtraUDPOutputAddress() const;
+
+    void disableExtraUDPOutput();
+    void disableExtraUDPInput();
+    /**
+     * Tries to set the extra udp input port to the given port. Reverts to the old port and show a warning
+     * if it fails.
+     */
+    bool setExtraUDPInputPort(int const port);
+
+    void setExtraUDPOutput(int const port, const juce::StringRef address);
+
+    int mUDPDefaultOutputPort;
+    juce::String mUDPDefaultOutputAddress;
+
 private:
     //==============================================================================
+    void prepareSourcesJson();
+    void prepareSpeakersJson();
     void prepareSGInfos();
     bool isHiResTimerThread();
-    void listenUDP();
-    void sendUDP();
+    void listenUDP(juce::DatagramSocket & socket);
+    void sendUDP(const std::string & content);
+    void sendSpeakersUDP();
+    void sendSourcesUDP();
+    void sendSpatGRISUDP();
     void emptyUDPReceiverBuffer();
+
+    tl::optional<int> mUDPExtraOutputPort;
+    tl::optional<juce::String> mUDPExtraOutputAddress;
 
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerViewComponent)

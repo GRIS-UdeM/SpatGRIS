@@ -99,7 +99,8 @@ void GeneralMuteButton::paint(juce::Graphics & g)
     auto const outerRingBounds{ mActiveBounds.toFloat().reduced(7.0f) };
     g.fillRoundedRectangle(outerRingBounds.toFloat(), 8.0f);
 
-    auto const fontColor{ getInnerColor() == ACTIVE_COLOR ? mLookAndFeel.getDarkColour() : mLookAndFeel.getFontColour() };
+    auto const fontColor{ getInnerColor() == ACTIVE_COLOR ? mLookAndFeel.getDarkColour()
+                                                          : mLookAndFeel.getFontColour() };
     g.setColour(fontColor);
     g.drawFittedText("MUTE", mActiveBounds, juce::Justification::centred, 1);
 }

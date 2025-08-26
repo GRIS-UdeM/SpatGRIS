@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,10 +22,10 @@
 namespace gris
 {
 //==============================================================================
-AbstractSliceComponent::AbstractSliceComponent(GrisLookAndFeel & lookAndFeel, SmallGrisLookAndFeel & smallLookAndFeel)
-    : mLayout(LayoutComponent::Orientation::vertical, false, false, lookAndFeel)
+AbstractSliceComponent::AbstractSliceComponent(GrisLookAndFeel & lnf, SmallGrisLookAndFeel & smallLookAndFeel)
+    : mLayout(LayoutComponent::Orientation::vertical, false, false, lnf)
     , mVuMeter(smallLookAndFeel)
-    , mMuteSoloComponent(*this, lookAndFeel, smallLookAndFeel)
+    , mMuteSoloComponent(*this, lnf, smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

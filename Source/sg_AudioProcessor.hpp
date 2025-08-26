@@ -19,11 +19,10 @@
 
 #pragma once
 
-#include "sg_AbstractSpatAlgorithm.hpp"
-#include "sg_AudioStructs.hpp"
-#include "sg_TaggedAudioBuffer.hpp"
-
 #include <JuceHeader.h>
+#include "sg_AbstractSpatAlgorithm.hpp"
+#include "Data/sg_AudioStructs.hpp"
+#include "Containers/sg_TaggedAudioBuffer.hpp"
 
 namespace gris
 {
@@ -48,6 +47,13 @@ public:
     [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mLock; }
     void processAudio(SourceAudioBuffer & sourceBuffer,
                       SpeakerAudioBuffer & speakerBuffer,
+#if SG_USE_FORK_UNION
+    #if SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS
+                      ForkUnionBuffer & forkUnionBuffer,
+    #elif SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD
+                      ForkUnionBuffer & forkUnionBuffer,
+    #endif
+#endif
                       juce::AudioBuffer<float> & stereoBuffer) noexcept;
 
     auto & getAudioData() { return mAudioData; }
@@ -55,6 +61,14 @@ public:
 
     auto const & getSpatAlgorithm() const { return mSpatAlgorithm; }
     auto & getSpatAlgorithm() { return mSpatAlgorithm; }
+
+#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
+    void silenceForkUnionBuffer(ForkUnionBuffer & forkUnionBuffer) noexcept
+    {
+        if (mSpatAlgorithm)
+            mSpatAlgorithm->silenceForkUnionBuffer(forkUnionBuffer);
+    }
+#endif
 
 private:
     //==============================================================================

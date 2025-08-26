@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.3.7"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="4.0.0"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
-              companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
-              jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
-              addUsingNamespaceToJuceHeader="0" defines="JUCE_DISPLAY_SPLASH_SCREEN=0&#10;JUCE_MODAL_LOOPS_PERMITTED=1">
+              companyName="GRIS - UdeM" cppLanguageStandard="latest" jucerFormatVersion="1"
+              displaySplashScreen="1" maxBinaryFileSize="1048576" addUsingNamespaceToJuceHeader="0"
+              defines="JUCE_MODAL_LOOPS_PERMITTED=1" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS&#10;../../submodules/AlgoGRIS/submodules/fork_union/include&#10;../../submodules/AlgoGRIS/submodules/StructGRIS">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
+      <FILE id="PUwJqY" name="cog_icon.png" compile="0" resource="1" file="Resources/cog_icon.png"/>
       <FILE id="FbCRQM" name="FreeFarsi-Mono.otf" compile="0" resource="1"
             file="Source/FreeFarsi-Mono.otf" xcodeResource="1"/>
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
@@ -28,47 +29,10 @@
             file="Resources/SpatGRIS_3.3.7_Manuel_FR.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
+      <FILE id="ObNeQh" name="trash.svg" compile="0" resource="1" file="Resources/trash.svg"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
       <GROUP id="{D059D036-0ECD-ACF5-4465-BDC1A866C55E}" name="Audio">
-        <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
-          <GROUP id="{F536EC3E-463E-F7C1-C73E-F95B29576CC6}" name="implementations">
-            <FILE id="jD7XJF" name="sg_mbap.cpp" compile="1" resource="0" file="Source/sg_mbap.cpp"/>
-            <FILE id="TjPFps" name="sg_mbap.hpp" compile="0" resource="0" file="Source/sg_mbap.hpp"/>
-            <FILE id="ZA3ukj" name="sg_vbap.cpp" compile="1" resource="0" file="Source/sg_vbap.cpp"/>
-            <FILE id="QvxuHw" name="sg_vbap.hpp" compile="0" resource="0" file="Source/sg_vbap.hpp"/>
-          </GROUP>
-          <FILE id="V5pGbX" name="sg_AbstractSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_AbstractSpatAlgorithm.cpp"/>
-          <FILE id="M5gvQ0" name="sg_AbstractSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_AbstractSpatAlgorithm.hpp"/>
-          <FILE id="E8j6Aa" name="sg_DopplerSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_DopplerSpatAlgorithm.cpp"/>
-          <FILE id="ufofep" name="sg_DopplerSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_DopplerSpatAlgorithm.hpp"/>
-          <FILE id="pkCGrx" name="sg_DummySpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_DummySpatAlgorithm.hpp"/>
-          <FILE id="E45aKk" name="sg_HrtfSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_HrtfSpatAlgorithm.cpp"/>
-          <FILE id="tzcPNu" name="sg_HrtfSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_HrtfSpatAlgorithm.hpp"/>
-          <FILE id="bcGZDB" name="sg_HybridSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_HybridSpatAlgorithm.cpp"/>
-          <FILE id="ncBTxz" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_HybridSpatAlgorithm.hpp"/>
-          <FILE id="wYF40j" name="sg_MbapSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_MbapSpatAlgorithm.cpp"/>
-          <FILE id="u2DKQo" name="sg_MbapSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_MbapSpatAlgorithm.hpp"/>
-          <FILE id="qEq08c" name="sg_StereoSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_StereoSpatAlgorithm.cpp"/>
-          <FILE id="KcGDRK" name="sg_StereoSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_StereoSpatAlgorithm.hpp"/>
-          <FILE id="rBZVVV" name="sg_VbapSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/sg_VbapSpatAlgorithm.cpp"/>
-          <FILE id="x1azHH" name="sg_VbapSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/sg_VbapSpatAlgorithm.hpp"/>
-        </GROUP>
         <FILE id="LDaWEl" name="sg_AudioManager.cpp" compile="1" resource="0"
               file="Source/sg_AudioManager.cpp"/>
         <FILE id="J3qMTp" name="sg_AudioManager.hpp" compile="0" resource="0"
@@ -77,89 +41,16 @@
               file="Source/sg_AudioProcessor.cpp"/>
         <FILE id="GgeC27" name="sg_AudioProcessor.hpp" compile="0" resource="0"
               file="Source/sg_AudioProcessor.hpp"/>
-        <FILE id="s7fPrx" name="sg_PinkNoiseGenerator.cpp" compile="1" resource="0"
-              file="Source/sg_PinkNoiseGenerator.cpp"/>
-        <FILE id="BBFEaw" name="sg_PinkNoiseGenerator.hpp" compile="0" resource="0"
-              file="Source/sg_PinkNoiseGenerator.hpp"/>
-        <FILE id="HLaIjn" name="sg_TaggedAudioBuffer.hpp" compile="0" resource="0"
-              file="Source/sg_TaggedAudioBuffer.hpp"/>
-      </GROUP>
-      <GROUP id="{CAE9BD57-C46F-25A5-8F7E-772337A1A370}" name="Containers">
-        <FILE id="jjvsce" name="sg_AtomicUpdater.hpp" compile="0" resource="0"
-              file="Source/sg_AtomicUpdater.hpp"/>
-        <FILE id="AGM16k" name="sg_LogBuffer.cpp" compile="1" resource="0"
-              file="Source/sg_LogBuffer.cpp"/>
-        <FILE id="TC2Gn9" name="sg_LogBuffer.hpp" compile="0" resource="0"
-              file="Source/sg_LogBuffer.hpp"/>
-        <FILE id="iccVyO" name="sg_OwnedMap.hpp" compile="0" resource="0" file="Source/sg_OwnedMap.hpp"/>
-        <FILE id="WOH8r9" name="sg_StaticMap.hpp" compile="0" resource="0"
-              file="Source/sg_StaticMap.hpp"/>
-        <FILE id="YQPfqZ" name="sg_StaticVector.hpp" compile="0" resource="0"
-              file="Source/sg_StaticVector.hpp"/>
-        <FILE id="iHp2Hz" name="sg_StrongArray.hpp" compile="0" resource="0"
-              file="Source/sg_StrongArray.hpp"/>
-        <FILE id="e4ZtRa" name="sg_ThreadSafeBuffer.hpp" compile="0" resource="0"
-              file="Source/sg_ThreadSafeBuffer.hpp"/>
-      </GROUP>
-      <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="Data">
-        <GROUP id="{92A881EF-457B-1766-C06E-A7FB79588252}" name="StrongTypes">
-          <FILE id="E4mLq0" name="sg_CartesianVector.cpp" compile="1" resource="0"
-                file="Source/sg_CartesianVector.cpp"/>
-          <FILE id="HvvvpO" name="sg_CartesianVector.hpp" compile="0" resource="0"
-                file="Source/sg_CartesianVector.hpp"/>
-          <FILE id="MXdkPU" name="sg_Dbfs.hpp" compile="0" resource="0" file="Source/sg_Dbfs.hpp"/>
-          <FILE id="vs0AcL" name="sg_Degrees.hpp" compile="0" resource="0" file="Source/sg_Degrees.hpp"/>
-          <FILE id="JR2blQ" name="sg_Hz.hpp" compile="0" resource="0" file="Source/sg_Hz.hpp"/>
-          <FILE id="ndGd6W" name="sg_Meters.hpp" compile="0" resource="0" file="Source/sg_Meters.hpp"/>
-          <FILE id="FJ5LAM" name="sg_OutputPatch.hpp" compile="0" resource="0"
-                file="Source/sg_OutputPatch.hpp"/>
-          <FILE id="Iu4xEV" name="sg_Radians.hpp" compile="0" resource="0" file="Source/sg_Radians.hpp"/>
-          <FILE id="GTVH9C" name="sg_SourceIndex.hpp" compile="0" resource="0"
-                file="Source/sg_SourceIndex.hpp"/>
-          <FILE id="lHTMHQ" name="sg_StrongFloat.hpp" compile="0" resource="0"
-                file="Source/sg_StrongFloat.hpp"/>
-          <FILE id="zHS1fK" name="sg_StrongIndex.hpp" compile="0" resource="0"
-                file="Source/sg_StrongIndex.hpp"/>
-        </GROUP>
-        <FILE id="wUn028" name="sg_CommandId.hpp" compile="0" resource="0"
-              file="Source/sg_CommandId.hpp"/>
-        <FILE id="nytjRj" name="sg_AudioStructs.cpp" compile="1" resource="0"
-              file="Source/sg_AudioStructs.cpp"/>
-        <FILE id="wHT3Fd" name="sg_AudioStructs.hpp" compile="0" resource="0"
-              file="Source/sg_AudioStructs.hpp"/>
-        <FILE id="BXo4A3" name="sg_constants.cpp" compile="1" resource="0"
-              file="Source/sg_constants.cpp"/>
-        <FILE id="PtMCmg" name="sg_constants.hpp" compile="0" resource="0"
-              file="Source/sg_constants.hpp"/>
-        <FILE id="tAYDcC" name="sg_LegacyLbapPosition.cpp" compile="1" resource="0"
-              file="Source/sg_LegacyLbapPosition.cpp"/>
-        <FILE id="uZ0v3u" name="sg_LegacyLbapPosition.hpp" compile="0" resource="0"
-              file="Source/sg_LegacyLbapPosition.hpp"/>
-        <FILE id="juSHq9" name="sg_LegacySpatFileFormat.cpp" compile="1" resource="0"
-              file="Source/sg_LegacySpatFileFormat.cpp"/>
-        <FILE id="PsDU6h" name="sg_LegacySpatFileFormat.hpp" compile="0" resource="0"
-              file="Source/sg_LegacySpatFileFormat.hpp"/>
-        <FILE id="L27PCp" name="sg_LogicStrucs.cpp" compile="1" resource="0"
-              file="Source/sg_LogicStrucs.cpp"/>
-        <FILE id="jBuzCp" name="sg_LogicStrucs.hpp" compile="0" resource="0"
-              file="Source/sg_LogicStrucs.hpp"/>
-        <FILE id="doKWB5" name="sg_PolarVector.cpp" compile="1" resource="0"
-              file="Source/sg_PolarVector.cpp"/>
-        <FILE id="EabVg1" name="sg_PolarVector.hpp" compile="0" resource="0"
-              file="Source/sg_PolarVector.hpp"/>
-        <FILE id="aSBfLv" name="sg_Position.cpp" compile="1" resource="0" file="Source/sg_Position.cpp"/>
-        <FILE id="L1Dsq4" name="sg_Position.hpp" compile="0" resource="0" file="Source/sg_Position.hpp"/>
-        <FILE id="JfFIDv" name="sg_SpatMode.cpp" compile="1" resource="0" file="Source/sg_SpatMode.cpp"/>
-        <FILE id="j4AzQ7" name="sg_SpatMode.hpp" compile="0" resource="0" file="Source/sg_SpatMode.hpp"/>
-        <FILE id="jvuP1o" name="sg_Triplet.hpp" compile="0" resource="0" file="Source/sg_Triplet.hpp"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="Misc">
+        <FILE id="sjsTDT" name="sg_DefaultFiles.hpp" compile="0" resource="0"
+              file="Source/Misc/sg_DefaultFiles.hpp"/>
+        <FILE id="a5Vyhu" name="sg_DefaultFiles.cpp" compile="1" resource="0"
+              file="Source/Misc/sg_DefaultFiles.cpp"/>
         <FILE id="uE7qMG" name="sg_FatalError.cpp" compile="1" resource="0"
               file="Source/sg_FatalError.cpp"/>
         <FILE id="i24Hrh" name="sg_FatalError.hpp" compile="0" resource="0"
               file="Source/sg_FatalError.hpp"/>
-        <FILE id="yJeDzO" name="sg_Macros.hpp" compile="0" resource="0" file="Source/sg_Macros.hpp"/>
-        <FILE id="sooBmS" name="sg_Narrow.hpp" compile="0" resource="0" file="Source/sg_Narrow.hpp"/>
         <FILE id="Zaf3uS" name="sg_Remap.hpp" compile="0" resource="0" file="Source/sg_Remap.hpp"/>
         <FILE id="y1tIHN" name="sg_ScopeGuard.hpp" compile="0" resource="0"
               file="Source/sg_ScopeGuard.hpp"/>
@@ -244,10 +135,6 @@
                   file="Source/sg_SpatSlider.cpp"/>
             <FILE id="SqVuzN" name="sg_SpatSlider.hpp" compile="0" resource="0"
                   file="Source/sg_SpatSlider.hpp"/>
-            <FILE id="OcgQR2" name="sg_SpatTextEditor.cpp" compile="1" resource="0"
-                  file="Source/sg_SpatTextEditor.cpp"/>
-            <FILE id="L27uyO" name="sg_SpatTextEditor.hpp" compile="0" resource="0"
-                  file="Source/sg_SpatTextEditor.hpp"/>
             <FILE id="j2IMjp" name="sg_SubPanelComponent.cpp" compile="1" resource="0"
                   file="Source/sg_SubPanelComponent.cpp"/>
             <FILE id="HOKrJx" name="sg_SubPanelComponent.hpp" compile="0" resource="0"
@@ -259,12 +146,26 @@
           </GROUP>
           <FILE id="YCYrPZ" name="sg_Box.cpp" compile="1" resource="0" file="Source/sg_Box.cpp"/>
           <FILE id="KCs132" name="sg_Box.hpp" compile="0" resource="0" file="Source/sg_Box.hpp"/>
-          <FILE id="HHTNLR" name="sg_EditableTextCustomComponent.cpp" compile="1"
-                resource="0" file="Source/sg_EditableTextCustomComponent.cpp"/>
-          <FILE id="rOZ5jL" name="sg_EditableTextCustomComponent.hpp" compile="0"
-                resource="0" file="Source/sg_EditableTextCustomComponent.hpp"/>
         </GROUP>
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Windows">
+          <GROUP id="{1252893F-FFF5-5BB8-9EDD-920C9A592D86}" name="SpeakerSetup">
+            <FILE id="lDRxIX" name="SpeakerGroupSettingsWindow.cpp" compile="1"
+                  resource="0" file="Source/UI/Windows/SpeakerSetup/SpeakerGroupSettingsWindow.cpp"/>
+            <FILE id="aXl45u" name="SpeakerGroupSettingsWindow.hpp" compile="0"
+                  resource="0" file="Source/UI/Windows/SpeakerSetup/SpeakerGroupSettingsWindow.hpp"/>
+            <FILE id="LWfuDv" name="SpeakerSetupContainer.cpp" compile="1" resource="0"
+                  file="Source/UI/Windows/SpeakerSetup/SpeakerSetupContainer.cpp"/>
+            <FILE id="YE6iq2" name="SpeakerSetupContainer.hpp" compile="0" resource="0"
+                  file="Source/UI/Windows/SpeakerSetup/SpeakerSetupContainer.hpp"/>
+            <FILE id="ZaUlNe" name="SpeakerSetupLine.cpp" compile="1" resource="0"
+                  file="Source/UI/Windows/SpeakerSetup/SpeakerSetupLine.cpp"/>
+            <FILE id="nAM1Vt" name="SpeakerSetupLine.hpp" compile="0" resource="0"
+                  file="Source/UI/Windows/SpeakerSetup/SpeakerSetupLine.hpp"/>
+            <FILE id="Bsj2dV" name="SpeakerTreeComponent.cpp" compile="1" resource="0"
+                  file="Source/UI/Windows/SpeakerSetup/SpeakerTreeComponent.cpp"/>
+            <FILE id="xOpYoh" name="SpeakerTreeComponent.hpp" compile="0" resource="0"
+                  file="Source/UI/Windows/SpeakerSetup/SpeakerTreeComponent.hpp"/>
+          </GROUP>
           <FILE id="SHGT1U" name="sg_AboutWindow.cpp" compile="1" resource="0"
                 file="Source/sg_AboutWindow.cpp"/>
           <FILE id="rNrlgI" name="sg_AboutWindow.hpp" compile="0" resource="0"
@@ -327,103 +228,237 @@
       <FILE id="rQi0F2" name="sg_SpeakerViewComponent.hpp" compile="0" resource="0"
             file="Source/sg_SpeakerViewComponent.hpp"/>
     </GROUP>
+    <GROUP id="{755DB51A-2CFD-1B50-3D92-CF35F1E89E3D}" name="submodules">
+      <GROUP id="{1FBCD2DD-9050-30FD-E1BE-E07C1F83877B}" name="AlgoGRIS">
+        <GROUP id="{A45D1137-A159-7D72-0988-A5D9CD18249A}" name="submodules">
+          <GROUP id="{7E5D6A36-608D-6F84-EB57-694120F99FAC}" name="StructGRIS">
+            <GROUP id="{A324FA3A-41AE-A94A-2925-6D244656F392}" name="Containers">
+              <FILE id="QOoZ5K" name="sg_AtomicUpdater.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Containers/sg_AtomicUpdater.hpp"/>
+              <FILE id="FAlZtZ" name="sg_LogBuffer.cpp" compile="1" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Containers/sg_LogBuffer.cpp"/>
+              <FILE id="i2eDvv" name="sg_LogBuffer.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Containers/sg_LogBuffer.hpp"/>
+              <FILE id="muFKqw" name="sg_OwnedMap.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Containers/sg_OwnedMap.hpp"/>
+              <FILE id="keRiIy" name="sg_StaticMap.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Containers/sg_StaticMap.hpp"/>
+              <FILE id="wcVRWb" name="sg_StaticVector.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Containers/sg_StaticVector.hpp"/>
+              <FILE id="R3vGXS" name="sg_StrongArray.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Containers/sg_StrongArray.hpp"/>
+              <FILE id="Io1KDO" name="sg_TaggedAudioBuffer.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Containers/sg_TaggedAudioBuffer.hpp"/>
+              <FILE id="b4SKdB" name="sg_ThreadSafeBuffer.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Containers/sg_ThreadSafeBuffer.hpp"/>
+            </GROUP>
+            <GROUP id="{D4FD89E8-D691-9A78-3A29-BFFC23536DD8}" name="Data">
+              <GROUP id="{B4F86625-E135-B117-C895-29B840B2E4E2}" name="StrongTypes">
+                <FILE id="pTPoSf" name="sg_CartesianVector.cpp" compile="1" resource="0"
+                      file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_CartesianVector.cpp"/>
+                <FILE id="c7csGu" name="sg_CartesianVector.hpp" compile="0" resource="0"
+                      file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_CartesianVector.hpp"/>
+                <FILE id="ElUtjZ" name="sg_Dbfs.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_Dbfs.hpp"/>
+                <FILE id="QMVsHN" name="sg_Degrees.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_Degrees.hpp"/>
+                <FILE id="yxwFno" name="sg_Hz.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_Hz.hpp"/>
+                <FILE id="Xb9Vv3" name="sg_Meters.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_Meters.hpp"/>
+                <FILE id="LDsLVm" name="sg_OutputPatch.hpp" compile="0" resource="0"
+                      file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_OutputPatch.hpp"/>
+                <FILE id="UcSqCh" name="sg_Radians.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_Radians.hpp"/>
+                <FILE id="k4a3Gd" name="sg_SourceIndex.hpp" compile="0" resource="0"
+                      file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_SourceIndex.hpp"/>
+                <FILE id="FPlw5P" name="sg_StrongFloat.hpp" compile="0" resource="0"
+                      file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_StrongFloat.hpp"/>
+                <FILE id="Bovm4o" name="sg_StrongIndex.hpp" compile="0" resource="0"
+                      file="submodules/AlgoGRIS/submodules/StructGRIS/Data/StrongTypes/sg_StrongIndex.hpp"/>
+              </GROUP>
+              <FILE id="N9OY3w" name="Quaternion.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/Quaternion.cpp"/>
+              <FILE id="SiSdfm" name="Quaternion.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/Quaternion.hpp"/>
+              <FILE id="yuH5zc" name="sg_AudioStructs.cpp" compile="1" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_AudioStructs.cpp"/>
+              <FILE id="A5egOZ" name="sg_AudioStructs.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_AudioStructs.hpp"/>
+              <FILE id="gsORVt" name="sg_CommandId.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_CommandId.hpp"/>
+              <FILE id="alKlKr" name="sg_constants.cpp" compile="1" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_constants.cpp"/>
+              <FILE id="IhiUlq" name="sg_constants.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_constants.hpp"/>
+              <FILE id="ighEtB" name="sg_LegacyLbapPosition.cpp" compile="1" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_LegacyLbapPosition.cpp"/>
+              <FILE id="oLpDVW" name="sg_LegacyLbapPosition.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_LegacyLbapPosition.hpp"/>
+              <FILE id="yrNNgR" name="sg_LegacySpatFileFormat.cpp" compile="1" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_LegacySpatFileFormat.cpp"/>
+              <FILE id="tWlDdV" name="sg_LegacySpatFileFormat.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_LegacySpatFileFormat.hpp"/>
+              <FILE id="qBCPGc" name="sg_LogicStrucs.cpp" compile="1" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_LogicStrucs.cpp"/>
+              <FILE id="xl8wJn" name="sg_LogicStrucs.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_LogicStrucs.hpp"/>
+              <FILE id="ikRYKC" name="sg_Macros.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_Macros.hpp"/>
+              <FILE id="Qr5gWM" name="sg_Narrow.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_Narrow.hpp"/>
+              <FILE id="SyeawF" name="sg_PolarVector.cpp" compile="1" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_PolarVector.cpp"/>
+              <FILE id="fq0We7" name="sg_PolarVector.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_PolarVector.hpp"/>
+              <FILE id="G8aNFW" name="sg_Position.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_Position.cpp"/>
+              <FILE id="jObn2W" name="sg_Position.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_Position.hpp"/>
+              <FILE id="JSgRt4" name="sg_SpatMode.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_SpatMode.cpp"/>
+              <FILE id="WFdlhC" name="sg_SpatMode.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_SpatMode.hpp"/>
+              <FILE id="vZ97aX" name="sg_Triplet.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/Data/sg_Triplet.hpp"/>
+            </GROUP>
+            <GROUP id="{F530776F-0ED5-DFD2-A116-37859CD00951}" name="tl">
+              <FILE id="TrdueQ" name="COPYING" compile="0" resource="1" file="submodules/AlgoGRIS/submodules/StructGRIS/tl/COPYING"/>
+              <FILE id="oY79dU" name="optional.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/submodules/StructGRIS/tl/optional.hpp"/>
+              <FILE id="dF7KyF" name="README.md" compile="0" resource="1" file="submodules/AlgoGRIS/submodules/StructGRIS/tl/README.md"/>
+            </GROUP>
+            <GROUP id="{6B1F156C-3E93-E0C3-33A7-282960E7E095}" name="Utilities">
+              <FILE id="W5nx1z" name="ValueTreeUtilities.cpp" compile="1" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Utilities/ValueTreeUtilities.cpp"/>
+              <FILE id="Ba8YuN" name="ValueTreeUtilities.hpp" compile="0" resource="0"
+                    file="submodules/AlgoGRIS/submodules/StructGRIS/Utilities/ValueTreeUtilities.hpp"/>
+            </GROUP>
+          </GROUP>
+        </GROUP>
+        <GROUP id="{D2AC16F0-08E2-A466-6D4F-628BC7B71C89}" name="Implementations">
+          <FILE id="MwCnVm" name="sg_mbap.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/Implementations/sg_mbap.cpp"/>
+          <FILE id="ilAA0T" name="sg_mbap.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Implementations/sg_mbap.hpp"/>
+          <FILE id="vMtmVH" name="sg_vbap.cpp" compile="1" resource="0" file="submodules/AlgoGRIS/Implementations/sg_vbap.cpp"/>
+          <FILE id="A6XBb2" name="sg_vbap.hpp" compile="0" resource="0" file="submodules/AlgoGRIS/Implementations/sg_vbap.hpp"/>
+        </GROUP>
+        <FILE id="b6Dypz" name="sg_AbstractSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_AbstractSpatAlgorithm.cpp"/>
+        <FILE id="KtoN5h" name="sg_AbstractSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_AbstractSpatAlgorithm.hpp"/>
+        <FILE id="niApm2" name="sg_DopplerSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_DopplerSpatAlgorithm.cpp"/>
+        <FILE id="kGpi2Z" name="sg_DopplerSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_DopplerSpatAlgorithm.hpp"/>
+        <FILE id="JR7V5l" name="sg_DummySpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_DummySpatAlgorithm.hpp"/>
+        <FILE id="hbjxkS" name="sg_HrtfSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_HrtfSpatAlgorithm.cpp"/>
+        <FILE id="X5DiSM" name="sg_HrtfSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_HrtfSpatAlgorithm.hpp"/>
+        <FILE id="WH2cPI" name="sg_HybridSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_HybridSpatAlgorithm.cpp"/>
+        <FILE id="GTiaFP" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_HybridSpatAlgorithm.hpp"/>
+        <FILE id="ha7T9L" name="sg_MbapSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_MbapSpatAlgorithm.cpp"/>
+        <FILE id="U3nQ6z" name="sg_MbapSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_MbapSpatAlgorithm.hpp"/>
+        <FILE id="UNTm3p" name="sg_StereoSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_StereoSpatAlgorithm.cpp"/>
+        <FILE id="lkUoxb" name="sg_StereoSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_StereoSpatAlgorithm.hpp"/>
+        <FILE id="GvU5R3" name="sg_VbapSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_VbapSpatAlgorithm.cpp"/>
+        <FILE id="YcX6NU" name="sg_VbapSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_VbapSpatAlgorithm.hpp"/>
+        <FILE id="x4FvZF" name="sg_PinkNoiseGenerator.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_PinkNoiseGenerator.cpp"/>
+        <FILE id="EOhom9" name="sg_PinkNoiseGenerator.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_PinkNoiseGenerator.hpp"/>
+      </GROUP>
+    </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="GLUT" customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="GLUT" customXcodeResourceFolders="Resources/default_preset&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
                smallIcon="" bigIcon="YxmFrL" microphonePermissionNeeded="1"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                iosDevelopmentTeamID="62PMMWH49Z" sendAppleEventsPermissionNeeded="1"
                sendAppleEventsPermissionText="SpatGris requires the ability to send Apple events to facilitate communication with SpeakerView."
                applicationCategory="public.app-category.music">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
-                       targetName="SpatGRIS" fastMath="1" macOSDeploymentTarget="10.11"/>
+        <CONFIGURATION name="Debug" osxCompatibility="10.13 SDK" isDebug="1" optimisation="1"
+                       targetName="SpatGRIS" fastMath="1" macOSDeploymentTarget="10.13"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        osxArchitecture="Native" fastMath="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL"
+                extraLinkerFlags="-latomic">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
-                       recommendedWarnings="GCC"/>
+                       recommendedWarnings="GCC" extraCompilerFlags="-fdiagnostics-color=always"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        linkTimeOptimisation="1" recommendedWarnings="GCC"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
+        <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="YxmFrL">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\dev\ASIO_SDK\common"
-                       fastMath="1" warningsAreErrors="1"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\dev\ASIO_SDK\common"
-                       warningsAreErrors="1"/>
+                       fastMath="1"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\dev\ASIO_SDK\common"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_osc"/>
-        <MODULEPATH id="juce_opengl"/>
-        <MODULEPATH id="juce_gui_extra"/>
-        <MODULEPATH id="juce_gui_basics"/>
-        <MODULEPATH id="juce_graphics"/>
-        <MODULEPATH id="juce_events"/>
-        <MODULEPATH id="juce_data_structures"/>
-        <MODULEPATH id="juce_core"/>
-        <MODULEPATH id="juce_audio_utils"/>
-        <MODULEPATH id="juce_audio_processors"/>
-        <MODULEPATH id="juce_audio_formats"/>
-        <MODULEPATH id="juce_audio_devices"/>
-        <MODULEPATH id="juce_audio_basics"/>
-        <MODULEPATH id="juce_dsp"/>
+        <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
   </MODULES>
-  <JUCEOPTIONS JUCE_ASIO="1" JUCE_JACK="1" JUCE_WEB_BROWSER="0"/>
+  <JUCEOPTIONS JUCE_ASIO="1" JUCE_WEB_BROWSER="0" JUCE_JACK="1"/>
   <LIVE_SETTINGS>
     <OSX/>
     <LINUX/>

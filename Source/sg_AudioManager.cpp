@@ -20,7 +20,7 @@
 #include "sg_AudioManager.hpp"
 
 #include "sg_AudioProcessor.hpp"
-#include "sg_constants.hpp"
+#include "Data/sg_constants.hpp"
 
 // #define SIMULATE_NO_AUDIO_DEVICES
 
@@ -47,15 +47,15 @@ std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
 AudioManager::AudioManager(juce::String const & deviceType,
                            juce::String const & inputDevice,
                            juce::String const & outputDevice,
-                           double const sampleRate,
-                           int const bufferSize,
+                           double const pSampleRate,
+                           int const pBufferSize,
                            tl::optional<StereoRouting> const & stereoRouting)
     : mStereoRouting(stereoRouting)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
 #ifndef SIMULATE_NO_AUDIO_DEVICES
-    auto const success{ tryInitAudioDevice(deviceType, inputDevice, outputDevice, sampleRate, bufferSize) };
+    auto const success{ tryInitAudioDevice(deviceType, inputDevice, outputDevice, pSampleRate, pBufferSize) };
 
     if (!success) {
         mAudioDeviceManager.initialiseWithDefaultDevices(MAX_NUM_SOURCES, MAX_NUM_SPEAKERS);
@@ -69,22 +69,21 @@ AudioManager::AudioManager(juce::String const & deviceType,
     }
 #endif
 
-    mRecordersThread.setPriority(9);
-    mPlayerThread.setPriority(9);
     mAudioDeviceManager.addAudioCallback(this);
 }
 
 //==============================================================================
-void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
-                                         int const totalNumInputChannels,
-                                         float ** const outputChannelData,
-                                         int const totalNumOutputChannels,
-                                         int const numSamples)
+void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
+                                                     int totalNumInputChannels,
+                                                     float* const* outputChannelData,
+                                                     int totalNumOutputChannels,
+                                                     int numSamples,
+                                                     [[maybe_unused]] const juce::AudioIODeviceCallbackContext& context)
 {
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
 
-    if (!mAudioProcessor) {
+    if (!mAudioProcessor || mIsPlayerLoading) {
         return;
     }
 
@@ -93,8 +92,12 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     if (mStereoRouting) {
         mStereoOutputBuffer.clear();
     }
-    // TODO: should not process if setreo mode is hrtf
+    // TODO: should not process if stereo mode is hrtf
     mOutputBuffer.silence();
+
+#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
+    mAudioProcessor->silenceForkUnionBuffer (forkUnionBuffer);
+#endif
 
     std::for_each_n(outputChannelData, totalNumOutputChannels, [numSamples](float * const data) {
         std::fill_n(data, numSamples, 0.0f);
@@ -123,18 +126,24 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
         }
     } else {
         auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
+
+        auto activeChannel{ std::begin(mAudioProcessor->getAudioData().config->sourcesAudioConfig) };
         for (int i{}; i < numInputChannelsToCopy; ++i) {
-            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
-            auto const * sourceData{ inputChannelData[i] };
+            source_index_t const sourceIndex{ activeChannel->key };
+            auto const * sourceData{ inputChannelData[sourceIndex.get() - source_index_t::OFFSET] };
             auto * destinationData{ mInputBuffer[sourceIndex].getWritePointer(0) };
             std::copy_n(sourceData, numSamples, destinationData);
+            ++activeChannel;
         }
     }
 
     // do the actual processing
-    if (mAudioProcessor != nullptr) {
-        mAudioProcessor->processAudio(mInputBuffer, mOutputBuffer, mStereoOutputBuffer);
-    }
+    mAudioProcessor->processAudio(mInputBuffer,
+                                  mOutputBuffer,
+#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
+                                  forkUnionBuffer,
+#endif
+                                  mStereoOutputBuffer);
 
     // copy buffers to output
     if (mStereoRouting) {
@@ -358,7 +367,8 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
         }
     }
 
-    mPlayerThread.startThread();
+    juce::Thread::RealtimeOptions threadOptions;
+    mPlayerThread.startRealtimeThread(threadOptions.withPriority(9));
     reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
                            currentAudioDevice->getCurrentSampleRate());
     return true;
@@ -400,6 +410,14 @@ void AudioManager::stopPlaying()
 bool AudioManager::isPlaying() const
 {
     return mIsPlaying;
+}
+
+//==============================================================================
+void AudioManager::setPlayerLoading(bool const playerIsLoading)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mIsPlayerLoading = playerIsLoading;
 }
 
 //==============================================================================
@@ -711,7 +729,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return false;
     }
 
-    mRecordersThread.startThread();
+    mRecordersThread.startThread(juce::Thread::Priority::highest);
 
     return true;
 }
@@ -744,6 +762,37 @@ void AudioManager::initInputBuffer(juce::Array<source_index_t> const & sources)
     mInputBuffer.init(sources);
 }
 
+#if SG_USE_FORK_UNION
+void AudioManager::initForkUnionBuffer([[maybe_unused]] int newBufferSize,
+                                       [[maybe_unused]] tl::optional<int> numSpeakers)
+{
+    #if SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS
+    if (numSpeakers.has_value())
+        forkUnionBuffer.resize(*numSpeakers);
+
+    for (int i = 0; i < numSpeakers; ++i) {
+        forkUnionBuffer[i].clear();
+        for (int j = 0; j < newBufferSize; ++j)
+            forkUnionBuffer[i].emplace_back(0.0f);
+    }
+    #elif SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD
+    // so we have a buffer for each hardware thread
+    auto const numThreads = std::thread::hardware_concurrency();
+    forkUnionBuffer.resize(numThreads);
+
+    for (auto & curThreadSpeakerBuffer : forkUnionBuffer) {
+        // then within each thread we need a buffer for each speaker
+        if (numSpeakers.has_value())
+            curThreadSpeakerBuffer.resize(*numSpeakers);
+
+        // and each speaker buffer contains bufferSize samples
+        for (auto & curSpeakerBuffer : curThreadSpeakerBuffer)
+            curSpeakerBuffer.assign(newBufferSize, 0.f);
+    }
+    #endif
+}
+#endif
+
 //==============================================================================
 void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers)
 {
@@ -751,6 +800,10 @@ void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers
     jassert(mAudioProcessor);
     juce::ScopedLock const lock{ mAudioProcessor->getLock() };
     mOutputBuffer.init(speakers);
+
+#if SG_USE_FORK_UNION
+    initForkUnionBuffer (SpeakerAudioBuffer::MAX_NUM_SAMPLES, speakers.size());
+#endif
 }
 
 //==============================================================================
@@ -762,6 +815,10 @@ void AudioManager::setBufferSize(int const newBufferSize)
     mInputBuffer.setNumSamples(newBufferSize);
     mOutputBuffer.setNumSamples(newBufferSize);
     mStereoOutputBuffer.setSize(2, newBufferSize);
+
+#if SG_USE_FORK_UNION
+    initForkUnionBuffer (newBufferSize, tl::nullopt);
+#endif
 }
 
 //==============================================================================

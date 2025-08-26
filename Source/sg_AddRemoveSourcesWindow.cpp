@@ -21,7 +21,7 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
-#include "sg_constants.hpp"
+#include "Data/sg_constants.hpp"
 
 namespace gris
 {
@@ -38,14 +38,14 @@ constexpr auto PADDING = 12;
 //==============================================================================
 AddRemoveSourcesComponent::AddRemoveSourcesComponent(int const currentNumberOfSources,
                                                      MainContentComponent & mainContentComponent,
-                                                     GrisLookAndFeel & lookAndFeel)
+                                                     GrisLookAndFeel & lnf)
     : mMainContentComponent(mainContentComponent)
     , mLabel("", "Number of Sources :")
     , mApplyButton("Apply")
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mLabel.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
+    mLabel.setColour(juce::Label::ColourIds::textColourId, lnf.getFontColour());
     mLabel.setJustificationType(juce::Justification::bottomRight);
 
     mNumberOfSourcesEditor.setInputRestrictions(3, "0123456789");
@@ -123,10 +123,10 @@ void AddRemoveSourcesComponent::textEditorReturnKeyPressed([[maybe_unused]] juce
 //==============================================================================
 AddRemoveSourcesWindow::AddRemoveSourcesWindow(int const currentNumberOfSources,
                                                MainContentComponent & mainContentComponent,
-                                               GrisLookAndFeel & lookAndFeel)
-    : DocumentWindow("Set sources", lookAndFeel.getBackgroundColour(), closeButton)
+                                               GrisLookAndFeel & lnf)
+    : DocumentWindow("Set sources", lnf.getBackgroundColour(), closeButton)
     , mMainContentComponent(mainContentComponent)
-    , mComponent(currentNumberOfSources, mainContentComponent, lookAndFeel)
+    , mComponent(currentNumberOfSources, mainContentComponent, lnf)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     setUsingNativeTitleBar(true);

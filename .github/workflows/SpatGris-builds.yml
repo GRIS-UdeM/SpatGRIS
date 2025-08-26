@@ -1,24 +1,305 @@
-name: SpatGRIS Linux build 
+name: SpatGRIS CI
+
 on:
+  workflow_dispatch: # lets you run a build from the UI
   push:
-    branches: ['dev']
   pull_request:
-    branches: ['dev']
+
+# When pushing new commits, cancel any running builds on that branch
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  Explore-GitHub-Actions:
+  Build-Ubuntu-Arm64:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Install required packages
+        run: |
+          export TZ=Etc/UTC
+          sudo apt-get update
+          sudo apt-get install -y git curl unzip sudo wget lsb-release software-properties-common make build-essential tzdata
+      - name: Check out repository code with submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install dependencies # taken from https://github.com/juce-framework/JUCE/blob/develop/docs/Linux%20Dependencies.md
+        run: |
+          sudo apt-get install -y ladspa-sdk freeglut3-dev libasound2-dev libcurl4-openssl-dev libfreetype6-dev \
+              libxcomposite-dev libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-jackd2-dev \
+              libfontconfig1-dev libx11-dev libxext-dev libxrender-dev libwebkit2gtk-4.1-dev libglu1-mesa-dev
+      - name: Build Projucer
+        run: make -C submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/LinuxMakefile CONFIG=Release -j$(nproc)
+
+      - name: Generate Makefile
+        run: submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/LinuxMakefile/build/Projucer --resave SpatGRIS.jucer
+
+      - name: Compile SpatGRIS
+        run: make -C Builds/LinuxMakefile CONFIG=Release -j$(nproc)
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpatGRIS-Build-Ubuntu-24.04-Arm
+          path: Builds/LinuxMakefile/build/SpatGRIS*
+
+  Build-Ubuntu-Latest:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository code
+      - name: Install required packages
+        run: |
+          export TZ=Etc/UTC
+          sudo apt-get update
+          sudo apt-get install -y git curl unzip sudo wget lsb-release software-properties-common make build-essential tzdata
+      - name: Check out repository code with submodules
         uses: actions/checkout@v2
-      - name: download JUCE
-        run: curl -L https://github.com/juce-framework/JUCE/releases/download/7.0.1/juce-7.0.1-linux.zip --output JUCE.zip
-      - name: unpack JUCE
-        run: unzip JUCE.zip
-      - name: install dependencies
-        run: sudo apt-get update && sudo apt-get install -y clang++-14 ladspa-sdk freeglut3-dev libasound2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-dev
-      - name: set global JUCE search paths
-        run: JUCE/Projucer --set-global-search-path linux defaultJuceModulePath /home/runner/work/SpatGRIS/SpatGRIS/JUCE/modules
-      - name: generate makefile
-        run: cd JUCE && ./Projucer --resave ../SpatGRIS.jucer
-      - name: compile SpatGRIS
-        run: cd Builds/LinuxMakefile && make CXX=clang++-14 CONFIG=Release -j 8
+        with:
+          submodules: recursive
+
+      - name: Install dependencies # taken from https://github.com/juce-framework/JUCE/blob/develop/docs/Linux%20Dependencies.md
+        run: |
+          sudo apt-get install -y ladspa-sdk freeglut3-dev libasound2-dev libcurl4-openssl-dev libfreetype6-dev \
+              libxcomposite-dev libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-jackd2-dev \
+              libfontconfig1-dev libx11-dev libxext-dev libxrender-dev libwebkit2gtk-4.1-dev libglu1-mesa-dev
+      - name: Build Projucer
+        run: make -C submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/LinuxMakefile CONFIG=Release -j$(nproc)
+
+      - name: Generate Makefile
+        run: submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/LinuxMakefile/build/Projucer --resave SpatGRIS.jucer
+
+      - name: Compile SpatGRIS
+        run: make -C Builds/LinuxMakefile CONFIG=Release -j$(nproc)
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpatGRIS-Build-Ubuntu-Latest
+          path: Builds/LinuxMakefile/build/SpatGRIS*
+
+  Build-Ubuntu-20-04:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04
+    steps:
+      - name: Install required packages
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          export TZ=Etc/UTC
+          apt-get update
+          apt-get install -y git curl unzip sudo wget lsb-release software-properties-common make build-essential tzdata
+      - name: Check out repository code with submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install latest Clang
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 18
+          apt-get install -y clang-18
+      - name: Install dependencies # taken from https://github.com/juce-framework/JUCE/blob/develop/docs/Linux%20Dependencies.md
+        run: |
+          apt-get install -y ladspa-sdk freeglut3-dev libasound2-dev libcurl4-openssl-dev libfreetype6-dev \
+              libxcomposite-dev libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-jackd2-dev \
+              libfontconfig1-dev libx11-dev libxext-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev
+      - name: Build Projucer
+        run: make -C submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/LinuxMakefile CXX=clang++-18 -j$(nproc)
+
+      - name: Generate Makefile
+        run: submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/LinuxMakefile/build/Projucer --resave SpatGRIS.jucer
+
+      - name: Compile SpatGRIS
+        run: make -C  Builds/LinuxMakefile CXX=clang++-18 -j$(nproc)
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpatGRIS-Build-Ubuntu-20-04
+          path: Builds/LinuxMakefile/build/SpatGRIS*
+
+  Build-macOS:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: macos-15
+    steps:
+      - name: Use latest Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Check out repository code with submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Setup codesigning
+        env:
+          GLL_APPLE_DEVELOPER_ID_APPLICATION: ${{ secrets.GLL_APPLE_DEVELOPER_ID_APPLICATION }}
+          GLL_APPLE_DEVELOPER_ID_INSTALLER: ${{ secrets.GLL_APPLE_DEVELOPER_ID_INSTALLER }}
+          GLL_APPLE_DEVELOPER_ID_PASSWORD: ${{ secrets.GLL_APPLE_DEVELOPER_ID_PASSWORD }}
+        run: |
+          set +x
+          if [[ -n "$GLL_APPLE_DEVELOPER_ID_APPLICATION" ]]; then
+            echo "$GLL_APPLE_DEVELOPER_ID_APPLICATION" | base64 --decode > spatgris-app-cert.p12
+            export CODESIGN_APP_SECUREFILEPATH=$PWD/spatgris-app-cert.p12
+          fi
+
+          if [[ -n "$GLL_APPLE_DEVELOPER_ID_INSTALLER" ]]; then
+            echo "$GLL_APPLE_DEVELOPER_ID_INSTALLER" | base64 --decode > spatgris-installer-cert.p12
+            export CODESIGN_INSTALLER_SECUREFILEPATH=$PWD/spatgris-installer-cert.p12
+          fi
+
+          KEY_CHAIN=build.keychain
+          security create-keychain -p github "$KEY_CHAIN"
+          security default-keychain -s "$KEY_CHAIN"
+          security unlock-keychain -p github "$KEY_CHAIN"
+
+          if [[ -f "$CODESIGN_APP_SECUREFILEPATH" ]]; then
+            security import "$CODESIGN_APP_SECUREFILEPATH" -A -k "$KEY_CHAIN" -P "$GLL_APPLE_DEVELOPER_ID_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/pkgbuild  > /dev/null 2>&1
+          fi
+
+          if [[ -f "$CODESIGN_INSTALLER_SECUREFILEPATH" ]]; then
+            security import "$CODESIGN_INSTALLER_SECUREFILEPATH" -A -k "$KEY_CHAIN" -P "$GLL_APPLE_DEVELOPER_ID_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/pkgbuild  > /dev/null 2>&1
+          fi
+
+          security set-key-partition-list -S apple-tool:,apple: -s -k github "$KEY_CHAIN"
+
+          rm -f "$CODESIGN_APP_SECUREFILEPATH" "$CODESIGN_INSTALLER_SECUREFILEPATH"
+          set -x
+
+      - name: Build Projucer
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
+        run: |
+          security unlock-keychain -p github build.keychain
+          cd submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX
+          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" ]]; then
+            xcodebuild -project Projucer.xcodeproj \
+              -configuration Release \
+              CODE_SIGNING_REQUIRED=YES \
+              CODE_SIGNING_ALLOWED=YES
+          else
+            xcodebuild -project Projucer.xcodeproj \
+              -configuration Release \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO
+          fi
+
+      - name: Generate Xcode project
+        run: |
+          security unlock-keychain -p github build.keychain
+          chmod +x submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX/build/Release/Projucer.app/Contents/MacOS/Projucer
+          submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/MacOSX/build/Release/Projucer.app/Contents/MacOS/Projucer --resave SpatGRIS.jucer
+
+      - name: Build
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
+        run: |
+          security unlock-keychain -p github build.keychain
+          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" ]]; then
+            security unlock-keychain -p github build.keychain
+            xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
+              -configuration Release \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=YES \
+              CODE_SIGNING_ALLOWED=YES \
+              OTHER_CODE_SIGN_FLAGS="--timestamp --options=runtime" \
+              -arch '$(ARCHS_STANDARD)'
+          else
+            xcodebuild -project Builds/MacOSX/SpatGRIS.xcodeproj \
+              -configuration Release \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO \
+              -arch '$(ARCHS_STANDARD)'
+          fi
+
+      - name: Sign
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
+        run: |
+          security unlock-keychain -p github build.keychain
+          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" ]]; then
+            security unlock-keychain -p github build.keychain
+
+            # Sign the universal binary
+            codesign --force --timestamp --options=runtime --sign "Gael Lane Lepine" Builds/MacOSX/build/Release/SpatGRIS.app
+          fi
+
+      - name: Notarize
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
+          GLL_APPLE_APP_PASSWORD: ${{ secrets.GLL_APPLE_APP_PASSWORD }}
+        run: |
+          security unlock-keychain -p github build.keychain
+          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" && -n "$GLL_APPLE_APP_PASSWORD" ]]; then
+          (
+            security unlock-keychain -p github build.keychain
+
+            # Create zip for notarization
+            cd Builds/MacOSX/build/Release
+            zip -r SpatGRIS-Universal.zip SpatGRIS.app
+
+            # Submit for notarization
+            xcrun notarytool submit SpatGRIS-Universal.zip \
+              --team-id "62PMMWH49Z" \
+              --apple-id "glanelepine@gmail.com" \
+              --password "$GLL_APPLE_APP_PASSWORD" \
+              --progress \
+              --wait
+
+            # Staple the notarization
+            xcrun stapler staple SpatGRIS.app
+            xcrun stapler validate SpatGRIS.app
+          )
+          fi
+          mkdir -p Builds/SpatGRIS
+          mv Builds/MacOSX/build/Release/SpatGRIS.app Builds/SpatGRIS/
+
+      - name: Upload signed universal build artifacts
+        if: env.GLL_APPLE_CODESIGN_APPLICATION != ''
+        env:
+          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpatGRIS-Build-macOS-Universal-Signed
+          path: Builds/SpatGRIS/*.app
+
+  Build-Windows:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository code with submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Download ASIO SDK
+        run: curl -L https://www.steinberg.net/asiosdk --output ASIOSDK.zip
+
+      - name: Unpack ASIO SDK
+        run: Expand-Archive -Path ASIOSDK.zip -DestinationPath .
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Projucer
+        run: |
+          cd submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/VisualStudio2022
+          msbuild Projucer.sln /p:Configuration=Release /p:Platform=x64 /p:WarningsAsErrors=False
+      - name: Generate Visual Studio project
+        run: |
+          submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/VisualStudio2022/x64/Release/App/Projucer.exe --resave SpatGRIS.jucer
+      - name: Build SpatGRIS
+        run: msbuild Builds/VisualStudio2022/SpatGRIS_App.vcxproj -p:Configuration=Release -p:Platform=x64 -p:IncludePath=../../asiosdk_2.3.3_2019-06-14/common/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpatGRIS-Build-Windows
+          path: Builds/VisualStudio2022/x64/Release/**/*.exe

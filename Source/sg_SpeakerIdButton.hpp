@@ -19,9 +19,10 @@
 
 #pragma once
 
-#include "sg_OutputPatch.hpp"
+
+#include "Data/StrongTypes/sg_OutputPatch.hpp"
 #include "sg_SmallToggleButton.hpp"
-#include "sg_constants.hpp"
+#include "Data/sg_constants.hpp"
 
 namespace gris
 {

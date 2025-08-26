@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "sg_Macros.hpp"
-#include "sg_Narrow.hpp"
+#include "Data/sg_Macros.hpp"
+#include "Data/sg_Narrow.hpp"
 
 #include "BinaryData.h"
 
@@ -28,23 +28,22 @@ namespace gris
 {
 //==============================================================================
 /** Custom Look And Feel */
-class GrisLookAndFeel : public juce::LookAndFeel_V3
+class GrisLookAndFeel : public juce::LookAndFeel_V4
 {
-    float mFontSize;
+public:
+    float constexpr static mFontSize = 10.f;
 
-    juce::Font mFont = juce::Font(
-        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
-    juce::Font mBigFont = juce::Font(
-        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
-    juce::Font mBiggerFont = juce::Font(
-        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
-    juce::Font mMonoFont
-        = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::FreeFarsiMono_otf,
-                                                                   narrow<size_t>(BinaryData::FreeFarsiMono_otfSize)));
+    juce::FontOptions const sinkinSansOptions { juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, BinaryData::SinkinSans400Regular_otfSize))};
+    juce::Font mSmallerFont { sinkinSansOptions.withHeight(mFontSize - 3) };
+    juce::Font mSmallFont   { sinkinSansOptions.withHeight(mFontSize - 1) };
+    juce::Font mFont        { sinkinSansOptions.withHeight(mFontSize) };
+    juce::Font mBigFont     { sinkinSansOptions.withHeight(mFontSize + 3) };
+    juce::Font mBiggerFont  { sinkinSansOptions.withHeight(mFontSize + 6) };
 
+    juce::FontOptions freeFarsiMonoOptions {juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::FreeFarsiMono_otf, BinaryData::FreeFarsiMono_otfSize))};
+    juce::Font mMonoFont    { freeFarsiMonoOptions.withHeight(mFontSize + 8) };
+
+    //==============================================================================
     juce::Colour mBackGroundAndFieldColour;
     juce::Colour mWinBackGroundAndFieldColour;
     juce::Colour mLightColour;
@@ -52,6 +51,8 @@ class GrisLookAndFeel : public juce::LookAndFeel_V3
     juce::Colour mGreyColour;
     juce::Colour mEditBgcolor;
     juce::Colour mHlBgcolor;
+    // Use this for buttons that should stand out a little bit.
+    juce::Colour mImportantColor;
     juce::Colour mOnColor;
     juce::Colour mOnColorOver;
     juce::Colour mOnColorDown;
@@ -63,14 +64,6 @@ class GrisLookAndFeel : public juce::LookAndFeel_V3
     juce::Colour mSubColor;
     juce::Colour mInactiveColor;
 
-public:
-    //==============================================================================
-    juce::Font mSmallFont = juce::Font(
-        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
-    juce::Font mSmallerFont = juce::Font(
-        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
     //==============================================================================
     GrisLookAndFeel();
     ~GrisLookAndFeel() override = default;
@@ -166,6 +159,7 @@ public:
                                     float /*maxSliderPos*/,
                                     juce::Slider::SliderStyle /*style*/,
                                     juce::Slider & slider) override;
+    void drawPopupMenuBackground(juce::Graphics & g, int width, int height) override;
     void fillTextEditorBackground(juce::Graphics & g, int width, int height, juce::TextEditor & t) override;
     void drawTextEditorOutline(juce::Graphics & g, int width, int height, juce::TextEditor & t) override;
     void drawToggleButton(juce::Graphics & g,
@@ -187,6 +181,12 @@ public:
                           float rotaryStartAngle,
                           float rotaryEndAngle,
                           juce::Slider & slider) override;
+
+    void drawTreeviewPlusMinusBox(juce::Graphics & g,
+                                  const juce::Rectangle<float> & area,
+                                  juce::Colour backgroundColour,
+                                  bool isOpen,
+                                  bool isMouseOver) override;
 
 private:
     JUCE_LEAK_DETECTOR(GrisLookAndFeel)

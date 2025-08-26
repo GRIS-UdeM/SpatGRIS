@@ -21,8 +21,8 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
-#include "sg_Narrow.hpp"
-#include "sg_constants.hpp"
+#include "Data/sg_Narrow.hpp"
+#include "Data/sg_constants.hpp"
 
 namespace gris
 {
@@ -325,7 +325,7 @@ void FlatViewWindow::closeButtonPressed()
 }
 
 //==============================================================================
-bool FlatViewWindow::keyPressed(const juce::KeyPress &key)
+bool FlatViewWindow::keyPressed(const juce::KeyPress & key)
 {
     auto const key_w{ juce::KeyPress(87) };
     if (key.getModifiers().isCommandDown() && key.isKeyCurrentlyDown(key_w.getKeyCode())) {
