@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../../../sg_GrisLookAndFeel.hpp"
 #include "SpeakerTreeComponent.hpp"
 

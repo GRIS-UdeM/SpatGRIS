@@ -1,4 +1,4 @@
-#include "sg_DefaultFiles.hpp"
+﻿#include "sg_DefaultFiles.hpp"
 
 namespace gris
 {
