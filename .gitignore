@@ -13,6 +13,9 @@ WindowsInstallerOutput
 # VS code dir
 .vscode
 
+# Visual Studio dir
+.vs
+
 # Mac OS Desktop Services Store files
 *.DS_Store
 
