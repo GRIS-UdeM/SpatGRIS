@@ -39,7 +39,9 @@ SpeakerGroupSettingsComponent::SpeakerGroupSettingsComponent(SpeakerGroupCompone
     };
     auto initSlider = [this](juce::Slider & slider, float value) {
         slider.setRange (0, 360.0, 0.1);
+#if USE_JUCE_8
         slider.setTextValueSuffix(juce::String::fromUTF8(u8"\u00B0"));
+#endif
         slider.setValue(value);
         addAndMakeVisible (slider);
         slider.addListener(this);

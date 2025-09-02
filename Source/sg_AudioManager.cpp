@@ -69,16 +69,28 @@ AudioManager::AudioManager(juce::String const & deviceType,
     }
 #endif
 
+#if USE_JUCE_8
+    mRecordersThread.setPriority(9);
+    mPlayerThread.setPriority(9);
+#endif
     mAudioDeviceManager.addAudioCallback(this);
 }
 
 //==============================================================================
+#if USE_JUCE_8
 void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
                                                      int totalNumInputChannels,
                                                      float* const* outputChannelData,
                                                      int totalNumOutputChannels,
                                                      int numSamples,
                                                      [[maybe_unused]] const juce::AudioIODeviceCallbackContext& context)
+#else
+void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
+                                         int const totalNumInputChannels,
+                                         float ** const outputChannelData,
+                                         int const totalNumOutputChannels,
+                                         int const numSamples)
+#endif
 {
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
@@ -367,8 +379,12 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
         }
     }
 
+#if USE_JUCE_8
     juce::Thread::RealtimeOptions threadOptions;
     mPlayerThread.startRealtimeThread(threadOptions.withPriority(9));
+#else
+    mPlayerThread.startThread();
+#endif
     reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
                            currentAudioDevice->getCurrentSampleRate());
     return true;
@@ -729,7 +745,11 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return false;
     }
 
+#if USE_JUCE_8
     mRecordersThread.startThread(juce::Thread::Priority::highest);
+#else
+    mRecordersThread.startThread();
+#endif
 
     return true;
 }

@@ -66,7 +66,11 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mPolyZ(lookAndFeel)
     , mPolyRadius(lookAndFeel)
     , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, spatGrisData.speakerSetup.speakerSetupValueTree, undoMan, [this]() { pushSelectionToMainComponent (); })
+#if USE_JUCE_8
     , mFont(juce::FontOptions().withHeight(14.f))
+#else
+    , mFont(14.0f)
+#endif
     , undoManager (undoMan)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
