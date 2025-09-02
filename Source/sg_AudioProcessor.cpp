@@ -113,7 +113,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
                                   ForkUnionBuffer & forkUnionBuffer,
     #endif
 #endif
-                                  juce::AudioBuffer<float> & stereoBuffer) noexcept
+                                  juce::AudioBuffer<float> & stereoBuffer) noexcept [[clang::nonblocking]]
 {
     // Skip if the user is editing the speaker setup.
     juce::ScopedTryLock const lock{ mLock };
