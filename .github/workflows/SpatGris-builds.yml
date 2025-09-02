@@ -206,48 +206,6 @@ jobs:
           fi
 
       - name: Sign
-        env:
-          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
-        run: |
-          security unlock-keychain -p github build.keychain
-          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" ]]; then
-            security unlock-keychain -p github build.keychain
-
-            # Sign the universal binary
-            codesign --force --timestamp --options=runtime --sign "Gael Lane Lepine" Builds/MacOSX/build/Release/SpatGRIS.app
-          fi
-
-      - name: Notarize
-        env:
-          GLL_APPLE_CODESIGN_APPLICATION: ${{ secrets.GLL_APPLE_CODESIGN_APPLICATION }}
-          GLL_APPLE_APP_PASSWORD: ${{ secrets.GLL_APPLE_APP_PASSWORD }}
-        run: |
-          security unlock-keychain -p github build.keychain
-          if [[ -n "$GLL_APPLE_CODESIGN_APPLICATION" && -n "$GLL_APPLE_APP_PASSWORD" ]]; then
-          (
-            security unlock-keychain -p github build.keychain
-
-            # Create zip for notarization
-            cd Builds/MacOSX/build/Release
-            zip -r SpatGRIS-Universal.zip SpatGRIS.app
-
-            # Submit for notarization
-            xcrun notarytool submit SpatGRIS-Universal.zip \
-              --team-id "62PMMWH49Z" \
-              --apple-id "glanelepine@gmail.com" \
-              --password "$GLL_APPLE_APP_PASSWORD" \
-              --progress \
-              --wait
-
-            # Staple the notarization
-            xcrun stapler staple SpatGRIS.app
-            xcrun stapler validate SpatGRIS.app
-          )
-          fi
-          mkdir -p Builds/SpatGRIS
-          mv Builds/MacOSX/build/Release/SpatGRIS.app Builds/SpatGRIS/
-
-      - name: Sign
         id: sign
         uses: GRIS-UdeM/actions/sign@main
         with:
