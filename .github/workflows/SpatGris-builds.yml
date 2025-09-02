@@ -205,12 +205,13 @@ jobs:
               -arch '$(ARCHS_STANDARD)'
           fi
 
+
       - name: Sign
         id: sign
         uses: GRIS-UdeM/actions/sign@main
         with:
           apple-dev-identity: "Gael Lane Lepine"
-          path-to-sign: 'Builds/SpatGRIS'
+          path-to-sign: 'Builds/MacOSX/build/Release'
 
       - name: Notarize
         id: notarize
@@ -219,7 +220,7 @@ jobs:
           apple-dev-email: "glanelepine@gmail.com"
           apple-dev-team: "62PMMWH49Z"
           apple-app-password: ${{ secrets.GLL_APPLE_APP_PASSWORD }}
-          app-path: "Builds/SpatGRIS/"
+          app-path: "Builds/MacOSX/build/Release/"
           app-name: "SpatGRIS"
           app-file-suffix: ".app"
 
