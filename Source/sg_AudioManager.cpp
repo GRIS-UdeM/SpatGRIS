@@ -69,7 +69,7 @@ AudioManager::AudioManager(juce::String const & deviceType,
     }
 #endif
 
-#if USE_JUCE_8
+#if ! USE_JUCE_8
     mRecordersThread.setPriority(9);
     mPlayerThread.setPriority(9);
 #endif
