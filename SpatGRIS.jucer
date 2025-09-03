@@ -400,6 +400,8 @@
                        recommendedWarnings="GCC" extraCompilerFlags="-fdiagnostics-color=always"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        linkTimeOptimisation="1" recommendedWarnings="GCC"/>
+        <CONFIGURATION isDebug="0" name="RTSan" extraCompilerFlags="-fdiagnostics-color=always -fsanitize=realtime -v"
+                       optimisation="1" recommendedWarnings="GCC" extraLinkerFlags="-fsanitize=realtime"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
