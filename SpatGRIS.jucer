@@ -4,7 +4,7 @@
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" cppLanguageStandard="latest" jucerFormatVersion="1"
               displaySplashScreen="1" maxBinaryFileSize="1048576" addUsingNamespaceToJuceHeader="0"
-              defines="JUCE_MODAL_LOOPS_PERMITTED=1" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS&#10;../../submodules/AlgoGRIS/submodules/fork_union/include&#10;../../submodules/AlgoGRIS/submodules/StructGRIS">
+              defines="JUCE_MODAL_LOOPS_PERMITTED=1&#10;USE_JUCE_8=0" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS&#10;../../submodules/AlgoGRIS/submodules/fork_union/include&#10;../../submodules/AlgoGRIS/submodules/StructGRIS">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="PUwJqY" name="cog_icon.png" compile="0" resource="1" file="Resources/cog_icon.png"/>
@@ -378,7 +378,7 @@
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.13 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" fastMath="1" macOSDeploymentTarget="10.13"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
+        <CONFIGURATION name="Release" isDebug="1" optimisation="3" targetName="SpatGRIS"
                        osxArchitecture="Native" fastMath="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>

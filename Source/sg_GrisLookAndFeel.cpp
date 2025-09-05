@@ -48,6 +48,7 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->mSubColor = juce::Colour::fromRGB(109, 1, 1);
     this->mInactiveColor = juce::Colour::fromRGB(120, 120, 120);
 
+#if USE_JUCE_8
     this->setColour(juce::PopupMenu::highlightedBackgroundColourId, this->mOnColor);
     this->setColour(juce::TextEditor::backgroundColourId, this->mEditBgcolor);
     this->setColour(juce::TextEditor::highlightColourId, this->mHlBgcolor);
@@ -68,7 +69,7 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->setColour(juce::Slider::textBoxBackgroundColourId, this->mEditBgcolor);
     this->setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
     this->setColour(juce::Slider::textBoxTextColourId, this->mDarkColour);
-
+#endif
     this->setColour(juce::TooltipWindow::ColourIds::backgroundColourId,
                     this->mBackGroundAndFieldColour.withBrightness(0.8f));
     this->setColour(juce::TooltipWindow::ColourIds::outlineColourId,
