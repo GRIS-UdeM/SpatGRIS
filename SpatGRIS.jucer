@@ -373,7 +373,7 @@
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.13 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" fastMath="1" macOSDeploymentTarget="10.13"/>
-        <CONFIGURATION name="Release" isDebug="1" optimisation="3" targetName="SpatGRIS"
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        osxArchitecture="Native" fastMath="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
