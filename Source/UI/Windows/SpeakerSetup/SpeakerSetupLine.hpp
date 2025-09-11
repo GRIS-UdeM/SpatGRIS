@@ -80,7 +80,7 @@ public:
 
     void selectChildSpeaker (tl::optional<output_patch_t> const outputPatch);
 
-    void sort (juce::ValueTree vt = {});
+    void sort (juce::ValueTree vt, juce::Identifier comparisonKey);
 
     juce::ValueTree getValueTree() { return lineValueTree; }
 

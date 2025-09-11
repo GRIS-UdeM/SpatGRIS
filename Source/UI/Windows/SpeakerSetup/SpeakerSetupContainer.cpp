@@ -64,7 +64,7 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
 
     undoButton.onClick = [this] { undoManager.undo (); };
     redoButton.onClick = [this] { undoManager.redo (); };
-    sortButton.onClick = [this] { mainSpeakerGroupLine->sort (); };
+    sortButton.onClick = [this] { mainSpeakerGroupLine->sort ({}, SPEAKER_PATCH_ID); };
 
     startTimer (500);
 

@@ -113,29 +113,46 @@ void SpeakerSetupLine::selectChildSpeaker(tl::optional<output_patch_t> const out
     }
 }
 
-struct ValueTreeComparator {
-    juce::String getSortName(const juce::ValueTree & valueTree)
+  struct ValueTreeComparator {
+
+    juce::Identifier sortId;
+    juce::var getSortValue(const juce::ValueTree & valueTree)
     {
-        juce::String str;
-        if (valueTree.hasProperty(SPEAKER_PATCH_ID))
-            str = valueTree[SPEAKER_PATCH_ID].toString();
-        else if (valueTree.hasProperty(SPEAKER_GROUP_NAME))
-            str = valueTree[SPEAKER_GROUP_NAME].toString();
-        else
-            jassertfalse;
-        return str;
+        juce::var sortValue;
+        if (sortId == SPEAKER_PATCH_ID || sortId == SPEAKER_GROUP_NAME) {
+            if (valueTree.hasProperty(SPEAKER_PATCH_ID))
+                sortValue = valueTree[SPEAKER_PATCH_ID];
+            else if (valueTree.hasProperty(SPEAKER_GROUP_NAME))
+                sortValue = valueTree[SPEAKER_GROUP_NAME];
+        }
+        else {
+            sortValue = valueTree[sortId];
+        }
+
+        return sortValue;
     }
 
     int compareElements(const juce::ValueTree & first, const juce::ValueTree & second)
     {
-        juce::String firstStr = getSortName(first);
-        juce::String secondStr = getSortName(second);
-        // Compare as strings
-        return firstStr.compareNatural(secondStr);
+        juce::var firstVar = getSortValue(first);
+        juce::var secondVar = getSortValue(second);
+
+        if (sortId == SPEAKER_PATCH_ID || sortId == SPEAKER_GROUP_NAME)
+            // This compares with compareNatural which sorts "2" before "10" and other
+            // nice things like that.
+            return firstVar.toString().compareNatural(secondVar.toString());
+
+        if (firstVar < secondVar) {
+            return -1;
+        } else if (firstVar > secondVar) {
+            return 1;
+        }
+        // if equal, return 0.
+        return 0;
     }
 };
 
-void SpeakerSetupLine::sort(juce::ValueTree vt)
+void SpeakerSetupLine::sort(juce::ValueTree vt, juce::Identifier comparisonKey)
 {
     if (!vt.isValid())
         vt = lineValueTree;
@@ -152,11 +169,11 @@ void SpeakerSetupLine::sort(juce::ValueTree vt)
 
     // first recurse into speaker groups to sort them
     for (auto speakerGroup : speakerGroups)
-        sort(speakerGroup);
+        sort(speakerGroup, comparisonKey);
 
     // then actually sort all children
-    ValueTreeComparator comparison;
-    allChildren.sort(comparison);
+    ValueTreeComparator comparison{comparisonKey};
+    allChildren.sort(comparison, true);
 
     // and rebuild the tree
     vt.removeAllChildren(&undoManager);
