@@ -23,6 +23,38 @@
 
 namespace gris
 {
+
+class ColumnHeader final
+    : public juce::Label
+{
+  public:
+    /**
+     * paints little sort arrows in the right places.
+     */
+    void paint(juce::Graphics& g) override;
+
+    int width;
+
+    // void mouseUp (const MouseEvent& e) override;
+
+  private:
+    bool isSorting{false};
+    bool sortDirection{1};
+};
+
+class SpeakerSetupContainerHeader final
+    : public juce::Component
+{
+  public:
+    SpeakerSetupContainerHeader(GrisLookAndFeel& grisLookAndFeel);
+
+    void resized() override;
+
+  private:
+    ColumnHeader id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
+    GrisLookAndFeel& grisLookAndFeel;
+};
+
 /**
  * @class gris::SpeakerSetupContainer
  * @brief A UI component for managing and displaying speaker setups in a tree view.
@@ -84,10 +116,7 @@ private:
     GrisLookAndFeel grisLookAndFeel;
     juce::String speakerSetupFileName;
     juce::ValueTree speakerSetupVt;
-
-    //header
-    juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
-
+    SpeakerSetupContainerHeader containerHeader;
     juce::TreeView speakerSetupTreeView;
 
     juce::TextButton undoButton{ "Undo" }, redoButton{ "Redo" }, sortButton{ "Sort by ID" };
