@@ -481,14 +481,17 @@ void SpeakerComponent::editorShown (juce::Label* label, juce::TextEditor& editor
 
 void SpeakerComponent::setupGain ()
 {
-    gain.setEditable (true);
-    gain.setText (speakerTreeVt[GAIN], juce::dontSendNotification);
 
     const auto getClampedGain = [](float gainValue) {
         static constexpr dbfs_t MIN_GAIN { -18.0f };
         static constexpr dbfs_t MAX_GAIN { 6.0f };
         return std::clamp (dbfs_t (gainValue), MIN_GAIN, MAX_GAIN);
         };
+
+    gain.setEditable (true);
+    // clamp the gain on first display.
+    auto clampedGainText = juce::String(getClampedGain(static_cast<float>(speakerTreeVt[GAIN])).get(), 1);
+    gain.setText (clampedGainText, juce::dontSendNotification);
 
     gain.onTextChange = [this, getClampedGain] {
         auto const clampedValue = getClampedGain (gain.getText ().getFloatValue ()).get ();
