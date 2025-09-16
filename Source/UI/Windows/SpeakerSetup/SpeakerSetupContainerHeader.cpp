@@ -74,8 +74,6 @@ SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel& glaf)
                 return;
             }
             int sortDirection = sortState == SpeakerColumnHeader::SortState::ascending ? 1 : -1;
-            std::cout << sortDirection << "\n";
-
             sortFunc(sortID, sortDirection);
             disableOtherHeaders(clickedHeader);
         };
@@ -95,16 +93,18 @@ SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel& glaf)
     setHeaderText (highpass, "Highpass");
     setHeaderText (direct, "Direct");
     setHeaderText (del, "Delete");
-    constexpr std::array<SpeakerColumnHeader::ColumnID, 6> headerKeys = {
+    constexpr std::array<SpeakerColumnHeader::ColumnID, 8> headerKeys = {
         SpeakerColumnHeader::ColumnID::X,
         SpeakerColumnHeader::ColumnID::Y,
         SpeakerColumnHeader::ColumnID::Z,
         SpeakerColumnHeader::ColumnID::Azimuth,
         SpeakerColumnHeader::ColumnID::Elevation,
-        SpeakerColumnHeader::ColumnID::Distance
+        SpeakerColumnHeader::ColumnID::Distance,
+        SpeakerColumnHeader::ColumnID::Gain,
+        SpeakerColumnHeader::ColumnID::Highpass,
     };
     size_t i = 0;
-    for (const auto header : { &x, &y, &z, &azim, &elev, &distance}) {
+    for (const auto header : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass}) {
         header->width = SpeakerTreeComponent::otherColWidth;
         header->arrowColor = grisLookAndFeel.mOnColor;
         header->setSortCallback(makeSortFunction(headerKeys[i]));
@@ -117,11 +117,11 @@ void SpeakerSetupContainerHeader::resized() {
     auto height = getLocalBounds().getHeight();
     id.setBounds(0, 0, id.width, height);
     auto currentX = id.width;
-    for (const auto header : { &x, &y, &z, &azim, &elev, &distance }) {
+    for (const auto header : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass }) {
         header->setBounds(currentX, 0, header->width, height);
         currentX += header->width;
     }
-    for (const auto label : { &gain, &highpass, &direct, &del }) {
+    for (const auto label : { &direct, &del }) {
         label->setBounds(currentX, 0, SpeakerTreeComponent::otherColWidth, height);
         currentX += SpeakerTreeComponent::otherColWidth;
     }

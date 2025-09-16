@@ -151,6 +151,12 @@ void SpeakerSetupLine::selectChildSpeaker(tl::optional<output_patch_t> const out
               case SpeakerColumnHeader::ColumnID::Distance:
                   sortValue = position.getPolar().length;
                   break;
+              case SpeakerColumnHeader::ColumnID::Gain:
+                  sortValue = valueTree[GAIN];
+                  break;
+              case SpeakerColumnHeader::ColumnID::Highpass:
+                  sortValue = valueTree[HIGHPASS_FREQ];
+                  break;
           }
           return sortValue;
       }

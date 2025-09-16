@@ -32,7 +32,7 @@ class SpeakerColumnHeader final
      */
     enum class SortState { none, ascending, descending }; // enum class
 
-    enum class ColumnID { ID, X, Y, Z, Azimuth, Elevation, Distance };
+    enum class ColumnID { ID, X, Y, Z, Azimuth, Elevation, Distance, Gain, Highpass };
 
     void setState(SortState newState);
 
@@ -55,8 +55,8 @@ class SpeakerSetupContainerHeader final
     void resized() override;
     void setSortFunc(std::function<void(SpeakerColumnHeader::ColumnID, int)>);
   private:
-    SpeakerColumnHeader id, x, y, z, azim, elev, distance;
-    juce::Label gain, highpass, direct, del, drag;
+    SpeakerColumnHeader id, x, y, z, azim, elev, distance, gain, highpass;
+    juce::Label direct, del, drag;
     GrisLookAndFeel& grisLookAndFeel;
     std::function<void(SpeakerColumnHeader::ColumnID, int)> sortFunc;
 };
