@@ -207,7 +207,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setContentNonOwned(&mViewportWrapper, false);
     auto const & controlsComponent{ *mainContentComponent.getControlsComponent() };
 
-    static constexpr auto WIDTH = 850;
+    static constexpr auto WIDTH = 950;
     static constexpr auto HEIGHT = 600;
     static constexpr auto TITLE_BAR_HEIGHT = 30;
 

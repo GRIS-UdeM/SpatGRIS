@@ -76,7 +76,7 @@ class SpeakerTreeComponent
 {
 public:
     static constexpr auto fixedLeftColWidth { 200 };
-    static constexpr auto otherColWidth { 60 };
+    static constexpr auto otherColWidth { 70 };
     static constexpr auto colGap { 15 };
 
     juce::ValueTree speakerTreeVt;

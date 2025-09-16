@@ -157,6 +157,10 @@
                   file="Source/UI/Windows/SpeakerSetup/SpeakerSetupContainer.cpp"/>
             <FILE id="YE6iq2" name="SpeakerSetupContainer.hpp" compile="0" resource="0"
                   file="Source/UI/Windows/SpeakerSetup/SpeakerSetupContainer.hpp"/>
+            <FILE id="CJK9qF" name="SpeakerSetupContainerHeader.cpp" compile="1"
+                  resource="0" file="Source/UI/Windows/SpeakerSetup/SpeakerSetupContainerHeader.cpp"/>
+            <FILE id="fSIssW" name="SpeakerSetupContainerHeader.hpp" compile="0"
+                  resource="0" file="Source/UI/Windows/SpeakerSetup/SpeakerSetupContainerHeader.hpp"/>
             <FILE id="ZaUlNe" name="SpeakerSetupLine.cpp" compile="1" resource="0"
                   file="Source/UI/Windows/SpeakerSetup/SpeakerSetupLine.cpp"/>
             <FILE id="nAM1Vt" name="SpeakerSetupLine.hpp" compile="0" resource="0"

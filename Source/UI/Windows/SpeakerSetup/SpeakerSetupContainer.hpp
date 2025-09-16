@@ -23,6 +23,7 @@
 
 namespace gris
 {
+
 /**
  * @class gris::SpeakerSetupContainer
  * @brief A UI component for managing and displaying speaker setups in a tree view.
@@ -84,13 +85,10 @@ private:
     GrisLookAndFeel grisLookAndFeel;
     juce::String speakerSetupFileName;
     juce::ValueTree speakerSetupVt;
-
-    //header
-    juce::Label id, x, y, z, azim, elev, distance, gain, highpass, direct, del, drag;
-
+    SpeakerSetupContainerHeader containerHeader;
     juce::TreeView speakerSetupTreeView;
 
-    juce::TextButton undoButton{ "Undo" }, redoButton{ "Redo" }, sortButton{ "Sort by ID" };
+    juce::TextButton undoButton{ "Undo" }, redoButton{ "Redo" };
 
     std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
 

@@ -18,6 +18,7 @@
 #pragma once
 
 #include "SpeakerTreeComponent.hpp"
+#include "SpeakerSetupContainerHeader.hpp"
 
 namespace gris
 {
@@ -80,7 +81,7 @@ public:
 
     void selectChildSpeaker (tl::optional<output_patch_t> const outputPatch);
 
-    void sort (juce::ValueTree vt = {});
+    void sort (juce::ValueTree vt, SpeakerColumnHeader::ColumnID comparisonKey, int sortDirection);
 
     juce::ValueTree getValueTree() { return lineValueTree; }
 
