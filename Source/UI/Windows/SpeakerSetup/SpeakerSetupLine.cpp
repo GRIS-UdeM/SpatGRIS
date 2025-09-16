@@ -115,44 +115,68 @@ void SpeakerSetupLine::selectChildSpeaker(tl::optional<output_patch_t> const out
 
   struct ValueTreeComparator {
 
-    juce::Identifier sortId;
-    juce::var getSortValue(const juce::ValueTree & valueTree)
-    {
-        juce::var sortValue;
-        if (sortId == SPEAKER_PATCH_ID || sortId == SPEAKER_GROUP_NAME) {
-            if (valueTree.hasProperty(SPEAKER_PATCH_ID))
-                sortValue = valueTree[SPEAKER_PATCH_ID];
-            else if (valueTree.hasProperty(SPEAKER_GROUP_NAME))
-                sortValue = valueTree[SPEAKER_GROUP_NAME];
-        }
-        else {
-            sortValue = valueTree[sortId];
-        }
+      SpeakerColumnHeader::ColumnID sortId;
+      /**
+       * 1 for ascending, -1 for descending
+       */
+      int sortDirection;
 
-        return sortValue;
-    }
+      juce::var getSortValue(const juce::ValueTree & valueTree)
+      {
+          auto position = juce::VariantConverter<Position>::fromVar(valueTree[CARTESIAN_POSITION]);
+
+          juce::var sortValue;
+          switch (sortId) {
+              case SpeakerColumnHeader::ColumnID::ID:
+                  if (valueTree.hasProperty(SPEAKER_PATCH_ID))
+                      sortValue = valueTree[SPEAKER_PATCH_ID];
+                  else if (valueTree.hasProperty(SPEAKER_GROUP_NAME))
+                      sortValue = valueTree[SPEAKER_GROUP_NAME];
+                  break;
+              case SpeakerColumnHeader::ColumnID::X:
+                  sortValue = position.getCartesian().x;
+                  break;
+              case SpeakerColumnHeader::ColumnID::Y:
+                  sortValue = position.getCartesian().y;
+                  break;
+              case SpeakerColumnHeader::ColumnID::Z:
+                  sortValue = position.getCartesian().z;
+                  break;
+              case SpeakerColumnHeader::ColumnID::Azimuth:
+                  sortValue = position.getPolar().azimuth.get();
+                  break;
+              case SpeakerColumnHeader::ColumnID::Elevation:
+                  sortValue = position.getPolar().elevation.get();
+                  break;
+              case SpeakerColumnHeader::ColumnID::Distance:
+                  sortValue = position.getPolar().length;
+                  break;
+          }
+          return sortValue;
+      }
 
     int compareElements(const juce::ValueTree & first, const juce::ValueTree & second)
     {
         juce::var firstVar = getSortValue(first);
         juce::var secondVar = getSortValue(second);
-
-        if (sortId == SPEAKER_PATCH_ID || sortId == SPEAKER_GROUP_NAME)
+        int sortResult = 0;
+        if (sortId == SpeakerColumnHeader::ColumnID::ID) {
             // This compares with compareNatural which sorts "2" before "10" and other
             // nice things like that.
-            return firstVar.toString().compareNatural(secondVar.toString());
-
-        if (firstVar < secondVar) {
-            return -1;
-        } else if (firstVar > secondVar) {
-            return 1;
+            sortResult = firstVar.toString().compareNatural(secondVar.toString());
+        } else {
+            // otherwise we are comparing floats mainly.
+            if (firstVar < secondVar) {
+                sortResult = -1;
+            } else if (firstVar > secondVar) {
+                sortResult = 1;
+            }
         }
-        // if equal, return 0.
-        return 0;
+        return sortResult * sortDirection;
     }
 };
 
-void SpeakerSetupLine::sort(juce::ValueTree vt, juce::Identifier comparisonKey)
+void SpeakerSetupLine::sort(juce::ValueTree vt, SpeakerColumnHeader::ColumnID comparisonKey, int sortDirection)
 {
     if (!vt.isValid())
         vt = lineValueTree;
@@ -169,10 +193,10 @@ void SpeakerSetupLine::sort(juce::ValueTree vt, juce::Identifier comparisonKey)
 
     // first recurse into speaker groups to sort them
     for (auto speakerGroup : speakerGroups)
-        sort(speakerGroup, comparisonKey);
+        sort(speakerGroup, comparisonKey, sortDirection);
 
     // then actually sort all children
-    ValueTreeComparator comparison{comparisonKey};
+    ValueTreeComparator comparison{comparisonKey, sortDirection};
     allChildren.sort(comparison, true);
 
     // and rebuild the tree

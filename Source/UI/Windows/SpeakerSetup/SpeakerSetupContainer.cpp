@@ -15,72 +15,12 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <functional>
 #include "SpeakerSetupContainer.hpp"
 #include "SpeakerTreeComponent.hpp"
 
 namespace gris
 {
-
-void ColumnHeader::paint(juce::Graphics& g) {
-    // start by painting the label
-    juce::Label::paint(g);
-
-    // paints the little arrow thingy if necessary.
-    g.setColour (juce::Colours::red);
-    juce::Path sortTriangle;
-    const auto middle = getLocalBounds().getHeight()/2;
-    constexpr auto triangleRightPad = 3;
-    constexpr auto triangleWidth = 8;
-    constexpr auto triangleHeight = 7;
-    sortTriangle.addTriangle (width - triangleRightPad - triangleWidth, middle + triangleHeight, width - triangleRightPad, middle + triangleHeight, width - triangleRightPad - (triangleWidth/2), middle - triangleHeight);
-    g.fillPath (sortTriangle);
-
-
-}
-
-SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel& glaf)
-
-    : grisLookAndFeel(glaf)
-{
-    auto setHeaderText = [this](juce::Label& label, const juce::String & text) {
-        label.setColour (juce::Label::ColourIds::outlineColourId, grisLookAndFeel.mLightColour.withAlpha (.25f));
-        label.setText(text, juce::dontSendNotification);
-        addAndMakeVisible(label);
-    };
-
-    setHeaderText (id, "ID");
-    constexpr auto realIdWidth = SpeakerTreeComponent::fixedLeftColWidth-28;
-    id.width = realIdWidth;
-    setHeaderText (x, "X");
-    setHeaderText (y, "Y");
-    setHeaderText (z, "Z");
-    setHeaderText (azim, "Azimuth");
-    setHeaderText (elev, "Elevation");
-    setHeaderText (distance, "Distance");
-    setHeaderText (gain, "Gain");
-    setHeaderText (highpass, "Highpass");
-    setHeaderText (direct, "Direct");
-    setHeaderText (del, "Delete");
-    for (const auto header : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del }) {
-        header->width = SpeakerTreeComponent::otherColWidth;
-    }
-    setHeaderText (drag, "Drag");
-    constexpr auto dragColWidth{ 40 };
-    drag.width = dragColWidth;
-}
-
-void SpeakerSetupContainerHeader::resized() {
-    auto height = getLocalBounds().getHeight();
-    id.setBounds(0, 0, id.width, height);
-    auto currentX = id.width;
-    for (const auto header : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del }) {
-        header->setBounds(currentX, 0, header->width, height);
-        currentX += header->width;
-    }
-
-    drag.setBounds(currentX, 0, drag.width, height);
-}
-
 
 SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlFile,
                                              juce::ValueTree theSpeakerSetupVt,
@@ -107,10 +47,10 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     addAndMakeVisible (sortButton);
 
     addAndMakeVisible(containerHeader);
+    containerHeader.setSortFunc([this](SpeakerColumnHeader::ColumnID sortID, int sortDirection) { mainSpeakerGroupLine->sort ({}, sortID, sortDirection); });
 
     undoButton.onClick = [this] { undoManager.undo (); };
     redoButton.onClick = [this] { undoManager.redo (); };
-    sortButton.onClick = [this] { mainSpeakerGroupLine->sort ({}, SPEAKER_PATCH_ID); };
 
     startTimer (500);
 
@@ -150,7 +90,7 @@ void SpeakerSetupContainer::resized()
     auto bounds = getLocalBounds().reduced(8);
     auto header = bounds.removeFromTop(30);
     header.removeFromLeft(20);
-    std::cout << "header: " << header.toString() << std::endl;
+
     containerHeader.setBounds(header);
 
     auto buttons = bounds.removeFromBottom(22);
