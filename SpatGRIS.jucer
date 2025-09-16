@@ -27,6 +27,8 @@
             file="Resources/SpatGRIS_3.3.7_Manual_EN.pdf" xcodeResource="1"/>
       <FILE id="QYglW0" name="SpatGRIS_3.3.7_Manuel_FR.pdf" compile="0" resource="1"
             file="Resources/SpatGRIS_3.3.7_Manuel_FR.pdf" xcodeResource="1"/>
+      <FILE id="NHix3D" name="SpatGRIS4_Logo.png" compile="0" resource="1"
+            file="Resources/SpatGRIS4_Logo.png"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
       <FILE id="RLSEIU" name="splash_screen_v4.png" compile="0" resource="1"
@@ -420,7 +422,7 @@
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="YxmFrL">
+    <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="NHix3D">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\dev\ASIO_SDK\common"
                        fastMath="1"/>
