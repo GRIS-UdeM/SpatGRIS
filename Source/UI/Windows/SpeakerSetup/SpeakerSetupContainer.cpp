@@ -44,7 +44,6 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
 
     addAndMakeVisible (undoButton);
     addAndMakeVisible (redoButton);
-    addAndMakeVisible (sortButton);
 
     addAndMakeVisible(containerHeader);
     containerHeader.setSortFunc([this](SpeakerColumnHeader::ColumnID sortID, int sortDirection) { mainSpeakerGroupLine->sort ({}, sortID, sortDirection); });
@@ -98,7 +97,6 @@ void SpeakerSetupContainer::resized()
     buttons.removeFromLeft(6);
     redoButton.setBounds(buttons.removeFromLeft(100));
     buttons.removeFromLeft(6);
-    sortButton.setBounds(buttons.removeFromLeft(100));
 
     bounds.removeFromBottom(4);
     speakerSetupTreeView.setBounds(bounds);

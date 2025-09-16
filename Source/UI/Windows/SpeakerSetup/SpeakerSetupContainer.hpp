@@ -88,7 +88,7 @@ private:
     SpeakerSetupContainerHeader containerHeader;
     juce::TreeView speakerSetupTreeView;
 
-    juce::TextButton undoButton{ "Undo" }, redoButton{ "Redo" }, sortButton{ "Sort by ID" };
+    juce::TextButton undoButton{ "Undo" }, redoButton{ "Redo" };
 
     std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
 
