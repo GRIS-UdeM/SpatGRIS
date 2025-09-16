@@ -29,6 +29,8 @@
             file="Resources/SpatGRIS_3.3.7_Manuel_FR.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
+      <FILE id="RLSEIU" name="splash_screen_v4.png" compile="0" resource="1"
+            file="Resources/splash_screen_v4.png" xcodeResource="1"/>
       <FILE id="ObNeQh" name="trash.svg" compile="0" resource="1" file="Resources/trash.svg"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
