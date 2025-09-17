@@ -369,7 +369,7 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="GLUT" customXcodeResourceFolders="Resources/default_preset&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
-               smallIcon="" bigIcon="YxmFrL" microphonePermissionNeeded="1"
+               smallIcon="" bigIcon="NHix3D" microphonePermissionNeeded="1"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                iosDevelopmentTeamID="62PMMWH49Z" sendAppleEventsPermissionNeeded="1"
                sendAppleEventsPermissionText="SpatGris requires the ability to send Apple events to facilitate communication with SpeakerView."
@@ -397,7 +397,7 @@
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL"
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="NHix3D"
                 extraLinkerFlags="-latomic">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
