@@ -689,6 +689,27 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
     return result;
 }
 
+juce::Array<output_patch_t> EditSpeakersWindow::getSpeakerOutputPatchOrder()
+{
+
+    juce::Array<output_patch_t> order;
+
+    std::function<void(const juce::ValueTree& valueTree)> appendToOrder;
+    // this function recursively appends the number to a list.
+    appendToOrder = [&](const juce::ValueTree& valueTree) {
+        if (valueTree.getType() == SPEAKER_GROUP || valueTree.getType() == SPEAKER_SETUP) {
+            for (auto child: valueTree) {
+                appendToOrder(child);
+            }
+        } else {
+            order.add(output_patch_t{ valueTree.getProperty(SPEAKER_PATCH_ID) });
+        }
+    };
+    const auto vt = mSpeakerSetupContainer.getSpeakerSetupVt();
+    appendToOrder(vt);
+    return order;
+}
+
 //==============================================================================
 void EditSpeakersWindow::computeSpeakers()
 {

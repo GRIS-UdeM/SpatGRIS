@@ -543,18 +543,19 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
         // 0 = Cancel, 1 = Yes, 2 = No
         if (result == 0) {
             return;
-        } else if (result == 1) {
+        }
+        mEditSpeakersWindow.reset();
+
+        // save to file if we clicked yes
+        if (result == 1) {
             if (!saveSpeakerSetup(mData.appData.lastSpeakerSetup)) {
                 return;
             }
-        } else if (result == 2) {
-            auto const spatMode{ mData.project.spatMode };
-            loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
-            setSpatMode(spatMode);
         }
-
+        // In all cases, load from file. If we clicked no, this will reset to the previous state.
+        loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
+        setSpatMode(mData.project.spatMode);
         refreshSpeakers();
-        mEditSpeakersWindow.reset();
     };
 
     if (!isSpeakerSetupModified()) {
@@ -1906,7 +1907,12 @@ void MainContentComponent::refreshSpeakerSlices()
         mSpeakersLayout->addSection(mStereoSliceComponents.add(std::move(newLeftSlice))).withChildMinSize();
         mSpeakersLayout->addSection(mStereoSliceComponents.add(std::move(newRightSlice))).withChildMinSize();
     } else {
-        for (auto const outputPatch : mData.speakerSetup.ordering) {
+        // If the edit speaker window exists, we want to follow its ordering no matter what.
+        // Otherwise we can look in the project data.
+        juce::Array<output_patch_t> ordering = mEditSpeakersWindow ?
+                mEditSpeakersWindow->getSpeakerOutputPatchOrder():
+                mData.speakerSetup.ordering;
+        for (auto const outputPatch : ordering) {
             auto newSlice{
                 std::make_unique<SpeakerSliceComponent>(outputPatch, *this, mLookAndFeel, mSmallLookAndFeel)
             };
