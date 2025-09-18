@@ -252,8 +252,9 @@ public:
     /**
      * Note: This doesn't refresh speaker, call requestSpeakerRefresh() afterwards to see the change.
      */
-    void reorderSpeakers(juce::Array<output_patch_t>&& newOrder);
-    [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
+    void reorderSpeakers(juce::Array<output_patch_t> && newOrder);
+    [[nodiscard]] output_patch_t getNextSpeakerOutputPatch() const;
+    [[nodiscard]] int getNumSpeakerOutputPatch() const;
 
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
