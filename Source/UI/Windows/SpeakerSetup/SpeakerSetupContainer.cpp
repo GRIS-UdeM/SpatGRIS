@@ -137,6 +137,10 @@ bool SpeakerSetupContainer::keyPressed (const juce::KeyPress& key)
     return Component::keyPressed (key);
 }
 
+const juce::ValueTree& SpeakerSetupContainer::getSpeakerSetupVt() {
+    return speakerSetupVt;
+}
+
 juce::ValueTree SpeakerSetupContainer::getSelectedItem()
 {
     //if we have a selection, return the last selected item. Otherwise return the last overall item

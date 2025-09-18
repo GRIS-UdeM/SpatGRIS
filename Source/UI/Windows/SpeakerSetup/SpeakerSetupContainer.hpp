@@ -81,6 +81,8 @@ public:
 
     bool isDeletingGroup() { return SpeakerSetupLine::isDeletingGroup; }
 
+    const juce::ValueTree& getSpeakerSetupVt();
+
 private:
     GrisLookAndFeel grisLookAndFeel;
     juce::String speakerSetupFileName;
