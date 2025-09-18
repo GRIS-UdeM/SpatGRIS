@@ -704,7 +704,7 @@ juce::Array<output_patch_t> EditSpeakersWindow::getSpeakerOutputPatchOrder()
 
     std::function<void(const juce::ValueTree& valueTree)> appendToOrder;
     // this function recursively appends the number to a list.
-    appendToOrder = [&](const juce::ValueTree& valueTree) {
+    appendToOrder = [&appendToOrder, &order](const juce::ValueTree& valueTree) {
         if (valueTree.getType() == SPEAKER_GROUP || valueTree.getType() == SPEAKER_SETUP) {
             for (auto child: valueTree) {
                 appendToOrder(child);

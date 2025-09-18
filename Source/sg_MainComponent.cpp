@@ -1731,7 +1731,6 @@ bool MainContentComponent::isSpeakerSetupModified() const
     if (!savedSpeakerSetup) {
         return true;
     }
-    // additionnal
 
     return mData.speakerSetup != *savedSpeakerSetup;
 }
