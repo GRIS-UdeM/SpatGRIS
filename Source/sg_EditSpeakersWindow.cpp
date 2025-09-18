@@ -699,13 +699,15 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
 
 juce::Array<output_patch_t> EditSpeakersWindow::getSpeakerOutputPatchOrder()
 {
+
     juce::Array<output_patch_t> order;
 
+    std::function<void(const juce::ValueTree& valueTree)> appendToOrder;
     // this function recursively appends the number to a list.
-    const auto appendToOrder = [&order](this const auto & self, const juce::ValueTree & valueTree) -> void {
+    appendToOrder = [&appendToOrder, &order](const juce::ValueTree& valueTree) {
         if (valueTree.getType() == SPEAKER_GROUP || valueTree.getType() == SPEAKER_SETUP) {
-            for (auto child : valueTree) {
-                self(child);
+            for (auto child: valueTree) {
+                appendToOrder(child);
             }
         } else {
             order.add(output_patch_t{ valueTree.getProperty(SPEAKER_PATCH_ID) });
