@@ -361,7 +361,12 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         //for now all rings are centered at the origin
         auto const groupPosition = Position { { 0.f, 0.f, 0.f } };
 
+        isAddingGroup = true;
         addSpeakerGroup(mRingSpeakers.getTextAs<int>(), groupPosition, getSpeakerPosition);
+        isAddingGroup = false;
+        // When every speaker is added, recompute the order.
+        mMainContentComponent.reorderSpeakers(getSpeakerOutputPatchOrder());
+        mMainContentComponent.requestSpeakerRefresh();
     } else if (button == &mAddPolyButton) {
 
         auto const numFaces { mPolyFaces.getSelectionAsInt () };
@@ -443,6 +448,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         isAddingGroup = true;
         addSpeakerGroup(numFaces, groupPosition, getSpeakerPosition);
         isAddingGroup = false;
+        // when everything is added, recompute the order and request a refresh.
+        mMainContentComponent.reorderSpeakers(getSpeakerOutputPatchOrder());
+        mMainContentComponent.requestSpeakerRefresh();
     } else if (button == &mPinkNoiseToggleButton) {
         // Pink noise button
         tl::optional<dbfs_t> newPinkNoiseLevel{};
@@ -820,6 +828,9 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
             indexAdjustment = mainGroup.indexOf(parent);
         }
         mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index + indexAdjustment, childOutputPatch);
+    } else {
+        // when we are adding a group, just recompute the order from scratch.
+        mMainContentComponent.reorderSpeakers(getSpeakerOutputPatchOrder());
     }
 
     if (!isAddingGroup) {

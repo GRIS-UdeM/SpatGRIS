@@ -41,6 +41,19 @@ constexpr auto BUTTON_CANCEL = 0;
 constexpr auto BUTTON_OK = 1;
 constexpr auto BUTTON_DISCARD = 2;
 
+#if DEBUG_SPEAKER_EDITION
+juce::String getJuceArrayString (const juce::Array<output_patch_t>& array)
+{
+    juce::String arrayString("(");
+
+    for (auto const& item : array)
+        arrayString << juce::String (item.get()) << " ";
+
+    arrayString = arrayString.trimEnd();
+    arrayString << ")";
+    return arrayString;
+}
+#endif
 //==============================================================================
 float gainToSpeakerAlpha(float const gain)
 {
@@ -1718,6 +1731,8 @@ bool MainContentComponent::isSpeakerSetupModified() const
     if (!savedSpeakerSetup) {
         return true;
     }
+    // additionnal
+
     return mData.speakerSetup != *savedSpeakerSetup;
 }
 
@@ -1907,12 +1922,7 @@ void MainContentComponent::refreshSpeakerSlices()
         mSpeakersLayout->addSection(mStereoSliceComponents.add(std::move(newLeftSlice))).withChildMinSize();
         mSpeakersLayout->addSection(mStereoSliceComponents.add(std::move(newRightSlice))).withChildMinSize();
     } else {
-        // If the edit speaker window exists, we want to follow its ordering no matter what.
-        // Otherwise we can look in the project data.
-        juce::Array<output_patch_t> ordering = mEditSpeakersWindow ?
-                mEditSpeakersWindow->getSpeakerOutputPatchOrder():
-                mData.speakerSetup.ordering;
-        for (auto const outputPatch : ordering) {
+        for (auto const outputPatch : mData.speakerSetup.ordering) {
             auto newSlice{
                 std::make_unique<SpeakerSliceComponent>(outputPatch, *this, mLookAndFeel, mSmallLookAndFeel)
             };
@@ -2466,7 +2476,7 @@ void MainContentComponent::setSourceNewSourceIndex(source_index_t oldSourceIndex
 }
 
 //==============================================================================
-void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
+void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t>&& newOrder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2474,7 +2484,6 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
     auto & order{ mData.speakerSetup.ordering };
     jassert(newOrder.size() == order.size());
     order = std::move(newOrder);
-    refreshSpeakerSlices();
 }
 
 //==============================================================================
@@ -2667,18 +2676,6 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
     mData.speakerSetup.speakers.add(newOutputPatch, std::move(newSpeaker));
 
     return newOutputPatch;
-}
-
-juce::String getJuceArrayString (const juce::Array<output_patch_t>& array)
-{
-    juce::String arrayString("(");
-
-    for (auto const& item : array)
-        arrayString << juce::String (item.get()) << " ";
-
-    arrayString = arrayString.trimEnd();
-    arrayString << ")";
-    return arrayString;
 }
 
 //==============================================================================

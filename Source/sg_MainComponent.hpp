@@ -249,7 +249,10 @@ public:
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
     void addSpeaker(const SpeakerData & speakerData, int index, output_patch_t newOutputPatch);
     void removeSpeaker(output_patch_t outputPatch, bool shouldRefreshSpeakers = true);
-    void reorderSpeakers(juce::Array<output_patch_t> newOrder);
+    /**
+     * Note: This doesn't refresh speaker, call requestSpeakerRefresh() afterwards to see the change.
+     */
+    void reorderSpeakers(juce::Array<output_patch_t>&& newOrder);
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
 
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
