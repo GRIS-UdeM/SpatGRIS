@@ -41,6 +41,19 @@ constexpr auto BUTTON_CANCEL = 0;
 constexpr auto BUTTON_OK = 1;
 constexpr auto BUTTON_DISCARD = 2;
 
+#if DEBUG_SPEAKER_EDITION
+juce::String getJuceArrayString (const juce::Array<output_patch_t>& array)
+{
+    juce::String arrayString("(");
+
+    for (auto const& item : array)
+        arrayString << juce::String (item.get()) << " ";
+
+    arrayString = arrayString.trimEnd();
+    arrayString << ")";
+    return arrayString;
+}
+#endif
 //==============================================================================
 float gainToSpeakerAlpha(float const gain)
 {
@@ -543,18 +556,19 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
         // 0 = Cancel, 1 = Yes, 2 = No
         if (result == 0) {
             return;
-        } else if (result == 1) {
+        }
+        mEditSpeakersWindow.reset();
+
+        // save to file if we clicked yes
+        if (result == 1) {
             if (!saveSpeakerSetup(mData.appData.lastSpeakerSetup)) {
                 return;
             }
-        } else if (result == 2) {
-            auto const spatMode{ mData.project.spatMode };
-            loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
-            setSpatMode(spatMode);
         }
-
+        // In all cases, load from file. If we clicked no, this will reset to the previous state.
+        loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
+        setSpatMode(mData.project.spatMode);
         refreshSpeakers();
-        mEditSpeakersWindow.reset();
     };
 
     if (!isSpeakerSetupModified()) {
@@ -1717,6 +1731,7 @@ bool MainContentComponent::isSpeakerSetupModified() const
     if (!savedSpeakerSetup) {
         return true;
     }
+
     return mData.speakerSetup != *savedSpeakerSetup;
 }
 
@@ -2460,7 +2475,7 @@ void MainContentComponent::setSourceNewSourceIndex(source_index_t oldSourceIndex
 }
 
 //==============================================================================
-void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
+void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t>&& newOrder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2468,19 +2483,31 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
     auto & order{ mData.speakerSetup.ordering };
     jassert(newOrder.size() == order.size());
     order = std::move(newOrder);
-    refreshSpeakerSlices();
 }
 
 //==============================================================================
-output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
+output_patch_t MainContentComponent::getNextSpeakerOutputPatch () const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock { mLock };
+
+    auto const& patches { mData.speakerSetup.ordering };
+
+    //look for the first free patch number
+    output_patch_t nextFreePatch{1};
+    while (std::find (patches.begin (), patches.end (), nextFreePatch) != patches.end ())
+        ++nextFreePatch;
+
+    //and return it
+    return nextFreePatch;
+}
+
+int MainContentComponent::getNumSpeakerOutputPatch() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    auto const & patches{ mData.speakerSetup.ordering };
-    auto const * maxIterator{ std::max_element(patches.begin(), patches.end()) };
-    auto const maxPatch{ maxIterator != mData.speakerSetup.ordering.end() ? *maxIterator : output_patch_t{} };
-    return maxPatch;
+    return mData.speakerSetup.ordering.size();
 }
 
 //==============================================================================
@@ -2643,7 +2670,7 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
         }
     }
 
-    auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
+    auto const newOutputPatch { getNextSpeakerOutputPatch () };
 
     if (index) {
         auto const actualIndex { *index };
@@ -2661,18 +2688,6 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
     mData.speakerSetup.speakers.add(newOutputPatch, std::move(newSpeaker));
 
     return newOutputPatch;
-}
-
-juce::String getJuceArrayString (const juce::Array<output_patch_t>& array)
-{
-    juce::String arrayString("(");
-
-    for (auto const& item : array)
-        arrayString << juce::String (item.get()) << " ";
-
-    arrayString = arrayString.trimEnd();
-    arrayString << ")";
-    return arrayString;
 }
 
 //==============================================================================

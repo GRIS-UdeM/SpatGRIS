@@ -26,9 +26,9 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
                                            const juce::ValueTree & v,
                                            juce::UndoManager & undoMan)
     : speakerTreeVt(v)
+    , undoManager (undoMan)
     , speakerSetupVt (v.getRoot())
     , speakerSetupLine(owner)
-    , undoManager (undoMan)
 {
     speakerSetupVt.addListener(this);
     setInterceptsMouseClicks(false, true);
@@ -481,14 +481,17 @@ void SpeakerComponent::editorShown (juce::Label* label, juce::TextEditor& editor
 
 void SpeakerComponent::setupGain ()
 {
-    gain.setEditable (true);
-    gain.setText (speakerTreeVt[GAIN], juce::dontSendNotification);
 
     const auto getClampedGain = [](float gainValue) {
         static constexpr dbfs_t MIN_GAIN { -18.0f };
         static constexpr dbfs_t MAX_GAIN { 6.0f };
         return std::clamp (dbfs_t (gainValue), MIN_GAIN, MAX_GAIN);
         };
+
+    gain.setEditable (true);
+    // clamp the gain on first display.
+    auto clampedGainText = juce::String(getClampedGain(static_cast<float>(speakerTreeVt[GAIN])).get(), 1);
+    gain.setText (clampedGainText, juce::dontSendNotification);
 
     gain.onTextChange = [this, getClampedGain] {
         auto const clampedValue = getClampedGain (gain.getText ().getFloatValue ()).get ();
@@ -540,15 +543,23 @@ void SpeakerComponent::setupHighPass()
 
         return std::clamp(hz_t(freqValue), MIN_FREQ, MAX_FREQ);
     };
+    // If the value is < 20.0, it is an invalid highpass value and it should not be saved in the tree.
+    const auto setHighpassInTree = [this](float value) {
+        if (value >= 20.0) {
+            speakerTreeVt.setProperty(HIGHPASS_FREQ, value, &undoManager);
+        } else {
+            speakerTreeVt.removeProperty(HIGHPASS_FREQ, &undoManager);
+        }
+    };
 
-    highpass.onTextChange = [this, getClampedFrequency] {
+    highpass.onTextChange = [this, getClampedFrequency, setHighpassInTree] {
         auto const clampedValue = getClampedFrequency(highpass.getText().getFloatValue()).get();
 
         highpass.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
-        speakerTreeVt.setProperty(HIGHPASS_FREQ, clampedValue, &undoManager);
+        setHighpassInTree(clampedValue);
     };
 
-    highpass.onMouseDragCallback = [this, getClampedFrequency](int deltaY) {
+    highpass.onMouseDragCallback = [this, getClampedFrequency, setHighpassInTree](int deltaY) {
         if (! highpass.isEnabled ())
             return;
 
@@ -556,7 +567,7 @@ void SpeakerComponent::setupHighPass()
         auto const clampedValue{ getClampedFrequency(draggedValue, deltaY < 0).get() };
 
         highpass.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
-        speakerTreeVt.setProperty(HIGHPASS_FREQ, clampedValue, &undoManager);
+        setHighpassInTree(clampedValue);
     };
 
     addAndMakeVisible(highpass);

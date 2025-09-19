@@ -184,6 +184,10 @@ public:
     *   when the spatMode changes.*/
     void updateWinContent();
 
+    /**
+     * Returns the speaker ordering exactly as it is displayed in the window.
+     */
+    juce::Array<output_patch_t> getSpeakerOutputPatchOrder();
 private:
     bool isAddingGroup = false;
     //==============================================================================

@@ -207,7 +207,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setContentNonOwned(&mViewportWrapper, false);
     auto const & controlsComponent{ *mainContentComponent.getControlsComponent() };
 
-    static constexpr auto WIDTH = 850;
+    static constexpr auto WIDTH = 950;
     static constexpr auto HEIGHT = 600;
     static constexpr auto TITLE_BAR_HEIGHT = 30;
 
@@ -238,7 +238,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 //==============================================================================
 void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition)
 {
-    if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakers > MAX_NUM_SPEAKERS)
+    if (mMainContentComponent.getNumSpeakerOutputPatch() + numSpeakers >= MAX_NUM_SPEAKERS)
         return;
 
     auto [mainGroup, indexInMainGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
@@ -312,7 +312,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
     if (button == &mAddSpeakerButton) {
 
-        if (mMainContentComponent.getMaxSpeakerOutputPatch().get() >= MAX_NUM_SPEAKERS)
+        if (mMainContentComponent.getNumSpeakerOutputPatch() >= MAX_NUM_SPEAKERS)
             return;
 
         auto [mainGroup, indexInMainGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
@@ -361,7 +361,12 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         //for now all rings are centered at the origin
         auto const groupPosition = Position { { 0.f, 0.f, 0.f } };
 
+        isAddingGroup = true;
         addSpeakerGroup(mRingSpeakers.getTextAs<int>(), groupPosition, getSpeakerPosition);
+        isAddingGroup = false;
+        // When every speaker is added, recompute the order.
+        mMainContentComponent.reorderSpeakers(getSpeakerOutputPatchOrder());
+        mMainContentComponent.requestSpeakerRefresh();
     } else if (button == &mAddPolyButton) {
 
         auto const numFaces { mPolyFaces.getSelectionAsInt () };
@@ -443,6 +448,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         isAddingGroup = true;
         addSpeakerGroup(numFaces, groupPosition, getSpeakerPosition);
         isAddingGroup = false;
+        // when everything is added, recompute the order and request a refresh.
+        mMainContentComponent.reorderSpeakers(getSpeakerOutputPatchOrder());
+        mMainContentComponent.requestSpeakerRefresh();
     } else if (button == &mPinkNoiseToggleButton) {
         // Pink noise button
         tl::optional<dbfs_t> newPinkNoiseLevel{};
@@ -689,6 +697,27 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
     return result;
 }
 
+juce::Array<output_patch_t> EditSpeakersWindow::getSpeakerOutputPatchOrder()
+{
+
+    juce::Array<output_patch_t> order;
+
+    std::function<void(const juce::ValueTree& valueTree)> appendToOrder;
+    // this function recursively appends the number to a list.
+    appendToOrder = [&appendToOrder, &order](const juce::ValueTree& valueTree) {
+        if (valueTree.getType() == SPEAKER_GROUP || valueTree.getType() == SPEAKER_SETUP) {
+            for (auto child: valueTree) {
+                appendToOrder(child);
+            }
+        } else {
+            order.add(output_patch_t{ valueTree.getProperty(SPEAKER_PATCH_ID) });
+        }
+    };
+    const auto vt = mSpeakerSetupContainer.getSpeakerSetupVt();
+    appendToOrder(vt);
+    return order;
+}
+
 //==============================================================================
 void EditSpeakersWindow::computeSpeakers()
 {
@@ -799,6 +828,9 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
             indexAdjustment = mainGroup.indexOf(parent);
         }
         mMainContentComponent.addSpeaker(*SpeakerData::fromVt(child), index + indexAdjustment, childOutputPatch);
+    } else {
+        // when we are adding a group, just recompute the order from scratch.
+        mMainContentComponent.reorderSpeakers(getSpeakerOutputPatchOrder());
     }
 
     if (!isAddingGroup) {

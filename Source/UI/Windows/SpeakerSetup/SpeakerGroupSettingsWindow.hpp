@@ -9,7 +9,7 @@ class SpeakerGroupSettingsComponent : public juce::Component,
                                       public juce::Slider::Listener
 {
  public:
-    SpeakerGroupSettingsComponent(SpeakerGroupComponent& parent, GrisLookAndFeel& glaf);
+    SpeakerGroupSettingsComponent(SpeakerGroupComponent& parent);
     ~SpeakerGroupSettingsComponent();
     SpeakerGroupSettingsComponent() = delete;
     SG_DELETE_COPY_AND_MOVE(SpeakerGroupSettingsComponent);
@@ -17,7 +17,7 @@ class SpeakerGroupSettingsComponent : public juce::Component,
     void resized() override;
 
  private:
-    GrisLookAndFeel& lookAndFeel;
+    GrisLookAndFeel lookAndFeel;
     SpeakerGroupComponent& speakerGroupComponent;
     juce::Label yawLabel;
     juce::Label pitchLabel;
