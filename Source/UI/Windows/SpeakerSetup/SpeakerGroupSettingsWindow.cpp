@@ -4,11 +4,10 @@
 namespace gris
 {
 
-SpeakerGroupSettingsWindow::SpeakerGroupSettingsWindow(SpeakerGroupComponent& parent)
-    : parent(parent),
-      DocumentWindow(parent.speakerTreeVt[SPEAKER_GROUP_NAME].toString() + " Rotation Settings", lookAndFeel.getBackgroundColour(), allButtons),
-
-      settingsComponent(parent, lookAndFeel)
+SpeakerGroupSettingsWindow::SpeakerGroupSettingsWindow(SpeakerGroupComponent& theParent)
+: DocumentWindow(theParent.speakerTreeVt[SPEAKER_GROUP_NAME].toString() + " Rotation Settings", {}, allButtons)
+    , parent(theParent)
+    , settingsComponent(parent)
 {
     setOpaque (true);
     setAlwaysOnTop(true);
@@ -25,9 +24,8 @@ void SpeakerGroupSettingsWindow::closeButtonPressed()
   parent.closeSettingsWindow();
 }
 
-SpeakerGroupSettingsComponent::SpeakerGroupSettingsComponent(SpeakerGroupComponent& sgc, GrisLookAndFeel& glaf)
-    : speakerGroupComponent(sgc),
-      lookAndFeel(glaf)
+SpeakerGroupSettingsComponent::SpeakerGroupSettingsComponent(SpeakerGroupComponent& sgc)
+    : speakerGroupComponent(sgc)
 {
     auto initLabel = [this](juce::Label & label, juce::Slider & associatedSlider, juce::StringRef text) {
         label.setText(text, juce::dontSendNotification);
