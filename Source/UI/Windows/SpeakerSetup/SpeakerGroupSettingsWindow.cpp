@@ -4,8 +4,8 @@
 namespace gris
 {
 
-SpeakerGroupSettingsWindow::SpeakerGroupSettingsWindow(SpeakerGroupComponent& theParent)
-: DocumentWindow(theParent.speakerTreeVt[SPEAKER_GROUP_NAME].toString() + " Rotation Settings", {}, allButtons)
+SpeakerGroupSettingsWindow::SpeakerGroupSettingsWindow(SpeakerGroupComponent & theParent)
+    : DocumentWindow(theParent.speakerTreeVt[SPEAKER_GROUP_NAME].toString() + " Rotation Settings", {}, allButtons)
     , parent(theParent)
     , settingsComponent(parent)
 {
