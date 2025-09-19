@@ -238,7 +238,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 //==============================================================================
 void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition)
 {
-    if (mMainContentComponent.getMaxSpeakerOutputPatch().get() + numSpeakers > MAX_NUM_SPEAKERS)
+    if (mMainContentComponent.getNumSpeakerOutputPatch() + numSpeakers >= MAX_NUM_SPEAKERS)
         return;
 
     auto [mainGroup, indexInMainGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
@@ -312,7 +312,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
     if (button == &mAddSpeakerButton) {
 
-        if (mMainContentComponent.getMaxSpeakerOutputPatch().get() >= MAX_NUM_SPEAKERS)
+        if (mMainContentComponent.getNumSpeakerOutputPatch() >= MAX_NUM_SPEAKERS)
             return;
 
         auto [mainGroup, indexInMainGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();

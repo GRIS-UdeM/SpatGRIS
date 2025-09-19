@@ -2486,15 +2486,28 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t>&& newOrde
 }
 
 //==============================================================================
-output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
+output_patch_t MainContentComponent::getNextSpeakerOutputPatch () const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock { mLock };
+
+    auto const& patches { mData.speakerSetup.ordering };
+
+    //look for the first free patch number
+    output_patch_t nextFreePatch{1};
+    while (std::find (patches.begin (), patches.end (), nextFreePatch) != patches.end ())
+        ++nextFreePatch;
+
+    //and return it
+    return nextFreePatch;
+}
+
+int MainContentComponent::getNumSpeakerOutputPatch() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    auto const & patches{ mData.speakerSetup.ordering };
-    auto const * maxIterator{ std::max_element(patches.begin(), patches.end()) };
-    auto const maxPatch{ maxIterator != mData.speakerSetup.ordering.end() ? *maxIterator : output_patch_t{} };
-    return maxPatch;
+    return mData.speakerSetup.ordering.size();
 }
 
 //==============================================================================
@@ -2657,7 +2670,7 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
         }
     }
 
-    auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
+    auto const newOutputPatch { getNextSpeakerOutputPatch () };
 
     if (index) {
         auto const actualIndex { *index };
