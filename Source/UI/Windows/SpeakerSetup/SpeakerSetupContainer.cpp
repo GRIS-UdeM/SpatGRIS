@@ -15,11 +15,13 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <functional>
 #include "SpeakerSetupContainer.hpp"
 #include "SpeakerTreeComponent.hpp"
 
 namespace gris
 {
+
 SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlFile,
                                              juce::ValueTree theSpeakerSetupVt,
                                              juce::UndoManager & undoMan,
@@ -28,6 +30,7 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     , speakerSetupVt (theSpeakerSetupVt)
     , undoManager (undoMan)
     , onSelectionChanged (selectionChanged)
+    , containerHeader{grisLookAndFeel}
 {
     speakerSetupTreeView.setRootItemVisible(false);
     addAndMakeVisible (speakerSetupTreeView);
@@ -39,36 +42,18 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
     mainSpeakerGroupLine = std::make_unique<SpeakerSetupLine> (speakerSetupVt.getChild(0), undoManager, onSelectionChanged);
     speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
-    auto setLabelText = [this](juce::Label& label, const juce::String & text) {
-        label.setColour (juce::Label::ColourIds::outlineColourId, grisLookAndFeel.mLightColour.withAlpha (.25f));
-        label.setText(text, juce::dontSendNotification);
-        addAndMakeVisible(label);
-    };
-
-    setLabelText (id, "ID");
-    setLabelText (x, "X");
-    setLabelText (y, "Y");
-    setLabelText (z, "Z");
-    setLabelText (azim, "Azimuth");
-    setLabelText (elev, "Elevation");
-    setLabelText (distance, "Distance");
-    setLabelText (gain, "Gain");
-    setLabelText (highpass, "Highpass");
-    setLabelText (direct, "Direct");
-    setLabelText (del, "Delete");
-    setLabelText (drag, "Drag");
-
     addAndMakeVisible (undoButton);
     addAndMakeVisible (redoButton);
-    addAndMakeVisible (sortButton);
+
+    addAndMakeVisible(containerHeader);
+    containerHeader.setSortFunc([this](SpeakerColumnHeader::ColumnID sortID, int sortDirection) { mainSpeakerGroupLine->sort ({}, sortID, sortDirection); });
 
     undoButton.onClick = [this] { undoManager.undo (); };
     redoButton.onClick = [this] { undoManager.redo (); };
-    sortButton.onClick = [this] { mainSpeakerGroupLine->sort (); };
 
     startTimer (500);
 
-    setSize (500, 500);
+    setSize (800, 800);
 }
 
 void SpeakerSetupContainer::reload(juce::ValueTree theSpeakerSetupVt)
@@ -105,20 +90,13 @@ void SpeakerSetupContainer::resized()
     auto header = bounds.removeFromTop(30);
     header.removeFromLeft(20);
 
-    id.setBounds(header.removeFromLeft(SpeakerTreeComponent::fixedLeftColWidth - 28));
-
-    for (auto label : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &del })
-        label->setBounds(header.removeFromLeft(SpeakerTreeComponent::otherColWidth));
-
-    constexpr auto dragColWidth{ 40 };
-    drag.setBounds(header.removeFromLeft(dragColWidth));
+    containerHeader.setBounds(header);
 
     auto buttons = bounds.removeFromBottom(22);
     undoButton.setBounds(buttons.removeFromLeft(100));
     buttons.removeFromLeft(6);
     redoButton.setBounds(buttons.removeFromLeft(100));
     buttons.removeFromLeft(6);
-    sortButton.setBounds(buttons.removeFromLeft(100));
 
     bounds.removeFromBottom(4);
     speakerSetupTreeView.setBounds(bounds);
@@ -157,6 +135,10 @@ bool SpeakerSetupContainer::keyPressed (const juce::KeyPress& key)
     }
 
     return Component::keyPressed (key);
+}
+
+const juce::ValueTree& SpeakerSetupContainer::getSpeakerSetupVt() {
+    return speakerSetupVt;
 }
 
 juce::ValueTree SpeakerSetupContainer::getSelectedItem()
