@@ -27,8 +27,12 @@
             file="Resources/SpatGRIS_3.3.7_Manual_EN.pdf" xcodeResource="1"/>
       <FILE id="QYglW0" name="SpatGRIS_3.3.7_Manuel_FR.pdf" compile="0" resource="1"
             file="Resources/SpatGRIS_3.3.7_Manuel_FR.pdf" xcodeResource="1"/>
+      <FILE id="NHix3D" name="SpatGRIS4_Logo.png" compile="0" resource="1"
+            file="Resources/SpatGRIS4_Logo.png"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
+      <FILE id="RLSEIU" name="splash_screen_v4.png" compile="0" resource="1"
+            file="Resources/splash_screen_v4.png" xcodeResource="1"/>
       <FILE id="ObNeQh" name="trash.svg" compile="0" resource="1" file="Resources/trash.svg"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
@@ -111,8 +115,8 @@
                   file="Source/sg_ControlPanel.hpp"/>
             <FILE id="ewzh9t" name="sg_GeneralMuteButton.cpp" compile="1" resource="0"
                   file="Source/sg_GeneralMuteButton.cpp"/>
-            <FILE id="vpLQIF" name="sg_GeneralMuteButton.h" compile="0" resource="0"
-                  file="Source/sg_GeneralMuteButton.h"/>
+            <FILE id="vpLQIF" name="sg_GeneralMuteButton.hpp" compile="0" resource="0"
+                  file="Source/sg_GeneralMuteButton.hpp"/>
             <FILE id="Vvls6a" name="sg_InfoPanel.cpp" compile="1" resource="0"
                   file="Source/sg_InfoPanel.cpp"/>
             <FILE id="f7lFiY" name="sg_InfoPanel.hpp" compile="0" resource="0"
@@ -369,7 +373,7 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="GLUT" customXcodeResourceFolders="Resources/default_preset&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
-               smallIcon="" bigIcon="YxmFrL" microphonePermissionNeeded="1"
+               smallIcon="" bigIcon="NHix3D" microphonePermissionNeeded="1"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                iosDevelopmentTeamID="62PMMWH49Z" sendAppleEventsPermissionNeeded="1"
                sendAppleEventsPermissionText="SpatGris requires the ability to send Apple events to facilitate communication with SpeakerView."
@@ -397,7 +401,7 @@
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL"
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="NHix3D"
                 extraLinkerFlags="-latomic">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
@@ -424,7 +428,7 @@
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="YxmFrL">
+    <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="NHix3D">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\dev\ASIO_SDK\common"
                        fastMath="1"/>

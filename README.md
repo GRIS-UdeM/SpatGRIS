@@ -18,11 +18,7 @@ SpatGRIS is currently being developed at the [Groupe de Recherche en Immersion S
 - [Using a virtual audio device](#using-a-virtual-audio-device)
 - [Building](#building)
 - [Running](#running)
-- [Using custom OSC interfaces](#using-custom-OSC-interfaces)
-
-#### Note on the Windows installation program
-
-Installing version 3.2.10 (or earlier) on a newer version may fail due to the file format of the ControlGris VST3 plugin being impossible to update. If an error occurs, manually deleting ControlGris.vst3 (C:\Program Files\Common Files\VST3\ControlGris.vst3) will allow the installer to proceed.
+- [Using custom OSC interfaces](#using-custom-osc-interfaces)
 
 ## Using a virtual audio device
 
@@ -30,7 +26,7 @@ If you want to use SpatGRIS and ControlGRIS on the same computer, you will need 
 
 #### MacOS
 
-We officially support the use of [BlackHole](https://github.com/ExistentialAudio/BlackHole). The 256, 128 and 64 channel versions are distributed with SpatGRIS.
+We officially support the use of [BlackHole](https://github.com/ExistentialAudio/BlackHole). The 256-, 128-, 64- and 16-channel versions are distributed with SpatGRIS.
 
 #### Windows
 
@@ -44,15 +40,22 @@ While we do not support a specific routing solution on Linux, there are a lot of
 
 ## Building
 
-Starting with version 3.3.0, the 3D speaker setup view of SpatGRIS is a seperate application: [SpeakerView](https://github.com/GRIS-UdeM/SpeakerView). It is included in the SpatGRIS installer.
 
-To function correctly, the SpeakerView executable (and the SpeakerView.pck file under Windows and Linux) must be placed in the same folder as SpatGris. SpeakerView is independent of SpatGris, but designed to be controlled by SpatGris using the UDP protocol.
+#### 1. Clone SpatGRIS sources and submodules
 
-On Linux, the name of the executable must be SpeakerView.x86_64.
+```
+git clone git@github.com:GRIS-UdeM/SpatGRIS.git
+```
+For the submodules:
+```
+cd SpatGRIS
+git submodule update --init --recursive
+```
 
-#### 1. Install dependencies
+#### 2. Build the Projucer
 
-Download and extract [Juce 8.0.8](https://github.com/juce-framework/JUCE/releases/tag/8.0.8)
+JUCE is included as a submodule. Go to `SpatGRIS/submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/` and build the Projucer for your plateform.
+Ensure that the Projucer global paths are set correctly. JUCE path is `SpatGRIS/submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE` and modules path is `SpatGRIS/submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules`.
 
 ##### Additional dependencies on Linux :
 
@@ -62,7 +65,7 @@ libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev \
 libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-dev
 ```
 
-#### 2. Generating project files
+#### 3. Generating project files
 
 ```bash
 cd <SpatGRIS-path>

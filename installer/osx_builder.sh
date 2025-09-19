@@ -3,14 +3,12 @@
 # Developers: Gaël Lane Lépine, Olivier Belanger, Samuel Béland
 
 #==============================================================================
-export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <plugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --speakerview-compat <speakerview-compat-app-path> --speakerview-mobile <speakerview-mobile-app-path> --pass <dev-id-password>"
+export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <plugins-pkg-path> --blackhole <blackhole-pkgs-dir-path> --speakerview <speakerview-app-path> --pass <dev-id-password>"
 export BIN_PATH=""
 export PASS=""
 export PLUGINS_PKG=""
 export BLACKHOLE_PKGS_DIR=""
 export SPEAKERVIEW_APP=""
-export SPEAKERVIEW_COMPATIBILITY_APP=""
-export SPEAKERVIEW_MOBILE_APP=""
 export MOVE_SG_TO_FOREGROUND_DIR=""
 
 Projucer=~/JUCE/Projucer.app/Contents/MacOS/Projucer
@@ -49,16 +47,6 @@ case $key in
 	shift
 	shift
 	;;
-	--speakerview-compat)
-	SPEAKERVIEW_COMPATIBILITY_APP="$2"
-	shift
-	shift
-	;;
-	--speakerview-mobile)
-	SPEAKERVIEW_MOBILE_APP="$2"
-	shift
-	shift
-	;;
 	--movetoforeground)
 	MOVE_SG_TO_FOREGROUND_DIR="$2"
 	shift
@@ -92,14 +80,6 @@ elif [[ $SPEAKERVIEW_APP == "" ]];then
 	echo "Missing param --speakerview"
 	echo "$USAGE"
 	exit 1
-elif [[ $SPEAKERVIEW_COMPATIBILITY_APP == "" ]];then
-	echo "Missing param --speakerview-compat"
-	echo "$USAGE"
-	exit 1
-elif [[ $SPEAKERVIEW_MOBILE_APP == "" ]];then
-	echo "Missing param --speakerview-mobile"
-	echo "$USAGE"
-	exit 1
 elif [[ $MOVE_SG_TO_FOREGROUND_DIR == "" ]];then
 	echo "Missing param --movetoforeground"
 	echo "$USAGE"
@@ -116,7 +96,7 @@ echo "SpatGris version is $VERSION"
 #==============================================================================
 # get plugins version
 
-PLUGINS_VERSION=$(echo $PLUGINS_PKG | awk -F 'ControlGris_' '{print $NF}' | awk -F '.pkg' '{print $1}')
+PLUGINS_VERSION=$(echo $PLUGINS_PKG | awk -F 'ControlGRIS_' '{print $NF}' | awk -F '.pkg' '{print $1}')
 echo "ControlGris version is $PLUGINS_VERSION"
 
 #==============================================================================
@@ -124,18 +104,6 @@ echo "ControlGris version is $PLUGINS_VERSION"
 
 SPEAKERVIEW_VERSION=`plutil -p $SPEAKERVIEW_APP/Contents/Info.plist | grep CFBundleShortVersionString | grep -o '"[[:digit:].]*"' | sed 's/"//g'`
 echo "SpeakerView Forward version is $SPEAKERVIEW_VERSION"
-
-#==============================================================================
-# get SpeakerView Compatibility version
-
-SPEAKERVIEW_COMPAT_VERSION=`plutil -p $SPEAKERVIEW_COMPATIBILITY_APP/Contents/Info.plist | grep CFBundleShortVersionString | grep -o '"[[:digit:].]*"' | sed 's/"//g'`
-echo "SpeakerView Compatibility version is $SPEAKERVIEW_COMPAT_VERSION"
-
-#==============================================================================
-# get SpeakerView Mobile version
-
-SPEAKERVIEW_MOBILE_VERSION=`plutil -p $SPEAKERVIEW_MOBILE_APP/Contents/Info.plist | grep CFBundleShortVersionString | grep -o '"[[:digit:].]*"' | sed 's/"//g'`
-echo "SpeakerView Mobile version is $SPEAKERVIEW_MOBILE_VERSION"
 
 #==============================================================================
 # get moveSGToForeground version
@@ -148,8 +116,6 @@ echo "moveSGToForeground version is $MSGTF_VERSION"
 
 IDENTIFIER="ca.umontreal.musique.gris.spatgris.pkg"
 SPEAKERVIEW_IDENTIFIER="ca.umontreal.musique.gris.speakerview.pkg"
-SPEAKERVIEW_COMPATIBILITY_IDENTIFIER="ca.umontreal.musique.gris.speakerview.compatibility.pkg"
-SPEAKERVIEW_MOBILE_IDENTIFIER="ca.umontreal.musique.gris.speakerview.mobile.pkg"
 MSGTF_IDENTIFIER="ca.umontreal.musique.gris.movesgtoforeground.pkg"
 installerSignature="Developer ID Installer: Gael Lane Lepine (62PMMWH49Z)"
 appSignature="Developer ID Application: Gael Lane Lepine (62PMMWH49Z)"
@@ -164,8 +130,6 @@ export DMG_NAME="SpatGRIS_v$VERSION.dmg"
 export INSTALLER_DIR=`pwd`/installerdir
 export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications/GRIS
 export SPEAKERVIEW_APPLICATIONS_DIR=$INSTALLER_DIR/SpeakerView_Application/Package_Contents/Applications/GRIS
-export SPEAKERVIEW_COMPAT_APPLICATIONS_DIR=$INSTALLER_DIR/SpeakerView_Compat_Application/Package_Contents/Applications/GRIS
-export SPEAKERVIEW_MOBILE_APPLICATIONS_DIR=$INSTALLER_DIR/SpeakerView_Mobile_Application/Package_Contents/Applications/GRIS
 export MSGTF_APPLICATIONS_DIR=$INSTALLER_DIR/MSGTF_Application/Package_Contents/Applications/GRIS/utilities/MSGTF
 export PLUGINS_DIR=$INSTALLER_DIR/Plugins/Package_Contents/Library/Audio/Plug-Ins
 
@@ -177,8 +141,6 @@ export SV_PKG_RESOURCES=$INSTALLER_DIR/../SV_PkgResources
 function build_package() {
 	mkdir -p $APPLICATIONS_DIR || exit 1
 	mkdir -p $SPEAKERVIEW_APPLICATIONS_DIR || exit 1
-	mkdir -p $SPEAKERVIEW_COMPAT_APPLICATIONS_DIR || exit 1
-	mkdir -p $SPEAKERVIEW_MOBILE_APPLICATIONS_DIR || exit 1
 	mkdir -p $MSGTF_APPLICATIONS_DIR || exit 1
 	mkdir -p $BUILD_RESOURCES || exit 1
 
@@ -191,12 +153,6 @@ function build_package() {
 
 	echo "copying SpeakerView Forward application..."
 	cp -r $SPEAKERVIEW_APP $SPEAKERVIEW_APPLICATIONS_DIR/ || exit 1
-
-	echo "copying SpeakerView Compatibility application..."
-	cp -r $SPEAKERVIEW_COMPATIBILITY_APP $SPEAKERVIEW_COMPAT_APPLICATIONS_DIR/ || exit 1
-
-	echo "copying SpeakerView Mobile application..."
-	cp -r $SPEAKERVIEW_MOBILE_APP $SPEAKERVIEW_MOBILE_APPLICATIONS_DIR/ || exit 1
 
 	echo "copying and signing moveSGTOForeground script..."
 	cp -r $MOVE_SG_TO_FOREGROUND_DIR $MSGTF_APPLICATIONS_DIR/ || exit 1
@@ -228,26 +184,6 @@ function build_package() {
 	            --timestamp \
 	            "SpeakerView.pkg" || exit 1
 
-	echo "building SpeakerView_Compatibility.pkg"
-	pkgbuild    --identifier "$SPEAKERVIEW_COMPATIBILITY_IDENTIFIER" \
-	            --root "SpeakerView_Compat_Application/Package_Contents/" \
-	            --version "$SPEAKERVIEW_COMPAT_VERSION" \
-				--scripts "$SV_PKG_RESOURCES" \
-	            --component-plist "../SpeakerView.plist" \
-	            --sign "$installerSignature" \
-	            --timestamp \
-	            "SpeakerView_Compatibility.pkg" || exit 1
-
-	echo "building SpeakerView_Mobile.pkg"
-	pkgbuild    --identifier "$SPEAKERVIEW_MOBILE_IDENTIFIER" \
-	            --root "SpeakerView_Mobile_Application/Package_Contents/" \
-	            --version "$SPEAKERVIEW_MOBILE_VERSION" \
-				--scripts "$SV_PKG_RESOURCES" \
-	            --component-plist "../SpeakerView.plist" \
-	            --sign "$installerSignature" \
-	            --timestamp \
-	            "SpeakerView_Mobile.pkg" || exit 1
-
 	echo "building moveSGToForeground.pkg"
 	pkgbuild	--identifier "$MSGTF_IDENTIFIER" \
 				--root "MSGTF_Application/Package_Contents/" \
@@ -258,9 +194,7 @@ function build_package() {
 
 	echo "adding SpatGris, SpeakerView, ControlGris versions to installer"
 	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS $VERSION\"/" ../Distribution.xml || exit 1
-	sed -i '' "s/title=\"SpeakerView Forward.*\"/title=\"SpeakerView Forward $SPEAKERVIEW_VERSION (Recommended)\"/" ../Distribution.xml || exit 1
-	sed -i '' "s/title=\"SpeakerView Compatibility.*\"/title=\"SpeakerView Compatibility $SPEAKERVIEW_COMPAT_VERSION\"/" ../Distribution.xml || exit 1
-	sed -i '' "s/title=\"SpeakerView Mobile.*\"/title=\"SpeakerView Mobile $SPEAKERVIEW_MOBILE_VERSION\"/" ../Distribution.xml || exit 1
+	sed -i '' "s/title=\"SpeakerView.*\"/title=\"SpeakerView $SPEAKERVIEW_VERSION\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"ControlGRIS.*\"/title=\"ControlGRIS $PLUGINS_VERSION\"/" ../Distribution.xml || exit 1
 
 	echo "building $PACKAGE_NAME"
@@ -273,9 +207,7 @@ function build_package() {
 
 	echo "resetting Distribution.xml file"
 	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS\"/" ../Distribution.xml || exit 1
-	sed -i '' "s/title=\"SpeakerView Forward.*\"/title=\"SpeakerView Forward\"/" ../Distribution.xml || exit 1
-	sed -i '' "s/title=\"SpeakerView Compatibility.*\"/title=\"SpeakerView Compatibility\"/" ../Distribution.xml || exit 1
-	sed -i '' "s/title=\"SpeakerView Mobile.*\"/title=\"SpeakerView Mobile\"/" ../Distribution.xml || exit 1
+	sed -i '' "s/title=\"SpeakerView.*\"/title=\"SpeakerView\"/" ../Distribution.xml || exit 1
 	sed -i '' "s/title=\"ControlGRIS.*\"/title=\"ControlGRIS\"/" ../Distribution.xml || exit 1
 }
 
