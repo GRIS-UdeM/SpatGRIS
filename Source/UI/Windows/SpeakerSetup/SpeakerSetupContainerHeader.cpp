@@ -5,27 +5,39 @@
 namespace gris
 {
 
-void SpeakerColumnHeader::paint(juce::Graphics& g) {
+void SpeakerColumnHeader::paint(juce::Graphics & g)
+{
     // start by painting the label
     juce::Label::paint(g);
     if (sortState == SortState::none) {
         return;
     }
+
     // paints the little arrow thingy if necessary.
-    g.setColour (arrowColor);
+    g.setColour(arrowColor);
     juce::Path sortTriangle;
-    const auto middle = getLocalBounds().getHeight()/2;
-    constexpr auto triangleRightPad = 4;
-    constexpr auto triangleWidth = 10;
-    constexpr auto triangleHeight = 4;
+    const auto middle = getLocalBounds().getHeight() / 2;
+    constexpr auto triangleRightPad = 4.f;
+    constexpr auto triangleWidth = 10.f;
+    constexpr auto triangleHeight = 4.f;
     if (sortState == SortState::ascending)
-        sortTriangle.addTriangle (width - triangleRightPad - triangleWidth, middle + triangleHeight, width - triangleRightPad, middle + triangleHeight, width - triangleRightPad - (triangleWidth/2), middle - triangleHeight);
+        sortTriangle.addTriangle(width - triangleRightPad - triangleWidth,
+                                 middle + triangleHeight,
+                                 width - triangleRightPad,
+                                 middle + triangleHeight,
+                                 width - triangleRightPad - (triangleWidth / 2),
+                                 middle - triangleHeight);
     else
-        sortTriangle.addTriangle (width - triangleRightPad - triangleWidth, middle - triangleHeight, width - triangleRightPad, middle - triangleHeight, width - triangleRightPad - (triangleWidth/2), middle + triangleHeight);
-    g.fillPath (sortTriangle);
+        sortTriangle.addTriangle(width - triangleRightPad - triangleWidth,
+                                 middle - triangleHeight,
+                                 width - triangleRightPad,
+                                 middle - triangleHeight,
+                                 width - triangleRightPad - (triangleWidth / 2),
+                                 middle + triangleHeight);
+    g.fillPath(sortTriangle);
 }
 
-void SpeakerColumnHeader::mouseUp (const juce::MouseEvent& e) {
+void SpeakerColumnHeader::mouseUp (const juce::MouseEvent&) {
     // Basically state transition (and repaint) + sort callback for the parent.
     switch (sortState) {
         case SortState::none:
