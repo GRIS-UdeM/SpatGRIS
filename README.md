@@ -26,7 +26,7 @@ If you want to use SpatGRIS and ControlGRIS on the same computer, you will need 
 
 #### MacOS
 
-We officially support the use of [BlackHole](https://github.com/ExistentialAudio/BlackHole). The 256-, 128-, 64- and 16-channel versions are distributed with SpatGRIS.
+We officially support the use of [BlackHole](https://github.com/ExistentialAudio/BlackHole). The 256-, 128-, 64-, 32- and 16-channel versions are distributed with SpatGRIS.
 
 #### Windows
 
