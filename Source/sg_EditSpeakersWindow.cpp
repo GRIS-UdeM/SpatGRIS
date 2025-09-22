@@ -808,7 +808,7 @@ void EditSpeakersWindow::resized()
     auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 };
     currentX = 130;
     mGridTitle.setBounds(5, fourthRowY, currentX, rowH);
-    positionWidget(&mGridNumCols, currentX, fourthRowYq, labelW, editorW);
+    positionWidget(&mGridNumCols, currentX, fourthRowY, labelW, editorW);
 
     positionWidget(&mGridNumRows, currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
     positionWidget(&mGridX,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
