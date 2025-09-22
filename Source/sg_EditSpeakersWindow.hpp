@@ -189,6 +189,7 @@ public:
     void selectSpeaker(tl::optional<output_patch_t> outputPatch) { mSpeakerSetupContainer.selectSpeaker(outputPatch); }
 
     void togglePolyhedraExtraWidgets();
+    void toggleGridWidgets();
 
     /** This is called in a variety of places, including in MainContentComponent::refreshSpeakers()
     *   when the spatMode changes.*/

@@ -65,6 +65,13 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mPolyY(lookAndFeel)
     , mPolyZ(lookAndFeel)
     , mPolyRadius(lookAndFeel)
+    , mGridNumCols(lookAndFeel)
+    , mGridNumRows(lookAndFeel)
+    , mGridX(lookAndFeel)
+    , mGridY(lookAndFeel)
+    , mGridZ(lookAndFeel)
+    , mGridWidth(lookAndFeel)
+    , mGridHeight(lookAndFeel)
     , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, spatGrisData.speakerSetup.speakerSetupValueTree, undoMan, [this]() { pushSelectionToMainComponent (); })
     , mFont(juce::FontOptions().withHeight(14.f))
     , undoManager (undoMan)
@@ -150,7 +157,6 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mAddPolyButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
 
     togglePolyhedraExtraWidgets();
-
 
     // Grid of speakers.
     setupLabel(mGridTitle, "Grid parameters:");
@@ -577,6 +583,19 @@ void EditSpeakersWindow::togglePolyhedraExtraWidgets()
     mPolyRadius.setVisible(showExtendedPolyWidgets);
 }
 
+void EditSpeakersWindow::toggleGridWidgets()
+{
+    const auto showGridWidgets = spatGrisData.speakerSetup.spatMode == SpatMode::mbap;
+    mGridTitle.setVisible(showGridWidgets);
+    mGridNumCols.setVisible(showGridWidgets);
+    mGridNumRows.setVisible(showGridWidgets);
+    mGridX.setVisible(showGridWidgets);
+    mGridY.setVisible(showGridWidgets);
+    mGridZ.setVisible(showGridWidgets);
+    mGridWidth.setVisible(showGridWidgets);
+    mGridHeight.setVisible(showGridWidgets);
+    mAddGridButton.setVisible(showGridWidgets);
+}
 
 //==============================================================================
 void EditSpeakersWindow::updateWinContent()
