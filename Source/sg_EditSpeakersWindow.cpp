@@ -419,13 +419,58 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         auto const getSpeakerPosition = [this, numCols, numRows](int i) -> Position
         {
-            auto const w {mGridWidth.getTextAs<float>()};
-            auto const h {mGridHeight.getTextAs<float>()};
+            auto const w { mGridWidth.getTextAs<float>() };
+            auto const h { mGridHeight.getTextAs<float>() };
+            auto const cx { mGridX.getTextAs<float>() };
+            auto const cy { mGridY.getTextAs<float>() };
+            auto const cz { mGridZ.getTextAs<float>() };
 
-            auto const wIncrement = w/numCols;
-            auto const hIncrement = h/numRows;
+            // Step size
+            auto const wIncrement = (numCols > 1) ? (w / (numCols - 1)) : 0.0f;
+            auto const hIncrement = (numRows > 1) ? (h / (numRows - 1)) : 0.0f;
 
-            return Position{ CartesianVector{ i * wIncrement, i * hIncrement, 0.f }};
+            // Row / col index
+            int col = i % numCols;
+            int row = i / numCols;
+
+            // Local coordinates, centered around (0,0,0) in plane space
+            float x = (col - (numCols - 1) / 2.0f) * wIncrement;
+            float y = (row - (numRows - 1) / 2.0f) * hIncrement;
+            float z = 0.0f;
+
+            juce::Vector3D<float> posLocal { x, y, z };
+
+            // Where the plane is centered
+            juce::Vector3D<float> center { cx, cy, cz };
+
+            // Vector pointing toward origin
+            juce::Vector3D<float> toOrigin = (-center).normalised();
+
+            // Default plane normal is +Z
+            juce::Vector3D<float> planeNormal { 0.0f, 0.0f, 1.0f };
+
+            // If already aligned, skip rotation
+            juce::Vector3D<float> posWorld;
+            auto const epsilon = 1.0e-6f;
+            if ((planeNormal - toOrigin).lengthSquared() > epsilon)
+            {
+                auto axis = planeNormal ^ toOrigin; // cross product
+                if (! axis.lengthIsBelowEpsilon())
+                    axis = axis.normalised();
+
+                float angle = std::acos(juce::jlimit(-1.0f, 1.0f, planeNormal * toOrigin));
+
+                auto q = juce::Quaternion<float>::fromAngle(angle, axis);
+                auto rot = q.getRotationMatrix();
+
+                posWorld = rot * posLocal + center;
+            }
+            else
+            {
+                posWorld = posLocal + center;
+            }
+
+            return Position{ { posWorld.x, posWorld.y, posWorld.z } };
         };
 
         auto const groupPosition = Position{CartesianVector{ mGridX.getTextAs<float>(), mGridY.getTextAs<float>(), mGridZ.getTextAs<float>() }};
