@@ -73,7 +73,25 @@ public:
 
     std::pair<juce::ValueTree, int> getParentAndIndexOfSelectedItem();
 
-    std::pair<juce::ValueTree, int> getMainSpeakerGroupAndIndex ();
+    /**
+     * Gets the next valid ordering index after the selected value tree item.
+     *
+     * If the selected item is inside a speaker group, the index will be the first index after the
+     * last child of the group.
+     *
+     * Will return the last ordering index of the tree if nothing is selected.
+     *
+     * Note: There are two relevant indexes in this situation :
+     * The ordering index only takes speakers into account and the main group index
+     * is the index in the main group tree. Those are related but not the same.
+     */
+    int getNextOrderingIndex();
+    /**
+     * Get the main group tree index related to the given ordering index.
+     */
+    int getMainGroupIndexFromOrderingIndex(const int targetOrderingIndex);
+
+    juce::ValueTree getMainSpeakerGroup();
 
     void addValueTreeListener(juce::ValueTree::Listener * listener) { speakerSetupVt.addListener(listener); }
 
