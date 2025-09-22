@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: GaÃ«l Lane LÃ©pine, Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sg_GeneralMuteButton.h"
+#include "sg_GeneralMuteButton.hpp"
 
 #include "sg_GrisLookAndFeel.hpp"
 
@@ -99,7 +99,8 @@ void GeneralMuteButton::paint(juce::Graphics & g)
     auto const outerRingBounds{ mActiveBounds.toFloat().reduced(7.0f) };
     g.fillRoundedRectangle(outerRingBounds.toFloat(), 8.0f);
 
-    auto const fontColor{ getInnerColor() == ACTIVE_COLOR ? mLookAndFeel.getDarkColour() : mLookAndFeel.getFontColour() };
+    auto const fontColor{ getInnerColor() == ACTIVE_COLOR ? mLookAndFeel.getDarkColour()
+                                                          : mLookAndFeel.getFontColour() };
     g.setColour(fontColor);
     g.drawFittedText("MUTE", mActiveBounds, juce::Justification::centred, 1);
 }

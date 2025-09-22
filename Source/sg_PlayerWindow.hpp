@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "sg_LogicStrucs.hpp"
-#include "sg_Macros.hpp"
-#include "sg_constants.hpp"
+#include "Data/sg_LogicStrucs.hpp"
+#include "Data/sg_Macros.hpp"
+#include "Data/sg_constants.hpp"
 
 #include <JuceHeader.h>
 

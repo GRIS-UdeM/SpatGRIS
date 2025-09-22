@@ -19,8 +19,8 @@
 
 #pragma once
 
+#include "Data/sg_Narrow.hpp"
 #include "sg_MinSizedComponent.hpp"
-#include "sg_Narrow.hpp"
 
 namespace gris
 {

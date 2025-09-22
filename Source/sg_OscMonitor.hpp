@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_LogBuffer.hpp"
+#include "Containers/sg_LogBuffer.hpp"
 
 namespace gris
 {
@@ -66,7 +66,7 @@ public:
     SG_DELETE_COPY_AND_MOVE(OscMonitorWindow)
     //==============================================================================
     void closeButtonPressed() override;
-    bool keyPressed (const juce::KeyPress &key) override;
+    bool keyPressed(const juce::KeyPress & key) override;
 
 private:
     //==============================================================================

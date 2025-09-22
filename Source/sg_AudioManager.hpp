@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "sg_AudioStructs.hpp"
-#include "sg_LogicStrucs.hpp"
-#include "sg_TaggedAudioBuffer.hpp"
+#include "Data/sg_AudioStructs.hpp"
+#include "Data/sg_LogicStrucs.hpp"
+#include "Containers/sg_TaggedAudioBuffer.hpp"
 
 #include <JuceHeader.h>
 
@@ -82,6 +82,10 @@ private:
     juce::AudioDeviceManager mAudioDeviceManager{};
     SourceAudioBuffer mInputBuffer{};
     SpeakerAudioBuffer mOutputBuffer{};
+#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
+    ForkUnionBuffer forkUnionBuffer;
+#endif
+
     juce::AudioBuffer<float> mStereoOutputBuffer{};
     tl::optional<StereoRouting> mStereoRouting{};
     // Recording
@@ -98,7 +102,8 @@ private:
     juce::TimeSliceThread mPlayerThread{ "SpatGRIS player thread" };
     juce::AudioFormat * mAudioFormat{};
     bool mFormatsRegistered{};
-    bool mIsPlaying{};
+    std::atomic<bool> mIsPlaying{};
+    std::atomic<bool> mIsPlayerLoading{};
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -126,6 +131,7 @@ public:
     void startPlaying();
     void stopPlaying();
     bool isPlaying() const;
+    void setPlayerLoading(bool const playerIsLoading);
     void unloadPlayer();
     void setPosition(double const newPos);
     void reloadPlayerAudioFiles(int currentBufferSize, double currentSampleRate);
@@ -134,17 +140,21 @@ public:
     juce::Array<juce::File> & getAudioFiles();
 
     void initInputBuffer(juce::Array<source_index_t> const & sources);
+#if SG_USE_FORK_UNION
+    void initForkUnionBuffer (int bufferSize, tl::optional<int> speakerCount);
+#endif
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);
     void setBufferSize(int newBufferSize);
     void setStereoRouting(tl::optional<StereoRouting> const & stereoRouting);
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;
-    void audioDeviceIOCallback(const float ** inputChannelData,
-                               int totalNumInputChannels,
-                               float ** outputChannelData,
-                               int totalNumOutputChannels,
-                               int numSamples) override;
+    void audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
+                                           int totalNumInputChannels,
+                                           float* const* outputChannelData,
+                                           int totalNumOutputChannels,
+                                           int numSamples,
+                                           const juce::AudioIODeviceCallbackContext& context) override;
     void audioDeviceAboutToStart(juce::AudioIODevice * device) override;
     void audioDeviceStopped() override;
     //==============================================================================

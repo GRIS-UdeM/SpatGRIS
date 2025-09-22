@@ -19,16 +19,19 @@
 
 #include "sg_MainComponent.hpp"
 
+#include <map>
 #include "sg_AudioManager.hpp"
-#include "sg_CommandId.hpp"
+#include "Data/sg_CommandId.hpp"
 #include "sg_ControlPanel.hpp"
 #include "sg_FatalError.hpp"
 #include "sg_GrisLookAndFeel.hpp"
-#include "sg_LegacyLbapPosition.hpp"
+#include "Data/sg_LegacyLbapPosition.hpp"
 #include "sg_MainWindow.hpp"
 #include "sg_ScopeGuard.hpp"
 #include "sg_TitledComponent.hpp"
-#include "sg_constants.hpp"
+#include "Data/sg_constants.hpp"
+#include <Utilities/ValueTreeUtilities.hpp>
+#include "Misc/sg_DefaultFiles.hpp"
 
 namespace gris
 {
@@ -38,6 +41,19 @@ constexpr auto BUTTON_CANCEL = 0;
 constexpr auto BUTTON_OK = 1;
 constexpr auto BUTTON_DISCARD = 2;
 
+#if DEBUG_SPEAKER_EDITION
+juce::String getJuceArrayString (const juce::Array<output_patch_t>& array)
+{
+    juce::String arrayString("(");
+
+    for (auto const& item : array)
+        arrayString << juce::String (item.get()) << " ";
+
+    arrayString = arrayString.trimEnd();
+    arrayString << ")";
+    return arrayString;
+}
+#endif
 //==============================================================================
 float gainToSpeakerAlpha(float const gain)
 {
@@ -112,7 +128,13 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     };
 
     //==============================================================================
-    auto const initAppData = [&]() { mData.appData = mConfiguration.load(); };
+    auto const initAppData = [&]() {
+        mData.appData = mConfiguration.load();
+        if (mData.appData.lastProject.isEmpty())
+            mData.appData.lastProject = DEFAULT_PROJECT_FILE.getFullPathName();
+        if (mData.appData.lastSpeakerSetup.isEmpty ())
+            mData.appData.lastSpeakerSetup = DEFAULT_SPEAKER_SETUP_FILE.getFullPathName();
+    };
 
     //==============================================================================
     auto const initGui = [&]() {
@@ -121,10 +143,11 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
         // Create the menu bar.
         mMenuBar.reset(new juce::MenuBarComponent(this));
+        mMenuBar->setColour(juce::TextButton::textColourOffId, grisLookAndFeel.getLightColour());
+        mMenuBar->setColour(juce::TextButton::textColourOnId, grisLookAndFeel.getLightColour());
+        mMenuBar->setColour(juce::TextButton::buttonColourId, grisLookAndFeel.getWinBackgroundColour());
+        mMenuBar->setColour(juce::TextButton::buttonOnColourId, grisLookAndFeel.getOnColour());
         addAndMakeVisible(mMenuBar.get());
-
-        // SpeakerViewComponent 3D view
-        mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
 
         // Box Main
         mMainLayout
@@ -183,8 +206,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(sashPosition))) };
         mVerticalLayout.setItemPosition(1, trueSize);
 
-        mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
-        handleShowSpeakerViewWindow();
     };
 
     //==============================================================================
@@ -238,9 +259,17 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     initAppData();
     initGui();
     initProject();
+
+    // SpeakerViewComponent 3D view (need project data before initialization)
+    mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
+    mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
+    handleShowSpeakerViewWindow();
+
     initSpeakerSetup();
     initAudioManager();
     initAudioProcessor();
+
+    mSpeakersRefreshAsyncUpdater = std::make_unique<SpeakersRefreshAsyncUpdater> (*this);
 
     // juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
@@ -527,18 +556,19 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
         // 0 = Cancel, 1 = Yes, 2 = No
         if (result == 0) {
             return;
-        } else if (result == 1) {
+        }
+        mEditSpeakersWindow.reset();
+
+        // save to file if we clicked yes
+        if (result == 1) {
             if (!saveSpeakerSetup(mData.appData.lastSpeakerSetup)) {
                 return;
             }
-        } else if (result == 2) {
-            auto const spatMode{ mData.project.spatMode };
-            loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
-            setSpatMode(spatMode);
         }
-
+        // In all cases, load from file. If we clicked no, this will reset to the previous state.
+        loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
+        setSpatMode(mData.project.spatMode);
         refreshSpeakers();
-        mEditSpeakersWindow.reset();
     };
 
     if (!isSpeakerSetupModified()) {
@@ -549,13 +579,11 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
     }
 }
 
-//==============================================================================
 void MainContentComponent::saveAsEditedSpeakerSetup()
 {
     saveSpeakerSetup(tl::nullopt);
 }
 
-//==============================================================================
 void MainContentComponent::saveEditedSpeakerSetup()
 {
     handleSaveSpeakerSetup();
@@ -582,9 +610,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
         auto const windowName = juce::String{ "Speaker Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
                                 + juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension();
-        mEditSpeakersWindow
-            = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
-        mEditSpeakersWindow->initComp();
+        mEditSpeakersWindow = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, undoManager);
     }
 }
 
@@ -595,7 +621,7 @@ void MainContentComponent::handleShowPreferences()
     juce::ScopedReadLock const lock{ mLock };
 
     if (mPropertiesWindow == nullptr) {
-        mPropertiesWindow.reset(new SettingsWindow{ *this, mData.project.oscPort, mLookAndFeel });
+        mPropertiesWindow.reset(new SettingsWindow{ *this, *mSpeakerViewComponent, mLookAndFeel });
         mPropertiesWindow->centreAroundComponent(this, mPropertiesWindow->getWidth(), mPropertiesWindow->getHeight());
     }
 }
@@ -886,6 +912,8 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
 
     // Speaker setup must be Dome or Cube, never Hybrid
     mData.speakerSetup.spatMode = newSpatMode == SpatMode::mbap ? SpatMode::mbap : SpatMode::vbap;
+    if (!mIsLoadingSpeakerSetupOrProjectFile)
+        mData.speakerSetup.speakerSetupValueTree.setProperty(SPAT_MODE, spatModeToString(spatMode), nullptr);
     mData.project.spatMode = newSpatMode;
     mControlPanel->setSpatMode(newSpatMode);
     setTitles();
@@ -959,14 +987,24 @@ void MainContentComponent::numSourcesChanged(int const numSources)
     if (numSources > mData.project.sources.size()) {
         source_index_t const firstNewIndex{ mData.project.sources.size() + 1 };
         source_index_t const lastNewIndex{ numSources };
-        for (auto index{ firstNewIndex }; index <= lastNewIndex; ++index) {
-            mData.project.sources.add(index, std::make_unique<SourceData>());
+        const auto numSourcesToAdd{ numSources - mData.project.sources.size() };
+
+        for (int i{}; i < numSourcesToAdd; ++i) {
+            std::optional<source_index_t> sourceIndex;
+            std::optional<int> index{};
+
+            // Get first available source index
+            for (source_index_t j{ 1 }; mData.project.ordering.contains(j); ++j) {
+                index = j.get();
+            }
+
+            addSource(sourceIndex, *index);
         }
     } else if (numSources < mData.project.sources.size()) {
         // remove some inputs
         while (mData.project.sources.size() > numSources) {
-            source_index_t const index{ mData.project.sources.size() };
-            mData.project.sources.remove(index);
+            source_index_t const index{ mData.project.ordering.getLast() };
+            removeSource(index);
         }
     }
 
@@ -983,8 +1021,8 @@ void MainContentComponent::generalMuteButtonPressed()
     juce::ScopedReadLock const lock{ mLock };
 
     auto const newSliceState{ mControlPanel->getGeneralMuteButtonState() == GeneralMuteButton::State::allUnmuted
-                             ? SliceState::muted
-                             : SliceState::normal };
+                                  ? SliceState::muted
+                                  : SliceState::normal };
     auto const newGeneralMuteButtonState{ mControlPanel->getGeneralMuteButtonState()
                                                   == GeneralMuteButton::State::allUnmuted
                                               ? GeneralMuteButton::State::allMuted
@@ -1693,6 +1731,7 @@ bool MainContentComponent::isSpeakerSetupModified() const
     if (!savedSpeakerSetup) {
         return true;
     }
+
     return mData.speakerSetup != *savedSpeakerSetup;
 }
 
@@ -1805,12 +1844,15 @@ void MainContentComponent::updatePeaks()
     for (auto const speaker : mData.speakerSetup.speakers) {
         auto const & peak{ speakerPeaks[speaker.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
-        mSpeakerSliceComponents[speaker.key].setLevel(dbPeak);
 
-        auto & exchanger{ viewPortData.hotSpeakersAlphaUpdaters[speaker.key] };
-        auto * ticket{ exchanger.acquire() };
-        ticket->get() = gainToSpeakerAlpha(peak);
-        exchanger.setMostRecent(ticket);
+        if (mSpeakerSliceComponents.contains(speaker.key)) {
+            mSpeakerSliceComponents[speaker.key].setLevel(dbPeak);
+
+            auto & exchanger{ viewPortData.hotSpeakersAlphaUpdaters[speaker.key] };
+            auto * ticket{ exchanger.acquire() };
+            ticket->get() = gainToSpeakerAlpha(peak);
+            exchanger.setMostRecent(ticket);
+        }
     }
 }
 
@@ -1914,7 +1956,9 @@ void MainContentComponent::setLegacySourcePosition(source_index_t const sourceIn
     juce::ScopedWriteLock const lock{ mLock };
 
     if (!mData.project.sources.contains(sourceIndex)) {
-        jassertfalse;
+        // There used to be an assert here, but by design we want to allow SpatGRIS to have more or less sources than
+        // ControlGRIS, to allow N number of ControlGRIS/controller instances to connect to M number of
+        // SpatGRIS/spatializer instances.
         return;
     }
 
@@ -1965,7 +2009,9 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
     juce::ScopedWriteLock const lock{ getLock() };
 
     if (!mData.project.sources.contains(sourceIndex)) {
-        jassertfalse;
+        // There used to be an assert here, but by design we want to allow SpatGRIS to have more or less sources than
+        // ControlGRIS, to allow N number of ControlGRIS/controller instances to connect to M number of
+        // SpatGRIS/spatializer instances.
         return;
     }
 
@@ -2006,12 +2052,33 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
     juce::ScopedWriteLock const lock{ mLock };
 
     if (!mData.project.sources.contains(sourceIndex)) {
-        jassertfalse;
+        // There used to be an assert here, but by design we want to allow SpatGRIS to have more or less sources than
+        // ControlGRIS, to allow N number of ControlGRIS/controller instances to connect to M number of
+        // SpatGRIS/spatializer instances.
         return;
     }
 
     mData.project.sources[sourceIndex].position = tl::nullopt;
     updateSourceSpatData(sourceIndex);
+}
+
+//==============================================================================
+void MainContentComponent::projectSourceIndexChanged(source_index_t oldSourceIndex, source_index_t newSourceIndex)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & sources{ mData.project.sources };
+    sources.add(newSourceIndex, std::make_unique<SourceData>(sources[oldSourceIndex]));
+    sources.remove(oldSourceIndex);
+
+    auto & order{ mData.project.ordering };
+    order.set(order.indexOf(oldSourceIndex), newSourceIndex);
+
+    mData.project.ordering.sort();
+
+    refreshSourceSlices();
+    refreshSpeakerSlices();
 }
 
 //==============================================================================
@@ -2053,6 +2120,33 @@ void MainContentComponent::speakerOutputPatchChanged(output_patch_t const oldOut
     refreshSpeakerSlices();
 }
 
+std::map<output_patch_t, tl::optional<Position>> MainContentComponent::getSpeakersGroupCenters()
+{
+  std::map<output_patch_t, tl::optional<Position>> speaker_group_center{};
+  // the first child is the main speaker group where individual speakers and speaker groups are stored.
+  auto main_speaker_group = mData.speakerSetup.speakerSetupValueTree.getChild(0);
+  for (int i = 0; i < main_speaker_group.getNumChildren(); i++)
+  {
+      auto node = main_speaker_group.getChild(i);
+      // if the node is a speakergroup, search all the group for a child
+      // that has the right id and return the Position of the group.
+      if (node.getType () == SPEAKER_GROUP) {
+        auto sub_group = node;
+        Position center_position = juce::VariantConverter<Position>::fromVar(sub_group[CARTESIAN_POSITION]);
+        for (int j = 0; j < sub_group.getNumChildren(); j++) {
+          auto speaker = sub_group.getChild(j);
+          auto const speaker_patch_id = output_patch_t{speaker[SPEAKER_PATCH_ID]};
+          speaker_group_center[speaker_patch_id] = center_position;
+        }
+        // if the node is not a group it's a speaker and we don't care. If its id matches, return its position.
+      } else {
+        auto const speaker_patch_id = output_patch_t{node[SPEAKER_PATCH_ID]};
+        speaker_group_center[speaker_patch_id] = tl::nullopt;
+      }
+  }
+  return speaker_group_center;
+}
+
 //==============================================================================
 void MainContentComponent::setSpeakerGain(output_patch_t const outputPatch, dbfs_t const gain)
 {
@@ -2089,12 +2183,43 @@ void MainContentComponent::setSpeakerHighPassFreq(output_patch_t const outputPat
 void MainContentComponent::setOscPort(int const newOscPort)
 {
     juce::ScopedWriteLock const lock{ mLock };
+    const auto oldPort = mData.project.oscPort;
     mData.project.oscPort = newOscPort;
     if (!mOscInput) {
         return;
     }
     mOscInput->closeConnection();
-    mOscInput->startConnection(newOscPort);
+    const bool success = mOscInput->startConnection(newOscPort);
+    // rollback if it didn't work
+    if (!success) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                               "Could not change OSC input port",
+                                               "Could not change the OSC input port to "+ juce::String(newOscPort) + " . Some other application may have the same port open ?\n",
+                                               "Ok",
+
+                                               this);
+
+        mData.project.oscPort = oldPort;
+        // we don't check if this one works, lets hope it does.
+        mOscInput->startConnection(oldPort);
+    }
+}
+
+void MainContentComponent::setStandaloneSpeakerViewInputPort(tl::optional<int> port)
+{
+    mData.project.standaloneSpeakerViewInputPort = port;
+}
+
+void MainContentComponent::setStandaloneSpeakerViewOutput(tl::optional<int> port, tl::optional<juce::String> address)
+{
+    mData.project.standaloneSpeakerViewOutputPort = port;
+    mData.project.standaloneSpeakerViewOutputAddress = address;
+}
+
+
+int MainContentComponent::getOscPort() const
+{
+    return mData.project.oscPort;
 }
 
 //==============================================================================
@@ -2122,11 +2247,6 @@ void MainContentComponent::setSourceColor(source_index_t const sourceIndex, juce
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
-
-    if (sourceIndex.get() == mData.project.sources.size() + 1) {
-        // Right click on the last source's color selector
-        return;
-    }
 
     mData.project.sources[sourceIndex].colour = colour;
     mSourceSliceComponents[sourceIndex].setSourceColour(colour);
@@ -2258,7 +2378,7 @@ void MainContentComponent::refreshSpatAlgorithm()
         case AbstractSpatAlgorithm::Error::notEnoughCubeSpeakers:
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
                                                    "Disabled spatialization",
-                                                   "The Cubes need at least 2 speakers.\n",
+                                                   "Cube spatialization requires at least 2 spatialized speakers.\n",
                                                    "Ok",
                                                    this);
             break;
@@ -2291,7 +2411,6 @@ void MainContentComponent::refreshViewportConfig() const
     if (!mAudioProcessor) {
         return;
     }
-
     auto const & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
 
     auto const newConfig{ mData.toViewportConfig() };
@@ -2342,7 +2461,21 @@ void MainContentComponent::setSourceHybridSpatMode(source_index_t const sourceIn
 }
 
 //==============================================================================
-void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
+void MainContentComponent::setSourceNewSourceIndex(source_index_t oldSourceIndex, source_index_t newSourceIndex)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (mData.project.sources.contains(newSourceIndex) || mPlayerWindow != nullptr) {
+        return;
+    }
+
+    projectSourceIndexChanged(oldSourceIndex, newSourceIndex);
+    refreshSpatAlgorithm();
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t>&& newOrder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2350,19 +2483,31 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
     auto & order{ mData.speakerSetup.ordering };
     jassert(newOrder.size() == order.size());
     order = std::move(newOrder);
-    refreshSpeakerSlices();
 }
 
 //==============================================================================
-output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
+output_patch_t MainContentComponent::getNextSpeakerOutputPatch () const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock { mLock };
+
+    auto const& patches { mData.speakerSetup.ordering };
+
+    //look for the first free patch number
+    output_patch_t nextFreePatch{1};
+    while (std::find (patches.begin (), patches.end (), nextFreePatch) != patches.end ())
+        ++nextFreePatch;
+
+    //and return it
+    return nextFreePatch;
+}
+
+int MainContentComponent::getNumSpeakerOutputPatch() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    auto const & patches{ mData.speakerSetup.ordering };
-    auto const * maxIterator{ std::max_element(patches.begin(), patches.end()) };
-    auto const maxPatch{ maxIterator != mData.speakerSetup.ordering.end() ? *maxIterator : output_patch_t{} };
-    return maxPatch;
+    return mData.speakerSetup.ordering.size();
 }
 
 //==============================================================================
@@ -2412,6 +2557,103 @@ tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File 
 }
 
 //==============================================================================
+source_index_t MainContentComponent::addSource(std::optional<source_index_t> sourceToCopy, std::optional<int> index)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto newSource{ std::make_unique<SourceData>() };
+
+    if (sourceToCopy) {
+        auto const sourceToCopyExists{ mData.project.sources.contains(*sourceToCopy) };
+        jassert(sourceToCopyExists);
+        if (sourceToCopyExists) {
+            *newSource = mData.project.sources[*sourceToCopy];
+        }
+    }
+
+    auto const newSourceIndex{ getFirstAvailableProjectSourceIndex() };
+
+    if (index) {
+        auto const isValidIndex{ *index >= 0 && !mData.project.ordering.contains(static_cast<source_index_t>(*index)) };
+        if (isValidIndex) {
+            mData.project.ordering.insert(*index, newSourceIndex);
+        } else {
+            static constexpr auto AT_END = -1;
+            mData.project.ordering.insert(AT_END, newSourceIndex);
+        }
+    } else {
+        mData.project.ordering.add(newSourceIndex);
+    }
+
+    mData.project.sources.add(newSourceIndex, std::move(newSource));
+
+    return newSourceIndex;
+}
+
+//==============================================================================
+void MainContentComponent::removeSource(source_index_t const sourceIndex)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const dataLock{ mLock };
+    juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
+
+    mData.project.ordering.removeFirstMatchingValue(sourceIndex);
+    mData.project.sources.remove(sourceIndex);
+}
+
+//==============================================================================
+void MainContentComponent::reorderSources(juce::Array<source_index_t> newOrder)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & order{ mData.project.ordering };
+    jassert(newOrder.size() == order.size());
+    order = std::move(newOrder);
+    refreshSourceSlices();
+}
+
+//==============================================================================
+source_index_t MainContentComponent::getMaxProjectSourceIndex() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto const & indexes{ mData.project.ordering };
+    auto const * maxIterator{ std::max_element(indexes.begin(), indexes.end()) };
+    auto const maxIndex{ maxIterator != mData.project.ordering.end() ? *maxIterator : source_index_t{} };
+
+    return maxIndex;
+}
+
+//==============================================================================
+source_index_t MainContentComponent::getFirstAvailableProjectSourceIndex() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    source_index_t firstAvailableIndex{};
+    for (source_index_t i{ 1 }; mData.project.ordering.contains(i); ++i) {
+        firstAvailableIndex = static_cast<source_index_t>(i.get() + 1);
+    }
+
+    return firstAvailableIndex;
+}
+
+//==============================================================================
+source_index_t MainContentComponent::getNextProjectSourceIndex(source_index_t currentSourceIndex)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto source = mData.project.sources.getNode(currentSourceIndex);
+    auto nextSourceIndex = mData.project.sources.getNextUsedKey(source.key);
+
+    return nextSourceIndex;
+}
+
+//==============================================================================
 output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> const speakerToCopy,
                                                 tl::optional<int> const index)
 {
@@ -2428,12 +2670,13 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
         }
     }
 
-    auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
+    auto const newOutputPatch { getNextSpeakerOutputPatch () };
 
     if (index) {
-        auto const isValidIndex{ *index >= 0 && *index < mData.speakerSetup.ordering.size() };
+        auto const actualIndex { *index };
+        auto const isValidIndex{ actualIndex >= 0 && actualIndex < mData.speakerSetup.ordering.size() };
         if (isValidIndex) {
-            mData.speakerSetup.ordering.insert(*index, newOutputPatch);
+            mData.speakerSetup.ordering.insert(actualIndex, newOutputPatch);
         } else {
             static constexpr auto AT_END = -1;
             mData.speakerSetup.ordering.insert(AT_END, newOutputPatch);
@@ -2448,16 +2691,59 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
 }
 
 //==============================================================================
-void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
+void MainContentComponent::addSpeaker(const SpeakerData & speakerData, int index, output_patch_t newOutputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+#if DEBUG_SPEAKER_EDITION
+    DBG("MainContentComponent::addSpeaker() with output patch: "
+        << newOutputPatch.toString() << " and index: " << juce::String(index)
+        << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
+
+    if (!mData.speakerSetup.ordering.contains(newOutputPatch)) {
+        auto const isValidIndex{ index >= 0 && index < mData.speakerSetup.ordering.size() };
+        if (isValidIndex) {
+            mData.speakerSetup.ordering.insert(index, newOutputPatch);
+        } else {
+            static constexpr auto AT_END = -1;
+            mData.speakerSetup.ordering.insert(AT_END, newOutputPatch);
+        }
+
+        mData.speakerSetup.speakers.add(newOutputPatch, std::make_unique<SpeakerData>(speakerData));
+    }
+
+#if DEBUG_SPEAKER_EDITION
+    DBG("after MainContentComponent::addSpeaker() we got: " << mData.speakerSetup.speakers.toString()
+                                                            << " and ordering: "
+                                                            << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
+}
+
+//==============================================================================
+void MainContentComponent::removeSpeaker(output_patch_t const outputPatch, bool shouldRefreshSpeakers /*= true*/)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+#if DEBUG_SPEAKER_EDITION
+    DBG("removing speaker with output patch: " << outputPatch.toString()
+                                               << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
+
     juce::ScopedWriteLock const dataLock{ mLock };
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     mData.speakerSetup.ordering.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
 
-    refreshSpeakers();
+#if DEBUG_SPEAKER_EDITION
+    DBG("after removal we got: " << mData.speakerSetup.speakers.toString()
+                                 << " and ordering: " << getJuceArrayString(mData.speakerSetup.ordering));
+#endif
+
+    if (shouldRefreshSpeakers)
+        requestSpeakerRefresh();
 }
 
 //==============================================================================
@@ -2515,12 +2801,13 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
     }
 
     if (mData.speakerSetup.generalMute) {
-        for (auto& speaker : mData.speakerSetup.speakers) {
+        for (auto & speaker : mData.speakerSetup.speakers) {
             speaker.value->state = SliceState::muted;
         }
     }
 
     setSpatMode(newSpatMode);
+    speakerSetup->speakerSetupValueTree.setProperty(SPAT_MODE, spatModeToString (newSpatMode), nullptr);
     mIsLoadingSpeakerSetupOrProjectFile = false;
 
     if (mPlayerWindow != nullptr) {
@@ -2624,6 +2911,7 @@ void MainContentComponent::buttonPressed([[maybe_unused]] SpatButton * button)
 }
 
 //==============================================================================
+
 void MainContentComponent::handleSaveSpeakerSetup()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2692,16 +2980,14 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
         maybeFile = fc.getResult();
     }
 
-    auto const & file{ *maybeFile };
-    auto const content{ mData.speakerSetup.toXml() };
-    auto const success{ content->writeTo(file) };
-
-    jassert(success);
+    auto const success = maybeFile->replaceWithText (mData.speakerSetup.speakerSetupValueTree.toXmlString ());
     if (success) {
         mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
+        setTitles ();
     }
-
-    setTitles();
+    else {
+        jassertfalse;   //could not save the file!
+    }
 
     return success;
 }
@@ -2766,7 +3052,6 @@ bool MainContentComponent::makeSureSpeakerSetupIsSavedToDisk() noexcept
     }
 
     jassert(pressedButton == BUTTON_OK);
-
     return saveSpeakerSetup(tl::nullopt);
 }
 
@@ -2802,12 +3087,14 @@ void MainContentComponent::timerCallback()
 
     mInfoPanel->setCpuLoad(cpuRunningAverage);
 
-    if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
-        mIsProcessForeground = juce::Process::isForegroundProcess();
+    //TODO: could this be related to this issue https://github.com/GRIS-UdeM/SpatGRIS/issues/476 ?
+    if (mIsProcessForeground != juce::Process::isForegroundProcess ()) {
+        mIsProcessForeground = juce::Process::isForegroundProcess ();
         if (mEditSpeakersWindow != nullptr && mIsProcessForeground) {
-            mEditSpeakersWindow->setAlwaysOnTop(true);
-        } else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
-            mEditSpeakersWindow->setAlwaysOnTop(false);
+            mEditSpeakersWindow->setAlwaysOnTop (true);
+        }
+        else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
+            mEditSpeakersWindow->setAlwaysOnTop (false);
         }
     }
 }
@@ -2914,18 +3201,26 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
         loadProject(projectFile, true);
     }
 
-    int numberOfSources{};
-    for (int i{}; i < playerSpeakerSetup->speakers.size(); ++i) {
-        numberOfSources = juce::jmax(playerSpeakerSetup->ordering[i].get(), numberOfSources);
+    // instead of numSourcesChanged, remove all sources and rebuild them from the player speaker setup
+    if (!projectFile.existsAsFile()) {
+        for (auto source : mData.project.sources) {
+            removeSource(source.key);
+        }
+
+        for (auto const & outputPatch : playerSpeakerSetup->ordering) {
+            auto const index{ outputPatch.get() };
+            auto newSource{ std::make_unique<SourceData>() };
+            auto const newSourceIndex{ static_cast<source_index_t>(outputPatch.get()) };
+
+            mData.project.ordering.insert(index, newSourceIndex);
+            mData.project.sources.add(newSourceIndex, std::move(newSource));
+        }
     }
 
-    numSourcesChanged(numberOfSources);
+    refreshAudioProcessor();
+    audioParametersChanged(); // Make sure the size of the buffers does not reset to MAX_NUM_SAMPLES
+    refreshSourceSlices();
     handleResetSourcesPositions();
-
-    std::vector<bool> usedSources(numberOfSources);
-    std::fill(usedSources.begin(), usedSources.end(), false);
-    std::vector<bool> subSources(numberOfSources);
-    std::fill(subSources.begin(), subSources.end(), false);
 
     for (auto & speaker : playerSpeakerSetup->speakers) {
         // update sources data from speakers position of speaker setup
@@ -2934,15 +3229,17 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
         source.value->position = speaker.value->position;
         source.value->azimuthSpan = 0.0f;
         source.value->zenithSpan = 0.0f;
-        usedSources[sourceIndex.get() - source_index_t::OFFSET] = true;
 
         if (!projectFile.existsAsFile()) {
             // manage source color
             if (speaker.value->isDirectOutOnly) {
-                subSources[speaker.key.get() - source_index_t::OFFSET] = true;
+                // subs color
+                source.value->colour = mLookAndFeel.getSubColor();
+                mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSubColor());
+            } else {
+                source.value->colour = mLookAndFeel.getSourceColor();
+                mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSourceColor());
             }
-            source.value->colour = mLookAndFeel.getSourceColor();
-            mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSourceColor());
 
             // reset source output
             setSourceDirectOut(sourceIndex, tl::nullopt);
@@ -2954,33 +3251,10 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
     }
 
     if (!projectFile.existsAsFile()) {
-        // set color of unused sources, mute them and remove direct out
-        int i{};
-        for (auto & source : mData.project.sources) {
-            if (!usedSources[i]) {
-                source.value->colour = mLookAndFeel.getInactiveColor();
-                mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getInactiveColor());
-
-                source_index_t const sourceIndex{ i + source_index_t::OFFSET };
-                setSourceState(sourceIndex, SliceState::muted);
-                setSourceDirectOut(sourceIndex, tl::nullopt);
-            }
-            ++i;
-        }
-
-        // set color of subs
-        i = 0;
-        for (auto & source : mData.project.sources) {
-            if (subSources[i]) {
-                source.value->colour = mLookAndFeel.getSubColor();
-                mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSubColor());
-            }
-            ++i;
-        }
-
         // manage direct outputs speakers
         juce::Array<source_index_t> playerDirectOutSpeakers{};
         juce::Array<output_patch_t> speakerSetupDirectOutSpeakers{};
+
         for (auto & playerSpeaker : playerSpeakerSetup->speakers) {
             if (playerSpeaker.value->isDirectOutOnly) {
                 source_index_t const sourceIndex{ playerSpeaker.key.get() };
@@ -3092,7 +3366,7 @@ void MainContentComponent::handleShowSpeakerTripletsFromSpeakerView(bool value)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const readLock{ mLock };
 
-    if (!mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
+    if (! mAudioProcessor || !mAudioProcessor->getSpatAlgorithm() || !mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
         return;
     }
 

@@ -19,6 +19,10 @@
 
 #pragma once
 
+#include "Containers/sg_LogBuffer.hpp"
+#include "Containers/sg_OwnedMap.hpp"
+#include "Data/sg_LogicStrucs.hpp"
+#include "Data/sg_constants.hpp"
 #include "sg_AboutWindow.hpp"
 #include "sg_AddRemoveSourcesWindow.hpp"
 #include "sg_AudioProcessor.hpp"
@@ -28,11 +32,8 @@
 #include "sg_FlatViewWindow.hpp"
 #include "sg_InfoPanel.hpp"
 #include "sg_LayoutComponent.hpp"
-#include "sg_LogBuffer.hpp"
-#include "sg_LogicStrucs.hpp"
 #include "sg_OscInput.hpp"
 #include "sg_OscMonitor.hpp"
-#include "sg_OwnedMap.hpp"
 #include "sg_PlayerWindow.hpp"
 #include "sg_PrepareToRecordWindow.hpp"
 #include "sg_SettingsWindow.hpp"
@@ -42,7 +43,6 @@
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
-#include "sg_constants.hpp"
 
 namespace gris
 {
@@ -73,6 +73,8 @@ class MainContentComponent final
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
+    juce::UndoManager undoManager;
+
     enum class LoadSpeakerSetupOption { allowDiscardingUnsavedChanges, disallowDiscardingUnsavedChanges };
 
     juce::ReadWriteLock mLock{};
@@ -166,12 +168,33 @@ public:
     void setSourcePosition(source_index_t sourceIndex, Position position, float azimuthSpan, float zenithSpan);
 
     void resetSourcePosition(source_index_t sourceIndex);
+    void projectSourceIndexChanged(source_index_t oldSourceIndex, source_index_t newSourceIndex);
 
     void speakerDirectOutOnlyChanged(output_patch_t outputPatch, bool state);
     void speakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
+
+    /**
+     * Gets a map of <speaker output patch id> -> <optional speaker group center position>
+     * Basically this associates every speaker id with the center position of its parent group or with
+     * nullopt if its not part of a group.
+     */
+    std::map<output_patch_t, tl::optional<Position>> getSpeakersGroupCenters();
+
     void setSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
     void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
     void setOscPort(int newOscPort);
+    int getOscPort() const;
+
+    /**
+     * Set the standalone speakerview input port value in the project data (to be saved to xml)
+     */
+    void setStandaloneSpeakerViewInputPort(tl::optional<int> port);
+    /**
+     * Set the standalone speakerview output port and address value in the project data.
+     */
+    void setStandaloneSpeakerViewOutput(tl::optional<int> port, tl::optional<juce::String> address);
+
+
     void setSpeakerSetupDiffusion(float diffusion);
 
     void setPinkNoiseGain(tl::optional<dbfs_t> gain);
@@ -183,6 +206,9 @@ public:
     void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     void setShowTriplets(bool state);
     void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) override;
+    void setSourceNewSourceIndex(source_index_t oldSourceIndex, source_index_t newSourceIndex) override;
+
+    [[nodiscard]] source_index_t getNextProjectSourceIndex(source_index_t currentSourceIndex) override;
 
     template<typename T>
     void setSpeakerPosition(output_patch_t const outputPatch, T const & position)
@@ -214,15 +240,50 @@ public:
 
     juce::Component * getControlsComponent() const;
 
+    source_index_t addSource(std::optional<source_index_t> sourceToCopy, std::optional<int> index);
+    void removeSource(source_index_t sourceIndex);
+    void reorderSources(juce::Array<source_index_t> newOrder);
+    [[nodiscard]] source_index_t getMaxProjectSourceIndex() const;
+    [[nodiscard]] source_index_t getFirstAvailableProjectSourceIndex() const;
+
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
-    void removeSpeaker(output_patch_t outputPatch);
-    void reorderSpeakers(juce::Array<output_patch_t> newOrder);
-    [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
+    void addSpeaker(const SpeakerData & speakerData, int index, output_patch_t newOutputPatch);
+    void removeSpeaker(output_patch_t outputPatch, bool shouldRefreshSpeakers = true);
+    /**
+     * Note: This doesn't refresh speaker, call requestSpeakerRefresh() afterwards to see the change.
+     */
+    void reorderSpeakers(juce::Array<output_patch_t> && newOrder);
+    [[nodiscard]] output_patch_t getNextSpeakerOutputPatch() const;
+    [[nodiscard]] int getNumSpeakerOutputPatch() const;
 
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
 
-    void refreshSpeakers();
+    void requestSpeakerRefresh()
+    {
+        if (mSpeakersRefreshAsyncUpdater)
+            mSpeakersRefreshAsyncUpdater->triggerAsyncUpdate();
+    }
+
+    /**
+     * @class SpeakersRefreshAsyncUpdater
+     * @brief Asynchronous updater for refreshing speaker UI components.
+     *
+     * This helper class is used by MainContentComponent to schedule and coalesce
+     * updates to the speaker-related UI components in the future.
+     * It inherits from juce::AsyncUpdater, allowing refresh requests to be triggered
+     * from any thread, but ensuring that the actual refresh operation (refreshSpeakers)
+     * is executed on the main (message) thread, and if many requests are made, only one will be processed.
+     */
+    class SpeakersRefreshAsyncUpdater : public juce::AsyncUpdater
+    {
+    public:
+        SpeakersRefreshAsyncUpdater (MainContentComponent& owner) : mOwner (owner) {}
+        void handleAsyncUpdate () override { mOwner.refreshSpeakers (); }
+    private:
+        MainContentComponent& mOwner;
+    };
+    std::unique_ptr<SpeakersRefreshAsyncUpdater> mSpeakersRefreshAsyncUpdater;
 
     //==============================================================================
     // Commands.
@@ -269,6 +330,8 @@ public:
     bool speakerViewShouldGrabFocus();
     void resetSpeakerViewShouldGrabFocus();
 
+
+
 private:
     //==============================================================================
     [[nodiscard]] bool isProjectModified() const;
@@ -302,6 +365,9 @@ private:
     void handleSaveSpeakerSetupAs();
     void handleShowOscMonitorWindow();
 
+    /** This is called by the SpeakersRefreshAsyncUpdater when MainContentComponent::requestSpeakerRefresh() is called.
+     */
+    void refreshSpeakers ();
     void refreshSourceSlices();
     void refreshSpeakerSlices();
 

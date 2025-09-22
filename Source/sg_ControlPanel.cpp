@@ -42,10 +42,10 @@ constexpr auto COL_INNER_PADDING = 3;
 namespace gris
 {
 //==============================================================================
-GainsSubPanel::GainsSubPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
-    : SubPanelComponent(LayoutComponent::Orientation::horizontal, lookAndFeel)
+GainsSubPanel::GainsSubPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lnf)
+    : SubPanelComponent(LayoutComponent::Orientation::horizontal, lnf)
     , mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(lookAndFeel)
+    , mLookAndFeel(lnf)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     addSection(mMasterGainSlider).withChildMinSize();

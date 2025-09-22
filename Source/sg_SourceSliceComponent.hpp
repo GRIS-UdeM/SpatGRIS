@@ -45,10 +45,13 @@ public:
         virtual ~Listener() = default;
         SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
+        virtual source_index_t getNextProjectSourceIndex(source_index_t currentSourceIndex) = 0;
+        //==============================================================================
         virtual void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) = 0;
         virtual void setSourceColor(source_index_t sourceIndex, juce::Colour colour) = 0;
         virtual void setSourceState(source_index_t sourceIndex, SliceState state) = 0;
         virtual void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) = 0;
+        virtual void setSourceNewSourceIndex(source_index_t oldSourceIndex, source_index_t newSourceIndex) = 0;
     };
 
 private:
@@ -85,6 +88,7 @@ public:
     void muteSoloButtonClicked(SliceState state) override;
     void sourceIdButtonColorChanged(SourceIdButton * button, juce::Colour color) override;
     void sourceIdButtonCopyColorToNextSource(SourceIdButton * button, juce::Colour color) override;
+    void sourceIdButtonSourceIndexChanged(SourceIdButton * button, source_index_t newSourceIndex) override;
     void directOutSelectorComponentClicked(tl::optional<output_patch_t> directOut) override;
     void hybridSpatModeSelectorClicked(SpatMode newHybridSpatMode) override;
 
