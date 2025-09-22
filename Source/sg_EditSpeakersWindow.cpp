@@ -244,11 +244,6 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     auto mainGroup = mSpeakerSetupContainer.getMainSpeakerGroup();
     auto orderingIndex = mSpeakerSetupContainer.getNextOrderingIndex();
     auto indexInMainGroup = mSpeakerSetupContainer.getMainGroupIndexFromOrderingIndex(orderingIndex);
-    if (!mSpeakerSetupContainer.selectionIsInSubGroup()) {
-        // I really don't know why I need to do this, sorry.
-        orderingIndex+=1;
-        indexInMainGroup+=1;
-    }
 
     // create the new speaker group and add it in the value tree
     juce::ValueTree newGroup(SPEAKER_GROUP);
@@ -327,12 +322,6 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         auto orderingIndex = mSpeakerSetupContainer.getNextOrderingIndex();
         auto indexInMainGroup = mSpeakerSetupContainer.getMainGroupIndexFromOrderingIndex(orderingIndex);
-
-        if (!mSpeakerSetupContainer.selectionIsInSubGroup()) {
-            // I really don't know why I need to do this, sorry.
-            orderingIndex+=1;
-            indexInMainGroup+=1;
-        }
 
         auto selectedSpeaker = mSpeakerSetupContainer.getSelectedSpeakers();
         tl::optional<output_patch_t> outputPatchToCopy =

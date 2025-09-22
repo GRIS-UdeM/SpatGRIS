@@ -188,14 +188,13 @@ int SpeakerSetupContainer::getNextOrderingIndex()
     int index {0};
     bool found = false;
     std::function<void(const juce::ValueTree&, bool)> recurUntilTargetFound;
-    recurUntilTargetFound = [&targetRow, &recurUntilTargetFound, &index, &found](const juce::ValueTree& valueTree, bool countChildren) {
-        // if we get to the right tree, set found to true and return which will cause
-        // all other calls to also return before incrementing the index.
-        if (targetRow == valueTree) {
-            found = true;
-        }
+    recurUntilTargetFound = [this, &targetRow, &recurUntilTargetFound, &index, &found](const juce::ValueTree& valueTree, bool countChildren) {
         if (found) {
             return;
+        }
+        // if we get to the right tree, set found to true and increment the index one last time. All other calls will immediately return.
+        if (targetRow == valueTree) {
+            found = true;
         }
         if ((valueTree.getType() == SPEAKER_GROUP && valueTree[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME) || valueTree.getType() == SPEAKER_SETUP) {
             for (auto child: valueTree) {
@@ -209,6 +208,7 @@ int SpeakerSetupContainer::getNextOrderingIndex()
                 recurUntilTargetFound(child, false);
             }
         } else {
+            // if we are not in a subgroup, increment the ordering index.
             if (countChildren) {
                 index += 1;
             }
@@ -255,12 +255,6 @@ int SpeakerSetupContainer::getMainGroupIndexFromOrderingIndex(const int targetOr
     };
     getMainGroupIndex(vtRow, false);
     return mainGroupIndex;
-}
-
-bool SpeakerSetupContainer::selectionIsInSubGroup()
-{
-    const auto selectedItemParent = getSelectedItem().getParent();
-    return selectedItemParent.getType() == SPEAKER_GROUP && selectedItemParent[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME;
 }
 
 juce::ValueTree SpeakerSetupContainer::getMainSpeakerGroup()

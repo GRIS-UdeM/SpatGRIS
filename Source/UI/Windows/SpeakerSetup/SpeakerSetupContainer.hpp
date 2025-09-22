@@ -90,10 +90,7 @@ public:
      * Get the main group tree index related to the given ordering index.
      */
     int getMainGroupIndexFromOrderingIndex(const int targetOrderingIndex);
-    /**
-     * true if the current selection is in a subgroup.
-     */
-    bool selectionIsInSubGroup();
+
     juce::ValueTree getMainSpeakerGroup();
 
     void addValueTreeListener(juce::ValueTree::Listener * listener) { speakerSetupVt.addListener(listener); }
