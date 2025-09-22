@@ -46,15 +46,18 @@ public:
                           juce::UndoManager & undoMan,
                           std::function<void()> selectionChanged);
 
-    ~SpeakerSetupContainer() override { speakerSetupTreeView.setRootItem(nullptr); }
+    ~SpeakerSetupContainer () override
+    {
+        speakerSetupTreeView.setRootItem (nullptr);
+    }
 
     void reload(juce::ValueTree theSpeakerSetupVt);
 
-    void resized() override;
+    void resized () override;
 
-    void deleteSelectedItems();
+    void deleteSelectedItems ();
 
-    bool keyPressed(const juce::KeyPress & key) override;
+    bool keyPressed (const juce::KeyPress& key) override;
 
     /** returns either the selected item or the last item*/
     juce::ValueTree getSelectedItem();
@@ -66,11 +69,11 @@ public:
 
     juce::Array<output_patch_t> getSelectedSpeakers();
 
-    void selectSpeaker(tl::optional<output_patch_t> const outputPatch);
+    void selectSpeaker (tl::optional<output_patch_t> const outputPatch);
 
     std::pair<juce::ValueTree, int> getParentAndIndexOfSelectedItem();
 
-    std::pair<juce::ValueTree, int> getMainSpeakerGroupAndIndex();
+    std::pair<juce::ValueTree, int> getMainSpeakerGroupAndIndex ();
 
     void addValueTreeListener(juce::ValueTree::Listener * listener) { speakerSetupVt.addListener(listener); }
 
@@ -78,7 +81,7 @@ public:
 
     bool isDeletingGroup() { return SpeakerSetupLine::isDeletingGroup; }
 
-    const juce::ValueTree & getSpeakerSetupVt();
+    const juce::ValueTree& getSpeakerSetupVt();
 
 private:
     GrisLookAndFeel grisLookAndFeel;
@@ -91,12 +94,12 @@ private:
 
     std::unique_ptr<SpeakerSetupLine> mainSpeakerGroupLine;
 
-    juce::UndoManager & undoManager;
-    std::function<void()> onSelectionChanged;
+    juce::UndoManager& undoManager;
+    std::function<void ()> onSelectionChanged;
 
     void timerCallback() override;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpeakerSetupContainer)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerSetupContainer)
 };
 
-} // namespace gris
+}

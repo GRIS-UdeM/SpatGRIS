@@ -15,9 +15,9 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <functional>
 #include "SpeakerSetupContainer.hpp"
 #include "SpeakerTreeComponent.hpp"
-#include <functional>
 
 namespace gris
 {
@@ -26,57 +26,53 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
                                              juce::ValueTree theSpeakerSetupVt,
                                              juce::UndoManager & undoMan,
                                              std::function<void()> selectionChanged)
-    : speakerSetupFileName{ speakerSetupXmlFile.getFileName() }
-    , speakerSetupVt(theSpeakerSetupVt)
-    , containerHeader{ grisLookAndFeel }
-    , undoManager(undoMan)
-    , onSelectionChanged(selectionChanged)
+    : speakerSetupFileName { speakerSetupXmlFile.getFileName()}
+    , speakerSetupVt (theSpeakerSetupVt)
+    , containerHeader{grisLookAndFeel}
+    , undoManager (undoMan)
+    , onSelectionChanged (selectionChanged)
 {
     speakerSetupTreeView.setRootItemVisible(false);
-    addAndMakeVisible(speakerSetupTreeView);
+    addAndMakeVisible (speakerSetupTreeView);
 
-    speakerSetupTreeView.setTitle(speakerSetupFileName);
-    speakerSetupTreeView.setDefaultOpenness(true);
-    speakerSetupTreeView.setMultiSelectEnabled(true);
+    speakerSetupTreeView.setTitle (speakerSetupFileName);
+    speakerSetupTreeView.setDefaultOpenness (true);
+    speakerSetupTreeView.setMultiSelectEnabled (true);
 
-    mainSpeakerGroupLine
-        = std::make_unique<SpeakerSetupLine>(speakerSetupVt.getChild(0), undoManager, onSelectionChanged);
-    speakerSetupTreeView.setRootItem(mainSpeakerGroupLine.get());
+    mainSpeakerGroupLine = std::make_unique<SpeakerSetupLine> (speakerSetupVt.getChild(0), undoManager, onSelectionChanged);
+    speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
 
-    addAndMakeVisible(undoButton);
-    addAndMakeVisible(redoButton);
+    addAndMakeVisible (undoButton);
+    addAndMakeVisible (redoButton);
 
     addAndMakeVisible(containerHeader);
-    containerHeader.setSortFunc([this](SpeakerColumnHeader::ColumnID sortID, int sortDirection) {
-        mainSpeakerGroupLine->sort({}, sortID, sortDirection);
-    });
+    containerHeader.setSortFunc([this](SpeakerColumnHeader::ColumnID sortID, int sortDirection) { mainSpeakerGroupLine->sort ({}, sortID, sortDirection); });
 
-    undoButton.onClick = [this] { undoManager.undo(); };
-    redoButton.onClick = [this] { undoManager.redo(); };
+    undoButton.onClick = [this] { undoManager.undo (); };
+    redoButton.onClick = [this] { undoManager.redo (); };
 
-    startTimer(500);
+    startTimer (500);
 
-    setSize(800, 800);
+    setSize (800, 800);
 }
 
 void SpeakerSetupContainer::reload(juce::ValueTree theSpeakerSetupVt)
 {
     // Note: we also have logic in SpeakerSetupLine::refreshSubItems() to restore the openness of our tree.
-    // It would seem like only one of those would be enough but currently both are required to restore the state
-    // properly
+    // It would seem like only one of those would be enough but currently both are required to restore the state properly
 
     // cache the current node openness and scroll position
     const auto cachedOpenness = speakerSetupTreeView.getOpennessState(true);
 
     // rebuild everything
     speakerSetupVt = theSpeakerSetupVt;
-    speakerSetupTreeView.setRootItem(nullptr);
-    mainSpeakerGroupLine.reset(new SpeakerSetupLine(speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
-    speakerSetupTreeView.setRootItem(mainSpeakerGroupLine.get());
+    speakerSetupTreeView.setRootItem (nullptr);
+    mainSpeakerGroupLine.reset(new SpeakerSetupLine (speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
+    speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
     speakerSetupTreeView.restoreOpennessState(*cachedOpenness, true);
 
     // try to match and restore the previous scroll position
-    auto & viewport = speakerSetupTreeView.getViewport()->getVerticalScrollBar();
+    auto& viewport = speakerSetupTreeView.getViewport()->getVerticalScrollBar();
     const auto maxRangeLimit = viewport.getMaximumRangeLimit();
     const auto currentRangeSize = viewport.getCurrentRangeSize();
     const auto maxScrollValue = maxRangeLimit - currentRangeSize;
@@ -106,51 +102,54 @@ void SpeakerSetupContainer::resized()
     speakerSetupTreeView.setBounds(bounds);
 }
 
-void SpeakerSetupContainer::deleteSelectedItems()
+void SpeakerSetupContainer::deleteSelectedItems ()
 {
     juce::OwnedArray<juce::ValueTree> selectedItems;
-    SpeakerSetupLine::getSelectedTreeViewItems(speakerSetupTreeView, selectedItems);
+    SpeakerSetupLine::getSelectedTreeViewItems (speakerSetupTreeView, selectedItems);
 
-    for (auto * v : selectedItems) {
-        if (v->getParent().isValid())
-            v->getParent().removeChild(*v, &undoManager);
+    for (auto* v : selectedItems)
+    {
+        if (v->getParent ().isValid ())
+            v->getParent ().removeChild (*v, &undoManager);
     }
 }
 
-bool SpeakerSetupContainer::keyPressed(const juce::KeyPress & key)
+bool SpeakerSetupContainer::keyPressed (const juce::KeyPress& key)
 {
-    if (key == juce::KeyPress::deleteKey || key == juce::KeyPress::backspaceKey) {
-        deleteSelectedItems();
+    if (key == juce::KeyPress::deleteKey || key == juce::KeyPress::backspaceKey)
+    {
+        deleteSelectedItems ();
         return true;
     }
 
-    if (key == juce::KeyPress('z', juce::ModifierKeys::commandModifier, 0)) {
-        undoManager.undo();
+    if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier, 0))
+    {
+        undoManager.undo ();
         return true;
     }
 
-    if (key == juce::KeyPress('z', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier, 0)) {
-        undoManager.redo();
+    if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier, 0))
+    {
+        undoManager.redo ();
         return true;
     }
 
-    return Component::keyPressed(key);
+    return Component::keyPressed (key);
 }
 
-const juce::ValueTree & SpeakerSetupContainer::getSpeakerSetupVt()
-{
+const juce::ValueTree& SpeakerSetupContainer::getSpeakerSetupVt() {
     return speakerSetupVt;
 }
 
 juce::ValueTree SpeakerSetupContainer::getSelectedItem()
 {
-    // if we have a selection, return the last selected item. Otherwise return the last overall item
+    //if we have a selection, return the last selected item. Otherwise return the last overall item
     if (auto const numSelected{ speakerSetupTreeView.getNumSelectedItems() }) {
         if (auto const selected = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getSelectedItem(0)))
             return selected->getValueTree();
     } else {
         auto const numLines = speakerSetupTreeView.getNumRowsInTree();
-        if (auto const last = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getItemOnRow(numLines - 1)))
+        if (auto const last = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getItemOnRow(numLines-1)))
             return last->getValueTree();
     }
 
@@ -170,42 +169,43 @@ juce::Array<output_patch_t> SpeakerSetupContainer::getSelectedSpeakers()
     return selectedOutputPatches;
 }
 
-void SpeakerSetupContainer::selectSpeaker(tl::optional<output_patch_t> const outputPatch)
+void SpeakerSetupContainer::selectSpeaker (tl::optional<output_patch_t> const outputPatch)
 {
     mainSpeakerGroupLine->selectChildSpeaker(outputPatch);
 }
 
-std::pair<juce::ValueTree, int> SpeakerSetupContainer::getParentAndIndexOfSelectedItem()
+std::pair<juce::ValueTree, int> SpeakerSetupContainer::getParentAndIndexOfSelectedItem ()
 {
-    auto const vtRow = getSelectedItem();
-    auto parent = vtRow.getParent();
-    return { parent, parent.indexOf(vtRow) };
+    auto const vtRow = getSelectedItem ();
+    auto parent = vtRow.getParent ();
+    return { parent, parent.indexOf (vtRow) };
 }
 
-std::pair<juce::ValueTree, int> SpeakerSetupContainer::getMainSpeakerGroupAndIndex()
+std::pair<juce::ValueTree, int> SpeakerSetupContainer::getMainSpeakerGroupAndIndex ()
 {
-    auto vtRow = getSelectedItem();
+    auto vtRow = getSelectedItem ();
     if (vtRow[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME)
-        return { vtRow, 0 };
+        return { vtRow , 0};
 
     juce::ValueTree parent;
-    int index{ 0 };
-    do {
-        parent = vtRow.getParent();
-        index += parent.indexOf(vtRow);
+    int index {0};
+    do
+    {
+        parent = vtRow.getParent ();
+        index += parent.indexOf (vtRow);
         vtRow = parent;
     } while (parent.getParent().isValid() && vtRow[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME);
 
-    jassert(parent[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME);
+    jassert (parent[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME);
     return { parent, index };
 }
 
-void SpeakerSetupContainer::timerCallback()
+void SpeakerSetupContainer::timerCallback ()
 {
-    undoManager.beginNewTransaction();
+    undoManager.beginNewTransaction ();
 
-    undoButton.setEnabled(undoManager.canUndo());
-    redoButton.setEnabled(undoManager.canRedo());
+    undoButton.setEnabled (undoManager.canUndo ());
+    redoButton.setEnabled (undoManager.canRedo ());
 }
 
 } // namespace gris

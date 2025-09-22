@@ -26,8 +26,8 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
                                            const juce::ValueTree & v,
                                            juce::UndoManager & undoMan)
     : speakerTreeVt(v)
-    , undoManager(undoMan)
-    , speakerSetupVt(v.getRoot())
+    , undoManager (undoMan)
+    , speakerSetupVt (v.getRoot())
     , speakerSetupLine(owner)
 {
     speakerSetupVt.addListener(this);
@@ -40,12 +40,13 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
     setupCoordinateLabel(elev, Position::Coordinate::elevation);
     setupCoordinateLabel(distance, Position::Coordinate::radius);
 
-    setupDeleteButton();
+    setupDeleteButton ();
 
     setupStringLabel(drag, juce::String("="));
 
     drag.setEditable(false);
     drag.setInterceptsMouseClicks(false, false);
+
 }
 
 void SpeakerTreeComponent::setupDeleteButton()
@@ -57,7 +58,9 @@ void SpeakerTreeComponent::setupDeleteButton()
 
     deleteButton.setClickingTogglesState(false);
 
-    deleteButton.onClick = [this]() { deleteButtonBehaviour(); };
+    deleteButton.onClick = [this]() {
+        deleteButtonBehaviour();
+    };
 
     addAndMakeVisible(deleteButton);
 }
@@ -71,14 +74,14 @@ void SpeakerTreeComponent::resized()
         const auto windowOriginInThis = window->getLocalPoint(this, juce::Point<int>{ 0, 0 });
         const auto idColWidth = fixedLeftColWidth - windowOriginInThis.x;
         id.setBounds(bounds.removeFromLeft(idColWidth - colGap));
-        bounds.removeFromLeft(colGap);
+        bounds.removeFromLeft (colGap);
 
         // then position the other components with a fixed width of otherColWidth
-        std::vector<juce::Component *> components
-            = { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &deleteButton, &drag };
-        for (auto * component : components) {
-            component->setBounds(bounds.removeFromLeft(otherColWidth - colGap));
-            bounds.removeFromLeft(colGap);
+        std::vector<juce::Component*> components = { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &deleteButton, &drag };
+        for (auto* component : components)
+        {
+            component->setBounds (bounds.removeFromLeft (otherColWidth - colGap));
+            bounds.removeFromLeft (colGap);
         }
     }
 }
@@ -97,22 +100,22 @@ static Position getLegalSpeakerPosition(Position const & position,
     }
 
     static auto const clampCartesianPosition
-        = [](float const & valueModified, float & valueToAdjust, float & valueToTryToKeepIntact) {
-              auto const valueModified2{ valueModified * valueModified };
-              auto const lengthWithoutValueToAdjust{ valueModified2 + valueToTryToKeepIntact * valueToTryToKeepIntact };
+        = [](float const& valueModified, float& valueToAdjust, float& valueToTryToKeepIntact) {
+        auto const valueModified2 { valueModified * valueModified };
+        auto const lengthWithoutValueToAdjust { valueModified2 + valueToTryToKeepIntact * valueToTryToKeepIntact };
 
-              if (lengthWithoutValueToAdjust > 1.0f) {
-                  auto const sign{ valueToTryToKeepIntact < 0.0f ? -1.0f : 1.0f };
-                  auto const length{ std::sqrt(1.0f - valueModified2) };
-                  valueToTryToKeepIntact = sign * length;
-                  valueToAdjust = 0.0f;
-                  return;
-              }
+        if (lengthWithoutValueToAdjust > 1.0f) {
+            auto const sign { valueToTryToKeepIntact < 0.0f ? -1.0f : 1.0f };
+            auto const length { std::sqrt (1.0f - valueModified2) };
+            valueToTryToKeepIntact = sign * length;
+            valueToAdjust = 0.0f;
+            return;
+        }
 
-              auto const sign{ valueToAdjust < 0.0f ? -1.0f : 1.0f };
-              auto const length{ std::sqrt(1.0f - lengthWithoutValueToAdjust) };
-              valueToAdjust = sign * length;
-          };
+        auto const sign { valueToAdjust < 0.0f ? -1.0f : 1.0f };
+        auto const length { std::sqrt (1.0f - lengthWithoutValueToAdjust) };
+        valueToAdjust = sign * length;
+        };
 
     auto newPosition{ position.getCartesian() };
 
@@ -133,49 +136,50 @@ static Position getLegalSpeakerPosition(Position const & position,
     return Position{ newPosition };
 }
 
-float SpeakerTreeComponent::getPositionCoordinate(Position::Coordinate coordinate)
+
+float SpeakerTreeComponent::getPositionCoordinate (Position::Coordinate coordinate)
 {
-    auto const position{ getPosition() };
+    auto const position { getPosition () };
 
     switch (coordinate) {
     case Position::Coordinate::x:
-        return position.getCartesian().x;
+        return position.getCartesian ().x;
     case Position::Coordinate::y:
-        return position.getCartesian().y;
+        return position.getCartesian ().y;
     case Position::Coordinate::z:
-        return position.getCartesian().z;
+        return position.getCartesian ().z;
     case Position::Coordinate::azimuth:
-        return position.getPolar().azimuth.get();
+        return position.getPolar ().azimuth.get();
     case Position::Coordinate::elevation:
-        return position.getPolar().elevation.get();
+        return position.getPolar ().elevation.get ();
     case Position::Coordinate::radius:
-        return position.getPolar().length;
+        return position.getPolar ().length;
     default:
         jassertfalse;
         return {};
     };
 }
 
-juce::String SpeakerTreeComponent::getPositionCoordinateTrimmedText(Position::Coordinate coordinate)
+juce::String SpeakerTreeComponent::getPositionCoordinateTrimmedText (Position::Coordinate coordinate)
 {
-    auto const position{ getPosition() };
+    auto const position { getPosition () };
 
     switch (coordinate) {
     case Position::Coordinate::x:
-        return juce::String(position.getCartesian().x, 3);
+        return juce::String (position.getCartesian ().x, 3);
     case Position::Coordinate::y:
-        return juce::String(position.getCartesian().y, 3);
+        return juce::String (position.getCartesian ().y, 3);
     case Position::Coordinate::z:
-        return juce::String(position.getCartesian().z, 3);
+        return juce::String (position.getCartesian ().z, 3);
     case Position::Coordinate::azimuth:
-        return juce::String(position.getPolar().azimuth.get() / radians_t::RADIAN_PER_DEGREE, 1);
+        return juce::String (position.getPolar ().azimuth.get () / radians_t::RADIAN_PER_DEGREE, 1);
     case Position::Coordinate::elevation:
-        return juce::String(position.getPolar().elevation.get() / radians_t::RADIAN_PER_DEGREE, 1);
+        return juce::String (position.getPolar ().elevation.get () / radians_t::RADIAN_PER_DEGREE, 1);
     case Position::Coordinate::radius:
-        return juce::String(position.getPolar().length, 3);
+        return juce::String (position.getPolar ().length, 3);
     default:
         jassertfalse;
-        return juce::String();
+        return juce::String ();
     };
 }
 
@@ -202,7 +206,7 @@ void SpeakerTreeComponent::setPositionCoordinate(Position::Coordinate coordinate
         }
     }();
 
-#if !ENABLE_GROUP_MOVEMENT_IN_DOME
+#if ! ENABLE_GROUP_MOVEMENT_IN_DOME
     auto const spatMode{ getSpatMode().value_or(SpatMode::mbap) };
     localPosition = getLegalSpeakerPosition(localPosition, spatMode, speakerTreeVt[DIRECT_OUT_ONLY], coordinate);
     setPosition(localPosition);
@@ -244,11 +248,11 @@ void SpeakerTreeComponent::setupCoordinateLabel(DraggableLabel & label, Position
 
     label.onTextChange = [this, &label, coordinate] {
         setPositionCoordinate(coordinate, label.getText().getFloatValue());
-        updateAllPositionLabels();
+        updateAllPositionLabels ();
     };
 
     label.onMouseDragCallback = [this, &label, coordinate](int deltaY) {
-        if (!label.isEnabled())
+        if (! label.isEnabled())
             return;
 
         auto currentValue = label.getText().getFloatValue();
@@ -256,19 +260,19 @@ void SpeakerTreeComponent::setupCoordinateLabel(DraggableLabel & label, Position
         auto newValue = currentValue - deltaY * dragIncrement;
 
         setPositionCoordinate(coordinate, newValue);
-        updateAllPositionLabels();
+        updateAllPositionLabels ();
     };
 
     addAndMakeVisible(label);
 }
 
-void SpeakerTreeComponent::setupStringLabel(juce::Label & label, juce::StringRef text)
+void SpeakerTreeComponent::setupStringLabel (juce::Label & label, juce::StringRef text)
 {
     label.setText(text, juce::dontSendNotification);
     addAndMakeVisible(label);
 }
 
-void SpeakerTreeComponent::updateAllPositionLabels()
+void SpeakerTreeComponent::updateAllPositionLabels ()
 {
     x.setText(getPositionCoordinateTrimmedText(Position::Coordinate::x), juce::dontSendNotification);
     y.setText(getPositionCoordinateTrimmedText(Position::Coordinate::y), juce::dontSendNotification);
@@ -280,19 +284,19 @@ void SpeakerTreeComponent::updateAllPositionLabels()
 
 tl::optional<SpatMode> SpeakerTreeComponent::getSpatMode() const
 {
-    return stringToSpatMode(speakerTreeVt.getRoot().getProperty(SPAT_MODE).toString());
+    return stringToSpatMode (speakerTreeVt.getRoot ().getProperty(SPAT_MODE).toString());
 }
 
 void SpeakerTreeComponent::valueTreePropertyChanged(juce::ValueTree & valueTree, const juce::Identifier & property)
 {
     if (property == SPAT_MODE)
-        updateUiBasedOnSpatMode();
+        updateUiBasedOnSpatMode ();
 
     if (valueTree != speakerTreeVt)
         return;
 
     if (property == SPEAKER_GROUP_NAME || property == SPEAKER_PATCH_ID) {
-        auto const value = speakerTreeVt[property].toString();
+        auto const value = speakerTreeVt[property].toString ();
         id.setText(value, juce::dontSendNotification);
     }
 
@@ -304,7 +308,7 @@ void SpeakerTreeComponent::valueTreePropertyChanged(juce::ValueTree & valueTree,
         updateUiBasedOnSpatMode();
 }
 
-void SpeakerTreeComponent::updateUiBasedOnSpatMode()
+void SpeakerTreeComponent::updateUiBasedOnSpatMode ()
 {
     if (auto const spatMode{ getSpatMode() }; spatMode == SpatMode::vbap) {
         x.setEnabled(false);
@@ -313,81 +317,72 @@ void SpeakerTreeComponent::updateUiBasedOnSpatMode()
 
         // the behaviour changes if we are a SpeakerComponent or a SpeakerGroupComponent
         setVbapSphericalCoordinateBehaviour();
-    } else if (spatMode == SpatMode::mbap) {
-        x.setEnabled(true);
-        y.setEnabled(true);
-        z.setEnabled(true);
-        azim.setEnabled(false);
-        elev.setEnabled(false);
-        distance.setEnabled(false);
-    } else {
-        x.setEnabled(true);
-        y.setEnabled(true);
-        z.setEnabled(true);
-        azim.setEnabled(true);
-        elev.setEnabled(true);
-        distance.setEnabled(false);
+    }
+    else if (spatMode == SpatMode::mbap)
+    {
+        x.setEnabled (true);
+        y.setEnabled (true);
+        z.setEnabled (true);
+        azim.setEnabled (false);
+        elev.setEnabled (false);
+        distance.setEnabled (false);
+    }
+    else
+    {
+        x.setEnabled (true);
+        y.setEnabled (true);
+        z.setEnabled (true);
+        azim.setEnabled (true);
+        elev.setEnabled (true);
+        distance.setEnabled (false);
     }
 }
 
 //==============================================================================
 
-SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine * owner,
+SpeakerGroupComponent::SpeakerGroupComponent(SpeakerSetupLine* owner,
                                              const juce::ValueTree & v,
                                              juce::UndoManager & undoMan)
     : SpeakerTreeComponent(owner, v, undoMan)
 {
     id.getTextValue().referTo(speakerTreeVt.getPropertyAsValue(SPEAKER_GROUP_NAME, &undoManager));
-    id.setEditable(true);
+    id.setEditable (true);
     addAndMakeVisible(id);
 
     auto cogImage = juce::ImageCache::getFromMemory(BinaryData::cog_icon_png, BinaryData::cog_icon_pngSize);
 
     groupSettingsButton.addListener(this);
-    groupSettingsButton.setImages(false,
-                                  true,
-                                  true,
-                                  cogImage,
-                                  1.0f,
-                                  juce::Colours::transparentWhite,
-                                  cogImage,
-                                  0.7f,
-                                  juce::Colours::transparentWhite,
-                                  cogImage,
-                                  0.7f,
-                                  juce::Colours::transparentWhite);
-    groupSettingsButton.setTooltip(TRANS("Speaker group orientation"));
+    groupSettingsButton.setImages(false, true, true, cogImage, 1.0f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite, cogImage, 0.7f, juce::Colours::transparentWhite);
+    groupSettingsButton.setTooltip (TRANS ("Speaker group orientation"));
     updateUiBasedOnSpatMode();
-    addAndMakeVisible(groupSettingsButton);
+    addAndMakeVisible (groupSettingsButton);
 }
 
-void SpeakerGroupComponent::buttonClicked(juce::Button * button)
-{
+void SpeakerGroupComponent::buttonClicked (juce::Button* button) {
     if (button == &groupSettingsButton && settingsWindow == nullptr) {
         settingsWindow = std::make_unique<SpeakerGroupSettingsWindow>(*this);
         settingsWindow->centreAroundComponent(this, settingsWindow->getWidth(), settingsWindow->getHeight());
     }
-    return;
+  return;
 }
 
-void SpeakerGroupComponent::deleteButtonBehaviour()
-{
+void SpeakerGroupComponent::deleteButtonBehaviour() {
     auto parent = speakerTreeVt.getParent();
     SpeakerSetupLine::isDeletingGroup = true;
 
-    auto const numSpeakers{ speakerTreeVt.getNumChildren() };
+    auto const numSpeakers { speakerTreeVt.getNumChildren()};
     if (numSpeakers >= 1) {
-        // remove all but the first child
+        //remove all but the first child
         for (int i = numSpeakers - 1; i >= 1; --i)
-            speakerTreeVt.removeChild(i, &undoManager);
+          speakerTreeVt.removeChild (i, &undoManager);
 
         SpeakerSetupLine::isDeletingGroup = false;
 
-        // this last one will trigger a call to MainContentComponent::refreshSpeakers()
-        speakerTreeVt.removeChild(0, &undoManager);
+        //this last one will trigger a call to MainContentComponent::refreshSpeakers()
+        speakerTreeVt.removeChild (0, &undoManager);
 
-        // and finally delete the group
-        parent.removeChild(speakerTreeVt, &undoManager);
+        //and finally delete the group
+        parent.removeChild (speakerTreeVt, &undoManager);
     }
 }
 
@@ -406,8 +401,8 @@ void SpeakerGroupComponent::setVbapSphericalCoordinateBehaviour()
     azim.setEnabled(true);
     elev.setEnabled(true);
 #else
-    azim.setEnabled(false);
-    elev.setEnabled(false);
+    azim.setEnabled (false);
+    elev.setEnabled (false);
 #endif
     distance.setEnabled(false);
 
@@ -437,90 +432,93 @@ void SpeakerGroupComponent::resized()
 
         const auto idColWidth = fixedLeftColWidth - groupSettingsButtonWidth - windowOriginInThis.x;
         id.setBounds(bounds.removeFromLeft(idColWidth - colGap));
-        bounds.removeFromLeft(colGap);
+        bounds.removeFromLeft (colGap);
 
         // then position the other components with a fixed width of otherColWidth
-        std::vector<juce::Component *> components
-            = { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &deleteButton, &drag };
-        for (auto * component : components) {
-            component->setBounds(bounds.removeFromLeft(otherColWidth - colGap));
-            bounds.removeFromLeft(colGap);
+        std::vector<juce::Component*> components = { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass, &direct, &deleteButton, &drag };
+        for (auto* component : components)
+        {
+            component->setBounds (bounds.removeFromLeft (otherColWidth - colGap));
+            bounds.removeFromLeft (colGap);
         }
     }
 }
 
 //==============================================================================
 
-SpeakerComponent::SpeakerComponent(SpeakerSetupLine * owner, const juce::ValueTree & v, juce::UndoManager & undoMan)
+SpeakerComponent::SpeakerComponent(SpeakerSetupLine* owner,
+                                   const juce::ValueTree & v,
+                                   juce::UndoManager & undoMan)
     : SpeakerTreeComponent(owner, v, undoMan)
 {
-    id.setEditable(true);
-    id.addListener(this);
+    id.setEditable (true);
+    id.addListener (this);
     setupStringLabel(id, speakerTreeVt[SPEAKER_PATCH_ID].toString());
     setupGain();
 
-    setupHighPass();
+    setupHighPass ();
     updateUiBasedOnSpatMode();
 
-    direct.getToggleStateValue().referTo(speakerTreeVt.getPropertyAsValue(DIRECT_OUT_ONLY, &undoManager));
-    addAndMakeVisible(direct);
+    direct.getToggleStateValue ().referTo (speakerTreeVt.getPropertyAsValue (DIRECT_OUT_ONLY, &undoManager));
+    addAndMakeVisible (direct);
 }
 
 void SpeakerComponent::paint(juce::Graphics & g)
 {
     if (speakerSetupLine->isSelected())
         g.fillAll(lnf.mHlBgcolor);
-    else if (speakerSetupLine->getIndexInParent() % 2 == 0)
+    else if(speakerSetupLine->getIndexInParent() % 2 == 0)
         g.fillAll(lnf.mGreyColour);
 }
 
-void SpeakerComponent::editorShown(juce::Label * label, juce::TextEditor & editor)
+void SpeakerComponent::editorShown (juce::Label* label, juce::TextEditor& editor)
 {
     if (label != &id)
         return;
 
-    editor.setInputRestrictions(3, "0123456789");
+    editor.setInputRestrictions (3, "0123456789");
 }
 
-void SpeakerComponent::setupGain()
+void SpeakerComponent::setupGain ()
 {
-    const auto getClampedGain = [](float gainValue) {
-        static constexpr dbfs_t MIN_GAIN{ -18.0f };
-        static constexpr dbfs_t MAX_GAIN{ 6.0f };
-        return std::clamp(dbfs_t(gainValue), MIN_GAIN, MAX_GAIN);
-    };
 
-    gain.setEditable(true);
+    const auto getClampedGain = [](float gainValue) {
+        static constexpr dbfs_t MIN_GAIN { -18.0f };
+        static constexpr dbfs_t MAX_GAIN { 6.0f };
+        return std::clamp (dbfs_t (gainValue), MIN_GAIN, MAX_GAIN);
+        };
+
+    gain.setEditable (true);
     // clamp the gain on first display.
     auto clampedGainText = juce::String(getClampedGain(static_cast<float>(speakerTreeVt[GAIN])).get(), 1);
-    gain.setText(clampedGainText, juce::dontSendNotification);
+    gain.setText (clampedGainText, juce::dontSendNotification);
 
     gain.onTextChange = [this, getClampedGain] {
-        auto const clampedValue = getClampedGain(gain.getText().getFloatValue()).get();
+        auto const clampedValue = getClampedGain (gain.getText ().getFloatValue ()).get ();
 
-        gain.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
-        speakerTreeVt.setProperty(GAIN, clampedValue, &undoManager);
-    };
+        gain.setText (juce::String (clampedValue, 1), juce::dontSendNotification);
+        speakerTreeVt.setProperty (GAIN, clampedValue, &undoManager);
+        };
 
     gain.onMouseDragCallback = [this, getClampedGain](int deltaY) {
-        if (!gain.isEnabled())
+        if (! gain.isEnabled ())
             return;
 
-        auto const draggedValue{ gain.getText().getFloatValue() - deltaY * 0.05f };
-        auto const clampedValue{ getClampedGain(draggedValue).get() };
+        auto const draggedValue { gain.getText ().getFloatValue () - deltaY * 0.05f };
+        auto const clampedValue { getClampedGain (draggedValue).get () };
 
-        gain.setText(juce::String(clampedValue, 1), juce::dontSendNotification);
-        speakerTreeVt.setProperty(GAIN, clampedValue, &undoManager);
-    };
+        gain.setText (juce::String (clampedValue, 1), juce::dontSendNotification);
+        speakerTreeVt.setProperty (GAIN, clampedValue, &undoManager);
+        };
 
-    addAndMakeVisible(gain);
+    addAndMakeVisible (gain);
 }
 
 void SpeakerComponent::setVbapSphericalCoordinateBehaviour()
 {
-    azim.setEnabled(true);
-    elev.setEnabled(true);
-    distance.setEnabled(speakerTreeVt[DIRECT_OUT_ONLY]);
+    azim.setEnabled (true);
+    elev.setEnabled (true);
+    distance.setEnabled (speakerTreeVt[DIRECT_OUT_ONLY]);
 }
 
 void SpeakerComponent::deleteButtonBehaviour()
@@ -562,7 +560,7 @@ void SpeakerComponent::setupHighPass()
     };
 
     highpass.onMouseDragCallback = [this, getClampedFrequency, setHighpassInTree](int deltaY) {
-        if (!highpass.isEnabled())
+        if (! highpass.isEnabled ())
             return;
 
         auto const draggedValue{ highpass.getText().getFloatValue() - deltaY * 0.5f };
@@ -575,21 +573,21 @@ void SpeakerComponent::setupHighPass()
     addAndMakeVisible(highpass);
 }
 
-void SpeakerComponent::labelTextChanged(juce::Label * label)
+void SpeakerComponent::labelTextChanged (juce::Label* label)
 {
     if (label != &id)
         return;
 
-    auto const currentId = id.getText().getIntValue();
-    auto const clampedId{ std::clamp(currentId, 1, MAX_NUM_SPEAKERS) };
+    auto const currentId = id.getText ().getIntValue ();
+    auto const clampedId { std::clamp (currentId, 1, MAX_NUM_SPEAKERS) };
     if (clampedId != currentId)
-        id.setText(juce::String(clampedId), juce::dontSendNotification);
+        id.setText (juce::String (clampedId), juce::dontSendNotification);
 
     // TODO: for now speaker ID edition isn't undoable; it's impossible to track the proper previous and next
     // output patch numbers when lining up multiple undos/redos. To do this properly, we should change
     // MainContentComponent::speakerOutputPatchChanged() and all related logic to use speaker UUIDs instead of
     // the previous ID, e.g., speakerOutputPatchChanged(speakerUuid, newOutputPatchId)
-    speakerTreeVt.setProperty(NEXT_SPEAKER_PATCH_ID, clampedId, nullptr);
+    speakerTreeVt.setProperty (NEXT_SPEAKER_PATCH_ID, clampedId, nullptr);
 }
 
 } // namespace gris
