@@ -7,64 +7,23 @@
     <welcome file="Welcome.rtf" />
     <readme file="ReadMe.rtf" />
     <license file="License.rtf" />
-	<script>
-<![CDATA[
-
-function speakerview_forward_selected() {
-	if (choices['ca.umontreal.musique.gris.speakerview.compatibility.pkg'].selected == true || choices['ca.umontreal.musique.gris.speakerview.mobile.pkg'].selected == true) {
-		return false;
-	}
-}
-
-function speakerview_compatibility_selected() {
-	if (choices['ca.umontreal.musique.gris.speakerview.pkg'].selected == true || choices['ca.umontreal.musique.gris.speakerview.mobile.pkg'].selected == true) {
-		return false;
-	}
-}
-
-function speakerview_mobile_selected() {
-	if (choices['ca.umontreal.musique.gris.speakerview.pkg'].selected == true || choices['ca.umontreal.musique.gris.speakerview.compatibility.pkg'].selected == true) {
-		return false;
-	}
-}
-
-]]>
-	</script>
 
     <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
     <pkg-ref id="ca.umontreal.musique.gris.speakerview.pkg"/>
-    <pkg-ref id="ca.umontreal.musique.gris.speakerview.compatibility.pkg"/>
-	<pkg-ref id="ca.umontreal.musique.gris.speakerview.mobile.pkg"/>
     <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg"/>
     <pkg-ref id="ca.umontreal.musique.gris.movesgtoforeground.pkg"/>
 
     <choices-outline>
         <line choice="ca.umontreal.musique.gris.spatgris.pkg"/>
 		<line choice="ca.umontreal.musique.gris.speakerview.pkg"/>
-	    <line choice="ca.umontreal.musique.gris.speakerview.compatibility.pkg"/>
-		<line choice="ca.umontreal.musique.gris.speakerview.mobile.pkg"/>
         <line choice="ca.umontreal.musique.gris.controlgris.pkg"/>
     </choices-outline>
 
     <choice id="ca.umontreal.musique.gris.spatgris.pkg" visible="true" title="SpatGRIS">
         <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
     </choice>
-    <choice id="ca.umontreal.musique.gris.speakerview.pkg" visible="true" start_selected="true"
-		selected="speakerview_forward_selected()"
-		title="SpeakerView Forward">
+    <choice id="ca.umontreal.musique.gris.speakerview.pkg" visible="true" title="SpeakerView">
         <pkg-ref id="ca.umontreal.musique.gris.speakerview.pkg"/>
-		<pkg-ref id="ca.umontreal.musique.gris.movesgtoforeground.pkg"/>
-    </choice>
-    <choice id="ca.umontreal.musique.gris.speakerview.compatibility.pkg" visible="true" start_selected="false"
-		selected="speakerview_compatibility_selected()"
-		title="SpeakerView Compatibility">
-        <pkg-ref id="ca.umontreal.musique.gris.speakerview.compatibility.pkg"/>
-		<pkg-ref id="ca.umontreal.musique.gris.movesgtoforeground.pkg"/>
-    </choice>
-    <choice id="ca.umontreal.musique.gris.speakerview.mobile.pkg" visible="true" start_selected="false"
-		selected="speakerview_mobile_selected()"
-		title="SpeakerView Mobile">
-        <pkg-ref id="ca.umontreal.musique.gris.speakerview.mobile.pkg"/>
 		<pkg-ref id="ca.umontreal.musique.gris.movesgtoforeground.pkg"/>
     </choice>
     <choice id="ca.umontreal.musique.gris.controlgris.pkg" visible="true" title="ControlGRIS">
@@ -73,8 +32,6 @@ function speakerview_mobile_selected() {
 
     <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg" onConclusion="none" auth="root">Application.pkg</pkg-ref>
     <pkg-ref id="ca.umontreal.musique.gris.speakerview.pkg" onConclusion="none" auth="root">SpeakerView.pkg</pkg-ref>
-	<pkg-ref id="ca.umontreal.musique.gris.speakerview.compatibility.pkg" onConclusion="none" auth="root">SpeakerView_Compatibility.pkg</pkg-ref>
-	<pkg-ref id="ca.umontreal.musique.gris.speakerview.mobile.pkg" onConclusion="none" auth="root">SpeakerView_Mobile.pkg</pkg-ref>
 	<pkg-ref id="ca.umontreal.musique.gris.movesgtoforeground.pkg" onConclusion="none" auth="root">MoveSGToForeground.pkg</pkg-ref>
     <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg" onConclusion="none" auth="root">Plugins.pkg</pkg-ref>
 

@@ -39,7 +39,7 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lnf
         addAndMakeVisible(mLogoImage);
     }
 
-    mTitleLabel.setText("SpatGRIS 3 - Sound Spatialization Tool", juce::NotificationType::dontSendNotification);
+    mTitleLabel.setText("SpatGRIS 4 - Sound Spatialization Tool", juce::NotificationType::dontSendNotification);
     mTitleLabel.setJustificationType(juce::Justification::horizontallyCentred);
     mTitleLabel.setBounds(5, 150, 390, 50);
     mTitleLabel.setLookAndFeel(&lnf);
@@ -63,7 +63,7 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lnf
     infos << "Actual: Gaël LANE LÉPINE\n";
     infos << "Former: Samuel BÉLAND, Olivier BÉLANGER, Vincent BERTHIAUME, Nicolas MASSON, Antoine MISSOUT\n\n";
     infos << "Assistants:\n";
-    infos << "Nicola GIANNINI, David PIAZZA, Gabrielle CAUX";
+    infos << "Nicola GIANNINI, Jérémie MARTINEAU, Zakary COLELLO";
 
     mInfosLabel.setText(infos, juce::NotificationType::dontSendNotification);
     mInfosLabel.setJustificationType(juce::Justification::left);

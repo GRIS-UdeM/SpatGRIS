@@ -1,11 +1,11 @@
-#include "sg_DefaultFiles.hpp"
+﻿#include "sg_DefaultFiles.hpp"
 
 namespace gris
 {
 
 juce::File const SPEAKER_TEMPLATES_DIR{ TEMPLATES_DIR.getChildFile("Speaker setups") };
 juce::File const PROJECT_TEMPLATES_DIR{ TEMPLATES_DIR.getChildFile("Projects") };
-juce::File const SPLASH_SCREEN_FILE{ RESOURCES_DIR.getChildFile("splash_screen.png") };
+juce::File const SPLASH_SCREEN_FILE{ RESOURCES_DIR.getChildFile("splash_screen_v4.png") };
 juce::File const DEFAULT_PROJECT_DIRECTORY{ RESOURCES_DIR.getChildFile("default_preset/") };
 juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_preset.xml") };
 juce::File const DEFAULT_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_speaker_setup.xml") };

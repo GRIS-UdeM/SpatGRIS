@@ -48,6 +48,7 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->mSubColor = juce::Colour::fromRGB(109, 1, 1);
     this->mInactiveColor = juce::Colour::fromRGB(120, 120, 120);
 
+#if USE_JUCE_8
     this->setColour(juce::PopupMenu::highlightedBackgroundColourId, this->mOnColor);
     this->setColour(juce::TextEditor::backgroundColourId, this->mEditBgcolor);
     this->setColour(juce::TextEditor::highlightColourId, this->mHlBgcolor);
@@ -68,7 +69,20 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->setColour(juce::Slider::textBoxBackgroundColourId, this->mEditBgcolor);
     this->setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
     this->setColour(juce::Slider::textBoxTextColourId, this->mDarkColour);
+#else
+    #if WIN32
+    this->mFontSize = 16.f;
+    #else
+    this->mFontSize = 10.f;
+    #endif
 
+    this->mFont.setHeight(this->mFontSize);
+    this->mSmallFont.setHeight(this->mFontSize - 1);
+    this->mSmallerFont.setHeight(this->mFontSize - 3);
+    this->mBigFont.setHeight(this->mFontSize + 3);
+    this->mBiggerFont.setHeight(this->mFontSize + 6);
+    this->mMonoFont.setHeight(this->mFontSize + 8);
+#endif
     this->setColour(juce::TooltipWindow::ColourIds::backgroundColourId,
                     this->mBackGroundAndFieldColour.withBrightness(0.8f));
     this->setColour(juce::TooltipWindow::ColourIds::outlineColourId,

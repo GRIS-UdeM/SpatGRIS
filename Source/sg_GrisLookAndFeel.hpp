@@ -31,6 +31,8 @@ namespace gris
 class GrisLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
+
+#if USE_JUCE_8
     float constexpr static mFontSize = 10.f;
 
     juce::FontOptions const sinkinSansOptions { juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, BinaryData::SinkinSans400Regular_otfSize))};
@@ -41,7 +43,25 @@ public:
     juce::Font mBiggerFont  { sinkinSansOptions.withHeight(mFontSize + 6) };
 
     juce::FontOptions freeFarsiMonoOptions {juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::FreeFarsiMono_otf, BinaryData::FreeFarsiMono_otfSize))};
+
     juce::Font mMonoFont    { freeFarsiMonoOptions.withHeight(mFontSize + 8) };
+#else
+    float mFontSize;
+
+    juce::Font mFont = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                                                narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+    juce::Font mBigFont = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                                                   narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+    juce::Font mBiggerFont = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+    juce::Font mMonoFont = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::FreeFarsiMono_otf,
+                                                                                    narrow<size_t>(BinaryData::FreeFarsiMono_otfSize)));
+
+    juce::Font mSmallFont = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                                                     narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+    juce::Font mSmallerFont = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                                                       narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+#endif
 
     //==============================================================================
     juce::Colour mBackGroundAndFieldColour;
