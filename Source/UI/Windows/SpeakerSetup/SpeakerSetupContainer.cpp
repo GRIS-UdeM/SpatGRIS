@@ -1,4 +1,4 @@
-/*
+﻿/*
  This file is part of SpatGRIS.
 
  SpatGRIS is free software: you can redistribute it and/or modify
@@ -181,23 +181,85 @@ std::pair<juce::ValueTree, int> SpeakerSetupContainer::getParentAndIndexOfSelect
     return { parent, parent.indexOf (vtRow) };
 }
 
-std::pair<juce::ValueTree, int> SpeakerSetupContainer::getMainSpeakerGroupAndIndex ()
+int SpeakerSetupContainer::getNextOrderingIndex()
 {
-    auto vtRow = getSelectedItem ();
-    if (vtRow[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME)
-        return { vtRow , 0};
+    auto targetRow = getSelectedItem();
 
-    juce::ValueTree parent;
     int index {0};
-    do
-    {
-        parent = vtRow.getParent ();
-        index += parent.indexOf (vtRow);
-        vtRow = parent;
-    } while (parent.getParent().isValid() && vtRow[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME);
+    bool found = false;
+    std::function<void(const juce::ValueTree&, bool)> recurUntilTargetFound;
+    recurUntilTargetFound = [&targetRow, &recurUntilTargetFound, &index, &found](const juce::ValueTree& valueTree, bool countChildren) {
+        if (found) {
+            return;
+        }
+        // if we get to the right tree, set found to true and increment the index one last time. All other calls will immediately return.
+        if (targetRow == valueTree) {
+            found = true;
+        }
+        if ((valueTree.getType() == SPEAKER_GROUP && valueTree[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME) || valueTree.getType() == SPEAKER_SETUP) {
+            for (auto child: valueTree) {
+                recurUntilTargetFound(child, true);
+            }
+        } else if (valueTree.getType() == SPEAKER_GROUP && valueTree[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME) {
+            // since we can only have speakers in this level of grouping, add the indexes all at once but still recure over everything in case the selected speaker is inside.
+            index += valueTree.getNumChildren();
+            for (auto child: valueTree) {
+                // recurse over all children but don't count them.
+                recurUntilTargetFound(child, false);
+            }
+        } else {
+            // if we are not in a subgroup, increment the ordering index.
+            if (countChildren) {
+                index += 1;
+            }
+        }
+    };
+    recurUntilTargetFound(getMainSpeakerGroup(), true);
 
-    jassert (parent[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME);
-    return { parent, index };
+    return index;
+}
+
+int SpeakerSetupContainer::getMainGroupIndexFromOrderingIndex(const int targetOrderingIndex)
+{
+    auto vtRow = getMainSpeakerGroup();
+    int mainGroupIndex{0};
+    int currentOrderingIndex{0};
+    std::function<void(const juce::ValueTree&, bool)> getMainGroupIndex;
+    getMainGroupIndex = [&getMainGroupIndex, &currentOrderingIndex, &mainGroupIndex, &targetOrderingIndex](const juce::ValueTree& valueTree, bool isInSubGroup) {
+        // When our currentOrderingIndex is targetOrderingIndex, we can stop everything.
+        // we can just return since nothing in this function increments anything after a
+        // recursive call (please keep it that way).
+        if (currentOrderingIndex == targetOrderingIndex) {
+            return;
+        }
+        if (valueTree.getType() == SPEAKER_GROUP && valueTree[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME) {
+            // groups take one space in the main group.
+            mainGroupIndex +=1;
+            for (auto child: valueTree) {
+                // when we are in a speaker group, indicate to the recursive function that we are in a subgroup so we don't increment the mainGroupIndex
+                // but do increment the currentOrderingIndex
+                getMainGroupIndex(child, true);
+            }
+        } else if (valueTree.getType() == SPEAKER_SETUP || (valueTree.getType() == SPEAKER_GROUP && valueTree[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME)) {
+            for (auto child: valueTree)
+                // if we are the root speaker setup group or the main speaker group, just process all child.
+                getMainGroupIndex(child, false);
+        } else {
+            if (!isInSubGroup) {
+                // Increment the ordering index when its a speaker and its not in a subgroup.
+                mainGroupIndex +=1;
+            }
+            // Only increment the ordering index when its a speaker
+            currentOrderingIndex += 1;
+        }
+    };
+    getMainGroupIndex(vtRow, false);
+    return mainGroupIndex;
+}
+
+juce::ValueTree SpeakerSetupContainer::getMainSpeakerGroup()
+{
+    return speakerSetupVt.getChild(0);
 }
 
 void SpeakerSetupContainer::timerCallback ()

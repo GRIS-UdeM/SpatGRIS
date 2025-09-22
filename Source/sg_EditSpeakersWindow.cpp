@@ -277,25 +277,30 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     if (mMainContentComponent.getNumSpeakerOutputPatch() + numSpeakers >= MAX_NUM_SPEAKERS)
         return;
 
-    auto [mainGroup, indexInMainGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
+    auto mainGroup = mSpeakerSetupContainer.getMainSpeakerGroup();
+    auto orderingIndex = mSpeakerSetupContainer.getNextOrderingIndex();
+    auto indexInMainGroup = mSpeakerSetupContainer.getMainGroupIndexFromOrderingIndex(orderingIndex);
 
     // create the new speaker group and add it in the value tree
     juce::ValueTree newGroup(SPEAKER_GROUP);
     newGroup.setProperty(SPEAKER_GROUP_NAME, "new group", &undoManager);
     newGroup.setProperty(CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar(groupPosition), &undoManager);
     newGroup.setProperty (UUID, juce::Uuid {}.toString (), &undoManager);
-    mainGroup.addChild(newGroup, indexInMainGroup + 1, &undoManager);
+    mainGroup.addChild(newGroup, indexInMainGroup, &undoManager);
 
     //get the output patch to copy, if it exists
-    tl::optional<output_patch_t> outputPatchToCopy;
-    if (spatGrisData.speakerSetup.ordering.contains (output_patch_t (indexInMainGroup)))
-        outputPatchToCopy = getSpeakerOutputPatchForRow (indexInMainGroup);
+
+    auto selectedSpeaker = mSpeakerSetupContainer.getSelectedSpeakers();
+    tl::optional<output_patch_t> outputPatchToCopy =
+            selectedSpeaker.size() == 1 ?
+            tl::optional<output_patch_t>{selectedSpeaker[0]}:
+            tl::nullopt;
 
     output_patch_t newOutputPatch {};
     for (int i{}; i < numSpeakers; ++i) {
 
         //create the speaker in main component
-        newOutputPatch = mMainContentComponent.addSpeaker(outputPatchToCopy, ++indexInMainGroup);
+        newOutputPatch = mMainContentComponent.addSpeaker(outputPatchToCopy, orderingIndex);
 
         //add the speaker to the value tree
         auto newSpeakerVt = addNewSpeakerToVt (newOutputPatch, newGroup, i);
@@ -351,16 +356,19 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         if (mMainContentComponent.getNumSpeakerOutputPatch() >= MAX_NUM_SPEAKERS)
             return;
 
-        auto [mainGroup, indexInMainGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex ();
+        auto orderingIndex = mSpeakerSetupContainer.getNextOrderingIndex();
+        auto indexInMainGroup = mSpeakerSetupContainer.getMainGroupIndexFromOrderingIndex(orderingIndex);
 
-        tl::optional<output_patch_t> outputPatchToCopy;
-        if (spatGrisData.speakerSetup.ordering.contains (output_patch_t (indexInMainGroup)))
-            outputPatchToCopy = getSpeakerOutputPatchForRow (indexInMainGroup);
+        auto selectedSpeaker = mSpeakerSetupContainer.getSelectedSpeakers();
+        tl::optional<output_patch_t> outputPatchToCopy =
+                selectedSpeaker.size() == 1 ?
+                tl::optional<output_patch_t>{selectedSpeaker[0]}:
+                tl::nullopt;
 
-        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, ++indexInMainGroup) };
+        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, orderingIndex) };
 
-        auto [curGroup, indexInCurGroup] = mSpeakerSetupContainer.getMainSpeakerGroupAndIndex();
-        addNewSpeakerToVt(newOutputPatch, curGroup, ++indexInCurGroup);
+        auto mainGroup = mSpeakerSetupContainer.getMainSpeakerGroup();
+        addNewSpeakerToVt(newOutputPatch, mainGroup, indexInMainGroup);
 
     } else if (button == &mSaveAsSpeakerSetupButton) {
 
