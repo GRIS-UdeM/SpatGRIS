@@ -244,7 +244,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     auto const & controlsComponent{ *mainContentComponent.getControlsComponent() };
 
     static constexpr auto WIDTH = 950;
-    static constexpr auto HEIGHT = 600;
+    static constexpr auto HEIGHT = 700;
     static constexpr auto TITLE_BAR_HEIGHT = 30;
 
     setBounds(controlsComponent.getScreenX(), controlsComponent.getScreenY() + TITLE_BAR_HEIGHT, WIDTH, HEIGHT);
@@ -419,57 +419,73 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         auto const getSpeakerPosition = [this, numCols, numRows](int i) -> Position
         {
-            auto const w { mGridWidth.getTextAs<float>() };
-            auto const h { mGridHeight.getTextAs<float>() };
-            auto const cx { mGridX.getTextAs<float>() };
-            auto const cy { mGridY.getTextAs<float>() };
-            auto const cz { mGridZ.getTextAs<float>() };
+            const float w = mGridWidth.getTextAs<float>();
+            const float h = mGridHeight.getTextAs<float>();
+            const float cx = mGridX.getTextAs<float>();
+            const float cy = mGridY.getTextAs<float>();
+            const float cz = mGridZ.getTextAs<float>();
 
-            // Step size
-            auto const wIncrement = (numCols > 1) ? (w / (numCols - 1)) : 0.0f;
-            auto const hIncrement = (numRows > 1) ? (h / (numRows - 1)) : 0.0f;
+            const float wIncrement = (numCols > 1) ? (w / (numCols - 1)) : 0.0f;
+            const float hIncrement = (numRows > 1) ? (h / (numRows - 1)) : 0.0f;
 
-            // Row / col index
-            int col = i % numCols;
-            int row = i / numCols;
+            // grid indices (row-major)
+            const int col = i % numCols;
+            const int row = i / numCols;
 
-            // Local coordinates, centered around (0,0,0) in plane space
-            float x = (col - (numCols - 1) / 2.0f) * wIncrement;
-            float y = (row - (numRows - 1) / 2.0f) * hIncrement;
-            float z = 0.0f;
+            // local (plane) coords centered on origin
+            const float x = (col - (numCols - 1) * 0.5f) * wIncrement;
+            const float y = (row - (numRows - 1) * 0.5f) * hIncrement;
+            const float z = 0.0f;
 
             juce::Vector3D<float> posLocal { x, y, z };
+            juce::Vector3D<float> center   { cx, cy, cz };
 
-            // Where the plane is centered
-            juce::Vector3D<float> center { cx, cy, cz };
+            // tiny epsilon for float comparisons
+            constexpr float eps = 1.0e-6f;
 
-            // Vector pointing toward origin
-            juce::Vector3D<float> toOrigin = (-center).normalised();
-
-            // Default plane normal is +Z
-            juce::Vector3D<float> planeNormal { 0.0f, 0.0f, 1.0f };
-
-            // If already aligned, skip rotation
-            juce::Vector3D<float> posWorld;
-            auto const epsilon = 1.0e-6f;
-            if ((planeNormal - toOrigin).lengthSquared() > epsilon)
+            // if center is essentially the origin, plane-facing-origin is ambiguous → no rotation
+            if (center.lengthSquared() < eps)
             {
-                auto axis = planeNormal ^ toOrigin; // cross product
-                if (! axis.lengthIsBelowEpsilon())
-                    axis = axis.normalised();
+                juce::Vector3D<float> posWorld = posLocal + center;
+                return Position{ { posWorld.x, posWorld.y, posWorld.z } };
+            }
 
-                float angle = std::acos(juce::jlimit(-1.0f, 1.0f, planeNormal * toOrigin));
+            // want plane normal (local +Z) to point toward the origin
+            const juce::Vector3D<float> planeNormal { 0.0f, 0.0f, 1.0f };
+            const juce::Vector3D<float> toOrigin = (-center).normalised();
 
-                auto q = juce::Quaternion<float>::fromAngle(angle, axis);
-                auto rot = q.getRotationMatrix();
+            // if already (almost) aligned, skip rotation
+            if ((planeNormal - toOrigin).lengthSquared() <= eps)
+            {
+                juce::Vector3D<float> posWorld = posLocal + center;
+                return Position{ { posWorld.x, posWorld.y, posWorld.z } };
+            }
 
-                posWorld = rot * posLocal + center;
+            // compute rotation axis and angle to align planeNormal -> toOrigin
+            juce::Vector3D<float> axis = planeNormal ^ toOrigin; // cross
+            if (axis.lengthSquared() < eps)
+            {
+                // special case: vectors are (nearly) opposite; pick any perp axis
+                axis = juce::Vector3D<float> { 1.0f, 0.0f, 0.0f };
             }
             else
             {
-                posWorld = posLocal + center;
+                axis = axis.normalised();
             }
 
+            const float dot = juce::jlimit(-1.0f, 1.0f, planeNormal * toOrigin); // dot product
+            const float angle = std::acos(dot);
+            
+            // build unit quaternion and normalize to be safe
+            auto q = juce::Quaternion<float>::fromAngle(angle, axis).normalised();
+
+            // rotate posLocal by quaternion using the algebraic formula:
+            // v' = v + 2 * u x ( u x v + s * v )
+            const juce::Vector3D<float> u = q.vector;
+            const float s = q.scalar;
+            const juce::Vector3D<float> rotated = posLocal + (u ^ ((u ^ posLocal) + posLocal * s)) * 2.0f;
+
+            const juce::Vector3D<float> posWorld = rotated + center;
             return Position{ { posWorld.x, posWorld.y, posWorld.z } };
         };
 
@@ -482,11 +498,6 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         // When every speaker is added, recompute the order.
         mMainContentComponent.reorderSpeakers(getSpeakerOutputPatchOrder());
         mMainContentComponent.requestSpeakerRefresh();
-
-
-
-
-
 
     } else if (button == &mAddPolyButton) {
 
@@ -793,10 +804,23 @@ void EditSpeakersWindow::resized()
     positionWidget(&mPolyRadius, currentX, thirdRowY, labelW, editorW);
     mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, rowH);
 
-    // "Fourth" row with pink noise, diffusion and the save buttons.
+    // fourth row of bottom panel with grid controls
+    auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 };
+    currentX = 130;
+    mGridTitle.setBounds(5, fourthRowY, currentX, rowH);
+    positionWidget(&mGridNumCols, currentX, fourthRowYq, labelW, editorW);
+
+    positionWidget(&mGridNumRows, currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridX,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridY,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridZ,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridWidth,   currentX += shortLabelW + editorW, fourthRowY, labelW, editorW);
+    positionWidget(&mGridHeight,  currentX += shortLabelW + editorW, fourthRowY, labelW, editorW);
+    mAddGridButton.setBounds(getWidth() - 105, fourthRowY, 100, rowH);
+
+    // "Fifth" row with pink noise, diffusion and the save buttons.
     // This row needs to be placed a bit lower due to the height of the knobs.
     auto const sliderHeight{ 60 };
-    [[maybe_unused]] auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 + sliderHeight};
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, rowH);
     mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, sliderHeight);
     mDiffusionLabel.setBounds(260, getHeight() - 70, 160, rowH);
@@ -807,7 +831,6 @@ void EditSpeakersWindow::resized()
     // to the middle of the two ToggleButtons on the same line.
     mSaveAsSpeakerSetupButton.setBounds(getWidth() - 210, getHeight() - 57, 100, rowH);
     mSaveSpeakerSetupButton.setBounds(getWidth() - 105, getHeight() - 57, 100, rowH);
-
 }
 
 //==============================================================================
