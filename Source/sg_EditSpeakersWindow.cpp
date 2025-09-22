@@ -419,8 +419,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         auto const getSpeakerPosition = [this, numCols, numRows](int i) -> Position
         {
-            const float w = mGridWidth.getTextAs<float>();
-            const float h = mGridHeight.getTextAs<float>();
+            const float w  = mGridWidth.getTextAs<float>();
+            const float h  = mGridHeight.getTextAs<float>();
             const float cx = mGridX.getTextAs<float>();
             const float cy = mGridY.getTextAs<float>();
             const float cz = mGridZ.getTextAs<float>();
@@ -440,54 +440,50 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             juce::Vector3D<float> posLocal { x, y, z };
             juce::Vector3D<float> center   { cx, cy, cz };
 
-            // tiny epsilon for float comparisons
+            // tiny epsilon
             constexpr float eps = 1.0e-6f;
 
-            // if center is essentially the origin, plane-facing-origin is ambiguous → no rotation
+            // if center ~ origin, no rotation needed
             if (center.lengthSquared() < eps)
             {
-                juce::Vector3D<float> posWorld = posLocal + center;
+                auto posWorld = posLocal + center;
                 return Position{ { posWorld.x, posWorld.y, posWorld.z } };
             }
 
-            // want plane normal (local +Z) to point toward the origin
-            const juce::Vector3D<float> planeNormal { 0.0f, 0.0f, 1.0f };
-            const juce::Vector3D<float> toOrigin = (-center).normalised();
+            // ---- rotation (compute once per grid, not per point) ----
+            static thread_local juce::Quaternion<float> qCache;
+            static thread_local juce::Vector3D<float> lastCenter;
+            static thread_local bool cacheValid = false;
 
-            // if already (almost) aligned, skip rotation
-            if ((planeNormal - toOrigin).lengthSquared() <= eps)
+            if (!cacheValid || (lastCenter - center).lengthSquared() > eps)
             {
-                juce::Vector3D<float> posWorld = posLocal + center;
-                return Position{ { posWorld.x, posWorld.y, posWorld.z } };
+                const juce::Vector3D<float> planeNormal { 0.0f, 0.0f, 1.0f };
+                const juce::Vector3D<float> toOrigin = (-center).normalised();
+
+                juce::Vector3D<float> axis = planeNormal ^ toOrigin;
+                if (axis.lengthSquared() < eps)
+                    axis = { 1.0f, 0.0f, 0.0f };
+                else
+                    axis = axis.normalised();
+
+                const float dot = juce::jlimit(-1.0f, 1.0f, planeNormal * toOrigin);
+                const float angle = std::acos(dot);
+
+                qCache = juce::Quaternion<float>::fromAngle(angle, axis).normalised();
+                lastCenter = center;
+                cacheValid = true;
             }
 
-            // compute rotation axis and angle to align planeNormal -> toOrigin
-            juce::Vector3D<float> axis = planeNormal ^ toOrigin; // cross
-            if (axis.lengthSquared() < eps)
-            {
-                // special case: vectors are (nearly) opposite; pick any perp axis
-                axis = juce::Vector3D<float> { 1.0f, 0.0f, 0.0f };
-            }
-            else
-            {
-                axis = axis.normalised();
-            }
-
-            const float dot = juce::jlimit(-1.0f, 1.0f, planeNormal * toOrigin); // dot product
-            const float angle = std::acos(dot);
-            
-            // build unit quaternion and normalize to be safe
-            auto q = juce::Quaternion<float>::fromAngle(angle, axis).normalised();
-
-            // rotate posLocal by quaternion using the algebraic formula:
-            // v' = v + 2 * u x ( u x v + s * v )
-            const juce::Vector3D<float> u = q.vector;
+            // apply the same quaternion to every grid point
+            const auto& q = qCache;
+            const auto& u = q.vector;
             const float s = q.scalar;
             const juce::Vector3D<float> rotated = posLocal + (u ^ ((u ^ posLocal) + posLocal * s)) * 2.0f;
 
-            const juce::Vector3D<float> posWorld = rotated + center;
+            const auto posWorld = rotated + center;
             return Position{ { posWorld.x, posWorld.y, posWorld.z } };
         };
+
 
         auto const groupPosition = Position{CartesianVector{ mGridX.getTextAs<float>(), mGridY.getTextAs<float>(), mGridZ.getTextAs<float>() }};
 
