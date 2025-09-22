@@ -151,6 +151,36 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 
     togglePolyhedraExtraWidgets();
 
+
+    // Grid of speakers.
+    setupLabel(mGridTitle, "Grid parameters:");
+    setupWrapper(&mGridNumCols,
+                 "Colums",
+                 "Number of columns in the speaker grid.",
+                 "5",
+                 2,
+                 "0123456789");
+    setupWrapper(&mGridNumRows,
+                 "Rows",
+                 "Number of rows in the speaker grid.",
+                 "4",
+                 2,
+                 "0123456789");
+    setupWrapper(&mGridX,
+                 "X",
+                 "X position for the center of the grid, in the [-1.667, 1.667] range",
+                 "0.5",
+                 4,
+                 "-0123456789.");
+    setupWrapper(&mGridY, "Y", "Y position for the center of the grid.", "0", 4, "-0123456789.");
+    setupWrapper(&mGridZ, "Z", "Z position for the center of the grid.", "0.15", 4, "-0123456789.");
+    setupWrapper(&mGridWidth, "Width", "Width of the speaker grid.", ".5", 4, "0123456789.");
+    setupWrapper(&mGridHeight, "Height", "Height of the speaker grid.", ".4", 4, "0123456789.");
+    setupButton(mAddGridButton, "Add Grid");
+    mAddGridButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
+
+    toggleGridWidgets();
+
     // Pink noise controls.
     mPinkNoiseToggleButton.setButtonText("Reference Pink Noise");
     mPinkNoiseToggleButton.addListener(this);

@@ -149,8 +149,18 @@ private:
     LabelTextEditorWrapper mPolyY;
     LabelTextEditorWrapper mPolyZ;
     LabelTextEditorWrapper mPolyRadius;
-
     juce::TextButton mAddPolyButton;
+
+    //add grid of speakers
+    juce::Label mGridTitle;
+    LabelTextEditorWrapper mGridNumCols;
+    LabelTextEditorWrapper mGridNumRows;
+    LabelTextEditorWrapper mGridX;
+    LabelTextEditorWrapper mGridY;
+    LabelTextEditorWrapper mGridZ;
+    LabelTextEditorWrapper mGridWidth;
+    LabelTextEditorWrapper mGridHeight;
+    juce::TextButton mAddGridButton;
 
     juce::ToggleButton mPinkNoiseToggleButton;
     juce::Slider mPinkNoiseGainSlider;
