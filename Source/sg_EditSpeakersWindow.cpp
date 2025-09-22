@@ -411,6 +411,38 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         // When every speaker is added, recompute the order.
         mMainContentComponent.reorderSpeakers(getSpeakerOutputPatchOrder());
         mMainContentComponent.requestSpeakerRefresh();
+
+    } else if (button == &mAddGridButton) {
+
+        auto const numCols {mGridNumCols.getTextAs<int>()};
+        auto const numRows {mGridNumRows.getTextAs<int>()};
+
+        auto const getSpeakerPosition = [this, numCols, numRows](int i) -> Position
+        {
+            auto const w {mGridWidth.getTextAs<float>()};
+            auto const h {mGridHeight.getTextAs<float>()};
+
+            auto const wIncrement = w/numCols;
+            auto const hIncrement = h/numRows;
+
+            return Position{ CartesianVector{ i * wIncrement, i * hIncrement, 0.f }};
+        };
+
+        auto const groupPosition = Position{CartesianVector{ mGridX.getTextAs<float>(), mGridY.getTextAs<float>(), mGridZ.getTextAs<float>() }};
+
+        isAddingGroup = true;
+        addSpeakerGroup(numCols * numRows, groupPosition, getSpeakerPosition);
+        isAddingGroup = false;
+
+        // When every speaker is added, recompute the order.
+        mMainContentComponent.reorderSpeakers(getSpeakerOutputPatchOrder());
+        mMainContentComponent.requestSpeakerRefresh();
+
+
+
+
+
+
     } else if (button == &mAddPolyButton) {
 
         auto const numFaces { mPolyFaces.getSelectionAsInt () };
