@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: GaÃ«l Lane LÃ©pine, Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -119,8 +119,7 @@ void ThumbnailComp::paint(juce::Graphics & g)
                 "Otherwise the player will try to assign direct outputs to the currently loaded speaker setup direct "
                 "outputs. "
                 "Please adjust this configuration to fit your needs.\n"
-             << "Source numbers will correspond to audio file numbers. If there is a gap in numbering, unused sources "
-                "will be muted.\n";
+             << "Source numbers will correspond to audio file numbers.\n";
         g.drawFittedText(text, textRect, juce::Justification::topLeft, 2);
 
         sources << "    Color of spatialized sources\n";
@@ -403,6 +402,8 @@ void PlayerComponent::stopAudio()
 //==============================================================================
 void PlayerComponent::loadPlayer(bool handleNewProject)
 {
+    AudioManager::getInstance().setPlayerLoading(true);
+
     if (handleNewProject) {
         mMainContentComponent.handleNewProjectForPlayer();
     }
@@ -419,6 +420,8 @@ void PlayerComponent::loadPlayer(bool handleNewProject)
 
     mThumbnails->updateCursorPosition();
     setTimeCode(0.0);
+
+    AudioManager::getInstance().setPlayerLoading(false);
 }
 
 //==============================================================================

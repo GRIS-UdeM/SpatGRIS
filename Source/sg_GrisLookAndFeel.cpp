@@ -30,8 +30,10 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->mLightColour = juce::Colour::fromRGB(235, 245, 250); // Colours::whiteSmoke;
     this->mDarkColour = juce::Colour::fromRGB(15, 10, 5);      // Colours::black;
     this->mGreyColour = juce::Colour::fromRGB(120, 120, 120);  // Colours::grey;
+
     this->mEditBgcolor = juce::Colour::fromRGB(172, 172, 172);
     this->mHlBgcolor = juce::Colour::fromRGB(190, 125, 18);
+    this->mImportantColor = juce::Colour::fromRGB(169,143,100);
 
     this->mOnColor = juce::Colour::fromRGB(255, 165, 25);
     this->mOnColorOver = juce::Colour::fromRGB(255, 184, 75);
@@ -50,17 +52,22 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->setColour(juce::TextEditor::backgroundColourId, this->mEditBgcolor);
     this->setColour(juce::TextEditor::highlightColourId, this->mHlBgcolor);
     this->setColour(juce::TextEditor::shadowColourId, this->mEditBgcolor);
+    this->setColour(juce::TextEditor::textColourId, this->mDarkColour);
 
     this->setColour(juce::TextButton::buttonColourId, this->mEditBgcolor);
+    this->setColour(juce::TextButton::textColourOnId, this->mDarkColour);
+    this->setColour(juce::TextButton::textColourOffId, this->mDarkColour);
 
     this->setColour(juce::ComboBox::backgroundColourId, this->mEditBgcolor);
     this->setColour(juce::ComboBox::outlineColourId, this->mEditBgcolor);
+    this->setColour(juce::ComboBox::textColourId, this->mDarkColour);
 
     this->setColour(juce::Slider::thumbColourId, this->mLightColour);
     this->setColour(juce::Slider::rotarySliderFillColourId, this->mOnColor);
     this->setColour(juce::Slider::trackColourId, this->mDarkColour);
     this->setColour(juce::Slider::textBoxBackgroundColourId, this->mEditBgcolor);
     this->setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+    this->setColour(juce::Slider::textBoxTextColourId, this->mDarkColour);
 
     this->setColour(juce::TooltipWindow::ColourIds::backgroundColourId,
                     this->mBackGroundAndFieldColour.withBrightness(0.8f));
@@ -70,19 +77,6 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->setColour(juce::AlertWindow::backgroundColourId, this->mWinBackGroundAndFieldColour);
     this->setColour(juce::AlertWindow::outlineColourId, this->mOnColor);
     this->setColour(juce::AlertWindow::textColourId, this->mLightColour);
-
-#if WIN32
-    this->mFontSize = 16.f;
-#else
-    this->mFontSize = 10.f;
-#endif
-
-    this->mFont.setHeight(this->mFontSize);
-    this->mSmallFont.setHeight(this->mFontSize - 1);
-    this->mSmallerFont.setHeight(this->mFontSize - 3);
-    this->mBigFont.setHeight(this->mFontSize + 3);
-    this->mBiggerFont.setHeight(this->mFontSize + 6);
-    this->mMonoFont.setHeight(this->mFontSize + 8);
 }
 
 //==============================================================================
@@ -345,6 +339,13 @@ void GrisLookAndFeel::drawLinearSliderBackground(juce::Graphics & g,
 }
 
 //==============================================================================
+void GrisLookAndFeel::drawPopupMenuBackground(juce::Graphics & g, int /*width*/, int /*height*/)
+{
+    g.setColour(this->mBackGroundAndFieldColour);
+    g.fillAll();
+}
+
+//==============================================================================
 void GrisLookAndFeel::fillTextEditorBackground(juce::Graphics & g,
                                                int /*width*/,
                                                int /*height*/,
@@ -537,6 +538,19 @@ void GrisLookAndFeel::drawRotarySlider(juce::Graphics & g,
     juce::Path outlineArc;
     outlineArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.0);
     g.strokePath(outlineArc, juce::PathStrokeType(lineThickness));
+}
+
+void GrisLookAndFeel::drawTreeviewPlusMinusBox(juce::Graphics & g,
+                                               const juce::Rectangle<float> & area,
+                                               juce::Colour /*backgroundColour*/,
+                                               bool isOpen,
+                                               bool /*isMouseOver*/)
+{
+    juce::Path p;
+    p.addTriangle(0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
+
+    g.setColour(mLightColour);
+    g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
 }
 
 void SmallGrisLookAndFeel::drawToggleButton(juce::Graphics & g,

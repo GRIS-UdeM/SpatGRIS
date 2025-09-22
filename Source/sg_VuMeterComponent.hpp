@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_Dbfs.hpp"
+#include "Data/StrongTypes/sg_Dbfs.hpp"
 #include "sg_MinSizedComponent.hpp"
 
 namespace gris
@@ -43,7 +43,7 @@ class VuMeterComponent final : public MinSizedComponent
 
 public:
     //==============================================================================
-    explicit VuMeterComponent(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel) {}
+    explicit VuMeterComponent(SmallGrisLookAndFeel & lnf) : mLookAndFeel(lnf) {}
     ~VuMeterComponent() override = default;
     SG_DELETE_COPY_AND_MOVE(VuMeterComponent)
     //==============================================================================

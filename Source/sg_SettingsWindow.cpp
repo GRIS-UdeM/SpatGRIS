@@ -22,6 +22,8 @@
 #include "sg_AudioManager.hpp"
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
+#include "sg_SpeakerViewComponent.hpp"
+
 
 #include <bitset>
 
@@ -51,11 +53,23 @@ bool isNotPowerOfTwo(int const value)
 } // namespace
 
 //==============================================================================
-SettingsComponent::SettingsComponent(MainContentComponent & parent, int const oscPort, GrisLookAndFeel & lookAndFeel)
+SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(parent)
+    , mSVComponent(sVComponent)
     , mLookAndFeel(lookAndFeel)
-    , mOscPortWhenLoaded(oscPort)
 {
+
+    mInitialOSCPort = parent.getOscPort();
+    mInitialExtraUDPInputPort = mSVComponent.getExtraUDPInputPort();
+    mInitialExtraUDPOutputPort = mSVComponent.getExtraUDPOutputPort();
+    mInitialExtraUDPOutputAddress = mSVComponent.getExtraUDPOutputAddress();
+
+    // If the project doesn't have a standaloneSpeakerViewOutputPort, pre-sets the extra output port to the default SpeakerView listening port.
+    // This does not activate the extra listenUDP call, it just saves keypresses for
+    // the user.
+    if (!mInitialExtraUDPOutputPort) {
+        mInitialExtraUDPOutputPort = DEFAULT_UDP_OUTPUT_PORT;
+    }
     auto initLabel = [this](juce::Label & label) {
         label.setJustificationType(juce::Justification::Flags::centredRight);
         label.setFont(mLookAndFeel.getFont());
@@ -82,6 +96,18 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, int const os
               addAndMakeVisible(combo);
           };
 
+    auto initTextEditor
+        = [this](juce::TextEditor & edit, juce::StringRef tooltip, juce::StringRef default_val) {
+          edit.setTooltip(tooltip);
+          edit.setTextToShowWhenEmpty("", mLookAndFeel.getOffColour());
+          edit.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+          edit.setLookAndFeel(&mLookAndFeel);
+          edit.setBounds(0, 0, RIGHT_COL_WIDTH, COMPONENT_HEIGHT);
+          edit.setText(juce::String{ default_val });
+          edit.addListener(this);
+          addAndMakeVisible(edit);
+        };
+
     auto & audioManager{ AudioManager::getInstance() };
 
     //==============================================================================
@@ -103,17 +129,28 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, int const os
     initComboBox(mBufferSizeCombo);
 
     //==============================================================================
-    initSectionLabel(mGeneralSectionLabel);
+    initSectionLabel(mSpatNetworkSettings);
 
     initLabel(mOscInputPortLabel);
-    mOscInputPortTextEditor.setTooltip("Port Socket OSC Input");
-    mOscInputPortTextEditor.setTextToShowWhenEmpty("", mLookAndFeel.getOffColour());
-    mOscInputPortTextEditor.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    mOscInputPortTextEditor.setLookAndFeel(&mLookAndFeel);
-    mOscInputPortTextEditor.setBounds(0, 0, RIGHT_COL_WIDTH, COMPONENT_HEIGHT);
+    initTextEditor(mOscInputPortTextEditor, "Port Socket OSC Input", juce::String{mInitialOSCPort});
     mOscInputPortTextEditor.setInputRestrictions(5, "0123456789");
-    mOscInputPortTextEditor.setText(juce::String{ oscPort });
-    addAndMakeVisible(mOscInputPortTextEditor);
+
+    initSectionLabel(mSpeakerViewNetworkSettings);
+
+    initLabel(mSpeakerViewInputPortLabel);
+    juce::String inputPortText = mInitialExtraUDPInputPort ? juce::String(*mInitialExtraUDPInputPort) : "";
+    initTextEditor(mSpeakerViewInputPortTextEditor, "Standalone SpeakerView Data Input port", inputPortText);
+    mSpeakerViewInputPortTextEditor.setInputRestrictions(5, "0123456789");
+
+    initLabel(mSpeakerViewOutputAddressLabel);
+    initTextEditor(mSpeakerViewOutputAddressTextEditor, "Standalone SpeakerViewData Output Address", mInitialExtraUDPOutputAddress.value_or(""));
+    // we want an ip address here
+    mSpeakerViewOutputAddressTextEditor.setInputRestrictions(15, "0123456789.");
+
+    initLabel(mSpeakerViewOutputPortLabel);
+    juce::String outputPortText = mInitialExtraUDPOutputPort ? juce::String(*mInitialExtraUDPOutputPort) : "";
+    initTextEditor(mSpeakerViewOutputPortTextEditor, "Standalone SpeakerViewData Output Port", outputPortText);
+    mSpeakerViewOutputPortTextEditor.setInputRestrictions(5, "0123456789");
 
     //==============================================================================
     mSaveSettingsButton.setButtonText("Apply");
@@ -131,10 +168,45 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, int const os
 SettingsComponent::~SettingsComponent()
 {
     auto const newOscPort{ mOscInputPortTextEditor.getText().getIntValue() };
-    if (newOscPort == mOscPortWhenLoaded) {
+    if (newOscPort != mInitialOSCPort) {
+        mMainContentComponent.setOscPort(newOscPort);
+    }
+    auto const newUDPInputPortTextValue = mSpeakerViewInputPortTextEditor.getText();
+    auto const newUDPInputPort{ newUDPInputPortTextValue.getIntValue() };
+    if (newUDPInputPortTextValue.isEmpty()) {
+        mMainContentComponent.setStandaloneSpeakerViewInputPort(tl::nullopt);
+        mSVComponent.disableExtraUDPInput();
+    }
+    else if (newUDPInputPort != mInitialExtraUDPInputPort) {
+        if (!mSVComponent.setExtraUDPInputPort(newUDPInputPort)) {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Could not change standalone SpeakerView input port",
+                                                   "Could not change the standalone SpeakerView input port to "
+                                                       + juce::String(newUDPInputPort)
+                                                       + " . Some other application may have the same port open ?\n",
+                                                   "Ok",
+                                                   &mMainContentComponent);
+        } else {
+            mMainContentComponent.setStandaloneSpeakerViewInputPort(newUDPInputPort);
+        }
+    }
+    auto const newUDPOutputPortTextValue = mSpeakerViewOutputPortTextEditor.getText();
+    auto const newUDPOutputPort{ newUDPOutputPortTextValue.getIntValue() };
+    auto const newUDPOutputAddress{ mSpeakerViewOutputAddressTextEditor.getText() };
+
+    // if both udp output port and address are still the same, nothing left to do.
+    if (newUDPOutputPort == mInitialExtraUDPOutputPort && newUDPOutputAddress == mInitialExtraUDPOutputAddress) {
         return;
     }
-    mMainContentComponent.setOscPort(newOscPort);
+    if (newUDPOutputPortTextValue == "" || newUDPOutputAddress == "") {
+        // If any of port of address is the empty string, disable extra standalone SpeakerView sender.
+        mSVComponent.disableExtraUDPOutput();
+        mMainContentComponent.setStandaloneSpeakerViewOutput(tl::nullopt, tl::nullopt);
+    } else {
+        mSVComponent.setExtraUDPOutput(newUDPOutputPort, newUDPOutputAddress);
+        mMainContentComponent.setStandaloneSpeakerViewOutput(newUDPOutputPort, newUDPOutputAddress);
+
+    }
 }
 
 //==============================================================================
@@ -144,7 +216,7 @@ void SettingsWindow::closeButtonPressed()
 }
 
 //==============================================================================
-bool SettingsWindow::keyPressed(const juce::KeyPress &key)
+bool SettingsWindow::keyPressed(const juce::KeyPress & key)
 {
     auto const key_w{ juce::KeyPress(87) };
     if (key.getModifiers().isCommandDown() && key.isKeyCurrentlyDown(key_w.getKeyCode())) {
@@ -169,40 +241,55 @@ void SettingsComponent::placeComponents()
 {
     auto yPosition = PADDING;
 
-    auto const skip = [&yPosition]() { yPosition += LINE_SKIP; };
-    auto const skipSection = [&yPosition]() { yPosition += SECTION_SKIP; };
+    auto const addLineGap = [&yPosition]() { yPosition += LINE_SKIP; };
+    auto const addSectionGap = [&yPosition]() { yPosition += SECTION_SKIP; };
 
     //==============================================================================
     mAudioSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mDeviceTypeLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mDeviceTypeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mInputDeviceLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mInputDeviceCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mOutputDeviceLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOutputDeviceCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mSampleRateLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mSampleRateCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
+    addLineGap();
 
     mBufferSize.setTopLeftPosition(LEFT_COL_START, yPosition);
     mBufferSizeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skipSection();
+    addSectionGap();
 
     //==============================================================================
-    mGeneralSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    skip();
+    mSpatNetworkSettings.setTopLeftPosition(LEFT_COL_START, yPosition);
+    addLineGap();
 
     mOscInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOscInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skipSection();
+    addSectionGap();
+
+    mSpeakerViewNetworkSettings.setTopLeftPosition(LEFT_COL_START, yPosition);
+    addLineGap();
+
+    mSpeakerViewInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mSpeakerViewInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    addLineGap();
+
+    mSpeakerViewOutputAddressLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mSpeakerViewOutputAddressTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    addLineGap();
+
+    mSpeakerViewOutputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mSpeakerViewOutputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    addSectionGap();
 
     mSaveSettingsButton.setTopRightPosition(RIGHT_COL_START + RIGHT_COL_WIDTH, yPosition);
 
@@ -336,11 +423,37 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
     }
 }
 
+void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
+{
+    if (&textEditor == &mSpeakerViewOutputAddressTextEditor && textEditor.getText() != "") {
+        // Validate IP address (thanks
+        // https://forum.juce.com/t/how-to-achive-ip-address-validation-for-taxteditor/12036/6 )
+        juce::IPAddress ip = juce::IPAddress(textEditor.getText());
+        if (ip.toString() != textEditor.getText()) {
+            textEditor.setText(localhost);
+        }
+    }
+    // Validate UDP ports (can't have UDP port < 1024 or > 65535).
+
+    else if (&textEditor == &mOscInputPortTextEditor
+             || (textEditor.getText().isNotEmpty()
+                 && (&textEditor == &mSpeakerViewInputPortTextEditor
+                     || &textEditor == &mSpeakerViewOutputPortTextEditor)))
+    {
+        // We allow empty values for the extraUDP ports to represent a null option..
+        if (textEditor.getText().getIntValue() < minUDPPort) {
+            textEditor.setText(minUDPPortString);
+        } else if (textEditor.getText().getIntValue() > maxUDPPort) {
+            textEditor.setText(maxUDPPortString);
+        }
+    }
+}
+
 //==============================================================================
-SettingsWindow::SettingsWindow(MainContentComponent & parent, int const oscPort, GrisLookAndFeel & grisLookAndFeel)
+SettingsWindow::SettingsWindow(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & grisLookAndFeel)
     : DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(parent)
-    , mPropertiesComponent(parent, oscPort, grisLookAndFeel)
+    , mPropertiesComponent(parent, sVComponent, grisLookAndFeel)
 {
     setAlwaysOnTop(true);
     setContentNonOwned(&mPropertiesComponent, true);

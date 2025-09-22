@@ -20,6 +20,7 @@
 #pragma once
 
 #include "sg_Configuration.hpp"
+#include "sg_SpeakerViewComponent.hpp"
 
 namespace gris
 {
@@ -33,10 +34,17 @@ class SettingsComponent final
     , public juce::ComboBox::Listener
     , public juce::TextEditor::Listener
 {
+    static inline const juce::String localhost = "127.0.0.1";
+    static constexpr int maxUDPPort = 65535;
+    static inline const juce::String maxUDPPortString = "65535";
+    static constexpr int minUDPPort = 1024;
+    static inline const juce::String minUDPPortString = "1024";
+
     juce::StringArray mInputDevices{};
     juce::StringArray mOutputDevices{};
 
     MainContentComponent & mMainContentComponent;
+    SpeakerViewComponent & mSVComponent;
     GrisLookAndFeel & mLookAndFeel;
 
     int mOscPortWhenLoaded;
@@ -60,16 +68,42 @@ class SettingsComponent final
     juce::ComboBox mBufferSizeCombo;
 
     //==============================================================================
-    juce::Label mGeneralSectionLabel{ "", "General Settings" };
+    juce::Label mSpatNetworkSettings{ "", "Spatialisation Data Network Settings" };
 
     juce::Label mOscInputPortLabel{ "", "OSC Input Port :" };
     juce::TextEditor mOscInputPortTextEditor{};
 
+
+    juce::Label mSpeakerViewNetworkSettings{ "", "Standalone SpeakerView Network Settings :" };
+
+    juce::Label mSpeakerViewInputPortLabel{ "", "UDP Input Port :" };
+    juce::TextEditor mSpeakerViewInputPortTextEditor{};
+
+    juce::Label mSpeakerViewOutputAddressLabel{ "", "UDP Output Address :" };
+    juce::TextEditor mSpeakerViewOutputAddressTextEditor{};
+
+    juce::Label mSpeakerViewOutputPortLabel{ "", "UDP Output Port :" };
+    juce::TextEditor mSpeakerViewOutputPortTextEditor{};
+
     juce::TextButton mSaveSettingsButton;
 
 public:
+    int mInitialOSCPort;
+    /**
+     * UDP input port for an extra networked SpeakerView
+     */
+    tl::optional<int> mInitialExtraUDPInputPort;
+    /**
+     * UDP output port for an extra networked SpeakerView
+     */
+    tl::optional<int> mInitialExtraUDPOutputPort;
+    /**
+     * IP address for an extra networked SpeakerView
+     */
+    tl::optional<juce::String> mInitialExtraUDPOutputAddress;
+
     //==============================================================================
-    SettingsComponent(MainContentComponent & parent, int oscPort, GrisLookAndFeel & lookAndFeel);
+    SettingsComponent(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & lookAndFeel);
     //==============================================================================
     SettingsComponent() = delete;
     ~SettingsComponent() override;
@@ -78,8 +112,9 @@ public:
 
     void buttonClicked(juce::Button * button) override;
 
-    void placeComponents();
+    void textEditorFocusLost(juce::TextEditor & text_editor) override;
 
+    void placeComponents();
 private:
     //==============================================================================
     void fillComboBoxes();
@@ -98,14 +133,14 @@ class SettingsWindow final : public juce::DocumentWindow
 
 public:
     //==============================================================================
-    SettingsWindow(MainContentComponent & parent, int oscPort, GrisLookAndFeel & grisLookAndFeel);
+    SettingsWindow(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & grisLookAndFeel);
     //==============================================================================
     SettingsWindow() = delete;
     ~SettingsWindow() override = default;
     SG_DELETE_COPY_AND_MOVE(SettingsWindow)
     //==============================================================================
     void closeButtonPressed() override;
-    bool keyPressed (const juce::KeyPress &key) override;
+    bool keyPressed(const juce::KeyPress & key) override;
 
 private:
     //==============================================================================

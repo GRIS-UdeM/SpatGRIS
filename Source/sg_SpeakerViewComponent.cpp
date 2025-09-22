@@ -23,20 +23,120 @@
 
 #include <algorithm>
 
+#include <charconv>
+
 namespace gris
 {
+static void appendNumber(std::string & str, float val)
+{
+    // otherwise we get some 4.37e-38 ...
+    if (std::abs(val) < 1e-6f)
+        val = 0.f;
+
+    // We are not using to_chars directly as it may not be available
+    // on every platform (e.g. older macOS).
+    // See notes here: https://en.cppreference.com/w/cpp/utility/to_chars
+#if __cpp_lib_to_chars >= 201611L
+    static constexpr auto precision = 3;
+    static constexpr auto format = std::chars_format::general;
+    char buf[16];
+    auto res = std::to_chars(buf, buf + 16, val, format, precision);
+    jassert(res.ec == std::errc{});
+    str.append(buf, res.ptr);
+#else
+    str += std::to_string(val);
+#endif
+}
+
+static void appendNumber(std::string & str, int val)
+{
+#if __cpp_lib_to_chars >= 201611L
+    char buf[16];
+    auto res = std::to_chars(buf, buf + 16, val);
+    jassert(res.ec == std::errc{});
+    str.append(buf, res.ptr);
+#else
+    str += std::to_string(val);
+#endif
+}
+
+
 //==============================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
     : mMainContentComponent(mainContentComponent)
+    , mUDPDefaultOutputPort(DEFAULT_UDP_OUTPUT_PORT)
+    , mUDPDefaultOutputAddress(localhost)
 {
-    mUdpReceiverSocket.bindToPort(DEFAULT_UDP_OUTPUT_PORT, "127.0.0.1");
+
+    const auto uDPExtraOutputPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
+    const auto uDPExtraOutputAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
+    const auto extraUDPInputPort = mainContentComponent.getData().project.standaloneSpeakerViewInputPort;
+    if (extraUDPInputPort) {
+        setExtraUDPInputPort(*extraUDPInputPort);
+    }
+
+    // If we have an address and port, enable sending to the extra standalone SpeakerView.
+    if (uDPExtraOutputPort && uDPExtraOutputAddress) {
+        setExtraUDPOutput(*uDPExtraOutputPort, *uDPExtraOutputAddress);
+    }
+
+    mUdpReceiverSocket.bindToPort(DEFAULT_UDP_INPUT_PORT);
 }
 
 //==============================================================================
 SpeakerViewComponent::~SpeakerViewComponent()
 {
     stopTimer();
-    mUdpReceiverSocket.shutdown();
+}
+
+bool SpeakerViewComponent::setExtraUDPInputPort(int const port)
+{
+    auto oldPort = getExtraUDPInputPort();
+    juce::ScopedLock const lock{ mLock };
+    // Apparently, calling bindToPort when a socket is already bound results in
+    // failure every time so we reconstruct the socket.
+    extraUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
+    bool success = extraUdpReceiverSocket->bindToPort(port);
+    if (oldPort && !success) {
+        extraUdpReceiverSocket = std::make_unique<juce::DatagramSocket>();
+        extraUdpReceiverSocket->bindToPort(*oldPort);
+    }
+    return success;
+}
+
+void SpeakerViewComponent::disableExtraUDPInput()
+{
+    juce::ScopedLock const lock{ mLock };
+    extraUdpReceiverSocket.reset();
+}
+
+tl::optional<int> SpeakerViewComponent::getExtraUDPInputPort() const
+{
+  return extraUdpReceiverSocket ? tl::optional<int>{ extraUdpReceiverSocket->getBoundPort() } : tl::nullopt;
+}
+
+void SpeakerViewComponent::setExtraUDPOutput(int const port, const juce::StringRef address) {
+    mUDPExtraOutputPort = port;
+    mUDPExtraOutputAddress = address;
+    if (!extraUdpSenderSocket) {
+      extraUdpSenderSocket = std::make_unique<juce::DatagramSocket>();
+    }
+}
+
+void SpeakerViewComponent::disableExtraUDPOutput() {
+    mUDPExtraOutputPort = tl::nullopt;
+    mUDPExtraOutputAddress = tl::nullopt;
+    extraUdpSenderSocket.reset();
+}
+
+tl::optional<int> SpeakerViewComponent::getExtraUDPOutputPort() const
+{
+    return mUDPExtraOutputPort;
+}
+
+tl::optional<juce::String> SpeakerViewComponent::getExtraUDPOutputAddress() const
+{
+    return mUDPExtraOutputAddress;
 }
 
 //==============================================================================
@@ -117,25 +217,18 @@ void SpeakerViewComponent::shouldKillSpeakerViewProcess(bool shouldKill)
     if (shouldKill) {
         // asking SpeakView to quit itself. SpeakView will send stop message before closing
         prepareSGInfos();
-        sendUDP();
+        sendUDP(mJsonSGInfos);
     }
 }
 
 //==============================================================================
-void SpeakerViewComponent::hiResTimerCallback()
+void SpeakerViewComponent::prepareSourcesJson()
 {
-    mHighResTimerThreadID = juce::Thread::getCurrentThreadId();
-
-    juce::ScopedLock const lock{ mLock };
-
-    listenUDP();
-
-    auto const & viewSettings{ mData.warmData.viewSettings };
-
-    // Prepare json sources data
     mJsonSources.clear();
-    mJsonSources.add(juce::var("sources"));
+    mJsonSources.reserve(4096);
+    mJsonSources += "[\"sources\",";
 
+    int processedSources = 0;
     for (auto & source : mData.hotSourcesDataUpdaters) {
         auto & exchanger{ source.value };
         auto *& ticket{ mData.coldData.mostRecentSourcesData[source.key] };
@@ -149,7 +242,7 @@ void SpeakerViewComponent::hiResTimerCallback()
         }
         /* Order is :
             srcNum
-            pos[x, y, z]
+            pos[x, y, z]  (note: SG is XZ-Y, Godot is XYZ. Conversion happens in SpeakerView)
             color[r, g, b, a]
             hybridSpatMode
             azimuth
@@ -157,27 +250,47 @@ void SpeakerViewComponent::hiResTimerCallback()
         */
         auto const & pos{ sourceData->position.getCartesian() };
         auto const & color{ sourceData->colour };
-        auto const & hybridSpatMode{ static_cast<int>(sourceData->hybridSpatMode) };
-        auto const & azimuth{ sourceData->azimuthSpan };
-        auto const & elevation{ sourceData->zenithSpan };
+        mJsonSources += "[";
+        appendNumber(mJsonSources, source.key.get());
+        mJsonSources += ",[";
+        appendNumber(mJsonSources, pos.x);
+        mJsonSources += ",";
+        appendNumber(mJsonSources, pos.y);
+        mJsonSources += ",";
+        appendNumber(mJsonSources, pos.z);
+        mJsonSources += "],[";
+        appendNumber(mJsonSources, color.getFloatRed());
+        mJsonSources += ",";
+        appendNumber(mJsonSources, color.getFloatGreen());
+        mJsonSources += ",";
+        appendNumber(mJsonSources, color.getFloatBlue());
+        mJsonSources += ",";
+        appendNumber(mJsonSources, color.getFloatAlpha());
+        mJsonSources += "],";
+        appendNumber(mJsonSources, static_cast<int>(sourceData->hybridSpatMode));
+        mJsonSources += ",";
+        appendNumber(mJsonSources, sourceData->azimuthSpan);
+        mJsonSources += ",";
+        appendNumber(mJsonSources, sourceData->zenithSpan);
+        mJsonSources += "],";
 
-        juce::Array<juce::var> jsonSource;
-        jsonSource.add(juce::var(source.key.get())); // srcNum
-        // SG is XZ-Y, Godot is XYZ. Conversion happens in SpeakerView
-        jsonSource.add(juce::var(juce::Array<juce::var>({ pos.x, pos.y, pos.z }))); // pos
-        jsonSource.add(juce::var(juce::Array<juce::var>(color.getFloatRed(),
-                                                        color.getFloatGreen(),
-                                                        color.getFloatBlue(),
-                                                        color.getFloatAlpha()))); // color
-        jsonSource.add(juce::var(hybridSpatMode)); // 0=Dome ou 1=Cube              // hybridSpatMode
-        jsonSource.add(juce::var(azimuth));        // azimuth
-        jsonSource.add(juce::var(elevation));      // elevation
-        mJsonSources.add(jsonSource);
+        processedSources++;
     }
+    if (processedSources > 0)
+        mJsonSources.pop_back(); // Remove the last ,
+    mJsonSources += "]";
+}
 
-    // Prepare json speakers data
+//==============================================================================
+void SpeakerViewComponent::prepareSpeakersJson()
+{
+    auto const & viewSettings{ mData.warmData.viewSettings };
+
+    int processedSpeakers = 0;
     mJsonSpeakers.clear();
-    mJsonSpeakers.add(juce::var("speakers"));
+    mJsonSpeakers.reserve(4096);
+    mJsonSpeakers += "[\"speakers\",";
+    auto speaker_centers = mMainContentComponent.getSpeakersGroupCenters();
     if (viewSettings.showSpeakers) {
         for (auto const & speaker : mData.warmData.speakers) {
             static constexpr auto DEFAULT_ALPHA = 0.75f;
@@ -201,27 +314,84 @@ void SpeakerViewComponent::hiResTimerCallback()
                 isSelected
                 isDirectOutOnly
                 alpha
+                (group center position (if speaker is in a group))
             */
 
             auto const & pos{ speaker.value.position.getCartesian() };
-            auto const & isSelected{ speaker.value.isSelected };
-            auto const & isDirectOutOnly{ speaker.value.isDirectOutOnly };
-            auto const & alpha{ getAlpha() };
 
-            juce::Array<juce::var> jsonSpeaker;
-            jsonSpeaker.add(juce::var(speaker.key.get()));                               // spkNum
-            jsonSpeaker.add(juce::var(juce::Array<juce::var>({ pos.x, pos.y, pos.z }))); // pos
-            jsonSpeaker.add(juce::var(isSelected));                                      // isSelected
-            jsonSpeaker.add(juce::var(isDirectOutOnly));                                 // isDirectOutOnly
-            jsonSpeaker.add(juce::var(alpha));                                           // alpha
-            mJsonSpeakers.add(jsonSpeaker);
+            mJsonSpeakers += "[";
+            appendNumber(mJsonSpeakers, speaker.key.get());
+            mJsonSpeakers += ",[";
+            appendNumber(mJsonSpeakers, pos.x);
+            mJsonSpeakers += ",";
+            appendNumber(mJsonSpeakers, pos.y);
+            mJsonSpeakers += ",";
+            appendNumber(mJsonSpeakers, pos.z);
+            mJsonSpeakers += "],";
+            mJsonSpeakers += speaker.value.isSelected ? "1" : "0";
+            mJsonSpeakers += ",";
+            mJsonSpeakers += speaker.value.isDirectOutOnly ? "1" : "0";
+            mJsonSpeakers += ",";
+            appendNumber(mJsonSpeakers, getAlpha());
+            // if the speaker is in a group, add its center's position.
+
+            // This will insert a default tl::nullopt if the key is not in
+            // the map. In this case we can live with it.
+            auto center_position = speaker_centers[speaker.key];
+
+            if (center_position) {
+              auto const & center_cartesion_pos = center_position->getCartesian();
+              mJsonSpeakers += ",[";
+              appendNumber(mJsonSpeakers, center_cartesion_pos.x);
+              mJsonSpeakers += ",";
+              appendNumber(mJsonSpeakers, center_cartesion_pos.y);
+              mJsonSpeakers += ",";
+              appendNumber(mJsonSpeakers, center_cartesion_pos.z);
+              mJsonSpeakers += "]";
+            }
+            mJsonSpeakers += "],";
+
+            processedSpeakers++;
         }
     }
+    if (processedSpeakers > 0)
+        mJsonSpeakers.pop_back(); // Remove the last ,
+    mJsonSpeakers += "]";
+}
 
-    // Prepare json SpatGris infos
+void SpeakerViewComponent::hiResTimerCallback()
+{
+    mHighResTimerThreadID = juce::Thread::getCurrentThreadId();
+
+    juce::ScopedLock const lock{ mLock };
+
+    listenUDP(mUdpReceiverSocket);
+    if (extraUdpReceiverSocket) {
+        listenUDP(*extraUdpReceiverSocket);
+    }
+
+    prepareSourcesJson();
+    prepareSpeakersJson();
     prepareSGInfos();
 
-    sendUDP();
+    if (mTicksSinceKeepalive == 9 || mOldJsonSources != mJsonSources) {
+        sendUDP(mJsonSources);
+        mOldJsonSources = mJsonSources;
+    }
+
+    if (mTicksSinceKeepalive == 9 || mOldJsonSpeakers != mJsonSpeakers) {
+        sendUDP(mJsonSpeakers);
+        mOldJsonSpeakers = mJsonSpeakers;
+    }
+
+    if (mTicksSinceKeepalive == 9 || mOldJsonSGInfos != mJsonSGInfos) {
+        sendUDP(mJsonSGInfos);
+        mOldJsonSGInfos = mJsonSGInfos;
+    }
+
+    mTicksSinceKeepalive+=1;
+    mTicksSinceKeepalive%=10;
+
 }
 
 //==============================================================================
@@ -230,41 +400,65 @@ void SpeakerViewComponent::prepareSGInfos()
     auto * topLevelComp = mMainContentComponent.getTopLevelComponent();
     auto const & spatMode{ static_cast<int>(mData.warmData.spatMode) };
     auto const & viewSettings{ mData.warmData.viewSettings };
-    mJsonSGInfos.reset(new juce::DynamicObject());
+    auto appendProperty = [&str=mJsonSGInfos] <typename P> (std::string_view name, const P& prop) {
+      str += '"';
+      str += name;
+      str += "\":";
+      if constexpr(std::is_same_v<bool, P>) {
+        str += prop ? "true" : "false";
+      }
+      else if constexpr(std::is_same_v<juce::String, P>) {
+        str += '"';
+        str += prop.toStdString();
+        str += '"';
+      }
+      else if constexpr(std::is_arithmetic_v<P>){
+        appendNumber(str, prop);
+      } else {
+        static_assert(P::is_not_a_known_type);
+      }
+      str += ",";
+    };
 
-    mJsonSGInfos->setProperty("killSV", mKillSpeakerViewProcess);
-    mJsonSGInfos->setProperty("spkStpName", mData.warmData.title);
-    mJsonSGInfos->setProperty("SGHasFocus", topLevelComp->hasKeyboardFocus(true));
-    mJsonSGInfos->setProperty("KeepSVOnTop", viewSettings.keepSpeakerViewWindowOnTop);
-    mJsonSGInfos->setProperty("SVGrabFocus", mMainContentComponent.speakerViewShouldGrabFocus());
-    mJsonSGInfos->setProperty("showHall", viewSettings.showHall);
-    mJsonSGInfos->setProperty("spatMode", spatMode); // -1, 0, 1, 2
-    mJsonSGInfos->setProperty("showSourceNumber", viewSettings.showSourceNumbers);
-    mJsonSGInfos->setProperty("showSpeakerNumber", viewSettings.showSpeakerNumbers);
-    mJsonSGInfos->setProperty("showSpeakers", viewSettings.showSpeakers);
-    mJsonSGInfos->setProperty("showSpeakerTriplets", viewSettings.showSpeakerTriplets);
-    mJsonSGInfos->setProperty("showSourceActivity", viewSettings.showSourceActivity);
-    mJsonSGInfos->setProperty("showSpeakerLevel", viewSettings.showSpeakerLevels);
-    mJsonSGInfos->setProperty("showSphereOrCube", viewSettings.showSphereOrCube);
-    mJsonSGInfos->setProperty("genMute", mMainContentComponent.getData().speakerSetup.generalMute);
+    mJsonSGInfos.clear();
+    mJsonSGInfos.reserve(4096);
+    mJsonSGInfos += "{";
 
-    juce::Array<juce::var> triplets;
-    for (auto const & triplet : mData.coldData.triplets) {
-        juce::Array<juce::var> tripletsData;
+    appendProperty("killSV", mKillSpeakerViewProcess);
+    appendProperty("spkStpName", mData.warmData.title);
+    appendProperty("SGHasFocus", topLevelComp->hasKeyboardFocus(true));
+    appendProperty("KeepSVOnTop", viewSettings.keepSpeakerViewWindowOnTop);
+    appendProperty("SVGrabFocus", mMainContentComponent.speakerViewShouldGrabFocus());
+    appendProperty("showHall", viewSettings.showHall);
+    appendProperty("spatMode", spatMode); // -1, 0, 1, 2
+    appendProperty("showSourceNumber", viewSettings.showSourceNumbers);
+    appendProperty("showSpeakerNumber", viewSettings.showSpeakerNumbers);
+    appendProperty("showSpeakers", viewSettings.showSpeakers);
+    appendProperty("showSpeakerTriplets", viewSettings.showSpeakerTriplets);
+    appendProperty("showSourceActivity", viewSettings.showSourceActivity);
+    appendProperty("showSpeakerLevel", viewSettings.showSpeakerLevels);
+    appendProperty("showSphereOrCube", viewSettings.showSphereOrCube);
+    appendProperty("genMute", mMainContentComponent.getData().speakerSetup.generalMute);
 
-        tripletsData.add(triplet.id1.get());
-        tripletsData.add(triplet.id2.get());
-        tripletsData.add(triplet.id3.get());
+    mJsonSGInfos += "\"spkTriplets\":[";
 
-        triplets.add(tripletsData);
+    if(!mData.coldData.triplets.isEmpty()) {
+        for (auto const & triplet : mData.coldData.triplets) {
+            mJsonSGInfos += '[';
+            appendNumber(mJsonSGInfos, triplet.id1.get());
+            mJsonSGInfos += ',';
+            appendNumber(mJsonSGInfos, triplet.id2.get());
+            mJsonSGInfos += ',';
+            appendNumber(mJsonSGInfos, triplet.id3.get());
+            mJsonSGInfos += "],";
+        }
+        mJsonSGInfos.pop_back(); // Remove the last ,
     }
+    mJsonSGInfos += "]";
 
-    mJsonSGInfos->setProperty("spkTriplets", triplets);
-
+    mJsonSGInfos += "}";
     if (mMainContentComponent.speakerViewShouldGrabFocus()) {
-        juce::MessageManager::callAsync([this] {
-            mMainContentComponent.resetSpeakerViewShouldGrabFocus();
-        });
+        juce::MessageManager::callAsync([this] { mMainContentComponent.resetSpeakerViewShouldGrabFocus(); });
     }
 }
 
@@ -276,7 +470,7 @@ bool SpeakerViewComponent::isHiResTimerThread()
 }
 
 //==============================================================================
-void SpeakerViewComponent::listenUDP()
+void SpeakerViewComponent::listenUDP(juce::DatagramSocket& socket)
 {
     if (!isHiResTimerThread()) {
         return;
@@ -285,7 +479,7 @@ void SpeakerViewComponent::listenUDP()
     juce::String senderAddress;
     int senderPort;
     char receiveBuffer[mMaxBufferSize];
-    auto packetSize = mUdpReceiverSocket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
+    auto packetSize = socket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
 
     if (packetSize > 0) {
         juce::String receivedData(receiveBuffer, packetSize);
@@ -297,10 +491,9 @@ void SpeakerViewComponent::listenUDP()
                 const auto keys = jsonResult.getDynamicObject()->getProperties();
 
                 for (int i{}; i < keys.size(); ++i) {
-                    auto & property = keys.getName(i).toString();
+                    auto const property = keys.getName(i);
                     juce::var value = keys.getValueAt(i);
-
-                    if (property.compare(juce::String("selSpkNum")) == 0) {
+                    if (property == selSpkNum) {
                         juce::String selSpkNumValues = value;
                         auto spkIsSelectedWithMouseStr = selSpkNumValues.fromLastOccurrenceOf(",", false, true);
                         selSpkNumValues = selSpkNumValues.dropLastCharacters(spkIsSelectedWithMouseStr.length() + 1);
@@ -314,82 +507,76 @@ void SpeakerViewComponent::listenUDP()
                                 mMainContentComponent.setSelectedSpeakers(juce::Array<output_patch_t>{ speaker });
                             });
                         }
-                    } else if (property.compare(juce::String("keepSVTop")) == 0) {
+                    } else if (property == keepSVTop) {
                         auto keepSVOnTopValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, keepSVOnTopValue] {
                             mMainContentComponent.handleKeepSVOnTopFromSpeakerView(keepSVOnTopValue);
                         });
-                    } else if (property.compare(juce::String("showHall")) == 0) {
+                    } else if (property == showHall) {
                         auto showHallValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showHallValue] {
                             mMainContentComponent.handleShowHallFromSpeakerView(showHallValue);
                         });
-                    } else if (property.compare(juce::String("showSrcNum")) == 0) {
+                    } else if (property == showSrcNum) {
                         auto showSrcValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSrcValue] {
                             mMainContentComponent.handleShowSourceNumbersFromSpeakerView(showSrcValue);
                         });
-                    } else if (property.compare(juce::String("showSpkNum")) == 0) {
+                    } else if (property == showSpkNum) {
                         auto showSpkValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSpkValue] {
                             mMainContentComponent.handleShowSpeakerNumbersFromSpeakerView(showSpkValue);
                         });
-                    } else if (property.compare(juce::String("showSpks")) == 0) {
+                    } else if (property == showSpks) {
                         auto showSpksValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSpksValue] {
                             mMainContentComponent.handleShowSpeakersFromSpeakerView(showSpksValue);
                         });
-                    } else if (property.compare(juce::String("showSpkTriplets")) == 0) {
+                    } else if (property == showSpkTriplets) {
                         auto showSpksTripletsValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSpksTripletsValue] {
                             mMainContentComponent.handleShowSpeakerTripletsFromSpeakerView(showSpksTripletsValue);
                         });
-                    } else if (property.compare(juce::String("showSrcActivity")) == 0) {
+                    } else if (property == showSrcActivity) {
                         auto showSrcActivityValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSrcActivityValue] {
                             mMainContentComponent.handleShowSourceActivityFromSpeakerView(showSrcActivityValue);
                         });
-                    } else if (property.compare(juce::String("showSpkLevel")) == 0) {
+                    } else if (property == showSpkLevel) {
                         auto showSpkLevelValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSpkLevelValue] {
                             mMainContentComponent.handleShowSpeakerLevelFromSpeakerView(showSpkLevelValue);
                         });
-                    } else if (property.compare(juce::String("showSphereCube")) == 0) {
+                    } else if (property == showSphereCube) {
                         auto showSphereOrCubeValue = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, showSphereOrCubeValue] {
                             mMainContentComponent.handleShowSphereOrCubeFromSpeakerView(showSphereOrCubeValue);
                         });
-                    } else if (property.compare(juce::String("resetSrcPos")) == 0) {
+                    } else if (property == resetSrcPos) {
                         if (static_cast<int>(value) != 0) {
                             juce::MessageManager::callAsync(
                                 [this] { mMainContentComponent.handleResetSourcesPositionsFromSpeakerView(); });
                         }
-                    } else if (property.compare(juce::String("genMute")) == 0) {
+                    } else if (property == genMute) {
                         auto generalMute = static_cast<bool>(value);
                         juce::MessageManager::callAsync([this, generalMute] {
                             mMainContentComponent.handleGeneralMuteFromSpeakerView(generalMute);
                         });
-                    } else if (property.compare(juce::String("winPos")) == 0) {
+                    } else if (property == winPos) {
                         auto winPosValue = value;
                         juce::MessageManager::callAsync([this, winPosValue] {
                             mMainContentComponent.handleWindowPositionFromSpeakerView(winPosValue);
                         });
-                    } else if (property.compare(juce::String("winSize")) == 0) {
+                    } else if (property == winSize) {
                         auto winSizeValue = value;
                         juce::MessageManager::callAsync([this, winSizeValue] {
                             mMainContentComponent.handleWindowSizeFromSpeakerView(winSizeValue);
                         });
-                    } else if (property.compare(juce::String("camPos")) == 0) {
+                    } else if (property == camPos) {
                         auto camPosValue = value;
                         juce::MessageManager::callAsync([this, camPosValue] {
                             mMainContentComponent.handleCameraPositionFromSpeakerView(camPosValue);
                         });
-                    } else if (property.compare(juce::String("quitting")) == 0) {
-                        bool quittingValue = value;
-                        if (quittingValue) {
-                            stopTimer();
-                            emptyUDPReceiverBuffer();
-                        }
                     }
                 }
             }
@@ -397,45 +584,16 @@ void SpeakerViewComponent::listenUDP()
     }
 }
 
-//==============================================================================
-void SpeakerViewComponent::sendUDP()
+void SpeakerViewComponent::sendUDP(const std::string & toSend)
 {
-    juce::DatagramSocket udpSenderSocket;
-    juce::String remoteHostname = "127.0.0.1";
-
-    udpSenderSocket.bindToPort(DEFAULT_UDP_INPUT_PORT, remoteHostname);
-
-    juce::String jsonSourcesStr = juce::JSON::toString(juce::var(mJsonSources));
-    if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
-        [[maybe_unused]] int numBytesWrittenSources
-            = udpSenderSocket.write(remoteHostname,
-                                    DEFAULT_UDP_INPUT_PORT,
-                                    jsonSourcesStr.toStdString().c_str(),
-                                    static_cast<int>(jsonSourcesStr.toStdString().length()));
-        jassert(!(numBytesWrittenSources < 0));
-    }
-
-    juce::String jsonSpeakersStr = juce::JSON::toString(juce::var(mJsonSpeakers));
-    if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
-        [[maybe_unused]] int numBytesWrittenSpeakers
-            = udpSenderSocket.write(remoteHostname,
-                                    DEFAULT_UDP_INPUT_PORT,
-                                    jsonSpeakersStr.toStdString().c_str(),
-                                    static_cast<int>(jsonSpeakersStr.toStdString().length()));
-        jassert(!(numBytesWrittenSpeakers < 0));
-    }
-
-    if (mJsonSGInfos != nullptr) {
-        juce::var jsonSGInfos(mJsonSGInfos.release());
-        juce::String jsonSGInfosStr = juce::JSON::toString(jsonSGInfos);
-        if (udpSenderSocket.waitUntilReady(true, 0) == 0) {
-            [[maybe_unused]] int numBytesWrittenSGInfos
-                = udpSenderSocket.write(remoteHostname,
-                                        DEFAULT_UDP_INPUT_PORT,
-                                        jsonSGInfosStr.toStdString().c_str(),
-                                        static_cast<int>(jsonSGInfosStr.toStdString().length()));
-            jassert(!(numBytesWrittenSGInfos < 0));
-        }
+    auto cStrToSend = toSend.c_str();
+    auto size = static_cast<int>(toSend.size());
+    [[maybe_unused]] int bytesWritten = udpSenderSocket.write(mUDPDefaultOutputAddress, mUDPDefaultOutputPort, cStrToSend, size);
+    jassert(!(bytesWritten < 0));
+    if (extraUdpSenderSocket) {
+        [[maybe_unused]] int extraBytesWritten
+            = extraUdpSenderSocket->write(*mUDPExtraOutputAddress, *mUDPExtraOutputPort, cStrToSend, size);
+        jassert(!(extraBytesWritten < 0));
     }
 }
 

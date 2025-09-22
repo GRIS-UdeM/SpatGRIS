@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_LogicStrucs.hpp"
+#include "Data/sg_LogicStrucs.hpp"
 
 #include <JuceHeader.h>
 
