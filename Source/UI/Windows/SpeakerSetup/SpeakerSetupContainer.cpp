@@ -188,7 +188,7 @@ int SpeakerSetupContainer::getNextOrderingIndex()
     int index {0};
     bool found = false;
     std::function<void(const juce::ValueTree&, bool)> recurUntilTargetFound;
-    recurUntilTargetFound = [this, &targetRow, &recurUntilTargetFound, &index, &found](const juce::ValueTree& valueTree, bool countChildren) {
+    recurUntilTargetFound = [&targetRow, &recurUntilTargetFound, &index, &found](const juce::ValueTree& valueTree, bool countChildren) {
         if (found) {
             return;
         }
