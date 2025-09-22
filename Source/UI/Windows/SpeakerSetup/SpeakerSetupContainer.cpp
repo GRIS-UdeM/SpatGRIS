@@ -28,9 +28,9 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
                                              std::function<void()> selectionChanged)
     : speakerSetupFileName { speakerSetupXmlFile.getFileName()}
     , speakerSetupVt (theSpeakerSetupVt)
+    , containerHeader{grisLookAndFeel}
     , undoManager (undoMan)
     , onSelectionChanged (selectionChanged)
-    , containerHeader{grisLookAndFeel}
 {
     speakerSetupTreeView.setRootItemVisible(false);
     addAndMakeVisible (speakerSetupTreeView);

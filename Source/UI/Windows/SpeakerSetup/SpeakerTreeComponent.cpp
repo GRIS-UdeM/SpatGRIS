@@ -26,9 +26,9 @@ SpeakerTreeComponent::SpeakerTreeComponent(SpeakerSetupLine * owner,
                                            const juce::ValueTree & v,
                                            juce::UndoManager & undoMan)
     : speakerTreeVt(v)
+    , undoManager (undoMan)
     , speakerSetupVt (v.getRoot())
     , speakerSetupLine(owner)
-    , undoManager (undoMan)
 {
     speakerSetupVt.addListener(this);
     setInterceptsMouseClicks(false, true);

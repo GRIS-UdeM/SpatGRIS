@@ -11,13 +11,14 @@ void SpeakerColumnHeader::paint(juce::Graphics& g) {
     if (sortState == SortState::none) {
         return;
     }
+
     // paints the little arrow thingy if necessary.
     g.setColour (arrowColor);
     juce::Path sortTriangle;
-    const auto middle = getLocalBounds().getHeight()/2;
-    constexpr auto triangleRightPad = 4;
-    constexpr auto triangleWidth = 10;
-    constexpr auto triangleHeight = 4;
+    const auto middle = getLocalBounds().getHeight() / 2;
+    constexpr auto triangleRightPad = 4.f;
+    constexpr auto triangleWidth = 10.f;
+    constexpr auto triangleHeight = 4.f;
     if (sortState == SortState::ascending)
         sortTriangle.addTriangle (width - triangleRightPad - triangleWidth, middle + triangleHeight, width - triangleRightPad, middle + triangleHeight, width - triangleRightPad - (triangleWidth/2), middle - triangleHeight);
     else
@@ -25,7 +26,7 @@ void SpeakerColumnHeader::paint(juce::Graphics& g) {
     g.fillPath (sortTriangle);
 }
 
-void SpeakerColumnHeader::mouseUp (const juce::MouseEvent& e) {
+void SpeakerColumnHeader::mouseUp (const juce::MouseEvent &) {
     // Basically state transition (and repaint) + sort callback for the parent.
     switch (sortState) {
         case SortState::none:
@@ -51,9 +52,7 @@ void SpeakerColumnHeader::setSortCallback(std::function<void(const SpeakerColumn
     sortCallback = callback;
 }
 
-SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel& glaf)
-
-    : grisLookAndFeel(glaf)
+SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel & glaf) : grisLookAndFeel(glaf)
 {
     auto setHeaderText = [this](juce::Label& label, const juce::String & text) {
         label.setColour (juce::Label::ColourIds::outlineColourId, grisLookAndFeel.mLightColour.withAlpha (.25f));
@@ -62,14 +61,16 @@ SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel& glaf)
     };
 
     auto disableOtherHeaders = [this](const SpeakerColumnHeader* clickedHeader) {
-        for (const auto header : {&id, &x, &y, &z, &azim, &elev, &distance}) {
+        for (const auto header : { &id, &x, &y, &z, &azim, &elev, &distance }) {
             if (clickedHeader != header) {
                 header->setState(SpeakerColumnHeader::SortState::none);
             }
         }
     };
+
     auto makeSortFunction = [this, disableOtherHeaders](SpeakerColumnHeader::ColumnID sortID) {
-        return [this, sortID, disableOtherHeaders](const SpeakerColumnHeader* clickedHeader, const SpeakerColumnHeader::SortState sortState) {
+        return [this, sortID, disableOtherHeaders](const SpeakerColumnHeader * clickedHeader,
+                                                   const SpeakerColumnHeader::SortState sortState) {
             if (sortState == SpeakerColumnHeader::SortState::none) {
                 return;
             }
@@ -78,6 +79,7 @@ SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel& glaf)
             disableOtherHeaders(clickedHeader);
         };
     };
+
     setHeaderText (id, "ID");
     constexpr auto realIdWidth = SpeakerTreeComponent::fixedLeftColWidth-28;
     id.width = realIdWidth;
@@ -93,6 +95,7 @@ SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel& glaf)
     setHeaderText (highpass, "Highpass");
     setHeaderText (direct, "Direct");
     setHeaderText (del, "Delete");
+
     constexpr std::array<SpeakerColumnHeader::ColumnID, 8> headerKeys = {
         SpeakerColumnHeader::ColumnID::X,
         SpeakerColumnHeader::ColumnID::Y,
@@ -103,6 +106,7 @@ SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel& glaf)
         SpeakerColumnHeader::ColumnID::Gain,
         SpeakerColumnHeader::ColumnID::Highpass,
     };
+
     size_t i = 0;
     for (const auto header : { &x, &y, &z, &azim, &elev, &distance, &gain, &highpass}) {
         header->width = SpeakerTreeComponent::otherColWidth;
@@ -132,4 +136,4 @@ void SpeakerSetupContainerHeader::resized() {
 void SpeakerSetupContainerHeader::setSortFunc(std::function<void(SpeakerColumnHeader::ColumnID, int sortDirection)> sort) {
     sortFunc = sort;
 }
-}
+} // namespace gris
