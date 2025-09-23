@@ -766,7 +766,8 @@ void EditSpeakersWindow::resized()
         else if (auto * lcw{ dynamic_cast<LabelComboBoxWrapper *>(w) })
             lcw->comboBox.setBounds(x + lw, y + 1, ew, rowH - 2);
     };
-    auto currentX = 130;
+
+    auto currentX = 135;
     auto const labelW{ 80 };
     auto const shortLabelW{ 33 };
 
@@ -774,7 +775,7 @@ void EditSpeakersWindow::resized()
     auto const increment{ 140 };
 
     mRingTitle.setBounds(5, secondRowY, currentX, rowH);
-    positionWidget(&mRingSpeakers, currentX, secondRowY, labelW, editorW);
+    positionWidget(&mRingSpeakers, currentX, secondRowY, labelW, editorW - 5);
     currentX += increment;
     positionWidget(&mRingElevation, currentX, secondRowY, labelW, editorW);
     currentX += increment;
@@ -786,26 +787,20 @@ void EditSpeakersWindow::resized()
 
     // third row of bottom panel with polyhedra controls
     auto const thirdRowY{ rowsStart + (rowH + rowSpacing) * 2 };
-    currentX = 130 ;
+    currentX = 135;
     mPolyTitle.setBounds(5, thirdRowY, currentX, rowH);
-    positionWidget(&mPolyFaces, currentX, thirdRowY, labelW, editorW);
-    currentX += labelW + editorW;
-    positionWidget(&mPolyX, currentX, thirdRowY, shortLabelW, editorW);
-    currentX += shortLabelW + editorW;
-    positionWidget(&mPolyY, currentX, thirdRowY, shortLabelW, editorW);
-    currentX += shortLabelW + editorW + 1;
-    positionWidget(&mPolyZ, currentX, thirdRowY, shortLabelW, editorW);
-    // +2 just to align the editors a bit better.
-    currentX += shortLabelW + editorW;
-    positionWidget(&mPolyRadius, currentX, thirdRowY, labelW, editorW);
+    positionWidget(&mPolyFaces,  currentX, thirdRowY, labelW, editorW - 5);
+    positionWidget(&mPolyX,      currentX += labelW + editorW, thirdRowY, shortLabelW, editorW);
+    positionWidget(&mPolyY,      currentX += labelW + editorW, thirdRowY, shortLabelW, editorW);
+    positionWidget(&mPolyZ,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW);
+    positionWidget(&mPolyRadius, currentX += shortLabelW + editorW, thirdRowY, labelW, editorW);
     mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, rowH);
 
     // fourth row of bottom panel with grid controls
     auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 };
-    currentX = 130;
+    currentX = 135;
     mGridTitle.setBounds(5, fourthRowY, currentX, rowH);
     positionWidget(&mGridNumCols, currentX, fourthRowY, labelW, editorW);
-
     positionWidget(&mGridNumRows, currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
     positionWidget(&mGridX,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
     positionWidget(&mGridY,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
