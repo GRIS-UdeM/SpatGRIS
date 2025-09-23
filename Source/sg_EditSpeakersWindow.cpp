@@ -161,7 +161,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     // Grid of speakers.
     setupLabel(mGridTitle, "Grid parameters:");
     setupWrapper(&mGridNumCols,
-                 "Colums",
+                 "Columns",
                  "Number of columns in the speaker grid.",
                  "5",
                  2,
@@ -769,9 +769,12 @@ void EditSpeakersWindow::resized()
 
     auto currentX = 135;
     auto const labelW{ 80 };
+    auto const midLabelW{ 50 };
     auto const shortLabelW{ 33 };
 
-    auto const editorW{ 60 };
+    auto const comboW{ 55 };
+    auto const editorW{ 40 };
+    auto const shortEditorW{ 25 };
     auto const increment{ 140 };
 
     // ring row
@@ -790,24 +793,24 @@ void EditSpeakersWindow::resized()
     auto const thirdRowY{ rowsStart + (rowH + rowSpacing) * 2 };
     currentX = 135;
     mPolyTitle.setBounds(5, thirdRowY, currentX, rowH);
-    positionWidget(&mPolyFaces,  currentX, thirdRowY, labelW, editorW - 5);
-    positionWidget(&mPolyX,      currentX += labelW      + editorW, thirdRowY, shortLabelW, editorW);
+    positionWidget(&mPolyFaces,  currentX, thirdRowY, labelW, comboW);
+    positionWidget(&mPolyX,      currentX += labelW      + comboW, thirdRowY, shortLabelW, editorW);
     positionWidget(&mPolyY,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW);
     positionWidget(&mPolyZ,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW);
-    positionWidget(&mPolyRadius, currentX += shortLabelW + editorW, thirdRowY, labelW, editorW);
+    positionWidget(&mPolyRadius, currentX += shortLabelW + editorW, thirdRowY, midLabelW, editorW);
     mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, rowH);
 
     // grid row
     auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 };
     currentX = 135;
     mGridTitle.setBounds(5, fourthRowY, currentX, rowH);
-    positionWidget(&mGridNumCols, currentX, fourthRowY, labelW, editorW);
-    positionWidget(&mGridNumRows, currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
-    positionWidget(&mGridX,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridNumCols, currentX, fourthRowY, labelW, shortEditorW);
+    positionWidget(&mGridNumRows, currentX += labelW      + shortEditorW, fourthRowY, midLabelW, shortEditorW);
+    positionWidget(&mGridX,       currentX += midLabelW   + shortEditorW, fourthRowY, shortLabelW, editorW);
     positionWidget(&mGridY,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
     positionWidget(&mGridZ,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
-    positionWidget(&mGridWidth,   currentX += shortLabelW + editorW, fourthRowY, labelW, editorW);
-    positionWidget(&mGridHeight,  currentX += shortLabelW + editorW, fourthRowY, labelW, editorW);
+    positionWidget(&mGridWidth,   currentX += shortLabelW + editorW, fourthRowY, midLabelW, editorW);
+    positionWidget(&mGridHeight,  currentX += midLabelW + editorW, fourthRowY, midLabelW, editorW);
     mAddGridButton.setBounds(getWidth() - 105, fourthRowY, 100, rowH);
 
     // "Fifth" row with pink noise, diffusion and the save buttons.
