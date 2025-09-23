@@ -740,14 +740,14 @@ void EditSpeakersWindow::resized()
     // second row of bottom panel with rings of speakers
     auto const secondRowY{ rowsStart + rowH + rowSpacing };
     auto const positionWidget = [](LabelWrapper * w, int x, int y, int lw, int ew) {
-        // the fine adjustment (+1 y on the label position and +1 -2 on
-        // the editor's y and height are there to match the size of the
-        // comboboxes and the positionning with the one of the buttons.
-        w->label.setBounds(x, y + 1, lw, rowH);
+        w->label.setBounds(x, y, lw, rowH);
+
         if (auto * lew{ dynamic_cast<LabelTextEditorWrapper *>(w) })
-            lew->editor.setBounds(x + lw, y + 1, ew, rowH - 2);
+            lew->editor.setBounds(x + lw, y, ew, rowH);
         else if (auto * lcw{ dynamic_cast<LabelComboBoxWrapper *>(w) })
-            lcw->comboBox.setBounds(x + lw, y + 1, ew, rowH - 2);
+            lcw->comboBox.setBounds(x + lw, y, ew, rowH);
+        else
+            jassertfalse;
     };
 
     auto currentX = 135;
@@ -762,14 +762,10 @@ void EditSpeakersWindow::resized()
 
     // ring row
     mRingTitle.setBounds(5, secondRowY, currentX, rowH);
-    positionWidget(&mRingSpeakers, currentX, secondRowY, labelW, editorW - 5);
-    currentX += increment;
-    positionWidget(&mRingElevation, currentX, secondRowY, labelW, editorW);
-    currentX += increment;
-    positionWidget(&mRingRadius, currentX, secondRowY, labelW, editorW);
-    currentX += increment;
-    positionWidget(&mRingOffsetAngle, currentX, secondRowY, labelW, editorW);
-    currentX += increment;
+    positionWidget(&mRingSpeakers,    currentX, secondRowY, labelW, editorW - 5);
+    positionWidget(&mRingElevation,   currentX += increment, secondRowY, labelW, editorW);
+    positionWidget(&mRingRadius,      currentX += increment, secondRowY, labelW, editorW);
+    positionWidget(&mRingOffsetAngle, currentX += increment, secondRowY, labelW, editorW);
     mAddRingButton.setBounds(getWidth() - 105, secondRowY, 100, rowH);
 
     // polyhedron row
@@ -777,10 +773,10 @@ void EditSpeakersWindow::resized()
     currentX = 135;
     mPolyTitle.setBounds(5, thirdRowY, currentX, rowH);
     positionWidget(&mPolyFaces,  currentX, thirdRowY, labelW, comboW);
-    positionWidget(&mPolyX,      currentX += labelW      + comboW, thirdRowY, shortLabelW, editorW);
-    positionWidget(&mPolyY,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW);
-    positionWidget(&mPolyZ,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW);
-    positionWidget(&mPolyRadius, currentX += shortLabelW + editorW, thirdRowY, midLabelW, editorW);
+    positionWidget(&mPolyX,      currentX += labelW      + comboW, thirdRowY, shortLabelW, editorW + 2);
+    positionWidget(&mPolyY,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW + 4);
+    positionWidget(&mPolyZ,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW + 3);
+    positionWidget(&mPolyRadius, currentX += shortLabelW + editorW, thirdRowY, labelW, editorW);
     mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, rowH);
 
     // grid row
