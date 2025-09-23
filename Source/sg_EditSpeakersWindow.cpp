@@ -749,7 +749,7 @@ void EditSpeakersWindow::resized()
     mSpeakerSetupContainer.setSize(getWidth(), getHeight() - bottomPanelH);
 
     // first row of bottom panel with add speaker
-    auto const rowsStart = getHeight() - 200;
+    auto const rowsStart = getHeight() - bottomPanelH/*200*/;
     auto const rowSpacing{ 10 };
     auto const firstRowY{ rowsStart };
     mAddSpeakerButton.setBounds(getWidth() - 105, firstRowY, 100, rowH);
@@ -819,7 +819,7 @@ void EditSpeakersWindow::resized()
     auto const sliderHeight{ 60 };
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, rowH);
     mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, sliderHeight);
-    mDiffusionLabel.setBounds(260, getHeight() - 70, 160, rowH);
+    mDiffusionLabel.setBounds(260,      getHeight() - 70, 160, rowH);
     mDiffusionSlider.setBounds(260+165, getHeight() - 95, 60, sliderHeight);
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, rowH);
 
