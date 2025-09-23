@@ -153,6 +153,7 @@ private:
 
     //add grid of speakers
     juce::Label mGridTitle;
+    LabelComboBoxWrapper mGridAlignment;
     LabelTextEditorWrapper mGridNumCols;
     LabelTextEditorWrapper mGridNumRows;
     LabelTextEditorWrapper mGridX;
@@ -175,6 +176,7 @@ private:
     tl::optional<int> mDragStartY{};
     bool mShouldComputeSpeakers{};
     juce::SparseSet<int> mLastSelectedRows{};
+
 public:
     //==============================================================================
     EditSpeakersWindow(juce::String const & name,
@@ -199,6 +201,7 @@ public:
      * Returns the speaker ordering exactly as it is displayed in the window.
      */
     juce::Array<output_patch_t> getSpeakerOutputPatchOrder();
+
 private:
     bool isAddingGroup = false;
     //==============================================================================

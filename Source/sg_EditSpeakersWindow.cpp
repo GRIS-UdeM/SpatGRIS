@@ -65,6 +65,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mPolyY(lookAndFeel)
     , mPolyZ(lookAndFeel)
     , mPolyRadius(lookAndFeel)
+    , mGridAlignment(lookAndFeel)
     , mGridNumCols(lookAndFeel)
     , mGridNumRows(lookAndFeel)
     , mGridX(lookAndFeel)
@@ -160,8 +161,15 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 
     // Grid of speakers.
     setupLabel(mGridTitle, "Grid parameters:");
+    setupWrapper(&mGridAlignment,
+                 "Alignment",
+                 "The axis with witch the speaker grid should align to",
+                 {},
+                 {},
+                 {},
+                 { "x", "y", "z"});
     setupWrapper(&mGridNumCols,
-                 "Columns",
+                 "Cols",
                  "Number of columns in the speaker grid.",
                  "5",
                  2,
@@ -419,6 +427,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         auto const getSpeakerPosition = [this, numCols, numRows](int i) -> Position
         {
+            const auto alignment = mGridAlignment.getSelectionAsInt();
+
             const float w  = mGridWidth.getTextAs<float>();
             const float h  = mGridHeight.getTextAs<float>();
             const float cx = mGridX.getTextAs<float>();
@@ -679,6 +689,7 @@ void EditSpeakersWindow::toggleGridWidgets()
 {
     const auto showGridWidgets = spatGrisData.speakerSetup.spatMode == SpatMode::mbap;
     mGridTitle.setVisible(showGridWidgets);
+    mGridAlignment.setVisible(showGridWidgets);
     mGridNumCols.setVisible(showGridWidgets);
     mGridNumRows.setVisible(showGridWidgets);
     mGridX.setVisible(showGridWidgets);
@@ -804,13 +815,14 @@ void EditSpeakersWindow::resized()
     auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 };
     currentX = 135;
     mGridTitle.setBounds(5, fourthRowY, currentX, rowH);
-    positionWidget(&mGridNumCols, currentX, fourthRowY, labelW, shortEditorW);
-    positionWidget(&mGridNumRows, currentX += labelW      + shortEditorW, fourthRowY, midLabelW, shortEditorW);
-    positionWidget(&mGridX,       currentX += midLabelW   + shortEditorW, fourthRowY, shortLabelW, editorW);
-    positionWidget(&mGridY,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
-    positionWidget(&mGridZ,       currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
-    positionWidget(&mGridWidth,   currentX += shortLabelW + editorW, fourthRowY, midLabelW, editorW);
-    positionWidget(&mGridHeight,  currentX += midLabelW + editorW, fourthRowY, midLabelW, editorW);
+    positionWidget(&mGridAlignment,  currentX, fourthRowY, labelW, comboW);
+    positionWidget(&mGridNumCols,    currentX += labelW      + comboW, fourthRowY, midLabelW, shortEditorW);
+    positionWidget(&mGridNumRows,    currentX += midLabelW   + shortEditorW, fourthRowY, midLabelW, shortEditorW);
+    positionWidget(&mGridX,          currentX += midLabelW   + shortEditorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridY,          currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridZ,          currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridWidth,      currentX += shortLabelW + editorW, fourthRowY, midLabelW, editorW);
+    positionWidget(&mGridHeight,     currentX += midLabelW + editorW, fourthRowY, midLabelW, editorW);
     mAddGridButton.setBounds(getWidth() - 105, fourthRowY, 100, rowH);
 
     // "Fifth" row with pink noise, diffusion and the save buttons.
