@@ -749,7 +749,7 @@ void EditSpeakersWindow::resized()
     mSpeakerSetupContainer.setSize(getWidth(), getHeight() - bottomPanelH);
 
     // first row of bottom panel with add speaker
-    auto const rowsStart = getHeight() - bottomPanelH/*200*/;
+    auto const rowsStart = getHeight() - bottomPanelH;
     auto const rowSpacing{ 10 };
     auto const firstRowY{ rowsStart };
     mAddSpeakerButton.setBounds(getWidth() - 105, firstRowY, 100, rowH);
@@ -774,6 +774,7 @@ void EditSpeakersWindow::resized()
     auto const editorW{ 60 };
     auto const increment{ 140 };
 
+    // ring row
     mRingTitle.setBounds(5, secondRowY, currentX, rowH);
     positionWidget(&mRingSpeakers, currentX, secondRowY, labelW, editorW - 5);
     currentX += increment;
@@ -785,18 +786,18 @@ void EditSpeakersWindow::resized()
     currentX += increment;
     mAddRingButton.setBounds(getWidth() - 105, secondRowY, 100, rowH);
 
-    // third row of bottom panel with polyhedra controls
+    // polyhedron row
     auto const thirdRowY{ rowsStart + (rowH + rowSpacing) * 2 };
     currentX = 135;
     mPolyTitle.setBounds(5, thirdRowY, currentX, rowH);
     positionWidget(&mPolyFaces,  currentX, thirdRowY, labelW, editorW - 5);
-    positionWidget(&mPolyX,      currentX += labelW + editorW, thirdRowY, shortLabelW, editorW);
-    positionWidget(&mPolyY,      currentX += labelW + editorW, thirdRowY, shortLabelW, editorW);
+    positionWidget(&mPolyX,      currentX += labelW      + editorW, thirdRowY, shortLabelW, editorW);
+    positionWidget(&mPolyY,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW);
     positionWidget(&mPolyZ,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW);
     positionWidget(&mPolyRadius, currentX += shortLabelW + editorW, thirdRowY, labelW, editorW);
     mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, rowH);
 
-    // fourth row of bottom panel with grid controls
+    // grid row
     auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 };
     currentX = 135;
     mGridTitle.setBounds(5, fourthRowY, currentX, rowH);
