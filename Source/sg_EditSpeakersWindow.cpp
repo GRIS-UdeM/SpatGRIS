@@ -431,9 +431,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
             const float w  = mGridWidth.getTextAs<float>();
             const float h  = mGridHeight.getTextAs<float>();
-            const float cx = mGridX.getTextAs<float>();
-            const float cy = mGridY.getTextAs<float>();
-            const float cz = mGridZ.getTextAs<float>();
+            const float cx = 0.f; //mGridX.getTextAs<float>();
+            const float cy = 0.f; //mGridY.getTextAs<float>();
+            const float cz = 0.f; //mGridZ.getTextAs<float>();
 
             const float wIncrement = (numCols > 1) ? (w / (numCols - 1)) : 0.0f;
             const float hIncrement = (numRows > 1) ? (h / (numRows - 1)) : 0.0f;
