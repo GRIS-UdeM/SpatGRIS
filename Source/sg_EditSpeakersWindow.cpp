@@ -121,7 +121,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
             mViewportWrapper.getContent()->addAndMakeVisible(labelTextEditor->editor);
         } else if (auto * labelComboBox{ dynamic_cast<LabelComboBoxWrapper *>(w) }) {
             labelComboBox->comboBox.addItemList(comboItemList, 1);
-            labelComboBox->comboBox.setSelectedId(4);
+            labelComboBox->comboBox.setSelectedId(1);
             labelComboBox->comboBox.setTooltip(tooltip);
             mViewportWrapper.getContent()->addAndMakeVisible(labelComboBox->comboBox);
         }
@@ -163,7 +163,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupLabel(mGridTitle, "Grid parameters:");
     setupWrapper(&mGridAlignment,
                  "Alignment",
-                 "The axis with witch the speaker grid should align to",
+                 "The axis with witch the speaker grid should align",
                  {},
                  {},
                  {},
@@ -427,7 +427,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         auto const getSpeakerPosition = [this, numCols, numRows](int i) -> Position
         {
-            const auto alignment = mGridAlignment.getSelectionAsInt();
+            const auto alignment = mGridAlignment.getSelectionAsString();
 
             const float w  = mGridWidth.getTextAs<float>();
             const float h  = mGridHeight.getTextAs<float>();

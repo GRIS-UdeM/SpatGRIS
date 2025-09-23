@@ -92,6 +92,7 @@ struct LabelComboBoxWrapper : public LabelWrapper
 {
     explicit LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel);
 
+    juce::String getSelectionAsString(){ return comboBox.getText(); }
     int getSelectionAsInt(){ return comboBox.getText().getIntValue(); }
     void setVisible(bool visible) override
     {
