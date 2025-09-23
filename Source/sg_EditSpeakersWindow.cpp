@@ -427,47 +427,41 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
         auto const getSpeakerPosition = [this, numCols, numRows](int i) -> Position
         {
-            const auto alignment = mGridAlignment.getSelectionAsString();
+            auto const alignment = mGridAlignment.getSelectionAsString();
 
-            const float w  = mGridWidth.getTextAs<float>();
-            const float h  = mGridHeight.getTextAs<float>();
-            const float cx = 0.f; //mGridX.getTextAs<float>();
-            const float cy = 0.f; //mGridY.getTextAs<float>();
-            const float cz = 0.f; //mGridZ.getTextAs<float>();
+            auto const w  = mGridWidth.getTextAs<float>();
+            auto const h  = mGridHeight.getTextAs<float>();
 
-            const float wIncrement = (numCols > 1) ? (w / (numCols - 1)) : 0.0f;
-            const float hIncrement = (numRows > 1) ? (h / (numRows - 1)) : 0.0f;
+            auto const wIncrement = (numCols > 1) ? (w / (numCols - 1)) : 0.0f;
+            auto const hIncrement = (numRows > 1) ? (h / (numRows - 1)) : 0.0f;
 
             // grid indices (row-major)
-            const int col = i % numCols;
-            const int row = i / numCols;
+            auto const col = i % numCols;
+            auto const row = i / numCols;
 
             // local coords centered on origin
-            const float lx = (col - (numCols - 1) * 0.5f) * wIncrement;
-            const float ly = (row - (numRows - 1) * 0.5f) * hIncrement;
+            auto const lx = (col - (numCols - 1) * 0.5f) * wIncrement;
+            auto const ly = (row - (numRows - 1) * 0.5f) * hIncrement;
 
-            float x = 0.0f, y = 0.0f, z = 0.0f;
+            auto x = 0.f, y = 0.f, z = 0.f;
 
             if (alignment == "z")
             {
                 // grid lies in XY plane, parallel to Z
-                x = lx + cx;
-                y = ly + cy;
-                z = cz;
+                x = lx;
+                y = ly;
             }
             else if (alignment == "y")
             {
                 // grid lies in XZ plane, parallel to Y
-                x = lx + cx;
-                y = cy;
-                z = ly + cz;
+                x = lx;
+                z = ly;
             }
             else if (alignment == "x")
             {
                 // grid lies in YZ plane, parallel to X
-                x = cx;
-                y = lx + cy;
-                z = ly + cz;
+                y = lx;
+                z = ly;
             }
 
             return Position{ { x, y, z } };

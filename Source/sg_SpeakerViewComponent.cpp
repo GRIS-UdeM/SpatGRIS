@@ -357,7 +357,6 @@ void SpeakerViewComponent::prepareSpeakersJson()
     if (processedSpeakers > 0)
         mJsonSpeakers.pop_back(); // Remove the last ,
     mJsonSpeakers += "]";
-//    DBG (mJsonSpeakers);
 }
 
 void SpeakerViewComponent::hiResTimerCallback()
