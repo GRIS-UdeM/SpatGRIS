@@ -187,7 +187,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                  4,
                  "-0123456789.");
     setupWrapper(&mGridY, "Y", "Y position for the center of the grid.", "0", 4, "-0123456789.");
-    setupWrapper(&mGridZ, "Z", "Z position for the center of the grid.", "0.15", 4, "-0123456789.");
+    setupWrapper(&mGridZ, "Z", "Z position for the center of the grid.", "0", 4, "-0123456789.");
     setupWrapper(&mGridWidth, "Width", "Width of the speaker grid.", ".5", 4, "0123456789.");
     setupWrapper(&mGridHeight, "Height", "Height of the speaker grid.", ".4", 4, "0123456789.");
     setupButton(mAddGridButton, "Add Grid");
@@ -602,28 +602,22 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
     if (&textEditor == &mRingSpeakers.editor) {
         auto const value{ std::clamp(intValue, 2, 64) };
         textEditor.setText(juce::String{ value }, false);
-        mShouldComputeSpeakers = true;
     } else if (&textEditor == &mRingElevation.editor) {
         auto const value{ floatValue < elevationHalfPoint ? std::clamp(floatValue, 0.0f, 90.0f)
                                                           : std::clamp(floatValue, 270.0f, 360.0f) };
         textEditor.setText(juce::String{ value, 1 }, false);
-        mShouldComputeSpeakers = true;
     } else if (&textEditor == &mRingRadius.editor) {
         juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
         auto const minRadius{ spatMode == SpatMode::mbap ? 0.001f : NORMAL_RADIUS };
         auto const maxRadius{ spatMode == SpatMode::mbap ? SQRT3 : NORMAL_RADIUS };
         auto const value{ std::clamp(floatValue, minRadius, maxRadius) };
         textEditor.setText(juce::String{ value, 1 }, false);
-        mShouldComputeSpeakers = true;
     } else if (&textEditor == &mRingOffsetAngle.editor) {
         auto const value{ std::clamp(floatValue, -360.0f, 360.0f) };
         textEditor.setText(juce::String{ value, 1 }, false);
-        mShouldComputeSpeakers = true;
-    } else if (&textEditor == &mPolyX.editor) {
-        clampPolyXYZ();
-    } else if (&textEditor == &mPolyY.editor) {
-        clampPolyXYZ();
-    } else if (&textEditor == &mPolyZ.editor) {
+    } else if (&textEditor == &mPolyX.editor
+               || &textEditor == &mPolyY.editor
+               || &textEditor == &mPolyZ.editor) {
         clampPolyXYZ();
     } else if (&textEditor == &mPolyRadius.editor) {
         const auto x{ mPolyX.getTextAs<float>() };
@@ -644,7 +638,34 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
             textEditor.setText(juce::String(z - maxPolyRadius));
         else if (z + floatValue > maxPolyRadius)
             textEditor.setText(juce::String(maxPolyRadius - z));
+    } else if (&textEditor == &mGridNumCols.editor
+               || &textEditor == &mGridNumRows.editor) {
+        auto const value{ std::clamp(intValue, 1, 99) };
+        textEditor.setText(juce::String{ value }, false);
+    } else if (&textEditor == &mGridX.editor
+               || &textEditor == &mGridY.editor
+               || &textEditor == &mGridZ.editor) {
+
+        //NOW HERE: this needs to take into account the curent
+        auto const curW {mGridWidth.editor.getText().getFloatValue()};
+        auto const curH {mGridHeight.editor.getText().getFloatValue()};
+
+        auto const value{ std::clamp(floatValue, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS) };
+        textEditor.setText(juce::String{ value }, false);
+
+
+    } else if (&textEditor == &mGridWidth.editor
+               || &textEditor == &mGridHeight.editor) {
+
+        //and this the current xyz
+        auto const curX {mGridX.editor.getText().getFloatValue()};
+        auto const curY {mGridY.editor.getText().getFloatValue()};
+        auto const curZ {mGridZ.editor.getText().getFloatValue()};
+
+
     }
+
+
 
     computeSpeakers();
 }
