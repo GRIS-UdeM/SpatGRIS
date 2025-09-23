@@ -445,23 +445,24 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
             auto x = 0.f, y = 0.f, z = 0.f;
 
-            if (alignment == "z")
+            if (alignment == "x")       // grid lies in YZ plane, parallel to X
             {
-                // grid lies in XY plane, parallel to Z
+                y = lx;
+                z = ly;
+            }
+            else if (alignment == "y")  // grid lies in XZ plane, parallel to Y
+            {
+                x = lx;
+                z = ly;
+            }
+            else if (alignment == "z")  // grid lies in XY plane, parallel to Z
+            {
                 x = lx;
                 y = ly;
             }
-            else if (alignment == "y")
+            else
             {
-                // grid lies in XZ plane, parallel to Y
-                x = lx;
-                z = ly;
-            }
-            else if (alignment == "x")
-            {
-                // grid lies in YZ plane, parallel to X
-                y = lx;
-                z = ly;
+                jassertfalse;
             }
 
             return Position{ { x, y, z } };
