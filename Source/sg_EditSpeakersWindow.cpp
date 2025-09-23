@@ -432,8 +432,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             auto const w  = mGridWidth.getTextAs<float>();
             auto const h  = mGridHeight.getTextAs<float>();
 
-            auto const wIncrement = (numCols > 1) ? (w / (numCols - 1)) : 0.0f;
-            auto const hIncrement = (numRows > 1) ? (h / (numRows - 1)) : 0.0f;
+            auto const wIncrement = (numCols > 1) ? (w / (numCols - 1)) : 0.f;
+            auto const hIncrement = (numRows > 1) ? (h / (numRows - 1)) : 0.f;
 
             // grid indices (row-major)
             auto const col = i % numCols;
