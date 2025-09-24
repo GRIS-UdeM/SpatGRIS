@@ -592,12 +592,24 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
     // technically in dome/vbap mode the polyhedra is clamped right on the radius, so this calculation is moot, but
     // leaving the option here for a variable dome radius, in case it's ever useful in the future.
     const auto maxPolyRadius{ spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS : NORMAL_RADIUS };
+
     const auto clampPolyXYZ = [&textEditor, &floatValue, radius{ mPolyRadius.getTextAs<float>() }, &maxPolyRadius]() {
         if ((floatValue - radius < -maxPolyRadius))
             textEditor.setText(juce::String(radius - maxPolyRadius));
         else if (floatValue + radius > maxPolyRadius)
             textEditor.setText(juce::String(maxPolyRadius - radius));
     };
+
+    const auto clampGridXYZ = [&textEditor, &floatValue, &maxPolyRadius](float const wOrH)
+{
+    //we need to use the current direction here
+        if ((floatValue - wOrH < -maxPolyRadius))
+            textEditor.setText(juce::String(wOrH - maxPolyRadius));
+
+        else if (floatValue + wOrH > maxPolyRadius)
+            textEditor.setText(juce::String(maxPolyRadius - wOrH));
+    };
+
 
     if (&textEditor == &mRingSpeakers.editor) {
         auto const value{ std::clamp(intValue, 2, 64) };
@@ -642,16 +654,21 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
                || &textEditor == &mGridNumRows.editor) {
         auto const value{ std::clamp(intValue, 1, 99) };
         textEditor.setText(juce::String{ value }, false);
-    } else if (&textEditor == &mGridX.editor
+//    } else if (&textEditor == &mGridX.editor
+//               || &textEditor == &mGridY.editor
+//               || &textEditor == &mGridZ.editor) {
+        //NOW HERE: this needs to take into account the curent
+//        auto const curW {mGridWidth.editor.getText().getFloatValue()};
+//        auto const curH {mGridHeight.editor.getText().getFloatValue()};
+//
+//        auto const value{ std::clamp(floatValue, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS) };
+//        textEditor.setText(juce::String{ value }, false);
+
+    } else if (&textEditor == &mGridX.editor){
+        clampGridXYZ(
                || &textEditor == &mGridY.editor
                || &textEditor == &mGridZ.editor) {
 
-        //NOW HERE: this needs to take into account the curent
-        auto const curW {mGridWidth.editor.getText().getFloatValue()};
-        auto const curH {mGridHeight.editor.getText().getFloatValue()};
-
-        auto const value{ std::clamp(floatValue, -MBAP_EXTENDED_RADIUS, MBAP_EXTENDED_RADIUS) };
-        textEditor.setText(juce::String{ value }, false);
 
 
     } else if (&textEditor == &mGridWidth.editor
