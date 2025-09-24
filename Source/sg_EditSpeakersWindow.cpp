@@ -148,11 +148,11 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupWrapper(&mPolyX,
                  "X",
                  "X position for the center of the polyhedron, in the [-1.667, 1.667] range",
-                 "0.5",
+                 "1",
                  4,
                  "-0123456789.");
     setupWrapper(&mPolyY, "Y", "Y position for the center of the polyhedron.", "0", 4, "-0123456789.");
-    setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0.15", 4, "-0123456789.");
+    setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0", 4, "-0123456789.");
     setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", ".05", 4, "0123456789.");
     setupButton(mAddPolyButton, "Add Polyhedron");
     mAddPolyButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
@@ -175,13 +175,13 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     };
     setupWrapper(&mGridNumCols, "Cols",
                  "Number of columns in the speaker grid.",
-                 "5",
+                 "10",
                  2,
                  "0123456789");
     setupWrapper(&mGridNumRows,
                  "Rows",
                  "Number of rows in the speaker grid.",
-                 "4",
+                 "10",
                  2,
                  "0123456789");
     setupWrapper(&mGridX,
@@ -192,8 +192,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                  "-0123456789.");
     setupWrapper(&mGridY, "Y", "Y position for the center of the grid.", "0", 4, "-0123456789.");
     setupWrapper(&mGridZ, "Z", "Z position for the center of the grid.", "0", 4, "-0123456789.");
-    setupWrapper(&mGridWidth, "Width", "Width of the speaker grid.", ".5", 4, "0123456789.");
-    setupWrapper(&mGridHeight, "Height", "Height of the speaker grid.", ".4", 4, "0123456789.");
+    setupWrapper(&mGridWidth, "Width", "Width of the speaker grid.", "1", 4, "0123456789.");
+    setupWrapper(&mGridHeight, "Height", "Height of the speaker grid.", "1", 4, "0123456789.");
     setupButton(mAddGridButton, "Add Grid");
     mAddGridButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
 
