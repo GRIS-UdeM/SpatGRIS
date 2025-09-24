@@ -164,6 +164,7 @@ private:
     LabelTextEditorWrapper mGridHeight;
     juce::TextButton mAddGridButton;
     void clampGridXYZ (juce::TextEditor& textEditor);
+    void clampGridWH (juce::TextEditor& textEditor);
 
     juce::ToggleButton mPinkNoiseToggleButton;
     juce::Slider mPinkNoiseGainSlider;

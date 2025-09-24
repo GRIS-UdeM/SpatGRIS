@@ -167,9 +167,13 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                  {},
                  {},
                  {},
-                 { "x", "y", "z"});
-    setupWrapper(&mGridNumCols,
-                 "Cols",
+                 { "x", "y", "z" });
+    mGridAlignment.comboBox.onChange = [this] {
+        clampGridXYZ(mGridX.editor);
+        clampGridXYZ(mGridY.editor);
+        clampGridXYZ(mGridZ.editor);
+    };
+    setupWrapper(&mGridNumCols, "Cols",
                  "Number of columns in the speaker grid.",
                  "5",
                  2,
@@ -584,11 +588,12 @@ void EditSpeakersWindow::clampGridXYZ(juce::TextEditor & textEditor)
 {
     auto const floatValue{ textEditor.getText().getFloatValue() };
     auto const alignment{ mGridAlignment.getSelectionAsString() };
-    auto const curW{ mGridWidth.editor.getText().getFloatValue() };
-    auto const curH{ mGridHeight.editor.getText().getFloatValue() };
-    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS : NORMAL_RADIUS };
+    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS
+                                                                               : NORMAL_RADIUS };
+    auto const curW{ std::clamp(mGridWidth.editor.getText().getFloatValue(), -maxRadius, maxRadius) };
+    auto const curH{ std::clamp(mGridHeight.editor.getText().getFloatValue(), -maxRadius, maxRadius) };
 
-    auto clampedValue = 0.f;
+    auto clampedValue{ 0.f };
 
     if (alignment == "x") {
         if (&textEditor == &mGridX.editor)
@@ -615,6 +620,45 @@ void EditSpeakersWindow::clampGridXYZ(juce::TextEditor & textEditor)
             clampedValue = std::clamp(floatValue, -maxRadius + curH, maxRadius - curH);
         else if (&textEditor == &mGridZ.editor)
             clampedValue = std::clamp(floatValue, -maxRadius, maxRadius);
+        else
+            jassertfalse;
+    }
+
+    textEditor.setText(juce::String{ clampedValue, 2 }, false);
+};
+
+void EditSpeakersWindow::clampGridWH(juce::TextEditor & textEditor)
+{
+    auto const floatValue{ textEditor.getText().getFloatValue() };
+    auto const alignment{ mGridAlignment.getSelectionAsString() };
+    auto const x{ mGridX.getTextAs<float>() };
+    auto const y{ mGridY.getTextAs<float>() };
+    auto const z{ mGridZ.getTextAs<float>() };
+
+    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS
+                                                                               : NORMAL_RADIUS };
+
+    auto clampedValue{ 0.f };
+
+    if (alignment == "x") {
+        if (&textEditor == &mGridWidth.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + y, maxRadius - y);
+        else if (&textEditor == &mGridHeight.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + z, maxRadius - z);
+        else
+            jassertfalse;
+    } else if (alignment == "y") {
+        if (&textEditor == &mGridWidth.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + x, maxRadius - x);
+        else if (&textEditor == &mGridHeight.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + z, maxRadius - z);
+        else
+            jassertfalse;
+    } else if (alignment == "z") {
+        if (&textEditor == &mGridWidth.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + x, maxRadius - x);
+        else if (&textEditor == &mGridHeight.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + y, maxRadius - y);
         else
             jassertfalse;
     }
@@ -691,11 +735,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
         clampGridXYZ(textEditor);
     } else if (&textEditor == &mGridWidth.editor
                || &textEditor == &mGridHeight.editor) {
-
-        //and this the current xyz
-        auto const curX {mGridX.editor.getText().getFloatValue()};
-        auto const curY {mGridY.editor.getText().getFloatValue()};
-        auto const curZ {mGridZ.editor.getText().getFloatValue()};
+        clampGridWH(textEditor);
     }
 
     computeSpeakers();
@@ -846,12 +886,6 @@ void EditSpeakersWindow::resized()
     positionWidget(&mGridWidth,      currentX += shortLabelW + editorW, fourthRowY, midLabelW, editorW);
     positionWidget(&mGridHeight,     currentX += midLabelW + editorW, fourthRowY, midLabelW, editorW);
     mAddGridButton.setBounds(getWidth() - 105, fourthRowY, 100, rowH);
-
-    mGridAlignment.comboBox.onChange = [this] {
-        clampGridXYZ(mGridX.editor);
-        clampGridXYZ(mGridY.editor);
-        clampGridXYZ(mGridZ.editor);
-    };
 
     // "Fifth" row with pink noise, diffusion and the save buttons.
     // This row needs to be placed a bit lower due to the height of the knobs.
