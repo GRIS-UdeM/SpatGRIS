@@ -580,7 +580,48 @@ void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & /*textEdi
     unfocusAllComponents();
 }
 
-//==============================================================================
+void EditSpeakersWindow::clampGridXYZ(juce::TextEditor & textEditor)
+{
+    auto const floatValue{ textEditor.getText().getFloatValue() };
+    auto const alignment{ mGridAlignment.getSelectionAsString() };
+    auto const curW{ mGridWidth.editor.getText().getFloatValue() };
+    auto const curH{ mGridHeight.editor.getText().getFloatValue() };
+    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS : NORMAL_RADIUS };
+
+    auto clampedValue = 0.f;
+
+    if (alignment == "x") {
+        if (&textEditor == &mGridX.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius, maxRadius);
+        else if (&textEditor == &mGridY.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + curW, maxRadius - curW);
+        else if (&textEditor == &mGridZ.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + curH, maxRadius - curH);
+        else
+            jassertfalse;
+    } else if (alignment == "y") {
+        if (&textEditor == &mGridX.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + curW, maxRadius - curW);
+        else if (&textEditor == &mGridY.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius, maxRadius);
+        else if (&textEditor == &mGridZ.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + curH, maxRadius - curH);
+        else
+            jassertfalse;
+    } else if (alignment == "z") {
+        if (&textEditor == &mGridX.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + curW, maxRadius - curW);
+        else if (&textEditor == &mGridY.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius + curH, maxRadius - curH);
+        else if (&textEditor == &mGridZ.editor)
+            clampedValue = std::clamp(floatValue, -maxRadius, maxRadius);
+        else
+            jassertfalse;
+    }
+
+    textEditor.setText(juce::String{ clampedValue, 2 }, false);
+};
+
 void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -595,52 +636,10 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
 
     const auto clampPolyXYZ = [&textEditor, &floatValue, radius{ mPolyRadius.getTextAs<float>() }, &maxPolyRadius]() {
         if ((floatValue - radius < -maxPolyRadius))
-            textEditor.setText(juce::String(radius - maxPolyRadius));
+            textEditor.setText(juce::String(radius - maxPolyRadius, 2));
         else if (floatValue + radius > maxPolyRadius)
-            textEditor.setText(juce::String(maxPolyRadius - radius));
+            textEditor.setText(juce::String(maxPolyRadius - radius, 2));
     };
-
-    //NOW HERE THIS NEEDS TO BE A MEMBER FUNCTION SO i CAN CALL IT WHEN THE ALIGNMENT COMBO BOX CHANGES. IN THERE WE'LL NEED TO CALL THIS FUNCTION FOR ALL XYZ
-    const auto clampGridXYZ = [this, &textEditor, floatValue, maxPolyRadius]() {
-        auto const alignment = mGridAlignment.getSelectionAsString();
-        auto const curW{ mGridWidth.editor.getText().getFloatValue() };
-        auto const curH{ mGridHeight.editor.getText().getFloatValue() };
-
-        auto clampedValue = 0.f;
-
-        if (alignment == "x") {
-            if (&textEditor == &mGridX.editor)
-                clampedValue = std::clamp(floatValue, -maxPolyRadius, maxPolyRadius);
-            else if (&textEditor == &mGridY.editor)
-                clampedValue = std::clamp(floatValue, -maxPolyRadius + curW, maxPolyRadius - curW);
-            else if (&textEditor == &mGridZ.editor)
-                clampedValue = std::clamp(floatValue, -maxPolyRadius + curH, maxPolyRadius - curH);
-            else
-                jassertfalse;
-        } else if (alignment == "y") {
-            if (&textEditor == &mGridX.editor)
-                clampedValue = std::clamp (floatValue, -maxPolyRadius + curW, maxPolyRadius - curW);
-            else if (&textEditor == &mGridY.editor)
-                clampedValue = std::clamp (floatValue, -maxPolyRadius, maxPolyRadius);
-            else if (&textEditor == &mGridZ.editor)
-                clampedValue = std::clamp (floatValue, -maxPolyRadius + curH, maxPolyRadius - curH);
-            else
-                jassertfalse;
-        }
-        else if (alignment == "z") {
-            if (&textEditor == &mGridX.editor)
-                clampedValue = std::clamp (floatValue, -maxPolyRadius + curW, maxPolyRadius - curW);
-            else if (&textEditor == &mGridY.editor)
-                clampedValue = std::clamp (floatValue, -maxPolyRadius + curH, maxPolyRadius - curH);
-            else if (&textEditor == &mGridZ.editor)
-                clampedValue = std::clamp (floatValue, -maxPolyRadius, maxPolyRadius);
-            else
-                jassertfalse;
-        }
-
-        textEditor.setText(juce::String{ clampedValue }, false);
-    };
-
 
     if (&textEditor == &mRingSpeakers.editor) {
         auto const value{ std::clamp(intValue, 2, 64) };
@@ -648,16 +647,16 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
     } else if (&textEditor == &mRingElevation.editor) {
         auto const value{ floatValue < elevationHalfPoint ? std::clamp(floatValue, 0.0f, 90.0f)
                                                           : std::clamp(floatValue, 270.0f, 360.0f) };
-        textEditor.setText(juce::String{ value, 1 }, false);
+        textEditor.setText(juce::String{ value, 2 }, false);
     } else if (&textEditor == &mRingRadius.editor) {
         juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
         auto const minRadius{ spatMode == SpatMode::mbap ? 0.001f : NORMAL_RADIUS };
         auto const maxRadius{ spatMode == SpatMode::mbap ? SQRT3 : NORMAL_RADIUS };
         auto const value{ std::clamp(floatValue, minRadius, maxRadius) };
-        textEditor.setText(juce::String{ value, 1 }, false);
+        textEditor.setText(juce::String{ value, 2 }, false);
     } else if (&textEditor == &mRingOffsetAngle.editor) {
         auto const value{ std::clamp(floatValue, -360.0f, 360.0f) };
-        textEditor.setText(juce::String{ value, 1 }, false);
+        textEditor.setText(juce::String{ value, 2 }, false);
     } else if (&textEditor == &mPolyX.editor
                || &textEditor == &mPolyY.editor
                || &textEditor == &mPolyZ.editor) {
@@ -668,28 +667,28 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
         const auto z{ mPolyZ.getTextAs<float>() };
 
         if (x - floatValue < -maxPolyRadius)
-            textEditor.setText(juce::String(x - maxPolyRadius));
+            textEditor.setText(juce::String(x - maxPolyRadius, 2));
         else if (x + floatValue > maxPolyRadius)
-            textEditor.setText(juce::String(maxPolyRadius - x));
+            textEditor.setText(juce::String(maxPolyRadius - x, 2));
 
         else if (y - floatValue < -maxPolyRadius)
-            textEditor.setText(juce::String(y - maxPolyRadius));
+            textEditor.setText(juce::String(y - maxPolyRadius, 2));
         else if (y + floatValue > maxPolyRadius)
-            textEditor.setText(juce::String(maxPolyRadius - y));
+            textEditor.setText(juce::String(maxPolyRadius - y, 2));
 
         else if (z - floatValue < -maxPolyRadius)
-            textEditor.setText(juce::String(z - maxPolyRadius));
+            textEditor.setText(juce::String(z - maxPolyRadius, 2));
         else if (z + floatValue > maxPolyRadius)
-            textEditor.setText(juce::String(maxPolyRadius - z));
+            textEditor.setText(juce::String(maxPolyRadius - z, 2));
     } else if (&textEditor == &mGridNumCols.editor
                || &textEditor == &mGridNumRows.editor) {
-        auto const value{ std::clamp(intValue, 1, 99) };
+        auto const value{ std::clamp(intValue, 2, 99) };
         textEditor.setText(juce::String{ value }, false);
     } else if (&textEditor == &mGridX.editor
                || &textEditor == &mGridY.editor
                || &textEditor == &mGridZ.editor) {
         
-        clampGridXYZ();
+        clampGridXYZ(textEditor);
     } else if (&textEditor == &mGridWidth.editor
                || &textEditor == &mGridHeight.editor) {
 
@@ -848,7 +847,11 @@ void EditSpeakersWindow::resized()
     positionWidget(&mGridHeight,     currentX += midLabelW + editorW, fourthRowY, midLabelW, editorW);
     mAddGridButton.setBounds(getWidth() - 105, fourthRowY, 100, rowH);
 
-    mGridAlignment.comboBox.on
+    mGridAlignment.comboBox.onChange = [this] {
+        clampGridXYZ(mGridX.editor);
+        clampGridXYZ(mGridY.editor);
+        clampGridXYZ(mGridZ.editor);
+    };
 
     // "Fifth" row with pink noise, diffusion and the save buttons.
     // This row needs to be placed a bit lower due to the height of the knobs.
