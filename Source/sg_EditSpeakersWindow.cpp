@@ -588,8 +588,8 @@ void EditSpeakersWindow::clampGridXYZ(juce::TextEditor & textEditor)
 {
     auto const floatValue{ textEditor.getText().getFloatValue() };
     auto const alignment{ mGridAlignment.getSelectionAsString() };
-    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS
-                                                                               : NORMAL_RADIUS };
+    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? 2 *  MBAP_EXTENDED_RADIUS
+                                                                               : 2 * NORMAL_RADIUS };
     auto const curW{ std::clamp(mGridWidth.editor.getText().getFloatValue(), -maxRadius, maxRadius) };
     auto const curH{ std::clamp(mGridHeight.editor.getText().getFloatValue(), -maxRadius, maxRadius) };
 
@@ -597,29 +597,29 @@ void EditSpeakersWindow::clampGridXYZ(juce::TextEditor & textEditor)
 
     if (alignment == "x") {
         if (&textEditor == &mGridX.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius, maxRadius);
+            clampedValue = std::clamp(floatValue, -maxRadius/2, maxRadius/2);
         else if (&textEditor == &mGridY.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + curW, maxRadius - curW);
+            clampedValue = std::clamp(floatValue, -(maxRadius + curW)/2, (maxRadius - curW)/2);
         else if (&textEditor == &mGridZ.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + curH, maxRadius - curH);
+            clampedValue = std::clamp(floatValue, -(maxRadius + curH)/2, (maxRadius - curH)/2);
         else
             jassertfalse;
     } else if (alignment == "y") {
         if (&textEditor == &mGridX.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + curW, maxRadius - curW);
+            clampedValue = std::clamp(floatValue, -(maxRadius + curW) / 2, (maxRadius - curW) / 2);
         else if (&textEditor == &mGridY.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius, maxRadius);
+            clampedValue = std::clamp(floatValue, -maxRadius/2, maxRadius / 2);
         else if (&textEditor == &mGridZ.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + curH, maxRadius - curH);
+            clampedValue = std::clamp(floatValue, -(maxRadius + curH) / 2, (maxRadius - curH) / 2);
         else
             jassertfalse;
     } else if (alignment == "z") {
         if (&textEditor == &mGridX.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + curW, maxRadius - curW);
+            clampedValue = std::clamp(floatValue, -(maxRadius + curW) / 2, (maxRadius - curW) / 2);
         else if (&textEditor == &mGridY.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + curH, maxRadius - curH);
+            clampedValue = std::clamp(floatValue, -(maxRadius + curH) / 2, (maxRadius - curH) / 2);
         else if (&textEditor == &mGridZ.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius, maxRadius);
+            clampedValue = std::clamp(floatValue, -maxRadius / 2, maxRadius / 2);
         else
             jassertfalse;
     }
@@ -635,8 +635,8 @@ void EditSpeakersWindow::clampGridWH(juce::TextEditor & textEditor)
     auto const y{ mGridY.getTextAs<float>() };
     auto const z{ mGridZ.getTextAs<float>() };
 
-    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS
-                                                                               : NORMAL_RADIUS };
+    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? 2* MBAP_EXTENDED_RADIUS
+                                                                               : 2* NORMAL_RADIUS };
 
     auto clampedValue{ 0.f };
 
