@@ -82,9 +82,9 @@ void VuMeterComponent::resized()
         gb.drawLine(start_f, y_f, with_f, y_f, 1.0f);
         gm.drawLine(start_f, y_f, with_f, y_f, 1.0f);
         if (i % 2 == 1) {
-            gf.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
-            gb.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
-            gm.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
+            gf.drawText(juce::String(i * -6), start - 15, y - 5, 16, 10, juce::Justification::centred, false);
+            gb.drawText(juce::String(i * -6), start - 15, y - 5, 16, 10, juce::Justification::centred, false);
+            gm.drawText(juce::String(i * -6), start - 15, y - 5, 16, 10, juce::Justification::centred, false);
         }
     }
 }
