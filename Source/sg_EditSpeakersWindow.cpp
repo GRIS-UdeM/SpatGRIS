@@ -635,30 +635,31 @@ void EditSpeakersWindow::clampGridWH(juce::TextEditor & textEditor)
     auto const y{ mGridY.getTextAs<float>() };
     auto const z{ mGridZ.getTextAs<float>() };
 
-    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? 2* MBAP_EXTENDED_RADIUS
-                                                                               : 2* NORMAL_RADIUS };
+    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS
+                                                                               : NORMAL_RADIUS };
 
     auto clampedValue{ 0.f };
+    auto const minWH {0.001f};
 
     if (alignment == "x") {
         if (&textEditor == &mGridWidth.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + y, maxRadius - y);
+            clampedValue = std::clamp(floatValue, minWH, (maxRadius - std::abs(y)) * 2);
         else if (&textEditor == &mGridHeight.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + z, maxRadius - z);
+            clampedValue = std::clamp(floatValue, minWH, (maxRadius - std::abs(z)) * 2);
         else
             jassertfalse;
     } else if (alignment == "y") {
         if (&textEditor == &mGridWidth.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + x, maxRadius - x);
+            clampedValue = std::clamp(floatValue, minWH, (maxRadius - std::abs(x)) * 2);
         else if (&textEditor == &mGridHeight.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + z, maxRadius - z);
+            clampedValue = std::clamp(floatValue, minWH, (maxRadius - std::abs(z)) * 2);
         else
             jassertfalse;
     } else if (alignment == "z") {
         if (&textEditor == &mGridWidth.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + x, maxRadius - x);
+            clampedValue = std::clamp(floatValue, minWH, (maxRadius - std::abs(x)) * 2);
         else if (&textEditor == &mGridHeight.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius + y, maxRadius - y);
+            clampedValue = std::clamp(floatValue, minWH, (maxRadius - std::abs(y)) * 2);
         else
             jassertfalse;
     }
