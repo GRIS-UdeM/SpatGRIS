@@ -1,25 +1,22 @@
 #pragma once
 
-#include <JuceHeader.h>
 #include "../../../sg_GrisLookAndFeel.hpp"
+#include <JuceHeader.h>
 
 namespace gris
 {
 
-class SpeakerColumnHeader final
-    : public juce::Label
+class SpeakerColumnHeader final : public juce::Label
 {
-  public:
-
+public:
     /**
      * paints little sort arrows in the right places.
      */
-    void paint(juce::Graphics& g) override;
+    void paint(juce::Graphics & g) override;
 
     int width;
 
-
-    void mouseUp (const juce::MouseEvent& e) override;
+    void mouseUp(const juce::MouseEvent & e) override;
     juce::Colour arrowColor;
     /**
      * none sort state means no arrows are painted.
@@ -36,28 +33,28 @@ class SpeakerColumnHeader final
 
     void setState(SortState newState);
 
-    void setSortCallback(std::function<void(const SpeakerColumnHeader*, const SortState)>);
+    void setSortCallback(std::function<void(const SpeakerColumnHeader *, const SortState)>);
 
-  private:
-    SortState sortState { SortState::none };
+private:
+    SortState sortState{ SortState::none };
     /**
      * Sorting callback that is called with the column's state when it is clicked.
      */
-    std::function<void(const SpeakerColumnHeader*, const SortState)> sortCallback;
+    std::function<void(const SpeakerColumnHeader *, const SortState)> sortCallback;
 };
 
-class SpeakerSetupContainerHeader final
-    : public juce::Component
+class SpeakerSetupContainerHeader final : public juce::Component
 {
-  public:
-    SpeakerSetupContainerHeader(GrisLookAndFeel& grisLookAndFeel);
+public:
+    SpeakerSetupContainerHeader(GrisLookAndFeel & grisLookAndFeel);
 
     void resized() override;
     void setSortFunc(std::function<void(SpeakerColumnHeader::ColumnID, int)>);
-  private:
+
+private:
     SpeakerColumnHeader id, x, y, z, azim, elev, distance, gain, highpass;
     juce::Label direct, del, drag;
-    GrisLookAndFeel& grisLookAndFeel;
+    GrisLookAndFeel & grisLookAndFeel;
     std::function<void(SpeakerColumnHeader::ColumnID, int)> sortFunc;
 };
-}
+} // namespace gris

@@ -1,4 +1,4 @@
-﻿#include "SpeakerGroupSettingsWindow.hpp"
+#include "SpeakerGroupSettingsWindow.hpp"
 #include "Data/sg_LogicStrucs.hpp"
 
 namespace gris
