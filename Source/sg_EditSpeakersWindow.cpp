@@ -145,6 +145,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                  {},
                  {},
                  { "4", "6", "8", "12", "20" });
+    mPolyFaces.comboBox.setSelectedId(4);
     setupWrapper(&mPolyX,
                  "X",
                  "X position for the center of the polyhedron, in the [-1.667, 1.667] range",
