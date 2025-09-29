@@ -858,9 +858,9 @@ void EditSpeakersWindow::resized()
     // ring row
     mRingTitle.setBounds(5, secondRowY, currentX, rowH);
     positionWidget(&mRingSpeakers,    currentX, secondRowY, labelW, editorW - 5);
-    positionWidget(&mRingElevation,   currentX += increment, secondRowY, labelW, editorW);
-    positionWidget(&mRingRadius,      currentX += increment, secondRowY, labelW, editorW);
-    positionWidget(&mRingOffsetAngle, currentX += increment, secondRowY, labelW, editorW);
+    positionWidget(&mRingElevation,   currentX += increment, secondRowY, labelW + 25, editorW);
+    positionWidget(&mRingRadius,      currentX += increment + 25, secondRowY, labelW + 5, editorW);
+    positionWidget(&mRingOffsetAngle, currentX += increment + 5, secondRowY, labelW + 25, editorW);
     mAddRingButton.setBounds(getWidth() - 105, secondRowY, 100, rowH);
 
     // polyhedron row
@@ -870,8 +870,8 @@ void EditSpeakersWindow::resized()
     positionWidget(&mPolyFaces,  currentX, thirdRowY, labelW, comboW);
     positionWidget(&mPolyX,      currentX += labelW      + comboW, thirdRowY, shortLabelW, editorW + 2);
     positionWidget(&mPolyY,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW + 4);
-    positionWidget(&mPolyZ,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW + 3);
-    positionWidget(&mPolyRadius, currentX += shortLabelW + editorW, thirdRowY, labelW, editorW);
+    positionWidget(&mPolyZ,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW + 4);
+    positionWidget(&mPolyRadius, currentX += shortLabelW + editorW, thirdRowY, labelW + 30, editorW);
     mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, rowH);
 
     // grid row
