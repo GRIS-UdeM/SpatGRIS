@@ -176,24 +176,24 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     };
     setupWrapper(&mGridNumCols, "Cols",
                  "Number of columns in the speaker grid.",
-                 "10",
+                 "5",
                  2,
                  "0123456789");
     setupWrapper(&mGridNumRows,
                  "Rows",
                  "Number of rows in the speaker grid.",
-                 "10",
+                 "5",
                  2,
                  "0123456789");
     setupWrapper(&mGridX,
                  "X",
                  "X position for the center of the grid, in the [-1.667, 1.667] range",
-                 "0.5",
+                 "1",
                  4,
                  "-0123456789.");
     setupWrapper(&mGridY, "Y", "Y position for the center of the grid.", "0", 4, "-0123456789.");
-    setupWrapper(&mGridZ, "Z", "Z position for the center of the grid.", "0", 4, "-0123456789.");
-    setupWrapper(&mGridWidth, "Width", "Width of the speaker grid.", "1", 4, "0123456789.");
+    setupWrapper(&mGridZ, "Z", "Z position for the center of the grid.", "0.5", 4, "-0123456789.");
+    setupWrapper(&mGridWidth, "Width", "Width of the speaker grid.", "2", 4, "0123456789.");
     setupWrapper(&mGridHeight, "Height", "Height of the speaker grid.", "1", 4, "0123456789.");
     setupButton(mAddGridButton, "Add Grid");
     mAddGridButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
