@@ -92,6 +92,7 @@ struct LabelComboBoxWrapper : public LabelWrapper
 {
     explicit LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel);
 
+    juce::String getSelectionAsString(){ return comboBox.getText(); }
     int getSelectionAsInt(){ return comboBox.getText().getIntValue(); }
     void setVisible(bool visible) override
     {
@@ -149,8 +150,21 @@ private:
     LabelTextEditorWrapper mPolyY;
     LabelTextEditorWrapper mPolyZ;
     LabelTextEditorWrapper mPolyRadius;
-
     juce::TextButton mAddPolyButton;
+
+    //add grid of speakers
+    juce::Label mGridTitle;
+    LabelComboBoxWrapper mGridAlignment;
+    LabelTextEditorWrapper mGridNumCols;
+    LabelTextEditorWrapper mGridNumRows;
+    LabelTextEditorWrapper mGridX;
+    LabelTextEditorWrapper mGridY;
+    LabelTextEditorWrapper mGridZ;
+    LabelTextEditorWrapper mGridWidth;
+    LabelTextEditorWrapper mGridHeight;
+    juce::TextButton mAddGridButton;
+    void clampGridXYZ (juce::TextEditor& textEditor);
+    void clampGridWH (juce::TextEditor& textEditor);
 
     juce::ToggleButton mPinkNoiseToggleButton;
     juce::Slider mPinkNoiseGainSlider;
@@ -165,6 +179,7 @@ private:
     tl::optional<int> mDragStartY{};
     bool mShouldComputeSpeakers{};
     juce::SparseSet<int> mLastSelectedRows{};
+
 public:
     //==============================================================================
     EditSpeakersWindow(juce::String const & name,
@@ -179,6 +194,7 @@ public:
     void selectSpeaker(tl::optional<output_patch_t> outputPatch) { mSpeakerSetupContainer.selectSpeaker(outputPatch); }
 
     void togglePolyhedraExtraWidgets();
+    void toggleGridWidgets();
 
     /** This is called in a variety of places, including in MainContentComponent::refreshSpeakers()
     *   when the spatMode changes.*/
@@ -188,6 +204,7 @@ public:
      * Returns the speaker ordering exactly as it is displayed in the window.
      */
     juce::Array<output_patch_t> getSpeakerOutputPatchOrder();
+
 private:
     bool isAddingGroup = false;
     //==============================================================================
