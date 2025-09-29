@@ -44,6 +44,8 @@
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
 
+#include <optional>
+
 namespace gris
 {
 class MainWindow;
