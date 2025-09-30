@@ -1,4 +1,4 @@
-﻿/*
+/*
  This file is part of SpatGRIS.
 
  SpatGRIS is free software: you can redistribute it and/or modify
@@ -411,9 +411,25 @@ void SpeakerGroupComponent::setVbapSphericalCoordinateBehaviour()
     for (auto child : speakerTreeVt) {
         jassert(child.hasProperty(CARTESIAN_POSITION));
         auto curChildPosition = juce::VariantConverter<Position>::fromVar(child[CARTESIAN_POSITION]);
-        child.setProperty(CARTESIAN_POSITION,
-                          juce::VariantConverter<Position>::toVar(curChildPosition.normalized()),
-                          &undoManager);
+        // DBG ("og:         " + curChildPosition.toString());
+        // DBG ("normalized: " + curChildPosition.normalized().toString());
+
+        auto const normalizedPos = curChildPosition.normalized();
+
+        constexpr float tolerance = 0.000001f;
+        auto const approximatelyEqual = [tolerance](float a, float b)
+        {
+            return std::abs(a - b) < tolerance;
+        };
+
+        auto const equal = approximatelyEqual(curChildPosition.getCartesian().x, normalizedPos.getCartesian().x)
+        && approximatelyEqual(curChildPosition.getCartesian().y, normalizedPos.getCartesian().y)
+        && approximatelyEqual(curChildPosition.getCartesian().z, normalizedPos.getCartesian().z);
+
+        if (!equal)
+            child.setProperty(CARTESIAN_POSITION,
+                              juce::VariantConverter<Position>::toVar(curChildPosition.normalized()),
+                              &undoManager);
     }
 }
 

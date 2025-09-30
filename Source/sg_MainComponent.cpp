@@ -1732,6 +1732,9 @@ bool MainContentComponent::isSpeakerSetupModified() const
         return true;
     }
 
+//    DBG (mData.speakerSetup.toXml()->toString());
+//    DBG (savedSpeakerSetup->toXml()->toString());
+
     return mData.speakerSetup != *savedSpeakerSetup;
 }
 
