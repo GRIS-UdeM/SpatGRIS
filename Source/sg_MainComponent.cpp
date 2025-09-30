@@ -2363,7 +2363,8 @@ void MainContentComponent::refreshSpatAlgorithm()
                                                        mData.appData.stereoMode,
                                                        mData.project.sources,
                                                        mData.appData.audioSettings.sampleRate,
-                                                       mData.appData.audioSettings.bufferSize) };
+                                                       mData.appData.audioSettings.bufferSize,
+                                                       mData.project.useMulticoreDSP) };
 
     if (newSpatAlgorithm->getError()
         && (!oldSpatAlgorithm || oldSpatAlgorithm->getError() != newSpatAlgorithm->getError())) {

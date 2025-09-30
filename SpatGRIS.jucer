@@ -238,6 +238,14 @@
     </GROUP>
     <GROUP id="{755DB51A-2CFD-1B50-3D92-CF35F1E89E3D}" name="submodules">
       <GROUP id="{1FBCD2DD-9050-30FD-E1BE-E07C1F83877B}" name="AlgoGRIS">
+        <FILE id="ZvEAgD" name="sg_ParallelVbapSpatAlgorithm.cpp" compile="1"
+              resource="0" file="submodules/AlgoGRIS/sg_ParallelVbapSpatAlgorithm.cpp"/>
+        <FILE id="qc0Xkd" name="sg_ParallelVbapSpatAlgorithm.hpp" compile="0"
+              resource="0" file="submodules/AlgoGRIS/sg_ParallelVbapSpatAlgorithm.hpp"/>
+        <FILE id="vebF0a" name="sg_ParallelMbapSpatAlgorithm.cpp" compile="1"
+              resource="0" file="submodules/AlgoGRIS/sg_ParallelMbapSpatAlgorithm.cpp"/>
+        <FILE id="ZjvJRR" name="sg_ParallelMbapSpatAlgorithm.hpp" compile="0"
+              resource="0" file="submodules/AlgoGRIS/sg_ParallelMbapSpatAlgorithm.hpp"/>
         <GROUP id="{A45D1137-A159-7D72-0988-A5D9CD18249A}" name="submodules">
           <GROUP id="{7E5D6A36-608D-6F84-EB57-694120F99FAC}" name="StructGRIS">
             <GROUP id="{A324FA3A-41AE-A94A-2925-6D244656F392}" name="Containers">
@@ -348,8 +356,6 @@
               file="submodules/AlgoGRIS/sg_HrtfSpatAlgorithm.cpp"/>
         <FILE id="X5DiSM" name="sg_HrtfSpatAlgorithm.hpp" compile="0" resource="0"
               file="submodules/AlgoGRIS/sg_HrtfSpatAlgorithm.hpp"/>
-        <FILE id="WH2cPI" name="sg_HybridSpatAlgorithm.cpp" compile="1" resource="0"
-              file="submodules/AlgoGRIS/sg_HybridSpatAlgorithm.cpp"/>
         <FILE id="GTiaFP" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
               file="submodules/AlgoGRIS/sg_HybridSpatAlgorithm.hpp"/>
         <FILE id="ha7T9L" name="sg_MbapSpatAlgorithm.cpp" compile="1" resource="0"
