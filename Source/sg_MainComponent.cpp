@@ -920,6 +920,11 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
     refreshSpeakers();
 }
 
+void MainContentComponent::setMulticoreDSPState(const bool state) {
+    mData.project.useMulticoreDSP = state;
+    refreshSpatAlgorithm();
+}
+
 //==============================================================================
 void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMode)
 {

@@ -122,6 +122,9 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initButton(mCubeButton, spatModeToString(SpatMode::mbap), spatModeToTooltip(SpatMode::mbap));
     initButton(mHybridButton, spatModeToString(SpatMode::hybrid), spatModeToTooltip(SpatMode::hybrid));
 
+    initButton(mMulticoreDSPToggle, "Use Multicore DSP", "Experimental : This will use more CPU resources but can perform better on large speaker setups. Does not parallelize stereo or binaural reductions.");
+
+
     juce::StringArray items{ "None" };
     items.addArray(STEREO_MODE_STRINGS);
     mStereoReductionCombo.addItemList(items, 1);
@@ -166,10 +169,13 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     mStereoRoutingLayout.addSection(mRightLabel).withFixedSize(COL_2_QUARTER_WIDTH);
     mStereoRoutingLayout.addSection(mRightCombo).withFixedSize(COL_2_QUARTER_WIDTH);
 
+
+
     mCol2Layout.addSection(mAttenuationSettingsButton).withFixedSize(LABEL_HEIGHT);
     mCol2Layout.addSection(mAttenuationLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
     mCol2Layout.addSection(mStereoRoutingLabel).withFixedSize(LABEL_HEIGHT);
     mCol2Layout.addSection(mStereoRoutingLayout).withFixedSize(ROW_2_CONTENT_HEIGHT);
+    mCol2Layout.addSection(mMulticoreDSPToggle).withFixedSize(ROW_2_CONTENT_HEIGHT);
 
     updateLayout();
 }
@@ -366,37 +372,40 @@ void SpatSettingsSubPanel::updateLayout()
     mRightLabel.setVisible(showRouting);
     mRightCombo.setVisible(showRouting);
 
+    mMulticoreDSPToggle.setVisible(!showRouting);
+
     clearSections();
     addSection(mCol1Layout).withFixedSize(COL_1_WIDTH).withHorizontalPadding(COL_PADDING);
-    if (showAttenuation || showRouting) {
-        addSection(mCol2Layout).withFixedSize(COL_2_WIDTH).withLeftPadding(COL_PADDING);
-    }
+    addSection(mCol2Layout).withFixedSize(COL_2_WIDTH).withLeftPadding(COL_PADDING);
 }
 
 //==============================================================================
 void SpatSettingsSubPanel::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    if (button == &mDomeButton || button == &mCubeButton || button == &mHybridButton) {
+        if (!button->getToggleState()) {
+            return;
+        }
 
-    if (!button->getToggleState()) {
-        return;
+        auto const getSpatMode = [&]() {
+            if (button == &mDomeButton) {
+                return SpatMode::vbap;
+            }
+            if (button == &mCubeButton) {
+                return SpatMode::mbap;
+            }
+            jassert(button == &mHybridButton);
+            return SpatMode::hybrid;
+        };
+
+        auto const spatMode{ getSpatMode() };
+        mMainContentComponent.setSpatMode(spatMode);
+        updateLayout();
+        mControlPanel.forceLayoutUpdate();
+    } else if (button == &mMulticoreDSPToggle) {
+        mMainContentComponent.setMulticoreDSPState(button->getToggleState());
     }
-
-    auto const getSpatMode = [&]() {
-        if (button == &mDomeButton) {
-            return SpatMode::vbap;
-        }
-        if (button == &mCubeButton) {
-            return SpatMode::mbap;
-        }
-        jassert(button == &mHybridButton);
-        return SpatMode::hybrid;
-    };
-
-    auto const spatMode{ getSpatMode() };
-    mMainContentComponent.setSpatMode(spatMode);
-    updateLayout();
-    mControlPanel.forceLayoutUpdate();
 }
 
 //==============================================================================

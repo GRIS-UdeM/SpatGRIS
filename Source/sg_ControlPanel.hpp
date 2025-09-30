@@ -108,6 +108,8 @@ class SpatSettingsSubPanel final
     juce::Label mStereoReductionLabel{};
     juce::Label mStereoRoutingLabel{};
 
+    juce::TextButton mMulticoreDSPToggle{};
+
     juce::ComboBox mStereoReductionCombo{};
 
     juce::Label mLeftLabel{};
