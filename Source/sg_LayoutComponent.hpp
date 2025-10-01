@@ -110,4 +110,24 @@ private:
     JUCE_LEAK_DETECTOR(LayoutComponent)
 };
 
+/**
+ * With normal juce layouting, to swap two components, we would define two components
+ * with the same bound and just show/hide them. This is harder to do with the custom
+ * LayoutComponent class so we provide this helper to which you can add components and
+ * swap between them by name.
+ *
+ * This uses raw pointers, be careful.
+ */
+class SwappableComponent final
+    : public juce::Component
+{
+  public:
+    void addComponent(const std::string& name, juce::Component* comp);
+    void showComponent(const std::string& name);
+    void resized() override;
+  private:
+    std::map<std::string, juce::Component*> components;
+    JUCE_LEAK_DETECTOR(SwappableComponent)
+};
+
 } // namespace gris

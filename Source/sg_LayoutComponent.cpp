@@ -393,4 +393,24 @@ int LayoutComponent::getMinInnerHeight() const noexcept
     });
 }
 
+void SwappableComponent::addComponent(const std::string& name, juce::Component* component) {
+    components[name] = component;
+    addAndMakeVisible(*component);
+}
+
+void SwappableComponent::showComponent(const std::string& name) {
+    for (auto& [key, component] : components) {
+        if (key != name) {
+            component->setVisible(false);
+        } else {
+            component->setVisible(true);
+        }
+    }
+}
+
+void SwappableComponent::resized() {
+    for (auto& [key, component] : components)
+        component->setBounds(getLocalBounds());
+}
+
 } // namespace gris

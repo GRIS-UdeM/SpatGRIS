@@ -123,7 +123,8 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initButton(mHybridButton, spatModeToString(SpatMode::hybrid), spatModeToTooltip(SpatMode::hybrid));
 
     initButton(mMulticoreDSPToggle, "Use Multicore DSP", "Experimental : This will use more CPU resources but can perform better on large speaker setups. Does not parallelize stereo or binaural reductions.");
-
+    // initButtons set this but we don't want the multicore button to be considered a radio button with the spat buttons..
+    mMulticoreDSPToggle.setRadioGroupId(0);
 
     juce::StringArray items{ "None" };
     items.addArray(STEREO_MODE_STRINGS);
@@ -174,8 +175,12 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     mCol2Layout.addSection(mAttenuationSettingsButton).withFixedSize(LABEL_HEIGHT);
     mCol2Layout.addSection(mAttenuationLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
     mCol2Layout.addSection(mStereoRoutingLabel).withFixedSize(LABEL_HEIGHT);
-    mCol2Layout.addSection(mStereoRoutingLayout).withFixedSize(ROW_2_CONTENT_HEIGHT);
-    mCol2Layout.addSection(mMulticoreDSPToggle).withFixedSize(ROW_2_CONTENT_HEIGHT);
+
+    mBottomLeftComponentSwapper.addComponent(multicoreDSPToggleName, &mMulticoreDSPToggle);
+    mBottomLeftComponentSwapper.addComponent(stereoRoutingLayoutName, &mStereoRoutingLayout);
+    addAndMakeVisible(mBottomLeftComponentSwapper);
+
+    mCol2Layout.addSection(mBottomLeftComponentSwapper).withFixedSize(ROW_2_CONTENT_HEIGHT);
 
     updateLayout();
 }
@@ -268,6 +273,14 @@ void SpatSettingsSubPanel::setSpatMode(SpatMode const spatMode)
     updateLayout();
     mControlPanel.forceLayoutUpdate();
 }
+
+
+void SpatSettingsSubPanel::setMulticoreDSP(bool useMulticoreDSP)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mMulticoreDSPToggle.setToggleState(useMulticoreDSP, juce::dontSendNotification);
+}
+
 
 //==============================================================================
 void SpatSettingsSubPanel::setStereoMode(tl::optional<StereoMode> const & stereoMode)
@@ -367,12 +380,12 @@ void SpatSettingsSubPanel::updateLayout()
     mAttenuationHzCombo.setVisible(showAttenuation);
 
     mStereoRoutingLabel.setVisible(showRouting);
-    mLeftLabel.setVisible(showRouting);
-    mLeftCombo.setVisible(showRouting);
-    mRightLabel.setVisible(showRouting);
-    mRightCombo.setVisible(showRouting);
 
-    mMulticoreDSPToggle.setVisible(!showRouting);
+    if (showRouting) {
+        mBottomLeftComponentSwapper.showComponent(stereoRoutingLayoutName);
+    } else {
+        mBottomLeftComponentSwapper.showComponent(multicoreDSPToggleName);
+    }
 
     clearSections();
     addSection(mCol1Layout).withFixedSize(COL_1_WIDTH).withHorizontalPadding(COL_PADDING);
@@ -508,6 +521,14 @@ void ControlPanel::setSpatMode(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mSpatSettingsSubPanel.setSpatMode(spatMode);
+}
+
+// used to set the multicore dsp button's toggle state from the main component at
+// project load time.
+void ControlPanel::setMulticoreDSP(bool useMulticoreDSP)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mSpatSettingsSubPanel.setMulticoreDSP(useMulticoreDSP);
 }
 
 //==============================================================================
