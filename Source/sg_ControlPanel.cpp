@@ -98,9 +98,10 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
         label.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
     };
 
-    auto const initButton = [&](juce::Button & button, juce::String const & text, juce::String const & tooltip) {
+    auto const initButton = [&](juce::Button & button, juce::String const & text, juce::String const & tooltip, bool isSpatModeRadioButton = true) {
         button.setClickingTogglesState(true);
-        button.setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);
+        if (isSpatModeRadioButton)
+            button.setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);
         button.setButtonText(text);
         button.setTooltip(tooltip);
         button.addListener(this);
@@ -123,8 +124,6 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initButton(mHybridButton, spatModeToString(SpatMode::hybrid), spatModeToTooltip(SpatMode::hybrid));
 
     initButton(mMulticoreDSPToggle, "Use Multicore DSP", "Experimental : This will use more CPU resources but can perform better on large speaker setups. Does not parallelize stereo or binaural reductions.");
-    // initButtons set this but we don't want the multicore button to be considered a radio button with the spat buttons..
-    mMulticoreDSPToggle.setRadioGroupId(0);
 
     juce::StringArray items{ "None" };
     items.addArray(STEREO_MODE_STRINGS);
