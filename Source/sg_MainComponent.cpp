@@ -162,6 +162,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
         // Note : mData.project is not loaded yet at this point. You can't rely on
         // the values it contains.
+        // TODO : fix this.
         mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
         mControlPanel->setSpatMode(mData.project.spatMode);
         mControlPanel->setSpatMode(mData.project.spatMode);
