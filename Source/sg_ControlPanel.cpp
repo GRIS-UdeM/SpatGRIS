@@ -175,8 +175,8 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     mCol2Layout.addSection(mAttenuationLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
     mCol2Layout.addSection(mStereoRoutingLabel).withFixedSize(LABEL_HEIGHT);
 
-    mBottomLeftComponentSwapper.addComponent(multicoreDSPToggleName, &mMulticoreDSPToggle);
-    mBottomLeftComponentSwapper.addComponent(stereoRoutingLayoutName, &mStereoRoutingLayout);
+    mBottomLeftComponentSwapper.addComponent(multicoreDSPToggleName, juce::Component::SafePointer<juce::Component>(&mMulticoreDSPToggle));
+    mBottomLeftComponentSwapper.addComponent(stereoRoutingLayoutName,juce::Component::SafePointer<juce::Component>(&mStereoRoutingLayout));
     addAndMakeVisible(mBottomLeftComponentSwapper);
 
     mCol2Layout.addSection(mBottomLeftComponentSwapper).withFixedSize(ROW_2_CONTENT_HEIGHT);

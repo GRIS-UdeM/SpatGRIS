@@ -393,13 +393,18 @@ int LayoutComponent::getMinInnerHeight() const noexcept
     });
 }
 
-void SwappableComponent::addComponent(const std::string& name, juce::Component* component) {
+void SwappableComponent::addComponent(const std::string& name, juce::Component::SafePointer<juce::Component> component) {
     components[name] = component;
-    addAndMakeVisible(*component);
+    if (component) {
+        addAndMakeVisible(*component);
+    }
 }
 
 void SwappableComponent::showComponent(const std::string& name) {
     for (auto& [key, component] : components) {
+        if (!component) {
+            continue;
+        }
         if (key != name) {
             component->setVisible(false);
         } else {
@@ -409,8 +414,11 @@ void SwappableComponent::showComponent(const std::string& name) {
 }
 
 void SwappableComponent::resized() {
-    for (auto& [key, component] : components)
-        component->setBounds(getLocalBounds());
+    for (auto& [key, component] : components) {
+        if (component) {
+            component->setBounds(getLocalBounds());
+        }
+    }
 }
 
 } // namespace gris
