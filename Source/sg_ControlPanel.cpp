@@ -100,8 +100,8 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
 
     auto const initButton = [&](juce::Button & button, juce::String const & text, juce::String const & tooltip, bool isSpatModeRadioButton = true) {
         button.setClickingTogglesState(true);
-        if (isSpatModeRadioButton) {
-          button.setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);       }
+        if (isSpatModeRadioButton)
+            button.setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);
         button.setButtonText(text);
         button.setTooltip(tooltip);
         button.addListener(this);
