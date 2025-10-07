@@ -159,6 +159,12 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // Control panel
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
         mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
+
+        // Note : mData.project is not loaded yet at this point. You can't rely on
+        // the values it contains.
+        // TODO : fix this.
+        mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
+        mControlPanel->setSpatMode(mData.project.spatMode);
         mControlPanel->setSpatMode(mData.project.spatMode);
         mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
         mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
@@ -257,13 +263,22 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     // Load app config
     showSplashScreen();
     initAppData();
+
+    // TODO one day : initGui tries to set default values to buttons and other such things
+    // but a lot of those values are read from the project, which is initialized in initProject
+    // later. This means initGui has wrong values for a a lot of things and we need to a add
+    // gui init stuff *after* initProject. We can't trivialy reorder those but I don't remember
+    // why.
     initGui();
     initProject();
+
+    // This section contains gui initializations that need a loaded project.
 
     // SpeakerViewComponent 3D view (need project data before initialization)
     mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
     mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
     handleShowSpeakerViewWindow();
+    mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
 
     initSpeakerSetup();
     initAudioManager();
@@ -918,6 +933,11 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
     mControlPanel->setSpatMode(newSpatMode);
     setTitles();
     refreshSpeakers();
+}
+
+void MainContentComponent::setMulticoreDSPState(const bool state) {
+    mData.project.useMulticoreDSP = state;
+    refreshSpatAlgorithm();
 }
 
 //==============================================================================
@@ -1711,6 +1731,7 @@ bool MainContentComponent::isProjectModified() const
     if (!savedProject) {
         return true;
     }
+
     return mData.project != *savedProject;
 }
 
@@ -2358,12 +2379,14 @@ void MainContentComponent::refreshSpatAlgorithm()
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     auto & oldSpatAlgorithm{ mAudioProcessor->getSpatAlgorithm() };
+
     auto newSpatAlgorithm{ AbstractSpatAlgorithm::make(mData.speakerSetup,
                                                        mData.project.spatMode,
                                                        mData.appData.stereoMode,
                                                        mData.project.sources,
                                                        mData.appData.audioSettings.sampleRate,
-                                                       mData.appData.audioSettings.bufferSize) };
+                                                       mData.appData.audioSettings.bufferSize,
+                                                       mData.project.useMulticoreDSP) };
 
     if (newSpatAlgorithm->getError()
         && (!oldSpatAlgorithm || oldSpatAlgorithm->getError() != newSpatAlgorithm->getError())) {
