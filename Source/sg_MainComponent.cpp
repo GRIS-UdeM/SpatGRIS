@@ -2380,13 +2380,17 @@ void MainContentComponent::refreshSpatAlgorithm()
 
     auto & oldSpatAlgorithm{ mAudioProcessor->getSpatAlgorithm() };
 
+    // AbstractSpatAlgorithm::make can make a hybrid mode algorithm with multicore dsp
+    // enable but this has been benchmarked to be less performant than single core.
+    const bool shouldUseMulticoreDSP = mData.project.useMulticoreDSP && mData.project.spatMode != SpatMode::hybrid;
+
     auto newSpatAlgorithm{ AbstractSpatAlgorithm::make(mData.speakerSetup,
                                                        mData.project.spatMode,
                                                        mData.appData.stereoMode,
                                                        mData.project.sources,
                                                        mData.appData.audioSettings.sampleRate,
                                                        mData.appData.audioSettings.bufferSize,
-                                                       mData.project.useMulticoreDSP) };
+                                                       shouldUseMulticoreDSP) };
 
     if (newSpatAlgorithm->getError()
         && (!oldSpatAlgorithm || oldSpatAlgorithm->getError() != newSpatAlgorithm->getError())) {

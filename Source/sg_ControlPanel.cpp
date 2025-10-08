@@ -380,10 +380,17 @@ void SpatSettingsSubPanel::updateLayout()
 
     mStereoRoutingLabel.setVisible(showRouting);
 
+    // We may have previously set the visibility of this to false.
+    mBottomLeftComponentSwapper.setVisible(true);
+
     if (showRouting) {
         mBottomLeftComponentSwapper.showComponent(stereoRoutingLayoutName);
-    } else {
+    } // we should not show the multicoreDSPToggle in hybrid mode because it should have no effect.
+    else if (getSpatMode() != SpatMode::hybrid) {
         mBottomLeftComponentSwapper.showComponent(multicoreDSPToggleName);
+    } else {
+        // if we are in hybrid mode and we should not show routing, hide everything.
+        mBottomLeftComponentSwapper.setVisible(false);
     }
 
     clearSections();
