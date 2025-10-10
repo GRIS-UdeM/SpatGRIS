@@ -393,4 +393,32 @@ int LayoutComponent::getMinInnerHeight() const noexcept
     });
 }
 
+void SwappableComponent::addComponent(const std::string& name, juce::Component::SafePointer<juce::Component> component) {
+    components[name] = component;
+    if (component) {
+        addAndMakeVisible(*component);
+    }
+}
+
+void SwappableComponent::showComponent(const std::string& name) {
+    for (auto& [key, component] : components) {
+        if (!component) {
+            continue;
+        }
+        if (key != name) {
+            component->setVisible(false);
+        } else {
+            component->setVisible(true);
+        }
+    }
+}
+
+void SwappableComponent::resized() {
+    for (auto& [key, component] : components) {
+        if (component) {
+            component->setBounds(getLocalBounds());
+        }
+    }
+}
+
 } // namespace gris

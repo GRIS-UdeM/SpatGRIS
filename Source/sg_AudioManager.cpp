@@ -107,10 +107,6 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     // TODO: should not process if stereo mode is hrtf
     mOutputBuffer.silence();
 
-#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
-    mAudioProcessor->silenceForkUnionBuffer (forkUnionBuffer);
-#endif
-
     std::for_each_n(outputChannelData, totalNumOutputChannels, [numSamples](float * const data) {
         std::fill_n(data, numSamples, 0.0f);
     });
@@ -152,9 +148,6 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     // do the actual processing
     mAudioProcessor->processAudio(mInputBuffer,
                                   mOutputBuffer,
-#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
-                                  forkUnionBuffer,
-#endif
                                   mStereoOutputBuffer);
 
     // copy buffers to output
@@ -782,36 +775,6 @@ void AudioManager::initInputBuffer(juce::Array<source_index_t> const & sources)
     mInputBuffer.init(sources);
 }
 
-#if SG_USE_FORK_UNION
-void AudioManager::initForkUnionBuffer([[maybe_unused]] int newBufferSize,
-                                       [[maybe_unused]] tl::optional<int> numSpeakers)
-{
-    #if SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS
-    if (numSpeakers.has_value())
-        forkUnionBuffer.resize(*numSpeakers);
-
-    for (int i = 0; i < numSpeakers; ++i) {
-        forkUnionBuffer[i].clear();
-        for (int j = 0; j < newBufferSize; ++j)
-            forkUnionBuffer[i].emplace_back(0.0f);
-    }
-    #elif SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD
-    // so we have a buffer for each hardware thread
-    auto const numThreads = std::thread::hardware_concurrency();
-    forkUnionBuffer.resize(numThreads);
-
-    for (auto & curThreadSpeakerBuffer : forkUnionBuffer) {
-        // then within each thread we need a buffer for each speaker
-        if (numSpeakers.has_value())
-            curThreadSpeakerBuffer.resize(*numSpeakers);
-
-        // and each speaker buffer contains bufferSize samples
-        for (auto & curSpeakerBuffer : curThreadSpeakerBuffer)
-            curSpeakerBuffer.assign(newBufferSize, 0.f);
-    }
-    #endif
-}
-#endif
 
 //==============================================================================
 void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers)
@@ -821,9 +784,6 @@ void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers
     juce::ScopedLock const lock{ mAudioProcessor->getLock() };
     mOutputBuffer.init(speakers);
 
-#if SG_USE_FORK_UNION
-    initForkUnionBuffer (SpeakerAudioBuffer::MAX_NUM_SAMPLES, speakers.size());
-#endif
 }
 
 //==============================================================================
@@ -836,9 +796,6 @@ void AudioManager::setBufferSize(int const newBufferSize)
     mOutputBuffer.setNumSamples(newBufferSize);
     mStereoOutputBuffer.setSize(2, newBufferSize);
 
-#if SG_USE_FORK_UNION
-    initForkUnionBuffer (newBufferSize, tl::nullopt);
-#endif
 }
 
 //==============================================================================

@@ -43,9 +43,7 @@
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
-
 #include <optional>
-
 namespace gris
 {
 class MainWindow;
@@ -229,6 +227,8 @@ public:
     //==============================================================================
     // Control Panel
     void setSpatMode(SpatMode const spatMode);
+    void setMulticoreDSPState(bool const state);
+    void setMulticoreDSPPreset(int preset);
     void setStereoMode(tl::optional<StereoMode> stereoMode);
     void setStereoRouting(StereoRouting const & routing);
     void cubeAttenuationDbChanged(dbfs_t value);

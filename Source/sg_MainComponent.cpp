@@ -27,6 +27,7 @@
 #include "sg_GrisLookAndFeel.hpp"
 #include "Data/sg_LegacyLbapPosition.hpp"
 #include "sg_MainWindow.hpp"
+#include "sg_ParallelSpatAlgorithm.hpp"
 #include "sg_ScopeGuard.hpp"
 #include "sg_TitledComponent.hpp"
 #include "Data/sg_constants.hpp"
@@ -159,6 +160,13 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // Control panel
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
         mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
+
+        // Note : mData.project is not loaded yet at this point. You can't rely on
+        // the values it contains.
+        // TODO : fix this.
+        mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
+        mControlPanel->setMulticoreDSPPreset(mData.project.multicoreDSPPreset);
+        mControlPanel->setSpatMode(mData.project.spatMode);
         mControlPanel->setSpatMode(mData.project.spatMode);
         mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
         mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
@@ -257,13 +265,23 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     // Load app config
     showSplashScreen();
     initAppData();
+
+    // TODO one day : initGui tries to set default values to buttons and other such things
+    // but a lot of those values are read from the project, which is initialized in initProject
+    // later. This means initGui has wrong values for a a lot of things and we need to a add
+    // gui init stuff *after* initProject. We can't trivialy reorder those but I don't remember
+    // why.
     initGui();
     initProject();
+
+    // This section contains gui initializations that need a loaded project.
 
     // SpeakerViewComponent 3D view (need project data before initialization)
     mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
     mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
     handleShowSpeakerViewWindow();
+    mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
+    mControlPanel->setMulticoreDSPPreset(mData.project.multicoreDSPPreset);
 
     initSpeakerSetup();
     initAudioManager();
@@ -918,6 +936,17 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
     mControlPanel->setSpatMode(newSpatMode);
     setTitles();
     refreshSpeakers();
+}
+
+void MainContentComponent::setMulticoreDSPState(const bool state) {
+    mData.project.useMulticoreDSP = state;
+    refreshSpatAlgorithm();
+}
+
+void MainContentComponent::setMulticoreDSPPreset(int preset) {
+    mData.project.multicoreDSPPreset = preset;
+    // no need to refresh the spat algorithm for this. It only sets worker thread waiting policy.
+    SpinSleepWait::setPerformancePreset(preset);
 }
 
 //==============================================================================
@@ -1711,6 +1740,7 @@ bool MainContentComponent::isProjectModified() const
     if (!savedProject) {
         return true;
     }
+
     return mData.project != *savedProject;
 }
 
@@ -2358,12 +2388,21 @@ void MainContentComponent::refreshSpatAlgorithm()
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     auto & oldSpatAlgorithm{ mAudioProcessor->getSpatAlgorithm() };
+
+    // AbstractSpatAlgorithm::make can make a hybrid mode algorithm with multicore dsp
+    // enable but this has been benchmarked to be less performant than single core.
+    const bool shouldUseMulticoreDSP = mData.project.useMulticoreDSP && mData.project.spatMode != SpatMode::hybrid;
+
+    // necessary to have the right preset at project initialization.
+    SpinSleepWait::setPerformancePreset(mData.project.multicoreDSPPreset);
+
     auto newSpatAlgorithm{ AbstractSpatAlgorithm::make(mData.speakerSetup,
                                                        mData.project.spatMode,
                                                        mData.appData.stereoMode,
                                                        mData.project.sources,
                                                        mData.appData.audioSettings.sampleRate,
-                                                       mData.appData.audioSettings.bufferSize) };
+                                                       mData.appData.audioSettings.bufferSize,
+                                                       shouldUseMulticoreDSP) };
 
     if (newSpatAlgorithm->getError()
         && (!oldSpatAlgorithm || oldSpatAlgorithm->getError() != newSpatAlgorithm->getError())) {
