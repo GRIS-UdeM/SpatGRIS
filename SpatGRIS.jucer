@@ -392,7 +392,8 @@
         <CONFIGURATION name="Debug" osxCompatibility="10.13 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" fastMath="1" macOSDeploymentTarget="10.13"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       osxArchitecture="Native" fastMath="1"/>
+                       osxArchitecture="Native" fastMath="1" macOSDeploymentTarget="10.13"
+                       osxCompatibility="10.13 SDK"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
