@@ -794,7 +794,7 @@ void MainContentComponent::handleShowSpeakerViewWindow()
     }
 
     // SpeakerView camera position
-    auto const & camPos{ mSpeakerViewComponent->getCameraPosition().getPolar() };
+    auto const camPos{ mSpeakerViewComponent->getCameraPosition().getPolar() };
     auto azi = -camPos.azimuth; // azimuth is inverted in SpeakerView
     auto aziDeg = juce::radiansToDegrees(azi.get());
     auto elev = camPos.elevation;
@@ -2005,8 +2005,8 @@ void MainContentComponent::setLegacySourcePosition(source_index_t const sourceIn
     auto const correctedPosition{ getCorrectedPosition() };
     auto & source{ mData.project.sources[sourceIndex] };
 
-    if (correctedPosition == source.position && newAzimuthSpan == source.azimuthSpan
-        && newZenithSpan == source.zenithSpan) {
+    if (correctedPosition == source.position && juce::approximatelyEqual(newAzimuthSpan, source.azimuthSpan)
+        && juce::approximatelyEqual(newZenithSpan, source.zenithSpan)) {
         return;
     }
 
@@ -2056,7 +2056,7 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
         break;
     }
 
-    if (position == source.position && azimuthSpan == source.azimuthSpan && zenithSpan == source.zenithSpan) {
+    if (position == source.position && juce::approximatelyEqual(azimuthSpan, source.azimuthSpan) && juce::approximatelyEqual(zenithSpan, source.zenithSpan)) {
         return;
     }
 

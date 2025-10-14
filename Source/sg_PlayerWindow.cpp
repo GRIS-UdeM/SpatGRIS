@@ -214,9 +214,9 @@ int ThumbnailComp::getNumSources() const
 }
 
 //==============================================================================
-PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
+PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, GrisLookAndFeel & glaf)
     : mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(lookAndFeel)
+    , mLookAndFeel(glaf)
 {
     mLoadWavFilesAndSpeakerSetupButton.setButtonText("Load audio files and Speaker setup folder");
     mSavePlayerProjectButton.setButtonText("Save Player Project");
