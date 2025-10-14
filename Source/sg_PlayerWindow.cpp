@@ -25,11 +25,11 @@ namespace gris
 {
 //==============================================================================
 ThumbnailComp::ThumbnailComp(PlayerComponent & playerComponent,
-                             GrisLookAndFeel & lookAndFeel,
+                             GrisLookAndFeel & glaf,
                              juce::OwnedArray<juce::AudioTransportSource> & transportSources,
                              juce::AudioFormatManager & manager)
     : mPlayerComponent(playerComponent)
-    , mLookAndFeel(lookAndFeel)
+    , mLookAndFeel(glaf)
     , mTransportSources(transportSources)
     , mManager(manager)
 {
@@ -535,11 +535,11 @@ void PlayerComponent::setTimeCode(double const timeInSec)
 }
 
 //==============================================================================
-PlayerWindow::PlayerWindow(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
-    : DocumentWindow("SpatGRIS Player", lookAndFeel.getBackgroundColour(), allButtons)
+PlayerWindow::PlayerWindow(MainContentComponent & mainContentComponent, GrisLookAndFeel & glaf)
+    : DocumentWindow("SpatGRIS Player", glaf.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(lookAndFeel)
-    , mPlayerComponent(mainContentComponent, lookAndFeel)
+    , mLookAndFeel(glaf)
+    , mPlayerComponent(mainContentComponent, glaf)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

@@ -2412,6 +2412,13 @@ void MainContentComponent::refreshSpatAlgorithm()
                                                    "speakers not to be more than 170 degrees apart from each others.\n",
                                                    "Ok",
                                                    this);
+          break;
+        case AbstractSpatAlgorithm::Error::failedToSpawnThreadpool:
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   "Failed to create threadpool.",
+                                                   "Ok",
+                                                   this);
             break;
         default:
             jassertfalse;
