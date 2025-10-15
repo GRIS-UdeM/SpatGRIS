@@ -430,8 +430,8 @@ void SpeakerGroupComponent::resized()
         const auto windowOriginInThis = window->getLocalPoint(this, juce::Point<int>{ 0, 0 });
         groupSettingsButton.setBounds(bounds.removeFromLeft(groupSettingsButtonWidth));
 
-        const auto idColWidth = fixedLeftColWidth - groupSettingsButtonWidth - static_cast<int>(windowOriginInThis.x);
-        id.setBounds(bounds.removeFromLeft(static_cast<int>(idColWidth - colGap)));
+        const int idColWidth = fixedLeftColWidth - groupSettingsButtonWidth - windowOriginInThis.x;
+        id.setBounds(bounds.removeFromLeft(idColWidth - colGap));
         bounds.removeFromLeft (colGap);
 
         // then position the other components with a fixed width of otherColWidth
