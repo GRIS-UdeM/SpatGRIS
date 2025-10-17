@@ -83,11 +83,11 @@ void GainsSubPanel::sliderMoved(float const value, SpatSlider * const slider)
 //==============================================================================
 SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
                                            MainContentComponent & mainContentComponent,
-                                           GrisLookAndFeel & lookAndFeel)
-    : SubPanelComponent(LayoutComponent::Orientation::horizontal, lookAndFeel)
+                                           GrisLookAndFeel & glaf)
+    : SubPanelComponent(LayoutComponent::Orientation::horizontal, glaf)
     , mControlPanel(controlPanel)
     , mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(lookAndFeel)
+    , mLookAndFeel(glaf)
     , mAttenuationValues(getAttenuationValues())
 {
     auto const initLabel = [&](juce::Label & label,
@@ -95,7 +95,7 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
                                juce::Justification const justification = juce::Justification::centredTop) {
         label.setText(text, juce::dontSendNotification);
         label.setJustificationType(justification);
-        label.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
+        label.setColour(juce::Label::ColourIds::textColourId, glaf.getFontColour());
     };
 
     auto const initButton = [&](juce::Button & button, juce::String const & text, juce::String const & tooltip, bool isSpatModeRadioButton = true) {
@@ -113,7 +113,7 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initLabel(mLeftLabel, "Left :", juce::Justification::topRight);
     initLabel(mRightLabel, "Right :", juce::Justification::topRight);
 
-    mAttenuationSettingsButton.setColour(juce::ToggleButton::ColourIds::textColourId, lookAndFeel.getFontColour());
+    mAttenuationSettingsButton.setColour(juce::ToggleButton::ColourIds::textColourId, glaf.getFontColour());
     mAttenuationSettingsButton.onClick = [this] {
         updateAttenuationState();
         updateLayout();
@@ -352,7 +352,7 @@ void SpatSettingsSubPanel::updateEnabledStereoRoutings()
     auto const rightId{ mRightCombo.getSelectedId() };
 
     jassert(mLeftCombo.getNumItems() == mRightCombo.getNumItems());
-    jassert(leftId == 0 && rightId == 0 || mLeftCombo.getSelectedId() != mRightCombo.getSelectedId());
+    jassert((leftId == 0 && rightId == 0) || mLeftCombo.getSelectedId() != mRightCombo.getSelectedId());
 
     for (int i{}; i < mLeftCombo.getNumItems(); ++i) {
         auto const itemId{ mLeftCombo.getItemId(i) };
@@ -483,9 +483,9 @@ SpatSettingsSubPanel::AttenuationValues SpatSettingsSubPanel::getAttenuationValu
 }
 
 //==============================================================================
-ControlPanel::ControlPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
+ControlPanel::ControlPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & glaf)
     : mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(lookAndFeel)
+    , mLookAndFeel(glaf)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

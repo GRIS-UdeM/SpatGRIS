@@ -25,10 +25,10 @@ namespace gris
 SourceIdButton::SourceIdButton(source_index_t const sourceIndex,
                                juce::Colour const color,
                                Listener & listener,
-                               SmallGrisLookAndFeel & lookAndFeel)
+                               SmallGrisLookAndFeel & glaf)
     : mListener(listener)
 
-    , mButton(false, juce::String{ sourceIndex.get() }, "Change color", *this, lookAndFeel)
+    , mButton(false, juce::String{ sourceIndex.get() }, "Change color", *this, glaf)
     , mSourceIndexCallBox{ nullptr }
 {
     JUCE_ASSERT_MESSAGE_THREAD;

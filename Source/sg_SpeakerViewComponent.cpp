@@ -482,7 +482,7 @@ void SpeakerViewComponent::listenUDP(juce::DatagramSocket& socket)
     auto packetSize = socket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
 
     if (packetSize > 0) {
-        juce::String receivedData(receiveBuffer, packetSize);
+        juce::String receivedData(receiveBuffer, static_cast<size_t>(packetSize));
         juce::var jsonResult;
         auto res = juce::JSON::parse(receivedData, jsonResult);
 

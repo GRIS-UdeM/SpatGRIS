@@ -49,9 +49,9 @@ void SpeakerSliceComponent::muteSoloButtonClicked(SliceState const state)
 //==============================================================================
 SpeakerSliceComponent::SpeakerSliceComponent(output_patch_t const outputPatch,
                                              Listener & owner,
-                                             GrisLookAndFeel & lookAndFeel,
+                                             GrisLookAndFeel & glaf,
                                              SmallGrisLookAndFeel & smallLookAndFeel)
-    : AbstractSliceComponent(lookAndFeel, smallLookAndFeel)
+    : AbstractSliceComponent(glaf, smallLookAndFeel)
     , mOwner(owner)
     , mOutputPatch(outputPatch)
     , mIdButton(outputPatch, *this, smallLookAndFeel)

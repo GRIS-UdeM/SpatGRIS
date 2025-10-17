@@ -23,10 +23,10 @@ namespace gris
 {
 //==============================================================================
 MuteSoloComponent::MuteSoloComponent(Listener & listener,
-                                     GrisLookAndFeel & lookAndFeel,
+                                     GrisLookAndFeel & glaf,
                                      SmallGrisLookAndFeel & smallLookAndFeel)
     : mListener(listener)
-    , mLookAndFeel(lookAndFeel)
+    , mLookAndFeel(glaf)
     , mSmallLookAndFeel(smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
