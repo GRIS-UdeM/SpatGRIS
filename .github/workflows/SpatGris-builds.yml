@@ -258,8 +258,9 @@ jobs:
       - name: Generate Visual Studio project
         run: |
           submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/VisualStudio2022/x64/Release/App/Projucer.exe --resave SpatGRIS.jucer
+          # TODO: figure out how to get the path so that asio updates do not break the CI.
       - name: Build SpatGRIS
-        run: msbuild Builds/VisualStudio2022/SpatGRIS_App.vcxproj -p:Configuration=Release -p:Platform=x64 -p:IncludePath=../../asiosdk_2.3.3_2019-06-14/common/
+        run: msbuild Builds/VisualStudio2022/SpatGRIS_App.vcxproj -p:Configuration=Release -p:Platform=x64 -p:IncludePath=../../ASIOSDK/common/
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
