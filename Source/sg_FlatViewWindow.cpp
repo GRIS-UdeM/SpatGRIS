@@ -180,7 +180,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
                                 ViewportSourceData const & sourceData,
                                 SpatMode const spatMode) const
 {
-    static constexpr auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
+    static const auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
 
     if (sourceData.colour.getAlpha() == 0) {
         return;
