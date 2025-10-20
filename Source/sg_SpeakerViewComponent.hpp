@@ -140,6 +140,12 @@ public:
     tl::optional<int> getExtraUDPOutputPort() const;
     tl::optional<juce::String> getExtraUDPOutputAddress() const;
 
+
+    /**
+     * Manages all the extra ports if you pass it the data contained in the project data.
+     */
+    void initExtraPorts(tl::optional<int> uDPExtraInputPort, tl::optional<int> uDPExtraOutputPort, tl::optional<juce::String> uDPExtraOutputAddress);
+
     void disableExtraUDPOutput();
     void disableExtraUDPInput();
     /**
