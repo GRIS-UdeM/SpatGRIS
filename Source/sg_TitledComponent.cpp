@@ -26,10 +26,10 @@ namespace gris
 //==============================================================================
 TitledComponent::TitledComponent(juce::String title,
                                  MinSizedComponent * contentComponent,
-                                 GrisLookAndFeel & glaf)
+                                 GrisLookAndFeel & lookAndFeel)
     : mTitle(std::move(title))
     , mContentComponent(contentComponent)
-    , mLookAndFeel(glaf)
+    , mLookAndFeel(lookAndFeel)
 {
     addAndMakeVisible(mContentComponent);
 }

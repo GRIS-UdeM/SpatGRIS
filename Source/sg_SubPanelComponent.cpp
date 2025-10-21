@@ -32,9 +32,9 @@ constexpr auto OFFSET{ INNER_PADDING / 2 };
 namespace gris
 {
 //==============================================================================
-SubPanelComponent::SubPanelComponent(LayoutComponent::Orientation const orientation, GrisLookAndFeel & glaf)
-    : mLookAndFeel(glaf)
-    , mLayout(orientation, false, false, glaf)
+SubPanelComponent::SubPanelComponent(LayoutComponent::Orientation const orientation, GrisLookAndFeel & lookAndFeel)
+    : mLookAndFeel(lookAndFeel)
+    , mLayout(orientation, false, false, lookAndFeel)
 {
     addAndMakeVisible(mLayout);
 }

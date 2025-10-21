@@ -40,8 +40,8 @@ auto const MOUSE_DOWN_BACKGROUND_COLOR{ juce::Colours::black.withAlpha(0.2f) };
 } // namespace
 
 //==============================================================================
-GeneralMuteButton::GeneralMuteButton(Listener & listener, GrisLookAndFeel & glaf)
-    : mLookAndFeel(glaf)
+GeneralMuteButton::GeneralMuteButton(Listener & listener, GrisLookAndFeel & lookAndFeel)
+    : mLookAndFeel(lookAndFeel)
     , mListener(listener)
 {
     JUCE_ASSERT_MESSAGE_THREAD;

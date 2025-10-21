@@ -17,8 +17,6 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <algorithm>
-
 #include "sg_LayoutComponent.hpp"
 
 #include "sg_GrisLookAndFeel.hpp"
@@ -215,7 +213,7 @@ int LayoutComponent::Section::computeSectionHeight(Orientation const orientation
 LayoutComponent::LayoutComponent(Orientation const orientation,
                                  bool const isHorizontalScrollable,
                                  bool const isVerticalScrollable,
-                                 GrisLookAndFeel & glaf) noexcept
+                                 GrisLookAndFeel & lookAndFeel) noexcept
     : mOrientation(orientation)
     , mIsHorizontalScrollable(isHorizontalScrollable)
     , mIsVerticalScrollable(isVerticalScrollable)
@@ -225,9 +223,9 @@ LayoutComponent::LayoutComponent(Orientation const orientation,
     mViewport.setScrollBarsShown(isVerticalScrollable, isHorizontalScrollable);
     mViewport.setScrollBarThickness(SCROLL_BAR_WIDTH);
     mViewport.getHorizontalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
-                                                 glaf.getScrollBarColour());
+                                                 lookAndFeel.getScrollBarColour());
     mViewport.getVerticalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
-                                               glaf.getScrollBarColour());
+                                               lookAndFeel.getScrollBarColour());
     mViewport.setViewedComponent(new juce::Component{}, true);
     addAndMakeVisible(mViewport);
 }
@@ -306,7 +304,7 @@ void LayoutComponent::resized()
         0.0f,
         std::plus(),
         [](Section const & section) { return section.mRelativeSize; }) };
-    auto const pixelsPerRelativeUnit{ std::fpclassify(totalRelativeUnits) == FP_ZERO ? 0.0f
+    auto const pixelsPerRelativeUnit{ totalRelativeUnits == 0.0f ? 0.0f
                                                                  : narrow<float>(spaceToShare) / totalRelativeUnits };
 
     if (mOrientation == Orientation::horizontal) {

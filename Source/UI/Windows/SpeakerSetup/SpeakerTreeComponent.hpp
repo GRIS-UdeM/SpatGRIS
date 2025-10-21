@@ -157,7 +157,7 @@ protected:
   void deleteButtonBehaviour() override;
   void setVbapSphericalCoordinateBehaviour() override;
 private:
-    static constexpr int groupSettingsButtonWidth = 20;
+    static constexpr uint32_t groupSettingsButtonWidth = 20;
     juce::ImageButton groupSettingsButton;
     std::unique_ptr<SpeakerGroupSettingsWindow> settingsWindow;
     void buttonClicked (juce::Button* button) override;

@@ -24,10 +24,10 @@ namespace gris
 //==============================================================================
 HybridSpatModeSelectorComponent::HybridSpatModeSelectorComponent(SpatMode const hybridSpatMode,
                                                                  Listener & listener,
-                                                                 SmallGrisLookAndFeel & glaf)
+                                                                 SmallGrisLookAndFeel & lookAndFeel)
     : mListener(listener)
-    , mDomeButton(true, "dom", "Set this source to DOME mode", *this, glaf)
-    , mCubeButton(true, "cub", "Set this source to CUBE mode", *this, glaf)
+    , mDomeButton(true, "dom", "Set this source to DOME mode", *this, lookAndFeel)
+    , mCubeButton(true, "cub", "Set this source to CUBE mode", *this, lookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

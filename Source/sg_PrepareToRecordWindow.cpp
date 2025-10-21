@@ -40,9 +40,9 @@ using flags = juce::FileBrowserComponent::FileChooserFlags;
 PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingDirectory,
                                                    RecordingOptions const & recordingOptions,
                                                    MainContentComponent & mainContentComponent,
-                                                   GrisLookAndFeel & glaf)
+                                                   GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(glaf)
+    , mLookAndFeel(lookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -303,10 +303,10 @@ RecordingFormat PrepareToRecordComponent::getSelectedFormat() const
 PrepareToRecordWindow::PrepareToRecordWindow(juce::File const & recordingDirectory,
                                              RecordingOptions const & recordingOptions,
                                              MainContentComponent & mainContentComponent,
-                                             GrisLookAndFeel & glaf)
-    : DocumentWindow("Start recording", glaf.getBackgroundColour(), closeButton)
+                                             GrisLookAndFeel & lookAndFeel)
+    : DocumentWindow("Start recording", lookAndFeel.getBackgroundColour(), closeButton)
     , mMainContentComponent(mainContentComponent)
-    , mContentComponent(recordingDirectory, recordingOptions, mainContentComponent, glaf)
+    , mContentComponent(recordingDirectory, recordingOptions, mainContentComponent, lookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

@@ -180,7 +180,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
                                 ViewportSourceData const & sourceData,
                                 SpatMode const spatMode) const
 {
-    static const auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
+    static constexpr auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
 
     if (sourceData.colour.getAlpha() == 0) {
         return;
@@ -189,15 +189,15 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
     auto const fieldSize{ narrow<float>(getWidth()) };
     auto const realSize = fieldSize - SOURCE_DIAMETER;
 
-    auto const getSourcePosition = [&](ViewportSourceData const & srcData) {
+    auto const getSourcePosition = [&](ViewportSourceData const & sourceData) {
         switch (spatMode) {
         case SpatMode::vbap: {
-            auto const & vector{ srcData.position.getPolar() };
+            auto const & vector{ sourceData.position.getPolar() };
             auto const radius{ 1.0f - vector.elevation / HALF_PI };
             return juce::Point<float>{ std::cos(vector.azimuth.get()), -std::sin(vector.azimuth.get()) } * radius;
         }
         case SpatMode::mbap: {
-            auto const & position{ srcData.position.getCartesian() };
+            auto const & position{ sourceData.position.getCartesian() };
             return juce::Point<float>{ position.x, -position.y } / MBAP_EXTENDED_RADIUS;
         }
         case SpatMode::hybrid:

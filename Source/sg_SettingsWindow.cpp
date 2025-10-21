@@ -53,10 +53,10 @@ bool isNotPowerOfTwo(int const value)
 } // namespace
 
 //==============================================================================
-SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & glaf)
+SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(parent)
     , mSVComponent(sVComponent)
-    , mLookAndFeel(glaf)
+    , mLookAndFeel(lookAndFeel)
 {
 
     mInitialOSCPort = parent.getOscPort();

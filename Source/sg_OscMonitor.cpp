@@ -105,8 +105,8 @@ void OscMonitorComponent::resized()
 //==============================================================================
 OscMonitorWindow::OscMonitorWindow(LogBuffer & logBuffer,
                                    MainContentComponent & mainContentComponent,
-                                   GrisLookAndFeel & glaf)
-    : DocumentWindow("OSC monitor", glaf.getBackgroundColour(), allButtons)
+                                   GrisLookAndFeel & lookAndFeel)
+    : DocumentWindow("OSC monitor", lookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
     , mComponent(logBuffer)
 {

@@ -30,9 +30,9 @@ SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
                                            juce::Colour const colour,
                                            std::shared_ptr<DirectOutSelectorComponent::Choices> directOutChoices,
                                            Listener & owner,
-                                           GrisLookAndFeel & glaf,
+                                           GrisLookAndFeel & lookAndFeel,
                                            SmallGrisLookAndFeel & smallLookAndFeel)
-    : AbstractSliceComponent(glaf, smallLookAndFeel)
+    : AbstractSliceComponent(lookAndFeel, smallLookAndFeel)
     , mOwner(owner)
     , mSourceIndex(sourceIndex)
     , mIdButton(sourceIndex, colour, *this, smallLookAndFeel)

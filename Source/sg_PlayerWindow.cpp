@@ -25,11 +25,11 @@ namespace gris
 {
 //==============================================================================
 ThumbnailComp::ThumbnailComp(PlayerComponent & playerComponent,
-                             GrisLookAndFeel & glaf,
+                             GrisLookAndFeel & lookAndFeel,
                              juce::OwnedArray<juce::AudioTransportSource> & transportSources,
                              juce::AudioFormatManager & manager)
     : mPlayerComponent(playerComponent)
-    , mLookAndFeel(glaf)
+    , mLookAndFeel(lookAndFeel)
     , mTransportSources(transportSources)
     , mManager(manager)
 {
@@ -214,9 +214,9 @@ int ThumbnailComp::getNumSources() const
 }
 
 //==============================================================================
-PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, GrisLookAndFeel & glaf)
+PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(glaf)
+    , mLookAndFeel(lookAndFeel)
 {
     mLoadWavFilesAndSpeakerSetupButton.setButtonText("Load audio files and Speaker setup folder");
     mSavePlayerProjectButton.setButtonText("Save Player Project");
@@ -535,11 +535,11 @@ void PlayerComponent::setTimeCode(double const timeInSec)
 }
 
 //==============================================================================
-PlayerWindow::PlayerWindow(MainContentComponent & mainContentComponent, GrisLookAndFeel & glaf)
-    : DocumentWindow("SpatGRIS Player", glaf.getBackgroundColour(), allButtons)
+PlayerWindow::PlayerWindow(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
+    : DocumentWindow("SpatGRIS Player", lookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(glaf)
-    , mPlayerComponent(mainContentComponent, glaf)
+    , mLookAndFeel(lookAndFeel)
+    , mPlayerComponent(mainContentComponent, lookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
