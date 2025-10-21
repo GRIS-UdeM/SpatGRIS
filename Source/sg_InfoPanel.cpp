@@ -34,13 +34,13 @@ auto const COLOR_2 = juce::Colours::blue.withBrightness(0.2f).withSaturation(0.2
 namespace gris
 {
 //==============================================================================
-InfoPanel::InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel const & lookAndFeel)
+InfoPanel::InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel const & glaf)
     : mMainContentComponent(mainContentComponent)
 
 {
     auto const primeLabel = [&](juce::Label & label) {
         label.setJustificationType(juce::Justification::centred);
-        label.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
+        label.setColour(juce::Label::ColourIds::textColourId, glaf.getFontColour());
         label.addMouseListener(this, false);
         addAndMakeVisible(label);
     };

@@ -44,13 +44,13 @@ auto const MOUSE_DOWN_BACKGROUND_COLOR{ juce::Colours::black.withAlpha(0.2f) };
 } // namespace
 
 //==============================================================================
-RecordButton::RecordButton(Listener & listener, GrisLookAndFeel & lookAndFeel) : mListener(listener)
+RecordButton::RecordButton(Listener & listener, GrisLookAndFeel & glaf) : mListener(listener)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     SettableTooltipClient::setTooltip("Record audio to disk");
 
     mRecordedTime.setJustificationType(juce::Justification::centred);
-    mRecordedTime.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
+    mRecordedTime.setColour(juce::Label::ColourIds::textColourId, glaf.getFontColour());
     addChildComponent(mRecordedTime);
 }
 
