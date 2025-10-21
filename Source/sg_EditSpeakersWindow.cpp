@@ -48,31 +48,31 @@ LabelComboBoxWrapper::LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel) : Labe
 
 //==============================================================================
 EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
-                                       GrisLookAndFeel & lookAndFeel,
+                                       GrisLookAndFeel & glaf,
                                        MainContentComponent & mainContentComponent,
                                        juce::UndoManager& undoMan)
-    : DocumentWindow(name, lookAndFeel.getBackgroundColour(), allButtons)
+    : DocumentWindow(name, glaf.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
     , spatGrisData(mainContentComponent.getData())
-    , mLookAndFeel(lookAndFeel)
-    , mViewportWrapper(lookAndFeel)
-    , mRingSpeakers(lookAndFeel)
-    , mRingElevation(lookAndFeel)
-    , mRingRadius(lookAndFeel)
-    , mRingOffsetAngle(lookAndFeel)
-    , mPolyFaces(lookAndFeel)
-    , mPolyX(lookAndFeel)
-    , mPolyY(lookAndFeel)
-    , mPolyZ(lookAndFeel)
-    , mPolyRadius(lookAndFeel)
-    , mGridAlignment(lookAndFeel)
-    , mGridNumCols(lookAndFeel)
-    , mGridNumRows(lookAndFeel)
-    , mGridX(lookAndFeel)
-    , mGridY(lookAndFeel)
-    , mGridZ(lookAndFeel)
-    , mGridWidth(lookAndFeel)
-    , mGridHeight(lookAndFeel)
+    , mLookAndFeel(glaf)
+    , mViewportWrapper(glaf)
+    , mRingSpeakers(glaf)
+    , mRingElevation(glaf)
+    , mRingRadius(glaf)
+    , mRingOffsetAngle(glaf)
+    , mPolyFaces(glaf)
+    , mPolyX(glaf)
+    , mPolyY(glaf)
+    , mPolyZ(glaf)
+    , mPolyRadius(glaf)
+    , mGridAlignment(glaf)
+    , mGridNumCols(glaf)
+    , mGridNumRows(glaf)
+    , mGridX(glaf)
+    , mGridY(glaf)
+    , mGridZ(glaf)
+    , mGridWidth(glaf)
+    , mGridHeight(glaf)
     , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, spatGrisData.speakerSetup.speakerSetupValueTree, undoMan, [this]() { pushSelectionToMainComponent (); })
 #if USE_JUCE_8
     , mFont(juce::FontOptions().withHeight(14.f))
@@ -92,7 +92,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     };
 
     setupButton(mAddSpeakerButton, "Add Speaker");
-    mAddSpeakerButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
+    mAddSpeakerButton.setColour(juce::TextButton::buttonColourId, glaf.mImportantColor);
     setupButton(mSaveAsSpeakerSetupButton, "Save As...");
     setupButton(mSaveSpeakerSetupButton, "Save");
 
@@ -138,7 +138,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupWrapper(&mRingRadius, "Distance", "Distance of the speakers from the center.", "1.0", 6, "0123456789.");
     setupWrapper(&mRingOffsetAngle, "Offset Angle", "Offset angle of the first speaker.", "0.0", 6, "-0123456789.");
     setupButton(mAddRingButton, "Add Ring");
-    mAddRingButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
+    mAddRingButton.setColour(juce::TextButton::buttonColourId, glaf.mImportantColor);
 
     // Polyhedron of speakers.
     setupLabel(mPolyTitle, "Polyhedron parameters:");
@@ -160,7 +160,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupWrapper(&mPolyZ, "Z", "Z position for the center of the polyhedron.", "0", 4, "-0123456789.");
     setupWrapper(&mPolyRadius, "Radius", "Radius for the polyhedron.", ".05", 4, "0123456789.");
     setupButton(mAddPolyButton, "Add Polyhedron");
-    mAddPolyButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
+    mAddPolyButton.setColour(juce::TextButton::buttonColourId, glaf.mImportantColor);
 
     togglePolyhedraExtraWidgets();
 
@@ -200,7 +200,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupWrapper(&mGridWidth, "Width", "Width of the speaker grid.", "2", 4, "0123456789.");
     setupWrapper(&mGridHeight, "Height", "Height of the speaker grid.", "1", 4, "0123456789.");
     setupButton(mAddGridButton, "Add Grid");
-    mAddGridButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.mImportantColor);
+    mAddGridButton.setColour(juce::TextButton::buttonColourId, glaf.mImportantColor);
 
     toggleGridWidgets();
 
@@ -500,8 +500,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             };
         }
 
-        auto const getSpeakerPosition = [this](int i) -> Position {
-            const auto numFaces = mPolyFaces.getSelectionAsInt();
+        auto const getSpeakerPosition = [this, &numFaces](int i) -> Position {
             const auto radius = mPolyRadius.getTextAs<float>();
 
             using Vec3 = std::array<float, 3>;
@@ -517,7 +516,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
                     = { Vec3{ 1.f, 1.f, 1.f }, { 1.f, 1.f, -1.f },  { 1.f, -1.f, 1.f },  { 1.f, -1.f, -1.f },
                         { -1.f, 1.f, 1.f },    { -1.f, 1.f, -1.f }, { -1.f, -1.f, 1.f }, { -1.f, -1.f, -1.f } };
 
-                static const std::array<Vec3, 12> dodecahedron = {
+                static constexpr std::array<Vec3, 12> dodecahedron = {
                     Vec3{ -1.15217f, 0.f, 1.51342f }, { 0.57984f, 1.f, 1.51053f },   { 0.57984f, -1.f, 1.51053f },
                     { -0.93358f, -1.618f, 0.35837f }, { -1.86890f, 0.f, -0.35374f }, { -0.93358f, 1.618f, 0.35837f },
                     { 0.93358f, 1.618f, -0.35837f },  { 1.86890f, 0.f, 0.35374f },   { 0.93358f, -1.618f, -0.35837f },
@@ -550,12 +549,12 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
                 }
             }();
 
-            if (i < 0 || i >= vertices.size()) {
+            if (i < 0 || i >= static_cast<int>(vertices.size())) {
                 jassertfalse;
                 return Position{ { 0, 0, 0 } };
             }
 
-            const auto & curVertex = vertices[i];
+            const auto & curVertex = vertices[static_cast<size_t>(i)];
             const auto norm = std::hypot(curVertex[0], curVertex[1], curVertex[2]);
 
             // Normalize and scale to radius
@@ -737,7 +736,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
     } else if (&textEditor == &mGridX.editor
                || &textEditor == &mGridY.editor
                || &textEditor == &mGridZ.editor) {
-        
+
         clampGridXYZ(textEditor);
     } else if (&textEditor == &mGridWidth.editor
                || &textEditor == &mGridHeight.editor) {
