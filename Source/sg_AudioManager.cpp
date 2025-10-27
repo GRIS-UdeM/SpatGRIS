@@ -164,7 +164,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
         };
 
         for (auto const & recorder : mRecorders) {
-            jassert(recorder->audioFormatWriter->getNumChannels() == recorder->dataToRecord.size());
+            jassert(recorder->audioFormatWriterPtr->getNumChannels() == recorder->dataToRecord.size());
             auto const success{ recorder->threadedWriter->write(recorder->dataToRecord.data(), numSamples) };
             if (!success) {
                 jassertfalse;
@@ -529,27 +529,30 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         juce::StringPairArray const metaData{}; // lets leave this empty for now
 
         juce::File const outputFile{ path };
-        auto outputStream{ outputFile.createOutputStream() };
+        std::unique_ptr<juce::OutputStream> outputStream{ outputFile.createOutputStream() };
         jassert(outputStream);
         if (!outputStream) {
             return nullptr;
         }
-        auto * audioFormatWriter{ format.createWriterFor(outputStream.release(),
-                                                         sampleRate_,
-                                                         narrow<unsigned>(dataToRecord.size()),
-                                                         BITS_PER_SAMPLE,
-                                                         metaData,
-                                                         RECORD_QUALITY) };
+        auto audioFormatWriter{ format.createWriterFor(
+            outputStream,
+            juce::AudioFormatWriterOptions{}
+                .withSampleRate(sampleRate_)
+                .withNumChannels(narrow<unsigned>(dataToRecord.size()))
+                .withBitsPerSample(BITS_PER_SAMPLE)
+                .withQualityOptionIndex(RECORD_QUALITY)) };
         jassert(audioFormatWriter);
         if (!audioFormatWriter) {
             return nullptr;
         }
-        auto threadedWriter{
-            std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(audioFormatWriter, timeSlicedThread, bufferSize_)
+        auto * audioFormatWriterPtr = audioFormatWriter.get();
+        auto threadedWriter{ std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(audioFormatWriter.release(),
+                                                                                       timeSlicedThread,
+                                                                                       bufferSize_)
         };
         jassert(threadedWriter);
         auto result{ std::make_unique<FileRecorder>() };
-        result->audioFormatWriter = audioFormatWriter;
+        result->audioFormatWriterPtr = audioFormatWriterPtr;
         result->threadedWriter = std::move(threadedWriter);
         result->dataToRecord = std::move(dataToRecord);
         return result;
