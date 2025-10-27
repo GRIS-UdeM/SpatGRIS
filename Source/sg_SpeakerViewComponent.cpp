@@ -68,17 +68,11 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentCom
     , mUDPDefaultOutputAddress(localhost)
 {
 
-    const auto uDPExtraOutputPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
-    const auto uDPExtraOutputAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
+    const auto extraUDPOutputPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
+    const auto extraUDPOutputAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
     const auto extraUDPInputPort = mainContentComponent.getData().project.standaloneSpeakerViewInputPort;
-    if (extraUDPInputPort) {
-        setExtraUDPInputPort(*extraUDPInputPort);
-    }
 
-    // If we have an address and port, enable sending to the extra standalone SpeakerView.
-    if (uDPExtraOutputPort && uDPExtraOutputAddress) {
-        setExtraUDPOutput(*uDPExtraOutputPort, *uDPExtraOutputAddress);
-    }
+    initExtraPorts(extraUDPInputPort, extraUDPOutputPort, extraUDPOutputAddress);
 
     mUdpReceiverSocket.bindToPort(DEFAULT_UDP_INPUT_PORT);
 }
@@ -87,6 +81,22 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentCom
 SpeakerViewComponent::~SpeakerViewComponent()
 {
     stopTimer();
+}
+
+void SpeakerViewComponent::initExtraPorts(tl::optional<int> extraUDPInputPort, tl::optional<int>  extraUDPOutputPort, tl::optional<juce::String> extraUDPOutputAddress)
+{
+    if (extraUDPInputPort) {
+        setExtraUDPInputPort(*extraUDPInputPort);
+    } else {
+        disableExtraUDPInput();
+    }
+
+    // If we have an address and port, enable sending to the extra standalone SpeakerView.
+    if (extraUDPOutputPort && extraUDPOutputAddress) {
+        setExtraUDPOutput(*extraUDPOutputPort, *extraUDPOutputAddress);
+    } else {
+        disableExtraUDPOutput();
+    }
 }
 
 bool SpeakerViewComponent::setExtraUDPInputPort(int const port)

@@ -149,6 +149,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mMenuBar->setColour(juce::TextButton::buttonOnColourId, grisLookAndFeel.getOnColour());
         addAndMakeVisible(mMenuBar.get());
 
+        mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
+
         // Box Main
         mMainLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::vertical, false, true, grisLookAndFeel);
@@ -212,6 +214,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(sashPosition))) };
         mVerticalLayout.setItemPosition(1, trueSize);
 
+        mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
+        handleShowSpeakerViewWindow();
     };
 
     //==============================================================================
@@ -266,20 +270,11 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     // TODO one day : initGui tries to set default values to buttons and other such things
     // but a lot of those values are read from the project, which is initialized in initProject
-    // later. This means initGui has wrong values for a a lot of things and we need to a add
-    // gui init stuff *after* initProject. We can't trivialy reorder those but I don't remember
+    // later. This means initGui has wrong values for a lot of things and we need to a add
+    // gui init stuff inside initProject. We can't trivialy reorder those but I don't remember
     // why.
     initGui();
     initProject();
-
-    // This section contains gui initializations that need a loaded project.
-
-    // SpeakerViewComponent 3D view (need project data before initialization)
-    mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
-    mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
-    handleShowSpeakerViewWindow();
-    mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
-
     initSpeakerSetup();
     initAudioManager();
     initAudioProcessor();
@@ -456,10 +451,17 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     mControlPanel->setCubeAttenuationBypass(mData.project.mbapDistanceAttenuationData.attenuationBypassState);
     mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
     mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
+    mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
+    setMulticoreDSPState(mData.project.useMulticoreDSP);
 
     refreshAudioProcessor();
     refreshViewportConfig();
     refreshSourceSlices();
+
+    // Change the extra speaker view input and output ports if they exist
+    mSpeakerViewComponent->initExtraPorts(mData.project.standaloneSpeakerViewInputPort, mData.project.standaloneSpeakerViewOutputPort, mData.project.standaloneSpeakerViewOutputAddress);
+
+    setOscPort(mData.project.oscPort);
 
     mIsLoadingSpeakerSetupOrProjectFile = false;
 
