@@ -33,7 +33,9 @@ class GrisLookAndFeel : public juce::LookAndFeel_V4
 public:
     float constexpr static mFontSize = 10.f;
 
-    juce::FontOptions const sinkinSansOptions { juce::FontOptions(juce::Typeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, BinaryData::SinkinSans400Regular_otfSize))};
+    juce::FontOptions const sinkinSansOptions{ juce::FontOptions(
+        juce::Typeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                BinaryData::SinkinSans400Regular_otfSize)) };
     juce::Font mSmallerFont { sinkinSansOptions.withHeight(mFontSize - 3) };
     juce::Font mSmallFont   { sinkinSansOptions.withHeight(mFontSize - 1) };
     juce::Font mFont        { sinkinSansOptions.withHeight(mFontSize) };
