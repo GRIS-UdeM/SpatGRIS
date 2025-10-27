@@ -93,6 +93,7 @@ class SpatSettingsSubPanel final
     LayoutComponent mCol2Layout{ LayoutComponent::Orientation::vertical, false, false, mLookAndFeel };
     LayoutComponent mAttenuationLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
     LayoutComponent mStereoRoutingLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
+    const std::string stereoRoutingLayoutName{"stereo routing layout"};
 
     juce::Label mAlgorithmSelectionLabel{};
     juce::Label mAttenuationSettingsLabel{};
@@ -108,7 +109,15 @@ class SpatSettingsSubPanel final
     juce::Label mStereoReductionLabel{};
     juce::Label mStereoRoutingLabel{};
 
+
+
     juce::ComboBox mStereoReductionCombo{};
+    juce::TextButton mMulticoreDSPToggle{};
+    const std::string multicoreDSPToggleName{"multicore dsp toggle"};
+    /**
+     * Used to swap the multicore DSP toggle and the stereo routing dropdowns.
+     */
+    SwappableComponent mBottomLeftComponentSwapper{};
 
     juce::Label mLeftLabel{};
     juce::ComboBox mLeftCombo{};
@@ -126,6 +135,7 @@ public:
     void updateMaxOutputPatch(output_patch_t maxOutputPatch, StereoRouting const & routing);
     //==============================================================================
     void setSpatMode(SpatMode spatMode);
+    void setMulticoreDSP(bool useMulticoreDSP);
     void setStereoMode(tl::optional<StereoMode> const & stereoMode);
     void setAttenuationDb(dbfs_t attenuation);
     void setAttenuationHz(hz_t freq);
@@ -177,6 +187,7 @@ public:
     void setMasterGain(dbfs_t gain);
     void setInterpolation(float interpolation);
     void setSpatMode(SpatMode spatMode);
+    void setMulticoreDSP(bool useMulticoreDSP);
     void setStereoMode(tl::optional<StereoMode> const & mode);
     void setCubeAttenuationDb(dbfs_t value);
     void setCubeAttenuationHz(hz_t value);

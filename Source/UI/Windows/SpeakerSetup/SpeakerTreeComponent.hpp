@@ -1,4 +1,4 @@
-﻿/*
+/*
  This file is part of SpatGRIS.
 
  SpatGRIS is free software: you can redistribute it and/or modify
@@ -157,7 +157,7 @@ protected:
   void deleteButtonBehaviour() override;
   void setVbapSphericalCoordinateBehaviour() override;
 private:
-    static constexpr uint32_t groupSettingsButtonWidth = 20;
+    static constexpr int groupSettingsButtonWidth = 20;
     juce::ImageButton groupSettingsButton;
     std::unique_ptr<SpeakerGroupSettingsWindow> settingsWindow;
     void buttonClicked (juce::Button* button) override;

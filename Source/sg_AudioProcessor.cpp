@@ -106,14 +106,7 @@ void AudioProcessor::processOutputModifiersAndPeaks(SpeakerAudioBuffer & speaker
 //==============================================================================
 void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
                                   SpeakerAudioBuffer & speakerBuffer,
-#if SG_USE_FORK_UNION
-    #if SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS
-                                  ForkUnionBuffer & forkUnionBuffer,
-    #elif SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD
-                                  ForkUnionBuffer & forkUnionBuffer,
-    #endif
-#endif
-                                  juce::AudioBuffer<float> & stereoBuffer) noexcept [[clang::nonblocking]]
+                                  juce::AudioBuffer<float> & stereoBuffer) noexcept NONBLOCKING
 {
     // Skip if the user is editing the speaker setup.
     juce::ScopedTryLock const lock{ mLock };
@@ -142,9 +135,6 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
         mSpatAlgorithm->process(*mAudioData.config,
                                 sourceBuffer,
                                 speakerBuffer,
-#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
-                                forkUnionBuffer,
-#endif
                                 stereoBuffer,
                                 sourcePeaks,
                                 nullptr);

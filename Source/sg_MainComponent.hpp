@@ -227,6 +227,7 @@ public:
     //==============================================================================
     // Control Panel
     void setSpatMode(SpatMode const spatMode);
+    void setMulticoreDSPState(bool const state);
     void setStereoMode(tl::optional<StereoMode> stereoMode);
     void setStereoRouting(StereoRouting const & routing);
     void cubeAttenuationDbChanged(dbfs_t value);
