@@ -39,6 +39,11 @@ tl::optional<FileTemplate const&> commandIdToTemplate (juce::CommandID commandId
         return domeTemplate;
     }
 
+    auto const domeSurroundTemplate{ find (SPEAKER_SETUP_TEMPLATES.domeSurround) };
+    if (domeSurroundTemplate) {
+        return domeSurroundTemplate;
+    }
+
     auto const cubeTemplate { find (SPEAKER_SETUP_TEMPLATES.cube) };
     if (cubeTemplate) {
         return cubeTemplate;
@@ -84,10 +89,13 @@ static constexpr auto SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET = 2000;
 SpeakerSetupTemplates getSpeakerSetupTemplates ()
 {
     auto const domeDir { SPEAKER_TEMPLATES_DIR.getChildFile ("DOME") };
+    auto const domeSurroundDir { domeDir.getChildFile ("Surround layouts (ITU-R BS.775_2051_2094-2)") };
     auto const cubeDir { SPEAKER_TEMPLATES_DIR.getChildFile ("CUBE") };
     auto commandId { SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
 
-    return SpeakerSetupTemplates { extract (domeDir, commandId), extract (cubeDir, commandId) };
+    return SpeakerSetupTemplates{ extract(domeDir, commandId),
+                                  extract(cubeDir, commandId),
+                                  extract(domeSurroundDir, commandId) };
 }
 
 SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES { getSpeakerSetupTemplates () };

@@ -1297,6 +1297,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
     };
 
     addTemplate(SPEAKER_SETUP_TEMPLATES.dome);
+    addTemplate(SPEAKER_SETUP_TEMPLATES.domeSurround);
     addTemplate(SPEAKER_SETUP_TEMPLATES.cube);
     addProjectTemplate(PROJECT_TEMPLATES.dome);
     addProjectTemplate(PROJECT_TEMPLATES.cube);
@@ -1642,6 +1643,16 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         return menu;
     };
 
+    auto const extractTemplatesToMenuAndSubMenu = [&](auto const & templates, auto const & surroundTemplates) {
+        juce::PopupMenu menu{};
+        menu.addSubMenu("Surround layouts ITU", extractTemplatesToMenu(surroundTemplates));
+
+        for (auto const & setupTemplate : templates) {
+            menu.addCommandItem(commandManager, setupTemplate.commandId, setupTemplate.name);
+        }
+        return menu;
+    };
+
     auto const getProjectTemplatesMenu = [&]() {
         juce::PopupMenu menu{};
         menu.addSubMenu("Dome", extractTemplatesToMenu(PROJECT_TEMPLATES.dome));
@@ -1652,7 +1663,9 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
 
     auto const getSpeakerSetupTemplatesMenu = [&]() {
         juce::PopupMenu menu{};
-        menu.addSubMenu("Dome", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.dome));
+        menu.addSubMenu(
+            "Dome",
+            extractTemplatesToMenuAndSubMenu(SPEAKER_SETUP_TEMPLATES.dome, SPEAKER_SETUP_TEMPLATES.domeSurround));
         menu.addSubMenu("Cube", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.cube));
         return menu;
     };
