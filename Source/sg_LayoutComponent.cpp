@@ -224,10 +224,8 @@ LayoutComponent::LayoutComponent(Orientation const orientation,
 
     mViewport.setScrollBarsShown(isVerticalScrollable, isHorizontalScrollable);
     mViewport.setScrollBarThickness(SCROLL_BAR_WIDTH);
-    mViewport.getHorizontalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
-                                                 glaf.getScrollBarColour());
-    mViewport.getVerticalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
-                                               glaf.getScrollBarColour());
+    mViewport.getHorizontalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId, glaf.getScrollBarColour());
+    mViewport.getVerticalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId, glaf.getScrollBarColour());
     mViewport.setViewedComponent(new juce::Component{}, true);
     addAndMakeVisible(mViewport);
 }
@@ -306,8 +304,9 @@ void LayoutComponent::resized()
         0.0f,
         std::plus(),
         [](Section const & section) { return section.mRelativeSize; }) };
-    auto const pixelsPerRelativeUnit{ std::fpclassify(totalRelativeUnits) == FP_ZERO ? 0.0f
-                                                                 : narrow<float>(spaceToShare) / totalRelativeUnits };
+    auto const pixelsPerRelativeUnit{ std::fpclassify(totalRelativeUnits) == FP_ZERO
+                                          ? 0.0f
+                                          : narrow<float>(spaceToShare) / totalRelativeUnits };
 
     if (mOrientation == Orientation::horizontal) {
         int offset{};
@@ -369,9 +368,12 @@ int LayoutComponent::getMinInnerWidth() const noexcept
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (mOrientation == Orientation::horizontal) {
-        return std::transform_reduce(mSections.begin(), mSections.end(), 0, std::plus(), [this](Section const & section) {
-            return section.getMinSectionWidth(mOrientation);
-        });
+        return std::transform_reduce(
+            mSections.begin(),
+            mSections.end(),
+            0,
+            std::plus(),
+            [this](Section const & section) { return section.getMinSectionWidth(mOrientation); });
     }
     jassert(mOrientation == Orientation::vertical);
     return std::transform_reduce(mSections.begin(), mSections.end(), 0, MAX_ELEM, [this](Section const & section) {
@@ -385,9 +387,12 @@ int LayoutComponent::getMinInnerHeight() const noexcept
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (mOrientation == Orientation::vertical) {
-        return std::transform_reduce(mSections.begin(), mSections.end(), 0, std::plus(), [this](Section const & section) {
-            return section.getMinSectionHeight(mOrientation);
-        });
+        return std::transform_reduce(
+            mSections.begin(),
+            mSections.end(),
+            0,
+            std::plus(),
+            [this](Section const & section) { return section.getMinSectionHeight(mOrientation); });
     }
     jassert(mOrientation == Orientation::horizontal);
     return std::transform_reduce(mSections.begin(), mSections.end(), 0, MAX_ELEM, [this](Section const & section) {
@@ -395,15 +400,17 @@ int LayoutComponent::getMinInnerHeight() const noexcept
     });
 }
 
-void SwappableComponent::addComponent(const std::string& name, juce::Component::SafePointer<juce::Component> component) {
+void SwappableComponent::addComponent(const std::string & name, juce::Component::SafePointer<juce::Component> component)
+{
     components[name] = component;
     if (component) {
         addAndMakeVisible(*component);
     }
 }
 
-void SwappableComponent::showComponent(const std::string& name) {
-    for (auto& [key, component] : components) {
+void SwappableComponent::showComponent(const std::string & name)
+{
+    for (auto & [key, component] : components) {
         if (!component) {
             continue;
         }
@@ -415,8 +422,9 @@ void SwappableComponent::showComponent(const std::string& name) {
     }
 }
 
-void SwappableComponent::resized() {
-    for (auto& [key, component] : components) {
+void SwappableComponent::resized()
+{
+    for (auto & [key, component] : components) {
         if (component) {
             component->setBounds(getLocalBounds());
         }

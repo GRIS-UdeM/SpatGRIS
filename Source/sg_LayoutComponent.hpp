@@ -117,14 +117,14 @@ private:
  * swap between them by name.
  *
  */
-class SwappableComponent final
-    : public juce::Component
+class SwappableComponent final : public juce::Component
 {
-  public:
-    void addComponent(const std::string& name, juce::Component::SafePointer<juce::Component> comp);
-    void showComponent(const std::string& name);
+public:
+    void addComponent(const std::string & name, juce::Component::SafePointer<juce::Component> comp);
+    void showComponent(const std::string & name);
     void resized() override;
-  private:
+
+private:
     std::map<std::string, juce::Component::SafePointer<juce::Component>> components;
     JUCE_LEAK_DETECTOR(SwappableComponent)
 };

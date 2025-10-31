@@ -19,10 +19,10 @@
 
 #include "sg_AboutWindow.hpp"
 
-#include "sg_GrisLookAndFeel.hpp"
-#include "sg_MainComponent.hpp"
 #include "Data/sg_constants.hpp"
 #include "Misc/sg_DefaultFiles.hpp"
+#include "sg_GrisLookAndFeel.hpp"
+#include "sg_MainComponent.hpp"
 
 namespace gris
 {
@@ -95,9 +95,7 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lnf
 }
 
 //==============================================================================
-AboutWindow::AboutWindow(juce::String const & name,
-                         GrisLookAndFeel & lnf,
-                         MainContentComponent & mainContentComponent)
+AboutWindow::AboutWindow(juce::String const & name, GrisLookAndFeel & lnf, MainContentComponent & mainContentComponent)
     : DocumentWindow(name, lnf.getBackgroundColour(), closeButton)
     , mMainContentComponent(mainContentComponent)
 {

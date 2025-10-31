@@ -19,9 +19,9 @@
 
 #include "sg_AddRemoveSourcesWindow.hpp"
 
+#include "Data/sg_constants.hpp"
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
-#include "Data/sg_constants.hpp"
 
 namespace gris
 {

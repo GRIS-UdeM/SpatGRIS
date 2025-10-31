@@ -19,8 +19,8 @@
 
 #include "sg_AudioManager.hpp"
 
-#include "sg_AudioProcessor.hpp"
 #include "Data/sg_constants.hpp"
+#include "sg_AudioProcessor.hpp"
 
 // #define SIMULATE_NO_AUDIO_DEVICES
 
@@ -73,12 +73,12 @@ AudioManager::AudioManager(juce::String const & deviceType,
 }
 
 //==============================================================================
-void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
-                                                     int totalNumInputChannels,
-                                                     float* const* outputChannelData,
-                                                     int totalNumOutputChannels,
-                                                     int numSamples,
-                                                     [[maybe_unused]] const juce::AudioIODeviceCallbackContext& context)
+void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputChannelData,
+                                                    int totalNumInputChannels,
+                                                    float * const * outputChannelData,
+                                                    int totalNumOutputChannels,
+                                                    int numSamples,
+                                                    [[maybe_unused]] const juce::AudioIODeviceCallbackContext & context)
 {
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
@@ -134,9 +134,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     }
 
     // do the actual processing
-    mAudioProcessor->processAudio(mInputBuffer,
-                                  mOutputBuffer,
-                                  mStereoOutputBuffer);
+    mAudioProcessor->processAudio(mInputBuffer, mOutputBuffer, mStereoOutputBuffer);
 
     // copy buffers to output
     if (mStereoRouting) {
@@ -534,13 +532,12 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         if (!outputStream) {
             return nullptr;
         }
-        auto audioFormatWriter{ format.createWriterFor(
-            outputStream,
-            juce::AudioFormatWriterOptions{}
-                .withSampleRate(sampleRate_)
-                .withNumChannels(narrow<unsigned>(dataToRecord.size()))
-                .withBitsPerSample(BITS_PER_SAMPLE)
-                .withQualityOptionIndex(RECORD_QUALITY)) };
+        auto audioFormatWriter{ format.createWriterFor(outputStream,
+                                                       juce::AudioFormatWriterOptions{}
+                                                           .withSampleRate(sampleRate_)
+                                                           .withNumChannels(narrow<unsigned>(dataToRecord.size()))
+                                                           .withBitsPerSample(BITS_PER_SAMPLE)
+                                                           .withQualityOptionIndex(RECORD_QUALITY)) };
         jassert(audioFormatWriter);
         if (!audioFormatWriter) {
             return nullptr;
@@ -548,8 +545,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         auto * audioFormatWriterPtr = audioFormatWriter.get();
         auto threadedWriter{ std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(audioFormatWriter.release(),
                                                                                        timeSlicedThread,
-                                                                                       bufferSize_)
-        };
+                                                                                       bufferSize_) };
         jassert(threadedWriter);
         auto result{ std::make_unique<FileRecorder>() };
         result->audioFormatWriterPtr = audioFormatWriterPtr;
@@ -758,7 +754,6 @@ void AudioManager::initInputBuffer(juce::Array<source_index_t> const & sources)
     mInputBuffer.init(sources);
 }
 
-
 //==============================================================================
 void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers)
 {
@@ -766,7 +761,6 @@ void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers
     jassert(mAudioProcessor);
     juce::ScopedLock const lock{ mAudioProcessor->getLock() };
     mOutputBuffer.init(speakers);
-
 }
 
 //==============================================================================
@@ -778,7 +772,6 @@ void AudioManager::setBufferSize(int const newBufferSize)
     mInputBuffer.setNumSamples(newBufferSize);
     mOutputBuffer.setNumSamples(newBufferSize);
     mStereoOutputBuffer.setSize(2, newBufferSize);
-
 }
 
 //==============================================================================

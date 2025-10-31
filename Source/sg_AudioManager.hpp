@@ -19,9 +19,9 @@
 
 #pragma once
 
+#include "Containers/sg_TaggedAudioBuffer.hpp"
 #include "Data/sg_AudioStructs.hpp"
 #include "Data/sg_LogicStrucs.hpp"
-#include "Containers/sg_TaggedAudioBuffer.hpp"
 
 #include <JuceHeader.h>
 
@@ -143,12 +143,12 @@ public:
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;
-    void audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
-                                           int totalNumInputChannels,
-                                           float* const* outputChannelData,
-                                           int totalNumOutputChannels,
-                                           int numSamples,
-                                           const juce::AudioIODeviceCallbackContext& context) override;
+    void audioDeviceIOCallbackWithContext(const float * const * inputChannelData,
+                                          int totalNumInputChannels,
+                                          float * const * outputChannelData,
+                                          int totalNumOutputChannels,
+                                          int numSamples,
+                                          const juce::AudioIODeviceCallbackContext & context) override;
     void audioDeviceAboutToStart(juce::AudioIODevice * device) override;
     void audioDeviceStopped() override;
     //==============================================================================

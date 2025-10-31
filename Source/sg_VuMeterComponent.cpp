@@ -19,9 +19,9 @@
 
 #include "sg_VuMeterComponent.hpp"
 
-#include "sg_GrisLookAndFeel.hpp"
 #include "Data/sg_Narrow.hpp"
 #include "Data/sg_constants.hpp"
+#include "sg_GrisLookAndFeel.hpp"
 
 namespace
 {

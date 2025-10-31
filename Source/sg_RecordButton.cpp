@@ -19,8 +19,8 @@
 
 #include "sg_RecordButton.hpp"
 
-#include "sg_GrisLookAndFeel.hpp"
 #include "Data/sg_Narrow.hpp"
+#include "sg_GrisLookAndFeel.hpp"
 
 namespace gris
 {

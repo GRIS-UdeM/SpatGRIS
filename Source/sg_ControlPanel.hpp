@@ -93,7 +93,7 @@ class SpatSettingsSubPanel final
     LayoutComponent mCol2Layout{ LayoutComponent::Orientation::vertical, false, false, mLookAndFeel };
     LayoutComponent mAttenuationLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
     LayoutComponent mStereoRoutingLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
-    const std::string stereoRoutingLayoutName{"stereo routing layout"};
+    const std::string stereoRoutingLayoutName{ "stereo routing layout" };
 
     juce::Label mAlgorithmSelectionLabel{};
     juce::Label mAttenuationSettingsLabel{};
@@ -109,11 +109,9 @@ class SpatSettingsSubPanel final
     juce::Label mStereoReductionLabel{};
     juce::Label mStereoRoutingLabel{};
 
-
-
     juce::ComboBox mStereoReductionCombo{};
     juce::TextButton mMulticoreDSPToggle{};
-    const std::string multicoreDSPToggleName{"multicore dsp toggle"};
+    const std::string multicoreDSPToggleName{ "multicore dsp toggle" };
     /**
      * Used to swap the multicore DSP toggle and the stereo routing dropdowns.
      */

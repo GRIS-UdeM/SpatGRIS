@@ -50,7 +50,7 @@ LabelComboBoxWrapper::LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel) : Labe
 EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                        GrisLookAndFeel & glaf,
                                        MainContentComponent & mainContentComponent,
-                                       juce::UndoManager& undoMan)
+                                       juce::UndoManager & undoMan)
     : DocumentWindow(name, glaf.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
     , spatGrisData(mainContentComponent.getData())
@@ -73,9 +73,12 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mGridZ(glaf)
     , mGridWidth(glaf)
     , mGridHeight(glaf)
-    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup, spatGrisData.speakerSetup.speakerSetupValueTree, undoMan, [this]() { pushSelectionToMainComponent (); })
+    , mSpeakerSetupContainer(spatGrisData.appData.lastSpeakerSetup,
+                             spatGrisData.speakerSetup.speakerSetupValueTree,
+                             undoMan,
+                             [this]() { pushSelectionToMainComponent(); })
     , mFont(juce::FontOptions().withHeight(14.f))
-    , undoManager (undoMan)
+    , undoManager(undoMan)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -92,14 +95,13 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupButton(mSaveAsSpeakerSetupButton, "Save As...");
     setupButton(mSaveSpeakerSetupButton, "Save");
 
-    auto setupLabel = [this](juce::Label& label, juce::StringRef labelText) {
-
-      // Sound diffusion controls
-      label.setText(labelText, juce::NotificationType::dontSendNotification);
-      label.setFont(mLookAndFeel.getFont());
-      label.setLookAndFeel(&mLookAndFeel);
-      label.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
-      mViewportWrapper.getContent()->addAndMakeVisible(label);
+    auto setupLabel = [this](juce::Label & label, juce::StringRef labelText) {
+        // Sound diffusion controls
+        label.setText(labelText, juce::NotificationType::dontSendNotification);
+        label.setFont(mLookAndFeel.getFont());
+        label.setLookAndFeel(&mLookAndFeel);
+        label.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
+        mViewportWrapper.getContent()->addAndMakeVisible(label);
     };
 
     auto setupWrapper = [this](LabelWrapper * w,
@@ -174,17 +176,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
         clampGridXYZ(mGridY.editor);
         clampGridXYZ(mGridZ.editor);
     };
-    setupWrapper(&mGridNumCols, "Cols",
-                 "Number of columns in the speaker grid.",
-                 "5",
-                 2,
-                 "0123456789");
-    setupWrapper(&mGridNumRows,
-                 "Rows",
-                 "Number of rows in the speaker grid.",
-                 "5",
-                 2,
-                 "0123456789");
+    setupWrapper(&mGridNumCols, "Cols", "Number of columns in the speaker grid.", "5", 2, "0123456789");
+    setupWrapper(&mGridNumRows, "Rows", "Number of rows in the speaker grid.", "5", 2, "0123456789");
     setupWrapper(&mGridX,
                  "X",
                  "X position for the center of the grid, in the [-1.667, 1.667] range",
@@ -240,9 +233,9 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                 || spatGrisData.project.spatMode == SpatMode::hybrid);
     mViewportWrapper.getContent()->addAndMakeVisible(mDiffusionSlider);
 
-    setDraggable (false);
+    setDraggable(false);
     mViewportWrapper.getContent()->addAndMakeVisible(mSpeakerSetupContainer);
-    mSpeakerSetupContainer.addValueTreeListener (this);
+    mSpeakerSetupContainer.addValueTreeListener(this);
 
     mViewportWrapper.repaint();
     mViewportWrapper.resized();
@@ -285,7 +278,9 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 }
 
 //==============================================================================
-void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition)
+void EditSpeakersWindow::addSpeakerGroup(int numSpeakers,
+                                         Position groupPosition,
+                                         std::function<Position(int)> getSpeakerPosition)
 {
     if (mMainContentComponent.getNumSpeakerOutputPatch() + numSpeakers >= MAX_NUM_SPEAKERS)
         return;
@@ -298,25 +293,22 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
     juce::ValueTree newGroup(SPEAKER_GROUP);
     newGroup.setProperty(SPEAKER_GROUP_NAME, "new group", &undoManager);
     newGroup.setProperty(CARTESIAN_POSITION, juce::VariantConverter<Position>::toVar(groupPosition), &undoManager);
-    newGroup.setProperty (UUID, juce::Uuid {}.toString (), &undoManager);
+    newGroup.setProperty(UUID, juce::Uuid{}.toString(), &undoManager);
     mainGroup.addChild(newGroup, indexInMainGroup, &undoManager);
 
-    //get the output patch to copy, if it exists
+    // get the output patch to copy, if it exists
 
     auto selectedSpeaker = mSpeakerSetupContainer.getSelectedSpeakers();
-    tl::optional<output_patch_t> outputPatchToCopy =
-            selectedSpeaker.size() == 1 ?
-            tl::optional<output_patch_t>{selectedSpeaker[0]}:
-            tl::nullopt;
+    tl::optional<output_patch_t> outputPatchToCopy
+        = selectedSpeaker.size() == 1 ? tl::optional<output_patch_t>{ selectedSpeaker[0] } : tl::nullopt;
 
-    output_patch_t newOutputPatch {};
+    output_patch_t newOutputPatch{};
     for (int i{}; i < numSpeakers; ++i) {
-
-        //create the speaker in main component
+        // create the speaker in main component
         newOutputPatch = mMainContentComponent.addSpeaker(outputPatchToCopy, orderingIndex);
 
-        //add the speaker to the value tree
-        auto newSpeakerVt = addNewSpeakerToVt (newOutputPatch, newGroup, i);
+        // add the speaker to the value tree
+        auto newSpeakerVt = addNewSpeakerToVt(newOutputPatch, newGroup, i);
 
         newSpeakerVt.setProperty(CARTESIAN_POSITION,
                                  juce::VariantConverter<Position>::toVar(getSpeakerPosition(i)),
@@ -325,7 +317,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers, Position groupPosition
             mMainContentComponent.setSpeakerPosition(newOutputPatch, *speakerPosition);
     }
 
-    mMainContentComponent.requestSpeakerRefresh ();
+    mMainContentComponent.requestSpeakerRefresh();
 
     selectSpeaker(newOutputPatch);
 
@@ -352,7 +344,7 @@ juce::ValueTree EditSpeakersWindow::addNewSpeakerToVt(const gris::output_patch_t
     newSpeakerVt.setProperty(IO_STATE, sliceStateToString(newSpeaker.state), &undoManager);
     newSpeakerVt.setProperty(GAIN, newSpeaker.gain.get(), &undoManager);
     newSpeakerVt.setProperty(DIRECT_OUT_ONLY, newSpeaker.isDirectOutOnly, &undoManager);
-    newSpeakerVt.setProperty (UUID, juce::Uuid ().toString (), nullptr);
+    newSpeakerVt.setProperty(UUID, juce::Uuid().toString(), nullptr);
 
     parent.addChild(newSpeakerVt, index, &undoManager);
 
@@ -365,7 +357,6 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (button == &mAddSpeakerButton) {
-
         if (mMainContentComponent.getNumSpeakerOutputPatch() >= MAX_NUM_SPEAKERS)
             return;
 
@@ -373,10 +364,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         auto indexInMainGroup = mSpeakerSetupContainer.getMainGroupIndexFromOrderingIndex(orderingIndex);
 
         auto selectedSpeaker = mSpeakerSetupContainer.getSelectedSpeakers();
-        tl::optional<output_patch_t> outputPatchToCopy =
-                selectedSpeaker.size() == 1 ?
-                tl::optional<output_patch_t>{selectedSpeaker[0]}:
-                tl::nullopt;
+        tl::optional<output_patch_t> outputPatchToCopy
+            = selectedSpeaker.size() == 1 ? tl::optional<output_patch_t>{ selectedSpeaker[0] } : tl::nullopt;
 
         auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatchToCopy, orderingIndex) };
 
@@ -384,16 +373,14 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         addNewSpeakerToVt(newOutputPatch, mainGroup, indexInMainGroup);
 
     } else if (button == &mSaveAsSpeakerSetupButton) {
-
         mShouldComputeSpeakers = true;
         computeSpeakers();
         mMainContentComponent.saveAsEditedSpeakerSetup();
 
     } else if (button == &mSaveSpeakerSetupButton) {
-
         mShouldComputeSpeakers = true;
         computeSpeakers();
-        mMainContentComponent.saveEditedSpeakerSetup ();
+        mMainContentComponent.saveEditedSpeakerSetup();
 
     } else if (button == &mAddRingButton) {
         auto const getSpeakerPosition = [this](int i) -> Position {
@@ -415,8 +402,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             return Position{ PolarVector{ radians_t{ azimuth.centered() }, radians_t{ zenith }, radius } };
         };
 
-        //for now all rings are centered at the origin
-        auto const groupPosition = Position { { 0.f, 0.f, 0.f } };
+        // for now all rings are centered at the origin
+        auto const groupPosition = Position{ { 0.f, 0.f, 0.f } };
 
         isAddingGroup = true;
         addSpeakerGroup(mRingSpeakers.getTextAs<int>(), groupPosition, getSpeakerPosition);
@@ -426,16 +413,14 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mMainContentComponent.requestSpeakerRefresh();
 
     } else if (button == &mAddGridButton) {
+        auto const numCols{ mGridNumCols.getTextAs<int>() };
+        auto const numRows{ mGridNumRows.getTextAs<int>() };
 
-        auto const numCols {mGridNumCols.getTextAs<int>()};
-        auto const numRows {mGridNumRows.getTextAs<int>()};
-
-        auto const getSpeakerPosition = [this, numCols, numRows](int i) -> Position
-        {
+        auto const getSpeakerPosition = [this, numCols, numRows](int i) -> Position {
             auto const alignment = mGridAlignment.getSelectionAsString();
 
-            auto const w  = mGridWidth.getTextAs<float>();
-            auto const h  = mGridHeight.getTextAs<float>();
+            auto const w = mGridWidth.getTextAs<float>();
+            auto const h = mGridHeight.getTextAs<float>();
 
             auto const wIncrement = (numCols > 1) ? (w / (numCols - 1)) : 0.f;
             auto const hIncrement = (numRows > 1) ? (h / (numRows - 1)) : 0.f;
@@ -450,30 +435,28 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
             auto x = 0.f, y = 0.f, z = 0.f;
 
-            if (alignment == "x")       // grid lies in YZ plane, parallel to X
+            if (alignment == "x") // grid lies in YZ plane, parallel to X
             {
                 y = lx;
                 z = ly;
-            }
-            else if (alignment == "y")  // grid lies in XZ plane, parallel to Y
+            } else if (alignment == "y") // grid lies in XZ plane, parallel to Y
             {
                 x = lx;
                 z = ly;
-            }
-            else if (alignment == "z")  // grid lies in XY plane, parallel to Z
+            } else if (alignment == "z") // grid lies in XY plane, parallel to Z
             {
                 x = lx;
                 y = ly;
-            }
-            else
-            {
+            } else {
                 jassertfalse;
             }
 
             return Position{ { x, y, z } };
         };
 
-        auto const groupPosition = Position{CartesianVector{ mGridX.getTextAs<float>(), mGridY.getTextAs<float>(), mGridZ.getTextAs<float>() }};
+        auto const groupPosition = Position{
+            CartesianVector{ mGridX.getTextAs<float>(), mGridY.getTextAs<float>(), mGridZ.getTextAs<float>() }
+        };
 
         isAddingGroup = true;
         addSpeakerGroup(numCols * numRows, groupPosition, getSpeakerPosition);
@@ -484,9 +467,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mMainContentComponent.requestSpeakerRefresh();
 
     } else if (button == &mAddPolyButton) {
-
-        auto const numFaces { mPolyFaces.getSelectionAsInt () };
-        jassert (numFaces == 4 || numFaces == 6 || numFaces == 8 || numFaces == 12 || numFaces == 20);
+        auto const numFaces{ mPolyFaces.getSelectionAsInt() };
+        jassert(numFaces == 4 || numFaces == 6 || numFaces == 8 || numFaces == 12 || numFaces == 20);
 
         // in vbap, the group position is always at the origin
         Position groupPosition = Position{ { 0.f, 0.f, 0.f } };
@@ -558,7 +540,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             const auto y = radius * curVertex[1] / norm;
             const auto z = radius * curVertex[2] / norm;
 
-            return Position { CartesianVector{ x, y, z } };
+            return Position{ CartesianVector{ x, y, z } };
         };
         isAddingGroup = true;
         addSpeakerGroup(numFaces, groupPosition, getSpeakerPosition);
@@ -588,7 +570,7 @@ void EditSpeakersWindow::clampGridXYZ(juce::TextEditor & textEditor)
 {
     auto const floatValue{ textEditor.getText().getFloatValue() };
     auto const alignment{ mGridAlignment.getSelectionAsString() };
-    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? 2 *  MBAP_EXTENDED_RADIUS
+    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? 2 * MBAP_EXTENDED_RADIUS
                                                                                : 2 * NORMAL_RADIUS };
     auto const curW{ std::clamp(mGridWidth.editor.getText().getFloatValue(), -maxRadius, maxRadius) };
     auto const curH{ std::clamp(mGridHeight.editor.getText().getFloatValue(), -maxRadius, maxRadius) };
@@ -597,18 +579,18 @@ void EditSpeakersWindow::clampGridXYZ(juce::TextEditor & textEditor)
 
     if (alignment == "x") {
         if (&textEditor == &mGridX.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius/2, maxRadius/2);
+            clampedValue = std::clamp(floatValue, -maxRadius / 2, maxRadius / 2);
         else if (&textEditor == &mGridY.editor)
-            clampedValue = std::clamp(floatValue, -(maxRadius + curW)/2, (maxRadius - curW)/2);
+            clampedValue = std::clamp(floatValue, -(maxRadius + curW) / 2, (maxRadius - curW) / 2);
         else if (&textEditor == &mGridZ.editor)
-            clampedValue = std::clamp(floatValue, -(maxRadius + curH)/2, (maxRadius - curH)/2);
+            clampedValue = std::clamp(floatValue, -(maxRadius + curH) / 2, (maxRadius - curH) / 2);
         else
             jassertfalse;
     } else if (alignment == "y") {
         if (&textEditor == &mGridX.editor)
             clampedValue = std::clamp(floatValue, -(maxRadius + curW) / 2, (maxRadius - curW) / 2);
         else if (&textEditor == &mGridY.editor)
-            clampedValue = std::clamp(floatValue, -maxRadius/2, maxRadius / 2);
+            clampedValue = std::clamp(floatValue, -maxRadius / 2, maxRadius / 2);
         else if (&textEditor == &mGridZ.editor)
             clampedValue = std::clamp(floatValue, -(maxRadius + curH) / 2, (maxRadius - curH) / 2);
         else
@@ -635,11 +617,10 @@ void EditSpeakersWindow::clampGridWH(juce::TextEditor & textEditor)
     auto const y{ mGridY.getTextAs<float>() };
     auto const z{ mGridZ.getTextAs<float>() };
 
-    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS
-                                                                               : NORMAL_RADIUS };
+    const auto maxRadius{ spatGrisData.speakerSetup.spatMode == SpatMode::mbap ? MBAP_EXTENDED_RADIUS : NORMAL_RADIUS };
 
     auto clampedValue{ 0.f };
-    auto const minWH {0.001f};
+    auto const minWH{ 0.001f };
 
     if (alignment == "x") {
         if (&textEditor == &mGridWidth.editor)
@@ -702,9 +683,7 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
     } else if (&textEditor == &mRingOffsetAngle.editor) {
         auto const value{ std::clamp(floatValue, -360.0f, 360.0f) };
         textEditor.setText(juce::String{ value, 2 }, false);
-    } else if (&textEditor == &mPolyX.editor
-               || &textEditor == &mPolyY.editor
-               || &textEditor == &mPolyZ.editor) {
+    } else if (&textEditor == &mPolyX.editor || &textEditor == &mPolyY.editor || &textEditor == &mPolyZ.editor) {
         clampPolyXYZ();
     } else if (&textEditor == &mPolyRadius.editor) {
         const auto x{ mPolyX.getTextAs<float>() };
@@ -725,17 +704,12 @@ void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
             textEditor.setText(juce::String(z - maxPolyRadius, 2));
         else if (z + floatValue > maxPolyRadius)
             textEditor.setText(juce::String(maxPolyRadius - z, 2));
-    } else if (&textEditor == &mGridNumCols.editor
-               || &textEditor == &mGridNumRows.editor) {
+    } else if (&textEditor == &mGridNumCols.editor || &textEditor == &mGridNumRows.editor) {
         auto const value{ std::clamp(intValue, 2, 99) };
         textEditor.setText(juce::String{ value }, false);
-    } else if (&textEditor == &mGridX.editor
-               || &textEditor == &mGridY.editor
-               || &textEditor == &mGridZ.editor) {
-
+    } else if (&textEditor == &mGridX.editor || &textEditor == &mGridY.editor || &textEditor == &mGridZ.editor) {
         clampGridXYZ(textEditor);
-    } else if (&textEditor == &mGridWidth.editor
-               || &textEditor == &mGridHeight.editor) {
+    } else if (&textEditor == &mGridWidth.editor || &textEditor == &mGridHeight.editor) {
         clampGridWH(textEditor);
     }
 
@@ -771,15 +745,15 @@ void EditSpeakersWindow::updateWinContent()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mSpeakerSetupContainer.reload (spatGrisData.speakerSetup.speakerSetupValueTree);
-    mSpeakerSetupContainer.setSpatMode (spatGrisData.speakerSetup.spatMode);
+    mSpeakerSetupContainer.reload(spatGrisData.speakerSetup.speakerSetupValueTree);
+    mSpeakerSetupContainer.setSpatMode(spatGrisData.speakerSetup.spatMode);
 
     mDiffusionSlider.setValue(spatGrisData.speakerSetup.diffusion);
     mDiffusionSlider.setEnabled(spatGrisData.project.spatMode == SpatMode::mbap
                                 || spatGrisData.project.spatMode == SpatMode::hybrid);
 
     togglePolyhedraExtraWidgets();
-    toggleGridWidgets ();
+    toggleGridWidgets();
 }
 
 //==============================================================================
@@ -857,9 +831,9 @@ void EditSpeakersWindow::resized()
 
     // ring row
     mRingTitle.setBounds(5, secondRowY, currentX, rowH);
-    positionWidget(&mRingSpeakers,    currentX, secondRowY, labelW, editorW - 5);
-    positionWidget(&mRingElevation,   currentX += increment, secondRowY, labelW + 25, editorW);
-    positionWidget(&mRingRadius,      currentX += increment + 25, secondRowY, labelW + 5, editorW);
+    positionWidget(&mRingSpeakers, currentX, secondRowY, labelW, editorW - 5);
+    positionWidget(&mRingElevation, currentX += increment, secondRowY, labelW + 25, editorW);
+    positionWidget(&mRingRadius, currentX += increment + 25, secondRowY, labelW + 5, editorW);
     positionWidget(&mRingOffsetAngle, currentX += increment + 5, secondRowY, labelW + 25, editorW);
     mAddRingButton.setBounds(getWidth() - 105, secondRowY, 100, rowH);
 
@@ -867,10 +841,10 @@ void EditSpeakersWindow::resized()
     auto const thirdRowY{ rowsStart + (rowH + rowSpacing) * 2 };
     currentX = 135;
     mPolyTitle.setBounds(5, thirdRowY, currentX, rowH);
-    positionWidget(&mPolyFaces,  currentX, thirdRowY, labelW, comboW);
-    positionWidget(&mPolyX,      currentX += labelW      + comboW, thirdRowY, shortLabelW, editorW + 2);
-    positionWidget(&mPolyY,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW + 4);
-    positionWidget(&mPolyZ,      currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW + 4);
+    positionWidget(&mPolyFaces, currentX, thirdRowY, labelW, comboW);
+    positionWidget(&mPolyX, currentX += labelW + comboW, thirdRowY, shortLabelW, editorW + 2);
+    positionWidget(&mPolyY, currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW + 4);
+    positionWidget(&mPolyZ, currentX += shortLabelW + editorW, thirdRowY, shortLabelW, editorW + 4);
     positionWidget(&mPolyRadius, currentX += shortLabelW + editorW, thirdRowY, labelW + 30, editorW);
     mAddPolyButton.setBounds(getWidth() - 105, thirdRowY, 100, rowH);
 
@@ -878,14 +852,14 @@ void EditSpeakersWindow::resized()
     auto const fourthRowY{ rowsStart + (rowH + rowSpacing) * 3 };
     currentX = 135;
     mGridTitle.setBounds(5, fourthRowY, currentX, rowH);
-    positionWidget(&mGridAlignment,  currentX, fourthRowY, labelW, comboW);
-    positionWidget(&mGridNumCols,    currentX += labelW      + comboW, fourthRowY, midLabelW, shortEditorW);
-    positionWidget(&mGridNumRows,    currentX += midLabelW   + shortEditorW, fourthRowY, midLabelW, shortEditorW);
-    positionWidget(&mGridX,          currentX += midLabelW   + shortEditorW, fourthRowY, shortLabelW, editorW);
-    positionWidget(&mGridY,          currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
-    positionWidget(&mGridZ,          currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
-    positionWidget(&mGridWidth,      currentX += shortLabelW + editorW, fourthRowY, midLabelW, editorW);
-    positionWidget(&mGridHeight,     currentX += midLabelW + editorW, fourthRowY, midLabelW, editorW);
+    positionWidget(&mGridAlignment, currentX, fourthRowY, labelW, comboW);
+    positionWidget(&mGridNumCols, currentX += labelW + comboW, fourthRowY, midLabelW, shortEditorW);
+    positionWidget(&mGridNumRows, currentX += midLabelW + shortEditorW, fourthRowY, midLabelW, shortEditorW);
+    positionWidget(&mGridX, currentX += midLabelW + shortEditorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridY, currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridZ, currentX += shortLabelW + editorW, fourthRowY, shortLabelW, editorW);
+    positionWidget(&mGridWidth, currentX += shortLabelW + editorW, fourthRowY, midLabelW, editorW);
+    positionWidget(&mGridHeight, currentX += midLabelW + editorW, fourthRowY, midLabelW, editorW);
     mAddGridButton.setBounds(getWidth() - 105, fourthRowY, 100, rowH);
 
     // "Fifth" row with pink noise, diffusion and the save buttons.
@@ -893,8 +867,8 @@ void EditSpeakersWindow::resized()
     auto const sliderHeight{ 60 };
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, rowH);
     mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, sliderHeight);
-    mDiffusionLabel.setBounds(260,      getHeight() - 70, 160, rowH);
-    mDiffusionSlider.setBounds(260+165, getHeight() - 95, 60, sliderHeight);
+    mDiffusionLabel.setBounds(260, getHeight() - 70, 160, rowH);
+    mDiffusionSlider.setBounds(260 + 165, getHeight() - 95, 60, sliderHeight);
     mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, rowH);
 
     // save buttons. the getHeight() - 57 are there to match the position of the buttons
@@ -926,14 +900,13 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
 
 juce::Array<output_patch_t> EditSpeakersWindow::getSpeakerOutputPatchOrder()
 {
-
     juce::Array<output_patch_t> order;
 
-    std::function<void(const juce::ValueTree& valueTree)> appendToOrder;
+    std::function<void(const juce::ValueTree & valueTree)> appendToOrder;
     // this function recursively appends the number to a list.
-    appendToOrder = [&appendToOrder, &order](const juce::ValueTree& valueTree) {
+    appendToOrder = [&appendToOrder, &order](const juce::ValueTree & valueTree) {
         if (valueTree.getType() == SPEAKER_GROUP || valueTree.getType() == SPEAKER_SETUP) {
-            for (auto child: valueTree) {
+            for (auto child : valueTree) {
                 appendToOrder(child);
             }
         } else {
@@ -949,7 +922,7 @@ juce::Array<output_patch_t> EditSpeakersWindow::getSpeakerOutputPatchOrder()
 void EditSpeakersWindow::computeSpeakers()
 {
     if (mShouldComputeSpeakers) {
-        mMainContentComponent.requestSpeakerRefresh ();
+        mMainContentComponent.requestSpeakerRefresh();
         mShouldComputeSpeakers = false;
     }
 }
@@ -968,8 +941,7 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
             }
 
             mShouldComputeSpeakers = true;
-        }
-        else if (property != SPEAKER_GROUP_NAME){
+        } else if (property != SPEAKER_GROUP_NAME) {
             // unhandled property
             jassertfalse;
         }
@@ -1036,14 +1008,16 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
 void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child)
 {
     auto const childType{ child.getType() };
-    auto const index { parent.indexOf (child) };
-    const auto childOutputPatch = output_patch_t (child[SPEAKER_PATCH_ID]);
+    auto const index{ parent.indexOf(child) };
+    const auto childOutputPatch = output_patch_t(child[SPEAKER_PATCH_ID]);
 
 #if DEBUG_SPEAKER_EDITION
     if (childType == SPEAKER_GROUP)
-        DBG ("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_GROUP_NAME: " << child[SPEAKER_GROUP_NAME].toString() << " and index " << juce::String (index));
+        DBG("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_GROUP_NAME: "
+            << child[SPEAKER_GROUP_NAME].toString() << " and index " << juce::String(index));
     else if (childType == SPEAKER)
-        DBG ("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_PATCH_ID: " << child[SPEAKER_PATCH_ID].toString () << " and index " << juce::String (index));
+        DBG("EditSpeakersWindow::valueTreeChildAdded() called for SPEAKER_PATCH_ID: "
+            << child[SPEAKER_PATCH_ID].toString() << " and index " << juce::String(index));
 #endif
 
     if (childType == SPEAKER) {
@@ -1061,26 +1035,29 @@ void EditSpeakersWindow::valueTreeChildAdded(juce::ValueTree & parent, juce::Val
     }
 
     if (!isAddingGroup) {
-        mMainContentComponent.requestSpeakerRefresh ();
+        mMainContentComponent.requestSpeakerRefresh();
         mShouldComputeSpeakers = true;
     }
 }
 
-void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & /*parent*/, juce::ValueTree & child, [[maybe_unused]] int index)
+void EditSpeakersWindow::valueTreeChildRemoved(juce::ValueTree & /*parent*/,
+                                               juce::ValueTree & child,
+                                               [[maybe_unused]] int index)
 {
-
-    auto const childType { child.getType () };
+    auto const childType{ child.getType() };
 
 #if DEBUG_SPEAKER_EDITION
     if (childType == SPEAKER_GROUP)
-        DBG ("EditSpeakersWindow::valueTreeChildRemoved() called for SPEAKER_GROUP_NAME" << child[SPEAKER_GROUP_NAME].toString () << " and index " << juce::String (index));
+        DBG("EditSpeakersWindow::valueTreeChildRemoved() called for SPEAKER_GROUP_NAME"
+            << child[SPEAKER_GROUP_NAME].toString() << " and index " << juce::String(index));
     else if (childType == SPEAKER)
-        DBG ("EditSpeakersWindow::valueTreeChildRemoved() called for SPEAKER_PATCH_ID" << child[SPEAKER_PATCH_ID].toString () << " and index " << juce::String (index));
+        DBG("EditSpeakersWindow::valueTreeChildRemoved() called for SPEAKER_PATCH_ID"
+            << child[SPEAKER_PATCH_ID].toString() << " and index " << juce::String(index));
 #endif
 
     if (childType == SPEAKER) {
-        output_patch_t outputPatch {child[SPEAKER_PATCH_ID]};
-        mMainContentComponent.removeSpeaker (outputPatch, ! mSpeakerSetupContainer.isDeletingGroup());
+        output_patch_t outputPatch{ child[SPEAKER_PATCH_ID] };
+        mMainContentComponent.removeSpeaker(outputPatch, !mSpeakerSetupContainer.isDeletingGroup());
     }
 }
 

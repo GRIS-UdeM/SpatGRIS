@@ -19,19 +19,19 @@
 
 #include "sg_MainComponent.hpp"
 
-#include <map>
-#include "sg_AudioManager.hpp"
 #include "Data/sg_CommandId.hpp"
+#include "Data/sg_LegacyLbapPosition.hpp"
+#include "Data/sg_constants.hpp"
+#include "Misc/sg_DefaultFiles.hpp"
+#include "sg_AudioManager.hpp"
 #include "sg_ControlPanel.hpp"
 #include "sg_FatalError.hpp"
 #include "sg_GrisLookAndFeel.hpp"
-#include "Data/sg_LegacyLbapPosition.hpp"
 #include "sg_MainWindow.hpp"
 #include "sg_ScopeGuard.hpp"
 #include "sg_TitledComponent.hpp"
-#include "Data/sg_constants.hpp"
 #include <Utilities/ValueTreeUtilities.hpp>
-#include "Misc/sg_DefaultFiles.hpp"
+#include <map>
 
 namespace gris
 {
@@ -42,12 +42,12 @@ constexpr auto BUTTON_OK = 1;
 constexpr auto BUTTON_DISCARD = 2;
 
 #if DEBUG_SPEAKER_EDITION
-juce::String getJuceArrayString (const juce::Array<output_patch_t>& array)
+juce::String getJuceArrayString(const juce::Array<output_patch_t> & array)
 {
     juce::String arrayString("(");
 
-    for (auto const& item : array)
-        arrayString << juce::String (item.get()) << " ";
+    for (auto const & item : array)
+        arrayString << juce::String(item.get()) << " ";
 
     arrayString = arrayString.trimEnd();
     arrayString << ")";
@@ -132,7 +132,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mData.appData = mConfiguration.load();
         if (mData.appData.lastProject.isEmpty())
             mData.appData.lastProject = DEFAULT_PROJECT_FILE.getFullPathName();
-        if (mData.appData.lastSpeakerSetup.isEmpty ())
+        if (mData.appData.lastSpeakerSetup.isEmpty())
             mData.appData.lastSpeakerSetup = DEFAULT_SPEAKER_SETUP_FILE.getFullPathName();
         setOscPort(mData.appData.networkSettings.oscPort);
     };
@@ -280,7 +280,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     initAudioManager();
     initAudioProcessor();
 
-    mSpeakersRefreshAsyncUpdater = std::make_unique<SpeakersRefreshAsyncUpdater> (*this);
+    mSpeakersRefreshAsyncUpdater = std::make_unique<SpeakersRefreshAsyncUpdater>(*this);
 
     // Change the extra speaker view input and output ports if they exist
     mSpeakerViewComponent->initExtraPorts(mData.appData.networkSettings.standaloneSpeakerViewInputPort,
@@ -476,9 +476,10 @@ void MainContentComponent::handleOpenProject()
     juce::ScopedWriteLock const lock{ mLock };
 
     juce::File const & lastProject{ mData.appData.lastProject };
-    juce::File const initialPath{ lastProject.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
-                                      juce::File::SpecialLocationType::userDocumentsDirectory)
-                                                                              : lastProject };
+    juce::File const initialPath{ lastProject.isAChildOf(CURRENT_WORKING_DIR)
+                                      ? juce::File::getSpecialLocation(
+                                            juce::File::SpecialLocationType::userDocumentsDirectory)
+                                      : lastProject };
 
     juce::FileChooser fc{ "Choose a file to open...", initialPath, "*.xml", true, false, this };
 
@@ -518,9 +519,10 @@ void MainContentComponent::handleOpenSpeakerSetup()
 
     juce::File const lastSetup{ mData.appData.lastSpeakerSetup };
 
-    auto const initialFile{ lastSetup.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
-                                juce::File::SpecialLocationType::userDocumentsDirectory)
-                                                                      : lastSetup };
+    auto const initialFile{ lastSetup.isAChildOf(CURRENT_WORKING_DIR)
+                                ? juce::File::getSpecialLocation(
+                                      juce::File::SpecialLocationType::userDocumentsDirectory)
+                                : lastSetup };
 
     juce::FileChooser fc{ "Choose a file to open...", initialFile, "*.xml", true };
 
@@ -938,7 +940,8 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
     refreshSpeakers();
 }
 
-void MainContentComponent::setMulticoreDSPState(const bool state) {
+void MainContentComponent::setMulticoreDSPState(const bool state)
+{
     mData.project.useMulticoreDSP = state;
     refreshSpatAlgorithm();
 }
@@ -2072,7 +2075,8 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
         break;
     }
 
-    if (position == source.position && juce::approximatelyEqual(azimuthSpan, source.azimuthSpan) && juce::approximatelyEqual(zenithSpan, source.zenithSpan)) {
+    if (position == source.position && juce::approximatelyEqual(azimuthSpan, source.azimuthSpan)
+        && juce::approximatelyEqual(zenithSpan, source.zenithSpan)) {
         return;
     }
 
@@ -2159,29 +2163,28 @@ void MainContentComponent::speakerOutputPatchChanged(output_patch_t const oldOut
 
 std::map<output_patch_t, tl::optional<Position>> MainContentComponent::getSpeakersGroupCenters()
 {
-  std::map<output_patch_t, tl::optional<Position>> speaker_group_center{};
-  // the first child is the main speaker group where individual speakers and speaker groups are stored.
-  auto main_speaker_group = mData.speakerSetup.speakerSetupValueTree.getChild(0);
-  for (int i = 0; i < main_speaker_group.getNumChildren(); i++)
-  {
-      auto node = main_speaker_group.getChild(i);
-      // if the node is a speakergroup, search all the group for a child
-      // that has the right id and return the Position of the group.
-      if (node.getType () == SPEAKER_GROUP) {
-        auto sub_group = node;
-        Position center_position = juce::VariantConverter<Position>::fromVar(sub_group[CARTESIAN_POSITION]);
-        for (int j = 0; j < sub_group.getNumChildren(); j++) {
-          auto speaker = sub_group.getChild(j);
-          auto const speaker_patch_id = output_patch_t{speaker[SPEAKER_PATCH_ID]};
-          speaker_group_center[speaker_patch_id] = center_position;
+    std::map<output_patch_t, tl::optional<Position>> speaker_group_center{};
+    // the first child is the main speaker group where individual speakers and speaker groups are stored.
+    auto main_speaker_group = mData.speakerSetup.speakerSetupValueTree.getChild(0);
+    for (int i = 0; i < main_speaker_group.getNumChildren(); i++) {
+        auto node = main_speaker_group.getChild(i);
+        // if the node is a speakergroup, search all the group for a child
+        // that has the right id and return the Position of the group.
+        if (node.getType() == SPEAKER_GROUP) {
+            auto sub_group = node;
+            Position center_position = juce::VariantConverter<Position>::fromVar(sub_group[CARTESIAN_POSITION]);
+            for (int j = 0; j < sub_group.getNumChildren(); j++) {
+                auto speaker = sub_group.getChild(j);
+                auto const speaker_patch_id = output_patch_t{ speaker[SPEAKER_PATCH_ID] };
+                speaker_group_center[speaker_patch_id] = center_position;
+            }
+            // if the node is not a group it's a speaker and we don't care. If its id matches, return its position.
+        } else {
+            auto const speaker_patch_id = output_patch_t{ node[SPEAKER_PATCH_ID] };
+            speaker_group_center[speaker_patch_id] = tl::nullopt;
         }
-        // if the node is not a group it's a speaker and we don't care. If its id matches, return its position.
-      } else {
-        auto const speaker_patch_id = output_patch_t{node[SPEAKER_PATCH_ID]};
-        speaker_group_center[speaker_patch_id] = tl::nullopt;
-      }
-  }
-  return speaker_group_center;
+    }
+    return speaker_group_center;
 }
 
 //==============================================================================
@@ -2231,7 +2234,8 @@ void MainContentComponent::setOscPort(int const newOscPort)
     if (!success) {
         juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
                                                "Could not change OSC input port",
-                                               "Could not change the OSC input port to "+ juce::String(newOscPort) + " . Some other application may have the same port open ?\n",
+                                               "Could not change the OSC input port to " + juce::String(newOscPort)
+                                                   + " . Some other application may have the same port open ?\n",
                                                "Ok",
 
                                                this);
@@ -2252,7 +2256,6 @@ void MainContentComponent::setStandaloneSpeakerViewOutput(tl::optional<int> port
     mData.appData.networkSettings.standaloneSpeakerViewOutputPort = port;
     mData.appData.networkSettings.standaloneSpeakerViewOutputAddress = address;
 }
-
 
 int MainContentComponent::getOscPort() const
 {
@@ -2428,7 +2431,7 @@ void MainContentComponent::refreshSpatAlgorithm()
                                                    "speakers not to be more than 170 degrees apart from each others.\n",
                                                    "Ok",
                                                    this);
-          break;
+            break;
         case AbstractSpatAlgorithm::Error::failedToSpawnThreadpool:
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
                                                    "Disabled spatialization",
@@ -2521,7 +2524,7 @@ void MainContentComponent::setSourceNewSourceIndex(source_index_t oldSourceIndex
 }
 
 //==============================================================================
-void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t>&& newOrder)
+void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> && newOrder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -2532,19 +2535,19 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t>&& newOrde
 }
 
 //==============================================================================
-output_patch_t MainContentComponent::getNextSpeakerOutputPatch () const
+output_patch_t MainContentComponent::getNextSpeakerOutputPatch() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock { mLock };
+    juce::ScopedReadLock const lock{ mLock };
 
-    auto const& patches { mData.speakerSetup.ordering };
+    auto const & patches{ mData.speakerSetup.ordering };
 
-    //look for the first free patch number
-    output_patch_t nextFreePatch{1};
-    while (std::find (patches.begin (), patches.end (), nextFreePatch) != patches.end ())
+    // look for the first free patch number
+    output_patch_t nextFreePatch{ 1 };
+    while (std::find(patches.begin(), patches.end(), nextFreePatch) != patches.end())
         ++nextFreePatch;
 
-    //and return it
+    // and return it
     return nextFreePatch;
 }
 
@@ -2716,10 +2719,10 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
         }
     }
 
-    auto const newOutputPatch { getNextSpeakerOutputPatch () };
+    auto const newOutputPatch{ getNextSpeakerOutputPatch() };
 
     if (index) {
-        auto const actualIndex { *index };
+        auto const actualIndex{ *index };
         auto const isValidIndex{ actualIndex >= 0 && actualIndex < mData.speakerSetup.ordering.size() };
         if (isValidIndex) {
             mData.speakerSetup.ordering.insert(actualIndex, newOutputPatch);
@@ -2853,7 +2856,7 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
     }
 
     setSpatMode(newSpatMode);
-    speakerSetup->speakerSetupValueTree.setProperty(SPAT_MODE, spatModeToString (newSpatMode), nullptr);
+    speakerSetup->speakerSetupValueTree.setProperty(SPAT_MODE, spatModeToString(newSpatMode), nullptr);
     mIsLoadingSpeakerSetupOrProjectFile = false;
 
     if (mPlayerWindow != nullptr) {
@@ -3026,13 +3029,12 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
         maybeFile = fc.getResult();
     }
 
-    auto const success = maybeFile->replaceWithText (mData.speakerSetup.speakerSetupValueTree.toXmlString ());
+    auto const success = maybeFile->replaceWithText(mData.speakerSetup.speakerSetupValueTree.toXmlString());
     if (success) {
         mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
-        setTitles ();
-    }
-    else {
-        jassertfalse;   //could not save the file!
+        setTitles();
+    } else {
+        jassertfalse; // could not save the file!
     }
 
     return success;
@@ -3133,14 +3135,13 @@ void MainContentComponent::timerCallback()
 
     mInfoPanel->setCpuLoad(cpuRunningAverage);
 
-    //TODO: could this be related to this issue https://github.com/GRIS-UdeM/SpatGRIS/issues/476 ?
-    if (mIsProcessForeground != juce::Process::isForegroundProcess ()) {
-        mIsProcessForeground = juce::Process::isForegroundProcess ();
+    // TODO: could this be related to this issue https://github.com/GRIS-UdeM/SpatGRIS/issues/476 ?
+    if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
+        mIsProcessForeground = juce::Process::isForegroundProcess();
         if (mEditSpeakersWindow != nullptr && mIsProcessForeground) {
-            mEditSpeakersWindow->setAlwaysOnTop (true);
-        }
-        else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
-            mEditSpeakersWindow->setAlwaysOnTop (false);
+            mEditSpeakersWindow->setAlwaysOnTop(true);
+        } else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
+            mEditSpeakersWindow->setAlwaysOnTop(false);
         }
     }
 }
@@ -3412,7 +3413,8 @@ void MainContentComponent::handleShowSpeakerTripletsFromSpeakerView(bool value)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const readLock{ mLock };
 
-    if (! mAudioProcessor || !mAudioProcessor->getSpatAlgorithm() || !mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
+    if (!mAudioProcessor || !mAudioProcessor->getSpatAlgorithm()
+        || !mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
         return;
     }
 

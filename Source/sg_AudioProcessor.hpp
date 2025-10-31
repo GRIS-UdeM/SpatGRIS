@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-#include "sg_AbstractSpatAlgorithm.hpp"
-#include "Data/sg_AudioStructs.hpp"
 #include "Containers/sg_TaggedAudioBuffer.hpp"
+#include "Data/sg_AudioStructs.hpp"
+#include "sg_AbstractSpatAlgorithm.hpp"
+#include <JuceHeader.h>
 
 namespace gris
 {
@@ -54,7 +54,6 @@ public:
 
     auto const & getSpatAlgorithm() const { return mSpatAlgorithm; }
     auto & getSpatAlgorithm() { return mSpatAlgorithm; }
-
 
 private:
     //==============================================================================

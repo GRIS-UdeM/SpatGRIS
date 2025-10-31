@@ -19,10 +19,10 @@
 
 #include "sg_FlatViewWindow.hpp"
 
-#include "sg_GrisLookAndFeel.hpp"
-#include "sg_MainComponent.hpp"
 #include "Data/sg_Narrow.hpp"
 #include "Data/sg_constants.hpp"
+#include "sg_GrisLookAndFeel.hpp"
+#include "sg_MainComponent.hpp"
 
 namespace gris
 {

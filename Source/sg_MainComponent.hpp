@@ -194,7 +194,6 @@ public:
      */
     void setStandaloneSpeakerViewOutput(tl::optional<int> port, tl::optional<juce::String> address);
 
-
     void setSpeakerSetupDiffusion(float diffusion);
 
     void setPinkNoiseGain(tl::optional<dbfs_t> gain);
@@ -279,10 +278,11 @@ public:
     class SpeakersRefreshAsyncUpdater : public juce::AsyncUpdater
     {
     public:
-        SpeakersRefreshAsyncUpdater (MainContentComponent& owner) : mOwner (owner) {}
-        void handleAsyncUpdate () override { mOwner.refreshSpeakers (); }
+        SpeakersRefreshAsyncUpdater(MainContentComponent & owner) : mOwner(owner) {}
+        void handleAsyncUpdate() override { mOwner.refreshSpeakers(); }
+
     private:
-        MainContentComponent& mOwner;
+        MainContentComponent & mOwner;
     };
     std::unique_ptr<SpeakersRefreshAsyncUpdater> mSpeakersRefreshAsyncUpdater;
 
@@ -331,8 +331,6 @@ public:
     bool speakerViewShouldGrabFocus();
     void resetSpeakerViewShouldGrabFocus();
 
-
-
 private:
     //==============================================================================
     [[nodiscard]] bool isProjectModified() const;
@@ -368,7 +366,7 @@ private:
 
     /** This is called by the SpeakersRefreshAsyncUpdater when MainContentComponent::requestSpeakerRefresh() is called.
      */
-    void refreshSpeakers ();
+    void refreshSpeakers();
     void refreshSourceSlices();
     void refreshSpeakerSlices();
 

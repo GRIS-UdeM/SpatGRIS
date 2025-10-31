@@ -132,12 +132,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
         fillWithPinkNoise(data.data(), numSamples, narrow<int>(data.size()), *mAudioData.config->pinkNoiseGain);
     } else {
         // Process spat algorithm
-        mSpatAlgorithm->process(*mAudioData.config,
-                                sourceBuffer,
-                                speakerBuffer,
-                                stereoBuffer,
-                                sourcePeaks,
-                                nullptr);
+        mSpatAlgorithm->process(*mAudioData.config, sourceBuffer, speakerBuffer, stereoBuffer, sourcePeaks, nullptr);
 
         // Process direct outs
         for (auto const & directOutPair : mAudioData.config->directOutPairs) {
@@ -155,7 +150,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
             stereoBuffer.applyGain(0.0f);
         } else {
             auto const & masterGain{ mAudioData.config->masterGain };
-            if (! juce::approximatelyEqual (masterGain, 0.0f)) {
+            if (!juce::approximatelyEqual(masterGain, 0.0f)) {
                 stereoBuffer.applyGain(masterGain);
             }
             auto * stereoPeaksTicket{ mAudioData.stereoPeaksUpdater.acquire() };

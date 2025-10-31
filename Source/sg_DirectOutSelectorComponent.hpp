@@ -20,8 +20,8 @@
 #pragma once
 
 #include "Data/StrongTypes/sg_OutputPatch.hpp"
-#include "tl/optional.hpp"
 #include "sg_SpatButton.hpp"
+#include "tl/optional.hpp"
 
 namespace gris
 {

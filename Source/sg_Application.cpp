@@ -18,8 +18,8 @@
 */
 
 #include "sg_Application.hpp"
-#include "sg_AudioManager.hpp"
 #include "Misc/sg_DefaultFiles.hpp"
+#include "sg_AudioManager.hpp"
 
 namespace gris
 {

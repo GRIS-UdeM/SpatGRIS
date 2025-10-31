@@ -98,7 +98,10 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
         label.setColour(juce::Label::ColourIds::textColourId, glaf.getFontColour());
     };
 
-    auto const initButton = [&](juce::Button & button, juce::String const & text, juce::String const & tooltip, bool isSpatModeRadioButton = true) {
+    auto const initButton = [&](juce::Button & button,
+                                juce::String const & text,
+                                juce::String const & tooltip,
+                                bool isSpatModeRadioButton = true) {
         button.setClickingTogglesState(true);
         if (isSpatModeRadioButton)
             button.setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);
@@ -123,7 +126,11 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initButton(mCubeButton, spatModeToString(SpatMode::mbap), spatModeToTooltip(SpatMode::mbap));
     initButton(mHybridButton, spatModeToString(SpatMode::hybrid), spatModeToTooltip(SpatMode::hybrid));
 
-    initButton(mMulticoreDSPToggle, "Use Multicore DSP", "Experimental : This will use more CPU resources but can perform better on large speaker setups. Does not parallelize stereo or binaural reductions.", false);
+    initButton(mMulticoreDSPToggle,
+               "Use Multicore DSP",
+               "Experimental : This will use more CPU resources but can perform better on large speaker setups. Does "
+               "not parallelize stereo or binaural reductions.",
+               false);
 
     juce::StringArray items{ "None" };
     items.addArray(STEREO_MODE_STRINGS);
@@ -175,14 +182,14 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
         .withTopPadding(COL_2_TOP_PADDING);
     mStereoRoutingLayout.addSection(mRightCombo).withFixedSize(COL_2_QUARTER_WIDTH + COL_2_SPACER);
 
-
-
     mCol2Layout.addSection(mAttenuationSettingsButton).withFixedSize(LABEL_HEIGHT);
     mCol2Layout.addSection(mAttenuationLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
     mCol2Layout.addSection(mStereoRoutingLabel).withFixedSize(LABEL_HEIGHT);
 
-    mBottomLeftComponentSwapper.addComponent(multicoreDSPToggleName, juce::Component::SafePointer<juce::Component>(&mMulticoreDSPToggle));
-    mBottomLeftComponentSwapper.addComponent(stereoRoutingLayoutName,juce::Component::SafePointer<juce::Component>(&mStereoRoutingLayout));
+    mBottomLeftComponentSwapper.addComponent(multicoreDSPToggleName,
+                                             juce::Component::SafePointer<juce::Component>(&mMulticoreDSPToggle));
+    mBottomLeftComponentSwapper.addComponent(stereoRoutingLayoutName,
+                                             juce::Component::SafePointer<juce::Component>(&mStereoRoutingLayout));
     addAndMakeVisible(mBottomLeftComponentSwapper);
 
     mCol2Layout.addSection(mBottomLeftComponentSwapper).withFixedSize(ROW_2_CONTENT_HEIGHT);
@@ -279,13 +286,11 @@ void SpatSettingsSubPanel::setSpatMode(SpatMode const spatMode)
     mControlPanel.forceLayoutUpdate();
 }
 
-
 void SpatSettingsSubPanel::setMulticoreDSP(bool useMulticoreDSP)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mMulticoreDSPToggle.setToggleState(useMulticoreDSP, juce::dontSendNotification);
 }
-
 
 //==============================================================================
 void SpatSettingsSubPanel::setStereoMode(tl::optional<StereoMode> const & stereoMode)
