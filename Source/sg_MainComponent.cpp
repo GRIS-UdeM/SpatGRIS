@@ -134,6 +134,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
             mData.appData.lastProject = DEFAULT_PROJECT_FILE.getFullPathName();
         if (mData.appData.lastSpeakerSetup.isEmpty ())
             mData.appData.lastSpeakerSetup = DEFAULT_SPEAKER_SETUP_FILE.getFullPathName();
+        setOscPort(mData.appData.networkSettings.oscPort);
     };
 
     //==============================================================================
@@ -280,6 +281,11 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     initAudioProcessor();
 
     mSpeakersRefreshAsyncUpdater = std::make_unique<SpeakersRefreshAsyncUpdater> (*this);
+
+    // Change the extra speaker view input and output ports if they exist
+    mSpeakerViewComponent->initExtraPorts(mData.appData.networkSettings.standaloneSpeakerViewInputPort,
+                                          mData.appData.networkSettings.standaloneSpeakerViewOutputPort,
+                                          mData.appData.networkSettings.standaloneSpeakerViewOutputAddress);
 
     // juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
@@ -457,11 +463,6 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     refreshAudioProcessor();
     refreshViewportConfig();
     refreshSourceSlices();
-
-    // Change the extra speaker view input and output ports if they exist
-    mSpeakerViewComponent->initExtraPorts(mData.project.standaloneSpeakerViewInputPort, mData.project.standaloneSpeakerViewOutputPort, mData.project.standaloneSpeakerViewOutputAddress);
-
-    setOscPort(mData.project.oscPort);
 
     mIsLoadingSpeakerSetupOrProjectFile = false;
 
@@ -2219,8 +2220,8 @@ void MainContentComponent::setSpeakerHighPassFreq(output_patch_t const outputPat
 void MainContentComponent::setOscPort(int const newOscPort)
 {
     juce::ScopedWriteLock const lock{ mLock };
-    const auto oldPort = mData.project.oscPort;
-    mData.project.oscPort = newOscPort;
+    const auto oldPort = mData.appData.networkSettings.oscPort;
+    mData.appData.networkSettings.oscPort = newOscPort;
     if (!mOscInput) {
         return;
     }
@@ -2235,7 +2236,7 @@ void MainContentComponent::setOscPort(int const newOscPort)
 
                                                this);
 
-        mData.project.oscPort = oldPort;
+        mData.appData.networkSettings.oscPort = oldPort;
         // we don't check if this one works, lets hope it does.
         mOscInput->startConnection(oldPort);
     }
@@ -2243,19 +2244,19 @@ void MainContentComponent::setOscPort(int const newOscPort)
 
 void MainContentComponent::setStandaloneSpeakerViewInputPort(tl::optional<int> port)
 {
-    mData.project.standaloneSpeakerViewInputPort = port;
+    mData.appData.networkSettings.standaloneSpeakerViewInputPort = port;
 }
 
 void MainContentComponent::setStandaloneSpeakerViewOutput(tl::optional<int> port, tl::optional<juce::String> address)
 {
-    mData.project.standaloneSpeakerViewOutputPort = port;
-    mData.project.standaloneSpeakerViewOutputAddress = address;
+    mData.appData.networkSettings.standaloneSpeakerViewOutputPort = port;
+    mData.appData.networkSettings.standaloneSpeakerViewOutputAddress = address;
 }
 
 
 int MainContentComponent::getOscPort() const
 {
-    return mData.project.oscPort;
+    return mData.appData.networkSettings.oscPort;
 }
 
 //==============================================================================
@@ -2900,7 +2901,7 @@ void MainContentComponent::reassignSourcesPositions()
 void MainContentComponent::startOsc()
 {
     mOscInput.reset(new OscInput(*this, mLogBuffer));
-    mOscInput->startConnection(mData.project.oscPort);
+    mOscInput->startConnection(mData.appData.networkSettings.oscPort);
 }
 
 //==============================================================================

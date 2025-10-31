@@ -68,9 +68,11 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentCom
     , mUDPDefaultOutputAddress(localhost)
 {
 
-    const auto extraUDPOutputPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
-    const auto extraUDPOutputAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
-    const auto extraUDPInputPort = mainContentComponent.getData().project.standaloneSpeakerViewInputPort;
+    const auto extraUDPOutputPort = mainContentComponent.getData().appData.networkSettings.standaloneSpeakerViewOutputPort;
+    const auto extraUDPOutputAddress
+        = mainContentComponent.getData().appData.networkSettings.standaloneSpeakerViewOutputAddress;
+    const auto extraUDPInputPort
+        = mainContentComponent.getData().appData.networkSettings.standaloneSpeakerViewInputPort;
 
     initExtraPorts(extraUDPInputPort, extraUDPOutputPort, extraUDPOutputAddress);
 
