@@ -457,7 +457,7 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     mControlPanel->setMulticoreDSPPreset(mData.project.multicoreDSPPreset);
 
     setMulticoreDSPState(mData.project.useMulticoreDSP);
-    setMulticoreDSPPreset(mData.project.multicoreDSPPreset)
+    setMulticoreDSPPreset(mData.project.multicoreDSPPreset);
 
     refreshAudioProcessor();
     refreshViewportConfig();
