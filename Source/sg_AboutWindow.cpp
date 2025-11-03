@@ -46,8 +46,12 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lnf
     mTitleLabel.setColour(juce::Label::textColourId, lnf.getFontColour());
     addAndMakeVisible(mTitleLabel);
 
+    juce::String versionInfos{};
     auto const version{ juce::JUCEApplication::getInstance()->getApplicationVersion() };
-    mVersionLabel.setText("Version " + version, juce::NotificationType::dontSendNotification);
+    auto const juceVersion{ juce::String("made with " + juce::SystemStats::getJUCEVersion()) };
+    versionInfos << "Version " + version + "\n\n";
+    versionInfos << juceVersion;
+    mVersionLabel.setText(versionInfos, juce::NotificationType::dontSendNotification);
     mVersionLabel.setJustificationType(juce::Justification::horizontallyCentred);
     mVersionLabel.setBounds(5, 180, 390, 50);
     mVersionLabel.setLookAndFeel(&lnf);

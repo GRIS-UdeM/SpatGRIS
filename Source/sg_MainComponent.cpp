@@ -150,6 +150,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mMenuBar->setColour(juce::TextButton::buttonOnColourId, grisLookAndFeel.getOnColour());
         addAndMakeVisible(mMenuBar.get());
 
+        mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
+
         // Box Main
         mMainLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::vertical, false, true, grisLookAndFeel);
@@ -214,6 +216,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(sashPosition))) };
         mVerticalLayout.setItemPosition(1, trueSize);
 
+        mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
+        handleShowSpeakerViewWindow();
     };
 
     //==============================================================================
@@ -268,21 +272,11 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     // TODO one day : initGui tries to set default values to buttons and other such things
     // but a lot of those values are read from the project, which is initialized in initProject
-    // later. This means initGui has wrong values for a a lot of things and we need to a add
-    // gui init stuff *after* initProject. We can't trivialy reorder those but I don't remember
+    // later. This means initGui has wrong values for a lot of things and we need to a add
+    // gui init stuff inside initProject. We can't trivialy reorder those but I don't remember
     // why.
     initGui();
     initProject();
-
-    // This section contains gui initializations that need a loaded project.
-
-    // SpeakerViewComponent 3D view (need project data before initialization)
-    mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
-    mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
-    handleShowSpeakerViewWindow();
-    mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
-    mControlPanel->setMulticoreDSPPreset(mData.project.multicoreDSPPreset);
-
     initSpeakerSetup();
     initAudioManager();
     initAudioProcessor();
@@ -459,10 +453,20 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     mControlPanel->setCubeAttenuationBypass(mData.project.mbapDistanceAttenuationData.attenuationBypassState);
     mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
     mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
+    mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
+    mControlPanel->setMulticoreDSPPreset(mData.project.multicoreDSPPreset);
+
+    setMulticoreDSPState(mData.project.useMulticoreDSP);
+    setMulticoreDSPPreset(mData.project.multicoreDSPPreset)
 
     refreshAudioProcessor();
     refreshViewportConfig();
     refreshSourceSlices();
+
+    // Change the extra speaker view input and output ports if they exist
+    mSpeakerViewComponent->initExtraPorts(mData.project.standaloneSpeakerViewInputPort, mData.project.standaloneSpeakerViewOutputPort, mData.project.standaloneSpeakerViewOutputAddress);
+
+    setOscPort(mData.project.oscPort);
 
     mIsLoadingSpeakerSetupOrProjectFile = false;
 
@@ -1304,6 +1308,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
     };
 
     addTemplate(SPEAKER_SETUP_TEMPLATES.dome);
+    addTemplate(SPEAKER_SETUP_TEMPLATES.domeSurround);
     addTemplate(SPEAKER_SETUP_TEMPLATES.cube);
     addProjectTemplate(PROJECT_TEMPLATES.dome);
     addProjectTemplate(PROJECT_TEMPLATES.cube);
@@ -1649,6 +1654,16 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         return menu;
     };
 
+    auto const extractTemplatesToMenuAndSubMenu = [&](auto const & templates, auto const & surroundTemplates) {
+        juce::PopupMenu menu{};
+        menu.addSubMenu("Surround layouts ITU", extractTemplatesToMenu(surroundTemplates));
+
+        for (auto const & setupTemplate : templates) {
+            menu.addCommandItem(commandManager, setupTemplate.commandId, setupTemplate.name);
+        }
+        return menu;
+    };
+
     auto const getProjectTemplatesMenu = [&]() {
         juce::PopupMenu menu{};
         menu.addSubMenu("Dome", extractTemplatesToMenu(PROJECT_TEMPLATES.dome));
@@ -1659,7 +1674,9 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
 
     auto const getSpeakerSetupTemplatesMenu = [&]() {
         juce::PopupMenu menu{};
-        menu.addSubMenu("Dome", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.dome));
+        menu.addSubMenu(
+            "Dome",
+            extractTemplatesToMenuAndSubMenu(SPEAKER_SETUP_TEMPLATES.dome, SPEAKER_SETUP_TEMPLATES.domeSurround));
         menu.addSubMenu("Cube", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.cube));
         return menu;
     };

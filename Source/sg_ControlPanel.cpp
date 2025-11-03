@@ -111,8 +111,8 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initLabel(mStereoReductionLabel, "Stereo reduction");
     initLabel(mStereoRoutingLabel, "Stereo routing");
     initLabel(mMulticoreLabel, "Multicore DSP Settings");
-    initLabel(mLeftLabel, "Left :", juce::Justification::topRight);
-    initLabel(mRightLabel, "Right :", juce::Justification::topRight);
+    initLabel(mLeftLabel, "L :", juce::Justification::topRight);
+    initLabel(mRightLabel, "R :", juce::Justification::topRight);
 
     mAttenuationSettingsButton.setColour(juce::ToggleButton::ColourIds::textColourId, glaf.getFontColour());
     mAttenuationSettingsButton.onClick = [this] {
@@ -166,11 +166,17 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     mAttenuationLayout.addSection(mAttenuationHzCombo).withFixedSize(COL_2_HALF_WIDTH);
 
     static constexpr auto COL_2_QUARTER_WIDTH = COL_2_HALF_WIDTH / 2;
+    static constexpr auto COL_2_SPACER = 15;
+    static constexpr auto COL_2_TOP_PADDING = ROW_2_CONTENT_HEIGHT / 4;
     mStereoRoutingLayout.clearSections();
-    mStereoRoutingLayout.addSection(mLeftLabel).withFixedSize(COL_2_QUARTER_WIDTH);
-    mStereoRoutingLayout.addSection(mLeftCombo).withFixedSize(COL_2_QUARTER_WIDTH).withRightPadding(COL_INNER_PADDING);
-    mStereoRoutingLayout.addSection(mRightLabel).withFixedSize(COL_2_QUARTER_WIDTH);
-    mStereoRoutingLayout.addSection(mRightCombo).withFixedSize(COL_2_QUARTER_WIDTH);
+    mStereoRoutingLayout.addSection(mLeftLabel)
+        .withFixedSize(COL_2_QUARTER_WIDTH - COL_2_SPACER)
+        .withTopPadding(COL_2_TOP_PADDING);
+    mStereoRoutingLayout.addSection(mLeftCombo).withFixedSize(COL_2_QUARTER_WIDTH + COL_2_SPACER);
+    mStereoRoutingLayout.addSection(mRightLabel)
+        .withFixedSize(COL_2_QUARTER_WIDTH - COL_2_SPACER)
+        .withTopPadding(COL_2_TOP_PADDING);
+    mStereoRoutingLayout.addSection(mRightCombo).withFixedSize(COL_2_QUARTER_WIDTH + COL_2_SPACER);
 
     mMulticoreLayout.addSection(mMulticoreDSPToggle).withFixedSize(COL_2_HALF_WIDTH);
     mMulticoreLayout.addSection(mMulticoreDSPCPUPresetToggle).withFixedSize(COL_2_QUARTER_WIDTH);

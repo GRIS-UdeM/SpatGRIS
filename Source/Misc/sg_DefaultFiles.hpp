@@ -57,6 +57,7 @@ struct SpeakerSetupTemplates
 {
     juce::Array<FileTemplate> dome {};
     juce::Array<FileTemplate> cube {};
+    juce::Array<FileTemplate> domeSurround {};
 };
 
 SpeakerSetupTemplates getSpeakerSetupTemplates ();

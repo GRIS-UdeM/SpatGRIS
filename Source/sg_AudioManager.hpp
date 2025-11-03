@@ -50,7 +50,7 @@ class AudioManager final : juce::AudioSourcePlayer
         // A pointer to the audio format. Note that the format writer is actually owned and accessed by the
         // ThreadedWriter : this pointer is never actually used. This has been left in only for doing sanity checks
         // assertions.
-        juce::AudioFormatWriter * audioFormatWriter{};
+        juce::AudioFormatWriter * audioFormatWriterPtr{};
         // A collection of pointers to the buffers that will get recorded on disk. Note that this is NOT null terminated
         // : all pointers are non-null and valid.
         juce::Array<float const *> dataToRecord{};
