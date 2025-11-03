@@ -98,10 +98,10 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
         label.setColour(juce::Label::ColourIds::textColourId, glaf.getFontColour());
     };
 
-    auto const initButton = [&](juce::Button & button, juce::String const & text, juce::String const & tooltip, bool isSpatModeRadioButton = true) {
+    auto const initButton = [&](juce::Button & button, juce::String const & text, juce::String const & tooltip, int radioButtonId = SPAT_MODE_BUTTONS_RADIO_GROUP_ID) {
         button.setClickingTogglesState(true);
-        if (isSpatModeRadioButton)
-            button.setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);
+        if (radioButtonId)
+            button.setRadioGroupId(radioButtonId, juce::dontSendNotification);
         button.setButtonText(text);
         button.setTooltip(tooltip);
         button.addListener(this);
@@ -110,6 +110,7 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initLabel(mAlgorithmSelectionLabel, "Algorithm selection");
     initLabel(mStereoReductionLabel, "Stereo reduction");
     initLabel(mStereoRoutingLabel, "Stereo routing");
+    initLabel(mMulticoreLabel, "Multicore DSP Settings");
     initLabel(mLeftLabel, "L :", juce::Justification::topRight);
     initLabel(mRightLabel, "R :", juce::Justification::topRight);
 
@@ -123,7 +124,9 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initButton(mCubeButton, spatModeToString(SpatMode::mbap), spatModeToTooltip(SpatMode::mbap));
     initButton(mHybridButton, spatModeToString(SpatMode::hybrid), spatModeToTooltip(SpatMode::hybrid));
 
-    initButton(mMulticoreDSPToggle, "Use Multicore DSP", "Experimental : This will use more CPU resources but can perform better on large speaker setups. Does not parallelize stereo or binaural reductions.", false);
+    initButton(mMulticoreDSPToggle, "Multicore DSP", "Experimental : This will use more CPU resources but can perform better on large speaker setups. Does not parallelize stereo or binaural reductions.", NOT_A_RADIO_BUTTON_ID);
+    initButton(mMulticoreDSPCPUPresetToggle, "A", "This preset uses less idle CPU but can perform worse.", MULTICORE_PRESETS_RADIO_GROUP_ID);
+    initButton(mMulticoreDSPLatencyPresetToggle, "B", "This preset uses more idle CPU but can perform better.", MULTICORE_PRESETS_RADIO_GROUP_ID);
 
     juce::StringArray items{ "None" };
     items.addArray(STEREO_MODE_STRINGS);
@@ -175,13 +178,19 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
         .withTopPadding(COL_2_TOP_PADDING);
     mStereoRoutingLayout.addSection(mRightCombo).withFixedSize(COL_2_QUARTER_WIDTH + COL_2_SPACER);
 
-
+    mMulticoreLayout.addSection(mMulticoreDSPToggle).withFixedSize(COL_2_HALF_WIDTH);
+    mMulticoreLayout.addSection(mMulticoreDSPCPUPresetToggle).withFixedSize(COL_2_QUARTER_WIDTH);
+    mMulticoreLayout.addSection(mMulticoreDSPLatencyPresetToggle).withFixedSize(COL_2_QUARTER_WIDTH);
 
     mCol2Layout.addSection(mAttenuationSettingsButton).withFixedSize(LABEL_HEIGHT);
     mCol2Layout.addSection(mAttenuationLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
-    mCol2Layout.addSection(mStereoRoutingLabel).withFixedSize(LABEL_HEIGHT);
 
-    mBottomLeftComponentSwapper.addComponent(multicoreDSPToggleName, juce::Component::SafePointer<juce::Component>(&mMulticoreDSPToggle));
+    mTopLeftComponentSwapper.addComponent(multicoreLabelName, juce::Component::SafePointer<juce::Component>(&mMulticoreLabel));
+    mTopLeftComponentSwapper.addComponent(stereoRoutingLabelName, juce::Component::SafePointer<juce::Component>(&mStereoRoutingLabel));
+
+    mCol2Layout.addSection(mTopLeftComponentSwapper).withFixedSize(LABEL_HEIGHT);
+
+    mBottomLeftComponentSwapper.addComponent(multicoreLayoutName, juce::Component::SafePointer<juce::Component>(&mMulticoreLayout));
     mBottomLeftComponentSwapper.addComponent(stereoRoutingLayoutName,juce::Component::SafePointer<juce::Component>(&mStereoRoutingLayout));
     addAndMakeVisible(mBottomLeftComponentSwapper);
 
@@ -286,6 +295,15 @@ void SpatSettingsSubPanel::setMulticoreDSP(bool useMulticoreDSP)
     mMulticoreDSPToggle.setToggleState(useMulticoreDSP, juce::dontSendNotification);
 }
 
+void SpatSettingsSubPanel::setMulticoreDSPPreset(int preset)
+{
+    if (preset == OPTIMIZE_CPU_MULTICORE_PRESET) {
+        mMulticoreDSPCPUPresetToggle.setToggleState(true, juce::dontSendNotification);
+    } else if (preset == OPTIMIZE_LATENCY_MULTICORE_PRESET) {
+        mMulticoreDSPLatencyPresetToggle.setToggleState(true, juce::dontSendNotification);
+    }
+    JUCE_ASSERT_MESSAGE_THREAD;
+}
 
 //==============================================================================
 void SpatSettingsSubPanel::setStereoMode(tl::optional<StereoMode> const & stereoMode)
@@ -386,10 +404,20 @@ void SpatSettingsSubPanel::updateLayout()
 
     mStereoRoutingLabel.setVisible(showRouting);
 
+    // We may have previously set the visibility of these to false.
+    mBottomLeftComponentSwapper.setVisible(true);
+    mTopLeftComponentSwapper.setVisible(true);
     if (showRouting) {
         mBottomLeftComponentSwapper.showComponent(stereoRoutingLayoutName);
+        mTopLeftComponentSwapper.showComponent(stereoRoutingLabelName);
+    } // we should not show the multicoreDSPToggle in hybrid mode because it should have no effect.
+    else if (getSpatMode() != SpatMode::hybrid) {
+        mBottomLeftComponentSwapper.showComponent(multicoreLayoutName);
+        mTopLeftComponentSwapper.showComponent(multicoreLabelName);
     } else {
-        mBottomLeftComponentSwapper.showComponent(multicoreDSPToggleName);
+        // if we are in hybrid mode and we should not show routing, hide everything.
+        mBottomLeftComponentSwapper.setVisible(false);
+        mTopLeftComponentSwapper.setVisible(false);
     }
 
     clearSections();
@@ -423,6 +451,10 @@ void SpatSettingsSubPanel::buttonClicked(juce::Button * button)
         mControlPanel.forceLayoutUpdate();
     } else if (button == &mMulticoreDSPToggle) {
         mMainContentComponent.setMulticoreDSPState(button->getToggleState());
+    } else if (button == &mMulticoreDSPCPUPresetToggle && button->getToggleState()) {
+        mMainContentComponent.setMulticoreDSPPreset(OPTIMIZE_CPU_MULTICORE_PRESET);
+    } else if (button == &mMulticoreDSPLatencyPresetToggle && button->getToggleState()) {
+        mMainContentComponent.setMulticoreDSPPreset(OPTIMIZE_LATENCY_MULTICORE_PRESET);
     }
 }
 
@@ -535,6 +567,12 @@ void ControlPanel::setMulticoreDSP(bool useMulticoreDSP)
     JUCE_ASSERT_MESSAGE_THREAD;
     mSpatSettingsSubPanel.setMulticoreDSP(useMulticoreDSP);
 }
+void ControlPanel::setMulticoreDSPPreset(int preset)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mSpatSettingsSubPanel.setMulticoreDSPPreset(preset);
+}
+
 
 //==============================================================================
 void ControlPanel::setStereoMode(tl::optional<StereoMode> const & mode)

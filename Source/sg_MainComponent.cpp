@@ -27,6 +27,7 @@
 #include "sg_GrisLookAndFeel.hpp"
 #include "Data/sg_LegacyLbapPosition.hpp"
 #include "sg_MainWindow.hpp"
+#include "sg_ParallelSpatAlgorithm.hpp"
 #include "sg_ScopeGuard.hpp"
 #include "sg_TitledComponent.hpp"
 #include "Data/sg_constants.hpp"
@@ -166,6 +167,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // the values it contains.
         // TODO : fix this.
         mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
+        mControlPanel->setMulticoreDSPPreset(mData.project.multicoreDSPPreset);
         mControlPanel->setSpatMode(mData.project.spatMode);
         mControlPanel->setSpatMode(mData.project.spatMode);
         mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
@@ -452,7 +454,10 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     mControlPanel->setCubeAttenuationDb(mData.project.mbapDistanceAttenuationData.attenuation);
     mControlPanel->setCubeAttenuationHz(mData.project.mbapDistanceAttenuationData.freq);
     mControlPanel->setMulticoreDSP(mData.project.useMulticoreDSP);
+    mControlPanel->setMulticoreDSPPreset(mData.project.multicoreDSPPreset);
+
     setMulticoreDSPState(mData.project.useMulticoreDSP);
+    setMulticoreDSPPreset(mData.project.multicoreDSPPreset);
 
     refreshAudioProcessor();
     refreshViewportConfig();
@@ -940,6 +945,12 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
 void MainContentComponent::setMulticoreDSPState(const bool state) {
     mData.project.useMulticoreDSP = state;
     refreshSpatAlgorithm();
+}
+
+void MainContentComponent::setMulticoreDSPPreset(int preset) {
+    mData.project.multicoreDSPPreset = preset;
+    // no need to refresh the spat algorithm for this. It only sets worker thread waiting policy.
+    SpinSleepWait::setPerformancePreset(preset);
 }
 
 //==============================================================================
@@ -2395,13 +2406,20 @@ void MainContentComponent::refreshSpatAlgorithm()
 
     auto & oldSpatAlgorithm{ mAudioProcessor->getSpatAlgorithm() };
 
+    // AbstractSpatAlgorithm::make can make a hybrid mode algorithm with multicore dsp
+    // enable but this has been benchmarked to be less performant than single core.
+    const bool shouldUseMulticoreDSP = mData.project.useMulticoreDSP && mData.project.spatMode != SpatMode::hybrid;
+
+    // necessary to have the right preset at project initialization.
+    SpinSleepWait::setPerformancePreset(mData.project.multicoreDSPPreset);
+
     auto newSpatAlgorithm{ AbstractSpatAlgorithm::make(mData.speakerSetup,
                                                        mData.project.spatMode,
                                                        mData.appData.stereoMode,
                                                        mData.project.sources,
                                                        mData.appData.audioSettings.sampleRate,
                                                        mData.appData.audioSettings.bufferSize,
-                                                       mData.project.useMulticoreDSP) };
+                                                       shouldUseMulticoreDSP) };
 
     if (newSpatAlgorithm->getError()
         && (!oldSpatAlgorithm || oldSpatAlgorithm->getError() != newSpatAlgorithm->getError())) {

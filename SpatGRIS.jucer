@@ -238,6 +238,10 @@
     </GROUP>
     <GROUP id="{755DB51A-2CFD-1B50-3D92-CF35F1E89E3D}" name="submodules">
       <GROUP id="{1FBCD2DD-9050-30FD-E1BE-E07C1F83877B}" name="AlgoGRIS">
+        <FILE id="crzhzv" name="sg_ParallelSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_ParallelSpatAlgorithm.cpp"/>
+        <FILE id="IrsK2x" name="sg_ParallelSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_ParallelSpatAlgorithm.hpp"/>
         <FILE id="ZvEAgD" name="sg_ParallelVbapSpatAlgorithm.cpp" compile="1"
               resource="0" file="submodules/AlgoGRIS/sg_ParallelVbapSpatAlgorithm.cpp"/>
         <FILE id="qc0Xkd" name="sg_ParallelVbapSpatAlgorithm.hpp" compile="0"
