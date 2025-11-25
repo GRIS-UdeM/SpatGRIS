@@ -201,7 +201,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mViewportWrapper.getContent()->addAndMakeVisible(mPinkNoiseToggleButton);
 
     mPinkNoiseGainSlider.setTextValueSuffix(" dB");
-    mPinkNoiseGainSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    mPinkNoiseGainSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     mPinkNoiseGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
                                              juce::MathConstants<float>::pi * 2.7f,
                                              true);
@@ -219,7 +219,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     setupLabel(mDiffusionLabel, "Global Sound Diffusion");
 
     mDiffusionSlider.setTooltip("Adjuts the spreading range of sources sound");
-    mDiffusionSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    mDiffusionSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     mDiffusionSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
                                          juce::MathConstants<float>::pi * 2.7f,
                                          true);
