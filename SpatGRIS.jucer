@@ -127,6 +127,10 @@
                   file="Source/sg_LayoutComponent.hpp"/>
             <FILE id="HejRjk" name="sg_MinSizedComponent.hpp" compile="0" resource="0"
                   file="Source/sg_MinSizedComponent.hpp"/>
+            <FILE id="FgODKv" name="sg_NumSlider.cpp" compile="1" resource="0"
+                  file="Source/sg_NumSlider.cpp"/>
+            <FILE id="pgASwY" name="sg_NumSlider.hpp" compile="0" resource="0"
+                  file="Source/sg_NumSlider.hpp"/>
             <FILE id="XMwxQU" name="sg_RecordButton.cpp" compile="1" resource="0"
                   file="Source/sg_RecordButton.cpp"/>
             <FILE id="mGRo1q" name="sg_RecordButton.hpp" compile="0" resource="0"
