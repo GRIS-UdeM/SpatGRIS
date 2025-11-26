@@ -88,7 +88,8 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     , mControlPanel(controlPanel)
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(glaf)
-    , mAttenuationValues(getAttenuationValues())
+    , mAttenuationDbSlider(glaf, -48, 0, 1, 0, 0, "dB", "")
+    , mAttenuationHzSlider(glaf, 125, 8000, 1, 0, 8000, "Hz", "")
 {
     auto const initLabel = [&](juce::Label & label,
                                juce::String const & text,
@@ -122,6 +123,14 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
         updateAttenuationState();
         updateLayout();
     };
+    mAttenuationDbSlider.onValueChange = [this] {
+        auto const attenuation{ static_cast<dbfs_t>(mAttenuationDbSlider.getValue()) };
+        mMainContentComponent.cubeAttenuationDbChanged(attenuation);
+    };
+    mAttenuationHzSlider.onValueChange = [this] {
+        auto const freq{ static_cast<hz_t>(mAttenuationHzSlider.getValue()) };
+        mMainContentComponent.cubeAttenuationHzChanged(freq);
+    };
 
     initButton(mDomeButton, spatModeToString(SpatMode::vbap), spatModeToTooltip(SpatMode::vbap));
     initButton(mCubeButton, spatModeToString(SpatMode::mbap), spatModeToTooltip(SpatMode::mbap));
@@ -135,12 +144,6 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     items.addArray(STEREO_MODE_STRINGS);
     mStereoReductionCombo.addItemList(items, 1);
     mStereoReductionCombo.addListener(this);
-
-    mAttenuationDbCombo.addItemList(mAttenuationValues.dbStrings, 1);
-    mAttenuationDbCombo.addListener(this);
-
-    mAttenuationHzCombo.addItemList(mAttenuationValues.hzStrings, 1);
-    mAttenuationHzCombo.addListener(this);
 
     mLeftCombo.addListener(this);
     mRightCombo.addListener(this);
@@ -163,10 +166,16 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     mCol1Layout.addSection(mStereoReductionCombo).withFixedSize(ROW_2_CONTENT_HEIGHT);
 
     static constexpr auto COL_2_HALF_WIDTH = (COL_2_WIDTH - COL_INNER_PADDING) / 2;
-    mAttenuationLayout.addSection(mAttenuationDbCombo)
-        .withFixedSize(COL_2_HALF_WIDTH)
+    mAttenuationLayout.addSection(mAttenuationDbSlider)
+        .withFixedSize(COL_2_HALF_WIDTH - 3)
+        .withVerticalPadding(1)
+        .withLeftPadding(1)
         .withRightPadding(COL_INNER_PADDING);
-    mAttenuationLayout.addSection(mAttenuationHzCombo).withFixedSize(COL_2_HALF_WIDTH);
+    mAttenuationLayout.addSection(mAttenuationHzSlider)
+        .withFixedSize(COL_2_HALF_WIDTH - 3)
+        .withVerticalPadding(1)
+        .withLeftPadding(1)
+        .withRightPadding(COL_INNER_PADDING);
 
     static constexpr auto COL_2_QUARTER_WIDTH = COL_2_HALF_WIDTH / 2;
     static constexpr auto COL_2_SPACER = 15;
@@ -328,8 +337,7 @@ void SpatSettingsSubPanel::setAttenuationDb(dbfs_t const attenuation)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const index{ mAttenuationValues.dbValues.indexOf(attenuation) };
-    mAttenuationDbCombo.setSelectedItemIndex(index, juce::dontSendNotification);
+    mAttenuationDbSlider.setValue(attenuation.get());
 }
 
 //==============================================================================
@@ -337,8 +345,7 @@ void SpatSettingsSubPanel::setAttenuationHz(hz_t const freq)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const index{ mAttenuationValues.hzValues.indexOf(freq) };
-    mAttenuationHzCombo.setSelectedItemIndex(index);
+    mAttenuationHzSlider.setValue(freq.get());
 }
 
 //==============================================================================
@@ -398,13 +405,13 @@ void SpatSettingsSubPanel::updateLayout()
     auto const showRouting{ shouldShowStereoRouting() };
     auto const isAttenuationActive{ mAttenuationSettingsButton.getToggleState() };
 
-    mAttenuationDbCombo.setEnabled(isAttenuationActive);
-    mAttenuationHzCombo.setEnabled(isAttenuationActive);
+    mAttenuationDbSlider.setEnabled(isAttenuationActive);
+    mAttenuationHzSlider.setEnabled(isAttenuationActive);
 
     mAttenuationSettingsLabel.setVisible(showAttenuation);
     mAttenuationSettingsButton.setVisible(showAttenuation);
-    mAttenuationDbCombo.setVisible(showAttenuation);
-    mAttenuationHzCombo.setVisible(showAttenuation);
+    mAttenuationDbSlider.setVisible(showAttenuation);
+    mAttenuationHzSlider.setVisible(showAttenuation);
 
     mStereoRoutingLabel.setVisible(showRouting);
 
@@ -467,22 +474,6 @@ void SpatSettingsSubPanel::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (comboBoxThatHasChanged == &mAttenuationDbCombo) {
-        auto const index{ std::max(mAttenuationDbCombo.getSelectedItemIndex(), 0) };
-        auto const attenuation{ mAttenuationValues.dbValues[index] };
-        mMainContentComponent.cubeAttenuationDbChanged(attenuation);
-
-        return;
-    }
-
-    if (comboBoxThatHasChanged == &mAttenuationHzCombo) {
-        auto const index{ std::max(mAttenuationHzCombo.getSelectedItemIndex(), 0) };
-        auto const freq{ mAttenuationValues.hzValues[index] };
-        mMainContentComponent.cubeAttenuationHzChanged(freq);
-
-        return;
-    }
-
     if (comboBoxThatHasChanged == &mStereoReductionCombo) {
         auto const stereoMode{ getStereoMode() };
         mMainContentComponent.setStereoMode(stereoMode);
@@ -504,24 +495,6 @@ void SpatSettingsSubPanel::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
     }
 
     jassertfalse;
-}
-
-//==============================================================================
-SpatSettingsSubPanel::AttenuationValues SpatSettingsSubPanel::getAttenuationValues()
-{
-    AttenuationValues result{};
-
-    for (auto const & string : ATTENUATION_DB_STRINGS) {
-        result.dbValues.add(dbfs_t{ string.getFloatValue() });
-        result.dbStrings.add(string + " db");
-    }
-
-    for (auto const & string : ATTENUATION_FREQUENCY_STRINGS) {
-        result.hzValues.add(hz_t{ string.getFloatValue() });
-        result.hzStrings.add(string + " Hz");
-    }
-
-    return result;
 }
 
 //==============================================================================

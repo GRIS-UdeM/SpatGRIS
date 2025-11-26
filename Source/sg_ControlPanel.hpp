@@ -22,6 +22,7 @@
 #include "Data/sg_LogicStrucs.hpp"
 #include "Data/sg_constants.hpp"
 #include "sg_GeneralMuteButton.hpp"
+#include "sg_NumSlider.hpp"
 #include "sg_LayoutComponent.hpp"
 #include "sg_RecordButton.hpp"
 #include "sg_SpatSlider.hpp"
@@ -74,18 +75,9 @@ class SpatSettingsSubPanel final
     , juce::ComboBox::Listener
     , juce::TextButton::Listener
 {
-    struct AttenuationValues {
-        juce::Array<dbfs_t> dbValues{};
-        juce::StringArray dbStrings{};
-        juce::Array<hz_t> hzValues{};
-        juce::StringArray hzStrings{};
-    };
-
     ControlPanel & mControlPanel;
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
-
-    AttenuationValues mAttenuationValues{};
 
     LayoutComponent mCol1Layout{ LayoutComponent::Orientation::vertical, false, false, mLookAndFeel };
     LayoutComponent mAlgorithmButtonsLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
@@ -110,8 +102,8 @@ class SpatSettingsSubPanel final
     juce::Label mMulticoreLabel{};
     const std::string multicoreLabelName{"multicore label"};
 
-    juce::ComboBox mAttenuationDbCombo{};
-    juce::ComboBox mAttenuationHzCombo{};
+    NumSlider mAttenuationDbSlider;
+    NumSlider mAttenuationHzSlider;
 
     juce::Label mStereoReductionLabel{};
     juce::Label mStereoRoutingLabel{};
@@ -172,8 +164,6 @@ private:
     //==============================================================================
     void buttonClicked(juce::Button * button) override;
     void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
-    //==============================================================================
-    static AttenuationValues getAttenuationValues();
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpatSettingsSubPanel)
 };
