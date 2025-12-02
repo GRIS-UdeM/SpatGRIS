@@ -1380,7 +1380,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.addDefaultKeypress('V', juce::ModifierKeys::altModifier);
         return;
     case CommandId::keepSpeakerViewOnTopId:
-        result.setInfo("Keep Speaker View On Top",
+        result.setInfo("Keep SpeakerView on Top",
                        "Keep the speaker window on top of other windows when SpatGris has focus.",
                        generalCategory,
                        0);
