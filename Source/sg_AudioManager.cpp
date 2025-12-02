@@ -134,7 +134,7 @@ void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputC
     }
 
     // do the actual processing
-    mAudioProcessor->processAudio(mInputBuffer, mOutputBuffer, mStereoOutputBuffer);
+    mAudioProcessor->processAudio(mInputBuffer, mOutputBuffer, mStereoOutputBuffer, mSampleRate);
 
     // copy buffers to output
     if (mStereoRouting) {
@@ -789,9 +789,11 @@ void AudioManager::audioDeviceError(juce::String const & /*errorMessage*/)
 }
 
 //==============================================================================
-void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * /*device*/)
+void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * device)
 {
     // when AudioProcessor will be a real AudioSource, prepareToPlay() should be called here.
+
+    mSampleRate = device->getCurrentSampleRate();
 }
 
 //==============================================================================

@@ -196,6 +196,7 @@ public:
     void setSpeakerSetupDiffusion(float diffusion);
 
     void setPinkNoiseGain(tl::optional<dbfs_t> gain);
+    void setPinkNoiseType(bool isPulsed);
 
     void setSourceColor(source_index_t sourceIndex, juce::Colour colour) override;
     void setSourceState(source_index_t sourceIndex, SliceState state) override;

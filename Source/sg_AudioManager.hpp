@@ -176,6 +176,7 @@ private:
                                           double requestedSampleRate,
                                           int requestedBufferSize);
     //==============================================================================
+    double mSampleRate{};
 
     JUCE_LEAK_DETECTOR(AudioManager)
 }; // class AudioManager

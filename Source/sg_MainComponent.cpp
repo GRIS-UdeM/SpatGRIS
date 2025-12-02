@@ -481,10 +481,9 @@ void MainContentComponent::handleOpenProject()
     juce::ScopedWriteLock const lock{ mLock };
 
     juce::File const & lastProject{ mData.appData.lastProject };
-    juce::File const initialPath{ lastProject.isAChildOf(CURRENT_WORKING_DIR)
-                                      ? juce::File::getSpecialLocation(
-                                            juce::File::SpecialLocationType::userDocumentsDirectory)
-                                      : lastProject };
+    juce::File const initialPath{ lastProject.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
+                                      juce::File::SpecialLocationType::userDocumentsDirectory)
+                                                                              : lastProject };
 
     juce::FileChooser fc{ "Choose a file to open...", initialPath, "*.xml", true, false, this };
 
@@ -524,10 +523,9 @@ void MainContentComponent::handleOpenSpeakerSetup()
 
     juce::File const lastSetup{ mData.appData.lastSpeakerSetup };
 
-    auto const initialFile{ lastSetup.isAChildOf(CURRENT_WORKING_DIR)
-                                ? juce::File::getSpecialLocation(
-                                      juce::File::SpecialLocationType::userDocumentsDirectory)
-                                : lastSetup };
+    auto const initialFile{ lastSetup.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
+                                juce::File::SpecialLocationType::userDocumentsDirectory)
+                                                                      : lastSetup };
 
     juce::FileChooser fc{ "Choose a file to open...", initialFile, "*.xml", true };
 
@@ -951,7 +949,8 @@ void MainContentComponent::setMulticoreDSPState(const bool state)
     refreshSpatAlgorithm();
 }
 
-void MainContentComponent::setMulticoreDSPPreset(int preset) {
+void MainContentComponent::setMulticoreDSPPreset(int preset)
+{
     mData.project.multicoreDSPPreset = preset;
     // no need to refresh the spat algorithm for this. It only sets worker thread waiting policy.
     SpinSleepWait::setPerformancePreset(preset);
@@ -2290,6 +2289,16 @@ void MainContentComponent::setPinkNoiseGain(tl::optional<dbfs_t> const gain)
     }
 
     mData.pinkNoiseLevel = gain;
+    refreshAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::setPinkNoiseType(bool isPulsed)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.pinkNoisePulsed = isPulsed;
     refreshAudioProcessor();
 }
 

@@ -26,7 +26,6 @@
 #include "Data/sg_constants.hpp"
 #include "sg_AudioManager.hpp"
 #include "sg_MainComponent.hpp"
-#include "sg_PinkNoiseGenerator.hpp"
 
 #include <array>
 
@@ -106,12 +105,18 @@ void AudioProcessor::processOutputModifiersAndPeaks(SpeakerAudioBuffer & speaker
 //==============================================================================
 void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
                                   SpeakerAudioBuffer & speakerBuffer,
-                                  juce::AudioBuffer<float> & stereoBuffer) noexcept NONBLOCKING
+                                  juce::AudioBuffer<float> & stereoBuffer,
+                                  double sampleRate) noexcept NONBLOCKING
 {
     // Skip if the user is editing the speaker setup.
     juce::ScopedTryLock const lock{ mLock };
     if (!lock.isLocked()) {
         return;
+    }
+
+    if (mPulsedNoiseParams.sampleRate != sampleRate && mAudioData.config->pinkNoisePulsed) {
+        mPulsedNoiseParams.sampleRate = sampleRate;
+        mPulsedNoiseParams.phaseIncrement = mPulsedNoiseParams.sawFrequency / mPulsedNoiseParams.sampleRate;
     }
 
     jassert(sourceBuffer.getNumSamples() == speakerBuffer.getNumSamples());
@@ -129,7 +134,12 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
             activeChannels.push_back(channel.key);
         }
         auto data{ speakerBuffer.getArrayOfWritePointers(activeChannels) };
-        fillWithPinkNoise(data.data(), numSamples, narrow<int>(data.size()), *mAudioData.config->pinkNoiseGain);
+        fillWithPinkNoise(data.data(),
+                          numSamples,
+                          narrow<int>(data.size()),
+                          *mAudioData.config->pinkNoiseGain,
+                          mAudioData.config->pinkNoisePulsed,
+                          mPulsedNoiseParams);
     } else {
         // Process spat algorithm
         mSpatAlgorithm->process(*mAudioData.config, sourceBuffer, speakerBuffer, stereoBuffer, sourcePeaks, nullptr);

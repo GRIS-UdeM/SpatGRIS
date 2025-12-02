@@ -22,6 +22,7 @@
 #include "Containers/sg_TaggedAudioBuffer.hpp"
 #include "Data/sg_AudioStructs.hpp"
 #include "sg_AbstractSpatAlgorithm.hpp"
+#include "sg_PinkNoiseGenerator.hpp"
 #include <JuceHeader.h>
 
 namespace gris
@@ -36,6 +37,7 @@ class AudioProcessor
     juce::CriticalSection mLock{};
     std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
     juce::Random mRandomNoise{};
+    PulsedNoiseParams mPulsedNoiseParams{};
 
 public:
     //==============================================================================
@@ -47,7 +49,8 @@ public:
     [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mLock; }
     void processAudio(SourceAudioBuffer & sourceBuffer,
                       SpeakerAudioBuffer & speakerBuffer,
-                      juce::AudioBuffer<float> & stereoBuffer) noexcept;
+                      juce::AudioBuffer<float> & stereoBuffer,
+                      double sampleRate) noexcept;
 
     auto & getAudioData() { return mAudioData; }
     auto const & getAudioData() const { return mAudioData; }

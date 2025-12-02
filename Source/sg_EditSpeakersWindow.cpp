@@ -200,6 +200,14 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mPinkNoiseToggleButton.setLookAndFeel(&mLookAndFeel);
     mViewportWrapper.getContent()->addAndMakeVisible(mPinkNoiseToggleButton);
 
+    mPinkNoiseTypeCombo.setLookAndFeel(&glaf);
+    mPinkNoiseTypeCombo.addItem("Continuous", 1);
+    mPinkNoiseTypeCombo.addItem("Pulsed", 2);
+    mPinkNoiseTypeCombo.setSelectedId(1);
+    mPinkNoiseTypeCombo.onChange
+        = [this] { mMainContentComponent.setPinkNoiseType(mPinkNoiseTypeCombo.getSelectedId() == 2); };
+    mViewportWrapper.getContent()->addAndMakeVisible(mPinkNoiseTypeCombo);
+
     mPinkNoiseGainSlider.setTextValueSuffix(" dB");
     mPinkNoiseGainSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     mPinkNoiseGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
@@ -865,11 +873,14 @@ void EditSpeakersWindow::resized()
     // "Fifth" row with pink noise, diffusion and the save buttons.
     // This row needs to be placed a bit lower due to the height of the knobs.
     auto const sliderHeight{ 60 };
-    mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, rowH);
+    mPinkNoiseToggleButton.setBounds(5, getHeight() - 79, 150, rowH);
+    mPinkNoiseTypeCombo.setBounds(mPinkNoiseToggleButton.getX() + 21,
+                                  mPinkNoiseToggleButton.getY() + 20,
+                                  mPinkNoiseToggleButton.getWidth() - 31,
+                                  rowH);
     mPinkNoiseGainSlider.setBounds(170, getHeight() - 95, 60, sliderHeight);
     mDiffusionLabel.setBounds(260, getHeight() - 70, 160, rowH);
     mDiffusionSlider.setBounds(260 + 165, getHeight() - 95, 60, sliderHeight);
-    mPinkNoiseToggleButton.setBounds(5, getHeight() - 70, 150, rowH);
 
     // save buttons. the getHeight() - 57 are there to match the position of the buttons
     // to the middle of the two ToggleButtons on the same line.

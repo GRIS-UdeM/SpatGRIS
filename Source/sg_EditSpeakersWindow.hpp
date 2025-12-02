@@ -165,6 +165,7 @@ private:
     void clampGridWH(juce::TextEditor & textEditor);
 
     juce::ToggleButton mPinkNoiseToggleButton;
+    juce::ComboBox mPinkNoiseTypeCombo;
     juce::Slider mPinkNoiseGainSlider;
 
     juce::Label mDiffusionLabel;
