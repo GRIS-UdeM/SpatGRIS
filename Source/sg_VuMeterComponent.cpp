@@ -111,7 +111,7 @@ void VuMeterComponent::paint(juce::Graphics & g)
     g.drawImage(mVuMeterBit, 0, h, width, rel, 0, h, width, rel);
     g.drawImage(mVuMeterBackBit, 0, 0, width, h, 0, 0, width, h);
     if (mIsClipping) {
-        g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1));
+        g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1.0f));
         juce::Rectangle<float> const clipRect{ 0.5, 0.5, narrow<float>(height - 1), 5 };
         g.fillRect(clipRect);
     }

@@ -1253,7 +1253,7 @@ void MainContentComponent::handleColorizeInputs()
     float hue{};
     auto const inc{ 1.0f / static_cast<float>(mData.project.sources.size() + 1) };
     for (auto const & source : mData.project.sources) {
-        auto const colour{ juce::Colour::fromHSV(hue, 1, 0.75, 1) };
+        auto const colour{ juce::Colour::fromHSV(hue, 1, 0.75, 1.0f) };
         source.value->colour = colour;
         mSourceSliceComponents[source.key].setSourceColour(colour);
         hue += inc;

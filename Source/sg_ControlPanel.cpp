@@ -124,11 +124,11 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
         updateLayout();
     };
     mAttenuationDbSlider.onValueChange = [this] {
-        auto const attenuation{ static_cast<dbfs_t>(mAttenuationDbSlider.getValue()) };
+        auto const attenuation{ static_cast<dbfs_t>(static_cast<float>(mAttenuationDbSlider.getValue())) };
         mMainContentComponent.cubeAttenuationDbChanged(attenuation);
     };
     mAttenuationHzSlider.onValueChange = [this] {
-        auto const freq{ static_cast<hz_t>(mAttenuationHzSlider.getValue()) };
+        auto const freq{ static_cast<hz_t>(static_cast<float>(mAttenuationHzSlider.getValue())) };
         mMainContentComponent.cubeAttenuationHzChanged(freq);
     };
 
