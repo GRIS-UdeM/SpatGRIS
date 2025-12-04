@@ -413,6 +413,7 @@
         <MODULEPATH id="juce_audio_utils" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="NHix3D"
@@ -440,6 +441,7 @@
         <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="NHix3D">
@@ -464,6 +466,7 @@
         <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
   </EXPORTFORMATS>
@@ -472,6 +475,8 @@
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="0"/>
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
