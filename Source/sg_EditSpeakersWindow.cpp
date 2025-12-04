@@ -1006,10 +1006,12 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
 
                 vt.removeProperty(NEXT_SPEAKER_PATCH_ID, nullptr);
             }
-        } else if (property != SPEAKER_PATCH_ID && property != NEXT_SPEAKER_PATCH_ID) {
+        } else if (property != SPEAKER_PATCH_ID && property != NEXT_SPEAKER_PATCH_ID && property != IO_STATE) {
             // unhandled property
             jassertfalse;
         }
+    } else if (property == DIFFUSION) {
+        mMainContentComponent.setSpeakerSetupDiffusion(newVal);
     } else if (property != SPAT_MODE) {
         // unhandled property
         jassertfalse;

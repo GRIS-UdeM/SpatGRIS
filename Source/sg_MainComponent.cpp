@@ -935,7 +935,7 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
 
     // Speaker setup must be Dome or Cube, never Hybrid
     mData.speakerSetup.spatMode = newSpatMode == SpatMode::mbap ? SpatMode::mbap : SpatMode::vbap;
-    if (!mIsLoadingSpeakerSetupOrProjectFile)
+    if (!mIsLoadingSpeakerSetupOrProjectFile || mData.speakerSetup.speakerSetupValueTree.hasProperty(SPAT_MODE))
         mData.speakerSetup.speakerSetupValueTree.setProperty(SPAT_MODE, spatModeToString(spatMode), nullptr);
     mData.project.spatMode = newSpatMode;
     mControlPanel->setSpatMode(newSpatMode);
@@ -1070,6 +1070,8 @@ void MainContentComponent::generalMuteButtonPressed()
         mData.speakerSetup.speakers[outputPatch].state = newSliceState;
     }
     mData.speakerSetup.generalMute = generalMute;
+    mData.speakerSetup.speakerSetupValueTree.setProperty(GENERAL_MUTE, generalMute, nullptr);
+    updateSpeakerSetupValueTree();
 
     refreshAudioProcessor();
     refreshSpeakerSlices();
@@ -2276,6 +2278,7 @@ int MainContentComponent::getOscPort() const
 void MainContentComponent::setSpeakerSetupDiffusion(float diffusion)
 {
     mData.speakerSetup.diffusion = diffusion;
+    mData.speakerSetup.speakerSetupValueTree.setProperty(DIFFUSION, diffusion, nullptr);
 }
 
 //==============================================================================
@@ -2369,6 +2372,7 @@ void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, Sli
     juce::ScopedWriteLock const lock{ mLock };
 
     mData.speakerSetup.speakers[outputPatch].state = state;
+    updateSpeakerSetupValueTree();
 
     refreshAudioProcessor();
     refreshSpeakerSlices();
@@ -2578,12 +2582,41 @@ output_patch_t MainContentComponent::getNextSpeakerOutputPatch() const
     return nextFreePatch;
 }
 
+//==============================================================================
 int MainContentComponent::getNumSpeakerOutputPatch() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
     return mData.speakerSetup.ordering.size();
+}
+
+//==============================================================================
+void MainContentComponent::updateSpeakerSetupValueTree()
+{
+    auto const mainGroup{ mData.speakerSetup.speakerSetupValueTree.getChild(0) };
+    jassert(mainGroup.getType() == SPEAKER_GROUP);
+
+    for (auto child : mainGroup) {
+        if (child.getType() == SPEAKER_GROUP) {
+            for (auto subChild : child) {
+                if (subChild.hasProperty(IO_STATE)) {
+                    const auto id{ output_patch_t(subChild[SPEAKER_PATCH_ID]) };
+                    const auto ioState{ mData.speakerSetup.speakers[id].state };
+                    subChild.setProperty(IO_STATE, sliceStateToString(ioState), nullptr);
+                }
+            }
+        } else if (child.getType() == SPEAKER) {
+            if (child.hasProperty(IO_STATE)) {
+                const auto id{ output_patch_t(child[SPEAKER_PATCH_ID]) };
+                const auto ioState{ mData.speakerSetup.speakers[id].state };
+                child.setProperty(IO_STATE, sliceStateToString(ioState), nullptr);
+            }
+        } else {
+            jassertfalse;
+            return;
+        }
+    }
 }
 
 //==============================================================================

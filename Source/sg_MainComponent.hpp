@@ -260,6 +260,7 @@ public:
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
 
+    void updateSpeakerSetupValueTree();
     void requestSpeakerRefresh()
     {
         if (mSpeakersRefreshAsyncUpdater)
