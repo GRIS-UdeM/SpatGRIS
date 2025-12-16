@@ -197,12 +197,16 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     mCol2Layout.addSection(mAttenuationSettingsButton).withFixedSize(LABEL_HEIGHT);
     mCol2Layout.addSection(mAttenuationLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
 
+#if MULTICORE_DSP
     mTopLeftComponentSwapper.addComponent(multicoreLabelName, juce::Component::SafePointer<juce::Component>(&mMulticoreLabel));
+#endif
     mTopLeftComponentSwapper.addComponent(stereoRoutingLabelName, juce::Component::SafePointer<juce::Component>(&mStereoRoutingLabel));
 
     mCol2Layout.addSection(mTopLeftComponentSwapper).withFixedSize(LABEL_HEIGHT);
 
+#if MULTICORE_DSP
     mBottomLeftComponentSwapper.addComponent(multicoreLayoutName, juce::Component::SafePointer<juce::Component>(&mMulticoreLayout));
+#endif
     mBottomLeftComponentSwapper.addComponent(stereoRoutingLayoutName,juce::Component::SafePointer<juce::Component>(&mStereoRoutingLayout));
     addAndMakeVisible(mBottomLeftComponentSwapper);
 
