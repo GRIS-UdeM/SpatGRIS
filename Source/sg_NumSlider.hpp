@@ -32,7 +32,14 @@ class NumSlider
 {
 public:
     //==============================================================================
-    NumSlider(GrisLookAndFeel & grisLookAndFeel, float minVal = 0.0f, float maxVal = 1.0f, float inc = 0.001f, int numDec = 3, float defaultReturnValue = 0.0f, juce::String const & suffix = "", juce::String const & tooltip = "");
+    NumSlider(GrisLookAndFeel & grisLookAndFeel,
+              float minVal = 0.0f,
+              float maxVal = 1.0f,
+              float inc = 0.001f,
+              int numDec = 3,
+              float defaultReturnValue = 0.0f,
+              juce::String const & suffix = "",
+              juce::String const & tooltip = "");
 
     void mouseWheelMove(const juce::MouseEvent & event, const juce::MouseWheelDetails & wheel) override;
     void paint(juce::Graphics & g) override;

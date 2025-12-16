@@ -22,8 +22,8 @@
 #include "Data/sg_LogicStrucs.hpp"
 #include "Data/sg_constants.hpp"
 #include "sg_GeneralMuteButton.hpp"
-#include "sg_NumSlider.hpp"
 #include "sg_LayoutComponent.hpp"
+#include "sg_NumSlider.hpp"
 #include "sg_RecordButton.hpp"
 #include "sg_SpatSlider.hpp"
 #include "sg_SubPanelComponent.hpp"
@@ -88,8 +88,7 @@ class SpatSettingsSubPanel final
     const std::string stereoRoutingLayoutName{ "stereo routing layout" };
 
     LayoutComponent mMulticoreLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
-    const std::string multicoreLayoutName{"multicore routing layout"};
-
+    const std::string multicoreLayoutName{ "multicore routing layout" };
 
     juce::Label mAlgorithmSelectionLabel{};
     juce::Label mAttenuationSettingsLabel{};
@@ -100,14 +99,14 @@ class SpatSettingsSubPanel final
     juce::TextButton mHybridButton{};
 
     juce::Label mMulticoreLabel{};
-    const std::string multicoreLabelName{"multicore label"};
+    const std::string multicoreLabelName{ "multicore label" };
 
     NumSlider mAttenuationDbSlider;
     NumSlider mAttenuationHzSlider;
 
     juce::Label mStereoReductionLabel{};
     juce::Label mStereoRoutingLabel{};
-    const std::string stereoRoutingLabelName{"stereo routing label"};
+    const std::string stereoRoutingLabelName{ "stereo routing label" };
 
     juce::ComboBox mStereoReductionCombo{};
     juce::TextButton mMulticoreDSPToggle{};
@@ -121,7 +120,6 @@ class SpatSettingsSubPanel final
      * Used to swap between the multicore DSP label and the stereo routing label.
      */
     SwappableComponent mTopLeftComponentSwapper{};
-
 
     juce::Label mLeftLabel{};
     juce::ComboBox mLeftCombo{};

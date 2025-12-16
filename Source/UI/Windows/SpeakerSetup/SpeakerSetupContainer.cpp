@@ -15,9 +15,9 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <functional>
 #include "SpeakerSetupContainer.hpp"
 #include "SpeakerTreeComponent.hpp"
+#include <functional>
 
 namespace gris
 {
@@ -26,53 +26,57 @@ SpeakerSetupContainer::SpeakerSetupContainer(const juce::File & speakerSetupXmlF
                                              juce::ValueTree theSpeakerSetupVt,
                                              juce::UndoManager & undoMan,
                                              std::function<void()> selectionChanged)
-    : speakerSetupFileName { speakerSetupXmlFile.getFileName()}
-    , speakerSetupVt (theSpeakerSetupVt)
-    , containerHeader{grisLookAndFeel}
-    , undoManager (undoMan)
-    , onSelectionChanged (selectionChanged)
+    : speakerSetupFileName{ speakerSetupXmlFile.getFileName() }
+    , speakerSetupVt(theSpeakerSetupVt)
+    , containerHeader{ grisLookAndFeel }
+    , undoManager(undoMan)
+    , onSelectionChanged(selectionChanged)
 {
     speakerSetupTreeView.setRootItemVisible(false);
-    addAndMakeVisible (speakerSetupTreeView);
+    addAndMakeVisible(speakerSetupTreeView);
 
-    speakerSetupTreeView.setTitle (speakerSetupFileName);
-    speakerSetupTreeView.setDefaultOpenness (true);
-    speakerSetupTreeView.setMultiSelectEnabled (true);
+    speakerSetupTreeView.setTitle(speakerSetupFileName);
+    speakerSetupTreeView.setDefaultOpenness(true);
+    speakerSetupTreeView.setMultiSelectEnabled(true);
 
-    mainSpeakerGroupLine = std::make_unique<SpeakerSetupLine> (speakerSetupVt.getChild(0), undoManager, onSelectionChanged);
-    speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
+    mainSpeakerGroupLine
+        = std::make_unique<SpeakerSetupLine>(speakerSetupVt.getChild(0), undoManager, onSelectionChanged);
+    speakerSetupTreeView.setRootItem(mainSpeakerGroupLine.get());
 
-    addAndMakeVisible (undoButton);
-    addAndMakeVisible (redoButton);
+    addAndMakeVisible(undoButton);
+    addAndMakeVisible(redoButton);
 
     addAndMakeVisible(containerHeader);
-    containerHeader.setSortFunc([this](SpeakerColumnHeader::ColumnID sortID, int sortDirection) { mainSpeakerGroupLine->sort ({}, sortID, sortDirection); });
+    containerHeader.setSortFunc([this](SpeakerColumnHeader::ColumnID sortID, int sortDirection) {
+        mainSpeakerGroupLine->sort({}, sortID, sortDirection);
+    });
 
-    undoButton.onClick = [this] { undoManager.undo (); };
-    redoButton.onClick = [this] { undoManager.redo (); };
+    undoButton.onClick = [this] { undoManager.undo(); };
+    redoButton.onClick = [this] { undoManager.redo(); };
 
-    startTimer (500);
+    startTimer(500);
 
-    setSize (800, 800);
+    setSize(800, 800);
 }
 
 void SpeakerSetupContainer::reload(juce::ValueTree theSpeakerSetupVt)
 {
     // Note: we also have logic in SpeakerSetupLine::refreshSubItems() to restore the openness of our tree.
-    // It would seem like only one of those would be enough but currently both are required to restore the state properly
+    // It would seem like only one of those would be enough but currently both are required to restore the state
+    // properly
 
     // cache the current node openness and scroll position
     const auto cachedOpenness = speakerSetupTreeView.getOpennessState(true);
 
     // rebuild everything
     speakerSetupVt = theSpeakerSetupVt;
-    speakerSetupTreeView.setRootItem (nullptr);
-    mainSpeakerGroupLine.reset(new SpeakerSetupLine (speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
-    speakerSetupTreeView.setRootItem (mainSpeakerGroupLine.get ());
+    speakerSetupTreeView.setRootItem(nullptr);
+    mainSpeakerGroupLine.reset(new SpeakerSetupLine(speakerSetupVt.getChild(0), undoManager, onSelectionChanged));
+    speakerSetupTreeView.setRootItem(mainSpeakerGroupLine.get());
     speakerSetupTreeView.restoreOpennessState(*cachedOpenness, true);
 
     // try to match and restore the previous scroll position
-    auto& viewport = speakerSetupTreeView.getViewport()->getVerticalScrollBar();
+    auto & viewport = speakerSetupTreeView.getViewport()->getVerticalScrollBar();
     const auto maxRangeLimit = viewport.getMaximumRangeLimit();
     const auto currentRangeSize = viewport.getCurrentRangeSize();
     const auto maxScrollValue = maxRangeLimit - currentRangeSize;
@@ -102,54 +106,51 @@ void SpeakerSetupContainer::resized()
     speakerSetupTreeView.setBounds(bounds);
 }
 
-void SpeakerSetupContainer::deleteSelectedItems ()
+void SpeakerSetupContainer::deleteSelectedItems()
 {
     juce::OwnedArray<juce::ValueTree> selectedItems;
-    SpeakerSetupLine::getSelectedTreeViewItems (speakerSetupTreeView, selectedItems);
+    SpeakerSetupLine::getSelectedTreeViewItems(speakerSetupTreeView, selectedItems);
 
-    for (auto* v : selectedItems)
-    {
-        if (v->getParent ().isValid ())
-            v->getParent ().removeChild (*v, &undoManager);
+    for (auto * v : selectedItems) {
+        if (v->getParent().isValid())
+            v->getParent().removeChild(*v, &undoManager);
     }
 }
 
-bool SpeakerSetupContainer::keyPressed (const juce::KeyPress& key)
+bool SpeakerSetupContainer::keyPressed(const juce::KeyPress & key)
 {
-    if (key == juce::KeyPress::deleteKey || key == juce::KeyPress::backspaceKey)
-    {
-        deleteSelectedItems ();
+    if (key == juce::KeyPress::deleteKey || key == juce::KeyPress::backspaceKey) {
+        deleteSelectedItems();
         return true;
     }
 
-    if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier, 0))
-    {
-        undoManager.undo ();
+    if (key == juce::KeyPress('z', juce::ModifierKeys::commandModifier, 0)) {
+        undoManager.undo();
         return true;
     }
 
-    if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier, 0))
-    {
-        undoManager.redo ();
+    if (key == juce::KeyPress('z', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier, 0)) {
+        undoManager.redo();
         return true;
     }
 
-    return Component::keyPressed (key);
+    return Component::keyPressed(key);
 }
 
-const juce::ValueTree& SpeakerSetupContainer::getSpeakerSetupVt() {
+const juce::ValueTree & SpeakerSetupContainer::getSpeakerSetupVt()
+{
     return speakerSetupVt;
 }
 
 juce::ValueTree SpeakerSetupContainer::getSelectedItem()
 {
-    //if we have a selection, return the last selected item. Otherwise return the last overall item
+    // if we have a selection, return the last selected item. Otherwise return the last overall item
     if (speakerSetupTreeView.getNumSelectedItems()) {
         if (auto const selected = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getSelectedItem(0)))
             return selected->getValueTree();
     } else {
         auto const numLines = speakerSetupTreeView.getNumRowsInTree();
-        if (auto const last = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getItemOnRow(numLines-1)))
+        if (auto const last = dynamic_cast<SpeakerSetupLine *>(speakerSetupTreeView.getItemOnRow(numLines - 1)))
             return last->getValueTree();
     }
 
@@ -169,41 +170,45 @@ juce::Array<output_patch_t> SpeakerSetupContainer::getSelectedSpeakers()
     return selectedOutputPatches;
 }
 
-void SpeakerSetupContainer::selectSpeaker (tl::optional<output_patch_t> const outputPatch)
+void SpeakerSetupContainer::selectSpeaker(tl::optional<output_patch_t> const outputPatch)
 {
     mainSpeakerGroupLine->selectChildSpeaker(outputPatch);
 }
 
-std::pair<juce::ValueTree, int> SpeakerSetupContainer::getParentAndIndexOfSelectedItem ()
+std::pair<juce::ValueTree, int> SpeakerSetupContainer::getParentAndIndexOfSelectedItem()
 {
-    auto const vtRow = getSelectedItem ();
-    auto parent = vtRow.getParent ();
-    return { parent, parent.indexOf (vtRow) };
+    auto const vtRow = getSelectedItem();
+    auto parent = vtRow.getParent();
+    return { parent, parent.indexOf(vtRow) };
 }
 
 int SpeakerSetupContainer::getNextOrderingIndex()
 {
     auto targetRow = getSelectedItem();
 
-    int index {0};
+    int index{ 0 };
     bool found = false;
-    std::function<void(const juce::ValueTree&, bool)> recurUntilTargetFound;
-    recurUntilTargetFound = [&targetRow, &recurUntilTargetFound, &index, &found](const juce::ValueTree& valueTree, bool countChildren) {
+    std::function<void(const juce::ValueTree &, bool)> recurUntilTargetFound;
+    recurUntilTargetFound = [&targetRow, &recurUntilTargetFound, &index, &found](const juce::ValueTree & valueTree,
+                                                                                 bool countChildren) {
         if (found) {
             return;
         }
-        // if we get to the right tree, set found to true and increment the index one last time. All other calls will immediately return.
+        // if we get to the right tree, set found to true and increment the index one last time. All other calls will
+        // immediately return.
         if (targetRow == valueTree) {
             found = true;
         }
-        if ((valueTree.getType() == SPEAKER_GROUP && valueTree[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME) || valueTree.getType() == SPEAKER_SETUP) {
-            for (auto child: valueTree) {
+        if ((valueTree.getType() == SPEAKER_GROUP && valueTree[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME)
+            || valueTree.getType() == SPEAKER_SETUP) {
+            for (auto child : valueTree) {
                 recurUntilTargetFound(child, true);
             }
         } else if (valueTree.getType() == SPEAKER_GROUP && valueTree[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME) {
-            // since we can only have speakers in this level of grouping, add the indexes all at once but still recure over everything in case the selected speaker is inside.
+            // since we can only have speakers in this level of grouping, add the indexes all at once but still recure
+            // over everything in case the selected speaker is inside.
             index += valueTree.getNumChildren();
-            for (auto child: valueTree) {
+            for (auto child : valueTree) {
                 // recurse over all children but don't count them.
                 recurUntilTargetFound(child, false);
             }
@@ -222,10 +227,12 @@ int SpeakerSetupContainer::getNextOrderingIndex()
 int SpeakerSetupContainer::getMainGroupIndexFromOrderingIndex(const int targetOrderingIndex)
 {
     auto vtRow = getMainSpeakerGroup();
-    int mainGroupIndex{0};
-    int currentOrderingIndex{0};
-    std::function<void(const juce::ValueTree&, bool)> getMainGroupIndex;
-    getMainGroupIndex = [&getMainGroupIndex, &currentOrderingIndex, &mainGroupIndex, &targetOrderingIndex](const juce::ValueTree& valueTree, bool isInSubGroup) {
+    int mainGroupIndex{ 0 };
+    int currentOrderingIndex{ 0 };
+    std::function<void(const juce::ValueTree &, bool)> getMainGroupIndex;
+    getMainGroupIndex = [&getMainGroupIndex, &currentOrderingIndex, &mainGroupIndex, &targetOrderingIndex](
+                            const juce::ValueTree & valueTree,
+                            bool isInSubGroup) {
         // When our currentOrderingIndex is targetOrderingIndex, we can stop everything.
         // we can just return since nothing in this function increments anything after a
         // recursive call (please keep it that way).
@@ -234,20 +241,22 @@ int SpeakerSetupContainer::getMainGroupIndexFromOrderingIndex(const int targetOr
         }
         if (valueTree.getType() == SPEAKER_GROUP && valueTree[SPEAKER_GROUP_NAME] != MAIN_SPEAKER_GROUP_NAME) {
             // groups take one space in the main group.
-            mainGroupIndex +=1;
-            for (auto child: valueTree) {
-                // when we are in a speaker group, indicate to the recursive function that we are in a subgroup so we don't increment the mainGroupIndex
-                // but do increment the currentOrderingIndex
+            mainGroupIndex += 1;
+            for (auto child : valueTree) {
+                // when we are in a speaker group, indicate to the recursive function that we are in a subgroup so we
+                // don't increment the mainGroupIndex but do increment the currentOrderingIndex
                 getMainGroupIndex(child, true);
             }
-        } else if (valueTree.getType() == SPEAKER_SETUP || (valueTree.getType() == SPEAKER_GROUP && valueTree[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME)) {
-            for (auto child: valueTree)
+        } else if (valueTree.getType() == SPEAKER_SETUP
+                   || (valueTree.getType() == SPEAKER_GROUP
+                       && valueTree[SPEAKER_GROUP_NAME] == MAIN_SPEAKER_GROUP_NAME)) {
+            for (auto child : valueTree)
                 // if we are the root speaker setup group or the main speaker group, just process all child.
                 getMainGroupIndex(child, false);
         } else {
             if (!isInSubGroup) {
                 // Increment the ordering index when its a speaker and its not in a subgroup.
-                mainGroupIndex +=1;
+                mainGroupIndex += 1;
             }
             // Only increment the ordering index when its a speaker
             currentOrderingIndex += 1;
@@ -262,12 +271,12 @@ juce::ValueTree SpeakerSetupContainer::getMainSpeakerGroup()
     return speakerSetupVt.getChild(0);
 }
 
-void SpeakerSetupContainer::timerCallback ()
+void SpeakerSetupContainer::timerCallback()
 {
-    undoManager.beginNewTransaction ();
+    undoManager.beginNewTransaction();
 
-    undoButton.setEnabled (undoManager.canUndo ());
-    redoButton.setEnabled (undoManager.canRedo ());
+    undoButton.setEnabled(undoManager.canUndo());
+    redoButton.setEnabled(undoManager.canRedo());
 }
 
 } // namespace gris

@@ -37,7 +37,8 @@ void SpeakerColumnHeader::paint(juce::Graphics & g)
     g.fillPath(sortTriangle);
 }
 
-void SpeakerColumnHeader::mouseUp (const juce::MouseEvent &) {
+void SpeakerColumnHeader::mouseUp(const juce::MouseEvent &)
+{
     // Basically state transition (and repaint) + sort callback for the parent.
     switch (sortState) {
     case SortState::none:
@@ -73,7 +74,7 @@ SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel & glaf)
         addAndMakeVisible(label);
     };
 
-    auto disableOtherHeaders = [this](const SpeakerColumnHeader* clickedHeader) {
+    auto disableOtherHeaders = [this](const SpeakerColumnHeader * clickedHeader) {
         for (const auto header : { &id, &x, &y, &z, &azim, &elev, &distance }) {
             if (clickedHeader != header) {
                 header->setState(SpeakerColumnHeader::SortState::none);
@@ -93,21 +94,21 @@ SpeakerSetupContainerHeader::SpeakerSetupContainerHeader(GrisLookAndFeel & glaf)
         };
     };
 
-    setHeaderText (id, "ID");
-    constexpr auto realIdWidth = SpeakerTreeComponent::fixedLeftColWidth-28;
+    setHeaderText(id, "ID");
+    constexpr auto realIdWidth = SpeakerTreeComponent::fixedLeftColWidth - 28;
     id.width = realIdWidth;
     id.arrowColor = grisLookAndFeel.mOnColor;
     id.setSortCallback(makeSortFunction(SpeakerColumnHeader::ColumnID::ID));
-    setHeaderText (x, "X");
-    setHeaderText (y, "Y");
-    setHeaderText (z, "Z");
-    setHeaderText (azim, "Azimuth");
-    setHeaderText (elev, "Elevation");
-    setHeaderText (distance, "Distance");
-    setHeaderText (gain, "Gain");
-    setHeaderText (highpass, "Highpass");
-    setHeaderText (direct, "Direct");
-    setHeaderText (del, "Delete");
+    setHeaderText(x, "X");
+    setHeaderText(y, "Y");
+    setHeaderText(z, "Z");
+    setHeaderText(azim, "Azimuth");
+    setHeaderText(elev, "Elevation");
+    setHeaderText(distance, "Distance");
+    setHeaderText(gain, "Gain");
+    setHeaderText(highpass, "Highpass");
+    setHeaderText(direct, "Direct");
+    setHeaderText(del, "Delete");
 
     constexpr std::array<SpeakerColumnHeader::ColumnID, 8> headerKeys = {
         SpeakerColumnHeader::ColumnID::X,         SpeakerColumnHeader::ColumnID::Y,

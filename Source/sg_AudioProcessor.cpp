@@ -116,7 +116,8 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
 
     if (mPulsedNoiseParams.sampleRate != sampleRate && mAudioData.config->pinkNoisePulsed) {
         mPulsedNoiseParams.sampleRate = sampleRate;
-        mPulsedNoiseParams.phaseIncrement = static_cast<float>(mPulsedNoiseParams.sawFrequency / mPulsedNoiseParams.sampleRate);
+        mPulsedNoiseParams.phaseIncrement
+            = static_cast<float>(mPulsedNoiseParams.sawFrequency / mPulsedNoiseParams.sampleRate);
     }
 
     jassert(sourceBuffer.getNumSamples() == speakerBuffer.getNumSamples());

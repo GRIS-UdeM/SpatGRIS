@@ -24,7 +24,15 @@ namespace gris
 {
 
 //==============================================================================
-NumSlider::NumSlider(GrisLookAndFeel & grisLookAndFeel, float minVal, float maxVal, float inc, int numDec, float defaultReturnValue, juce::String const & suffix, juce::String const & tooltip) : mGrisLookAndFeel(grisLookAndFeel)
+NumSlider::NumSlider(GrisLookAndFeel & grisLookAndFeel,
+                     float minVal,
+                     float maxVal,
+                     float inc,
+                     int numDec,
+                     float defaultReturnValue,
+                     juce::String const & suffix,
+                     juce::String const & tooltip)
+    : mGrisLookAndFeel(grisLookAndFeel)
 {
     setLookAndFeel(&grisLookAndFeel);
     setTitle("NumSlider");
@@ -82,7 +90,7 @@ void NumSlider::paint(juce::Graphics & g)
         double xLimitProportion{};
         const auto rangeLength{ rangeVals.getLength() };
         const auto rangeEnd{ rangeVals.getEnd() };
-        
+
         if (rangeStart < 0 && rangeEnd > 0) {
             xLimitProportion = (val + rangeLength / 2) / rangeLength;
         } else if (rangeStart > 0 || (rangeStart < 0 && rangeEnd <= 0)) {
@@ -110,7 +118,9 @@ void NumSlider::paint(juce::Graphics & g)
 
     g.setColour(mGrisLookAndFeel.getDarkColour());
     g.setFont(mGrisLookAndFeel.getFont());
-    g.drawText(juce::String(getTextFromValue(getValue()) + mSuffix), bounds.translated(0, 1), juce::Justification::centred);
+    g.drawText(juce::String(getTextFromValue(getValue()) + mSuffix),
+               bounds.translated(0, 1),
+               juce::Justification::centred);
 }
 
 //==============================================================================
@@ -145,14 +155,14 @@ void NumSlider::mouseDrag(const juce::MouseEvent & event)
         const auto range{ getRange() };
         const auto smallestSliderVal{ std::pow(10, -1 * (getNumDecimalPlacesToDisplay())) };
         const auto increment{ isShiftDown ? smallestSliderVal * 0.1f * std::abs(mouseDiffDragY)
-            : range.getLength() / 100 * std::abs(mouseDiffDragY) };
-        
+                                          : range.getLength() / 100 * std::abs(mouseDiffDragY) };
+
         if (!isShiftDown && mIsFineDragging) {
             stopFineClickDragging(event);
         } else if (isShiftDown && !mIsFineDragging) {
             startFineClickDragging(event);
         }
-        
+
         if (mouseDiffDragY > 0) {
             if (increment < smallestSliderVal && mIncrementBuffer < smallestSliderVal) {
                 mIncrementBuffer += increment;
@@ -190,7 +200,7 @@ void NumSlider::mouseUp(const juce::MouseEvent & event)
         if (event.mods.isAltDown() && event.mods.isLeftButtonDown()) {
             setValue(mDefaultReturnValue);
         }
-        
+
         if (event.mods.isShiftDown() && mIsFineDragging) {
             stopFineClickDragging(event);
         }
@@ -214,7 +224,7 @@ void NumSlider::mouseDoubleClick(const juce::MouseEvent & /*event*/)
         }
         sliderEditor->setText(juce::String(getValue()), false);
         sliderEditor->selectAll();
-        
+
         auto & box = juce::CallOutBox::launchAsynchronously(std::move(sliderEditor), getScreenBounds(), nullptr);
         box.setLookAndFeel(&mGrisLookAndFeel);
     }

@@ -136,9 +136,19 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initButton(mCubeButton, spatModeToString(SpatMode::mbap), spatModeToTooltip(SpatMode::mbap));
     initButton(mHybridButton, spatModeToString(SpatMode::hybrid), spatModeToTooltip(SpatMode::hybrid));
 
-    initButton(mMulticoreDSPToggle, "Multicore DSP", "Experimental : This will use more CPU resources but can perform better on large speaker setups. Does not parallelize stereo or binaural reductions.", NOT_A_RADIO_BUTTON_ID);
-    initButton(mMulticoreDSPCPUPresetToggle, "A", "This preset uses less idle CPU but can perform worse.", MULTICORE_PRESETS_RADIO_GROUP_ID);
-    initButton(mMulticoreDSPLatencyPresetToggle, "B", "This preset uses more idle CPU but can perform better.", MULTICORE_PRESETS_RADIO_GROUP_ID);
+    initButton(mMulticoreDSPToggle,
+               "Multicore DSP",
+               "Experimental : This will use more CPU resources but can perform better on large speaker setups. Does "
+               "not parallelize stereo or binaural reductions.",
+               NOT_A_RADIO_BUTTON_ID);
+    initButton(mMulticoreDSPCPUPresetToggle,
+               "A",
+               "This preset uses less idle CPU but can perform worse.",
+               MULTICORE_PRESETS_RADIO_GROUP_ID);
+    initButton(mMulticoreDSPLatencyPresetToggle,
+               "B",
+               "This preset uses more idle CPU but can perform better.",
+               MULTICORE_PRESETS_RADIO_GROUP_ID);
 
     juce::StringArray items{ "None" };
     items.addArray(STEREO_MODE_STRINGS);
@@ -198,16 +208,20 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     mCol2Layout.addSection(mAttenuationLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
 
 #if MULTICORE_DSP
-    mTopLeftComponentSwapper.addComponent(multicoreLabelName, juce::Component::SafePointer<juce::Component>(&mMulticoreLabel));
+    mTopLeftComponentSwapper.addComponent(multicoreLabelName,
+                                          juce::Component::SafePointer<juce::Component>(&mMulticoreLabel));
 #endif
-    mTopLeftComponentSwapper.addComponent(stereoRoutingLabelName, juce::Component::SafePointer<juce::Component>(&mStereoRoutingLabel));
+    mTopLeftComponentSwapper.addComponent(stereoRoutingLabelName,
+                                          juce::Component::SafePointer<juce::Component>(&mStereoRoutingLabel));
 
     mCol2Layout.addSection(mTopLeftComponentSwapper).withFixedSize(LABEL_HEIGHT);
 
 #if MULTICORE_DSP
-    mBottomLeftComponentSwapper.addComponent(multicoreLayoutName, juce::Component::SafePointer<juce::Component>(&mMulticoreLayout));
+    mBottomLeftComponentSwapper.addComponent(multicoreLayoutName,
+                                             juce::Component::SafePointer<juce::Component>(&mMulticoreLayout));
 #endif
-    mBottomLeftComponentSwapper.addComponent(stereoRoutingLayoutName,juce::Component::SafePointer<juce::Component>(&mStereoRoutingLayout));
+    mBottomLeftComponentSwapper.addComponent(stereoRoutingLayoutName,
+                                             juce::Component::SafePointer<juce::Component>(&mStereoRoutingLayout));
     addAndMakeVisible(mBottomLeftComponentSwapper);
 
     mCol2Layout.addSection(mBottomLeftComponentSwapper).withFixedSize(ROW_2_CONTENT_HEIGHT);
@@ -553,7 +567,6 @@ void ControlPanel::setMulticoreDSPPreset(int preset)
     JUCE_ASSERT_MESSAGE_THREAD;
     mSpatSettingsSubPanel.setMulticoreDSPPreset(preset);
 }
-
 
 //==============================================================================
 void ControlPanel::setStereoMode(tl::optional<StereoMode> const & mode)

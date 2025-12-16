@@ -481,9 +481,10 @@ void MainContentComponent::handleOpenProject()
     juce::ScopedWriteLock const lock{ mLock };
 
     juce::File const & lastProject{ mData.appData.lastProject };
-    juce::File const initialPath{ lastProject.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
-                                      juce::File::SpecialLocationType::userDocumentsDirectory)
-                                                                              : lastProject };
+    juce::File const initialPath{ lastProject.isAChildOf(CURRENT_WORKING_DIR)
+                                      ? juce::File::getSpecialLocation(
+                                            juce::File::SpecialLocationType::userDocumentsDirectory)
+                                      : lastProject };
 
     juce::FileChooser fc{ "Choose a file to open...", initialPath, "*.xml", true, false, this };
 
@@ -523,9 +524,10 @@ void MainContentComponent::handleOpenSpeakerSetup()
 
     juce::File const lastSetup{ mData.appData.lastSpeakerSetup };
 
-    auto const initialFile{ lastSetup.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
-                                juce::File::SpecialLocationType::userDocumentsDirectory)
-                                                                      : lastSetup };
+    auto const initialFile{ lastSetup.isAChildOf(CURRENT_WORKING_DIR)
+                                ? juce::File::getSpecialLocation(
+                                      juce::File::SpecialLocationType::userDocumentsDirectory)
+                                : lastSetup };
 
     juce::FileChooser fc{ "Choose a file to open...", initialFile, "*.xml", true };
 

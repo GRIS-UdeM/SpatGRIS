@@ -16,11 +16,11 @@
 */
 
 #pragma once
-#include <memory>
 #include "../../../sg_GrisLookAndFeel.hpp"
 #include <Data/sg_Position.hpp>
 #include <Data/sg_SpatMode.hpp>
 #include <Utilities/ValueTreeUtilities.hpp>
+#include <memory>
 
 #define ENABLE_GROUP_MOVEMENT_IN_DOME 0
 
@@ -75,9 +75,9 @@ class SpeakerTreeComponent
     , public juce::ValueTree::Listener
 {
 public:
-    static constexpr auto fixedLeftColWidth { 200 };
-    static constexpr auto otherColWidth { 70 };
-    static constexpr auto colGap { 15 };
+    static constexpr auto fixedLeftColWidth{ 200 };
+    static constexpr auto otherColWidth{ 70 };
+    static constexpr auto colGap{ 15 };
 
     juce::ValueTree speakerTreeVt;
 
@@ -94,16 +94,16 @@ public:
 
     Position getPosition() { return juce::VariantConverter<Position>::fromVar(speakerTreeVt[CARTESIAN_POSITION]); }
 
-    float getPositionCoordinate (Position::Coordinate coordinate);
+    float getPositionCoordinate(Position::Coordinate coordinate);
 
     juce::String getPositionCoordinateTrimmedText(Position::Coordinate coordinate);
-    juce::UndoManager& undoManager;
-    void setPositionCoordinate (Position::Coordinate coordinate, float newValue);
+    juce::UndoManager & undoManager;
+    void setPositionCoordinate(Position::Coordinate coordinate, float newValue);
 
 protected:
     void setupCoordinateLabel(DraggableLabel & label, Position::Coordinate coordinate);
     void setupStringLabel(juce::Label & label, juce::StringRef text);
-    void setupDeleteButton ();
+    void setupDeleteButton();
 
     void updateAllPositionLabels();
 
@@ -111,15 +111,15 @@ protected:
 
     DraggableLabel x, y, z, azim, elev, distance, gain, highpass, drag;
 
-    juce::DrawableButton deleteButton { "TrashButton", juce::DrawableButton::ImageOnButtonBackground };
+    juce::DrawableButton deleteButton{ "TrashButton", juce::DrawableButton::ImageOnButtonBackground };
 
     juce::ToggleButton direct;
     juce::ValueTree speakerSetupVt;
 
     GrisLookAndFeel lnf;
-    SpeakerSetupLine* speakerSetupLine;
+    SpeakerSetupLine * speakerSetupLine;
 
-    tl::optional<SpatMode> getSpatMode () const;
+    tl::optional<SpatMode> getSpatMode() const;
     /**
      * The delete button behaviour depends on wether or not we are a speaker group
      */
@@ -145,23 +145,25 @@ class SpeakerGroupSettingsWindow;
  *
  * @see SpeakerTreeComponent
  */
-class SpeakerGroupComponent : public SpeakerTreeComponent,
-                              public juce::Button::Listener
+class SpeakerGroupComponent
+    : public SpeakerTreeComponent
+    , public juce::Button::Listener
 {
 public:
-    SpeakerGroupComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    SpeakerGroupComponent(SpeakerSetupLine * owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
     void paint(juce::Graphics & g) override;
     void resized() override;
     void closeSettingsWindow();
+
 protected:
-  void deleteButtonBehaviour() override;
-  void setVbapSphericalCoordinateBehaviour() override;
+    void deleteButtonBehaviour() override;
+    void setVbapSphericalCoordinateBehaviour() override;
+
 private:
     static constexpr int groupSettingsButtonWidth = 20;
     juce::ImageButton groupSettingsButton;
     std::unique_ptr<SpeakerGroupSettingsWindow> settingsWindow;
-    void buttonClicked (juce::Button* button) override;
-
+    void buttonClicked(juce::Button * button) override;
 };
 //==============================================================================
 
@@ -171,18 +173,21 @@ private:
  *
  * @see SpeakerTreeComponent
  */
-class SpeakerComponent : public SpeakerTreeComponent,
-                         public juce::Label::Listener
+class SpeakerComponent
+    : public SpeakerTreeComponent
+    , public juce::Label::Listener
 {
 public:
-    SpeakerComponent(SpeakerSetupLine* owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
+    SpeakerComponent(SpeakerSetupLine * owner, const juce::ValueTree & v, juce::UndoManager & undoManager);
     void paint(juce::Graphics & g) override;
+
 protected:
-  void deleteButtonBehaviour() override;
-  void setVbapSphericalCoordinateBehaviour() override;
+    void deleteButtonBehaviour() override;
+    void setVbapSphericalCoordinateBehaviour() override;
+
 private:
-    void setupGain ();
-    void setupHighPass ();
+    void setupGain();
+    void setupHighPass();
     void editorShown(juce::Label *, juce::TextEditor &) override;
     void labelTextChanged(juce::Label * labelThatHasChanged) override;
 };
