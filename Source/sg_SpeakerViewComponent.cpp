@@ -33,9 +33,9 @@ static void appendNumber(std::string & str, float val)
     if (std::abs(val) < 1e-6f)
         val = 0.f;
 
-    // We are not using to_chars directly as it may not be available
-    // on every platform (e.g. older macOS).
-    // See notes here: https://en.cppreference.com/w/cpp/utility/to_chars
+        // We are not using to_chars directly as it may not be available
+        // on every platform (e.g. older macOS).
+        // See notes here: https://en.cppreference.com/w/cpp/utility/to_chars
 #if __cpp_lib_to_chars >= 201611L
     static constexpr auto precision = 3;
     static constexpr auto format = std::chars_format::general;
