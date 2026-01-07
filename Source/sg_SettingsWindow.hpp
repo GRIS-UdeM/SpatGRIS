@@ -68,7 +68,7 @@ class SettingsComponent final
     juce::ComboBox mBufferSizeCombo;
 
     //==============================================================================
-    juce::Label mSpatNetworkSettings{ "", "Spatialisation Data Network Settings" };
+    juce::Label mSpatNetworkSettings{ "", "Spatialization Data Network Settings" };
 
     juce::Label mOscInputPortLabel{ "", "OSC Input Port :" };
     juce::TextEditor mOscInputPortTextEditor{};
