@@ -21,8 +21,8 @@
 
 #include "Data/StrongTypes/sg_CartesianVector.hpp"
 #include "Data/sg_LogicStrucs.hpp"
-#include "Data/sg_constants.hpp"
 #include "Data/sg_SpatMode.hpp"
+#include "Data/sg_constants.hpp"
 #include "sg_Warnings.hpp"
 
 #include <JuceHeader.h>
@@ -84,8 +84,7 @@ public:
     //==============================================================================
     static constexpr auto SPHERE_RADIUS = 0.03f;
     static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
-    static inline const juce::String localhost{"127.0.0.1"};
-
+    static inline const juce::String localhost{ "127.0.0.1" };
 
 /**
  * @brief This macro creates a `juce::Identifier` variable with the same name as its string content,
@@ -110,7 +109,7 @@ public:
     MAKE_IDENTIFIER(quitting)
 #undef MAKE_IDENTIFIER
 
-  //==============================================================================
+    //==============================================================================
     explicit SpeakerViewComponent(MainContentComponent & mainContentComponent);
 
     ~SpeakerViewComponent() override;
@@ -139,6 +138,13 @@ public:
     tl::optional<int> getExtraUDPInputPort() const;
     tl::optional<int> getExtraUDPOutputPort() const;
     tl::optional<juce::String> getExtraUDPOutputAddress() const;
+
+    /**
+     * Manages all the extra ports if you pass it the data contained in the project data.
+     */
+    void initExtraPorts(tl::optional<int> uDPExtraInputPort,
+                        tl::optional<int> uDPExtraOutputPort,
+                        tl::optional<juce::String> uDPExtraOutputAddress);
 
     void disableExtraUDPOutput();
     void disableExtraUDPInput();

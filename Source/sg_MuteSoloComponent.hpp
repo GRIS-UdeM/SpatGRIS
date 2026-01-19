@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "sg_LayoutComponent.hpp"
 #include "Data/sg_LogicStrucs.hpp"
+#include "sg_LayoutComponent.hpp"
 #include "sg_SmallToggleButton.hpp"
 
 namespace gris

@@ -19,8 +19,8 @@
 
 #include "sg_AudioManager.hpp"
 
-#include "sg_AudioProcessor.hpp"
 #include "Data/sg_constants.hpp"
+#include "sg_AudioProcessor.hpp"
 
 // #define SIMULATE_NO_AUDIO_DEVICES
 
@@ -73,12 +73,12 @@ AudioManager::AudioManager(juce::String const & deviceType,
 }
 
 //==============================================================================
-void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
-                                                     int totalNumInputChannels,
-                                                     float* const* outputChannelData,
-                                                     int totalNumOutputChannels,
-                                                     int numSamples,
-                                                     [[maybe_unused]] const juce::AudioIODeviceCallbackContext& context)
+void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputChannelData,
+                                                    int totalNumInputChannels,
+                                                    float * const * outputChannelData,
+                                                    int totalNumOutputChannels,
+                                                    int numSamples,
+                                                    [[maybe_unused]] const juce::AudioIODeviceCallbackContext & context)
 {
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
@@ -94,10 +94,6 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     }
     // TODO: should not process if stereo mode is hrtf
     mOutputBuffer.silence();
-
-#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
-    mAudioProcessor->silenceForkUnionBuffer (forkUnionBuffer);
-#endif
 
     std::for_each_n(outputChannelData, totalNumOutputChannels, [numSamples](float * const data) {
         std::fill_n(data, numSamples, 0.0f);
@@ -138,12 +134,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
     }
 
     // do the actual processing
-    mAudioProcessor->processAudio(mInputBuffer,
-                                  mOutputBuffer,
-#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
-                                  forkUnionBuffer,
-#endif
-                                  mStereoOutputBuffer);
+    mAudioProcessor->processAudio(mInputBuffer, mOutputBuffer, mStereoOutputBuffer, mSampleRate);
 
     // copy buffers to output
     if (mStereoRouting) {
@@ -171,7 +162,7 @@ void AudioManager::audioDeviceIOCallbackWithContext (const float* const* inputCh
         };
 
         for (auto const & recorder : mRecorders) {
-            jassert(recorder->audioFormatWriter->getNumChannels() == recorder->dataToRecord.size());
+            jassert(recorder->audioFormatWriterPtr->getNumChannels() == recorder->dataToRecord.size());
             auto const success{ recorder->threadedWriter->write(recorder->dataToRecord.data(), numSamples) };
             if (!success) {
                 jassertfalse;
@@ -536,27 +527,28 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         juce::StringPairArray const metaData{}; // lets leave this empty for now
 
         juce::File const outputFile{ path };
-        auto outputStream{ outputFile.createOutputStream() };
+        std::unique_ptr<juce::OutputStream> outputStream{ outputFile.createOutputStream() };
         jassert(outputStream);
         if (!outputStream) {
             return nullptr;
         }
-        auto * audioFormatWriter{ format.createWriterFor(outputStream.release(),
-                                                         sampleRate_,
-                                                         narrow<unsigned>(dataToRecord.size()),
-                                                         BITS_PER_SAMPLE,
-                                                         metaData,
-                                                         RECORD_QUALITY) };
+        auto audioFormatWriter{ format.createWriterFor(outputStream,
+                                                       juce::AudioFormatWriterOptions{}
+                                                           .withSampleRate(sampleRate_)
+                                                           .withNumChannels(narrow<unsigned>(dataToRecord.size()))
+                                                           .withBitsPerSample(BITS_PER_SAMPLE)
+                                                           .withQualityOptionIndex(RECORD_QUALITY)) };
         jassert(audioFormatWriter);
         if (!audioFormatWriter) {
             return nullptr;
         }
-        auto threadedWriter{
-            std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(audioFormatWriter, timeSlicedThread, bufferSize_)
-        };
+        auto * audioFormatWriterPtr = audioFormatWriter.get();
+        auto threadedWriter{ std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(audioFormatWriter.release(),
+                                                                                       timeSlicedThread,
+                                                                                       bufferSize_) };
         jassert(threadedWriter);
         auto result{ std::make_unique<FileRecorder>() };
-        result->audioFormatWriter = audioFormatWriter;
+        result->audioFormatWriterPtr = audioFormatWriterPtr;
         result->threadedWriter = std::move(threadedWriter);
         result->dataToRecord = std::move(dataToRecord);
         return result;
@@ -762,37 +754,6 @@ void AudioManager::initInputBuffer(juce::Array<source_index_t> const & sources)
     mInputBuffer.init(sources);
 }
 
-#if SG_USE_FORK_UNION
-void AudioManager::initForkUnionBuffer([[maybe_unused]] int newBufferSize,
-                                       [[maybe_unused]] tl::optional<int> numSpeakers)
-{
-    #if SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS
-    if (numSpeakers.has_value())
-        forkUnionBuffer.resize(*numSpeakers);
-
-    for (int i = 0; i < numSpeakers; ++i) {
-        forkUnionBuffer[i].clear();
-        for (int j = 0; j < newBufferSize; ++j)
-            forkUnionBuffer[i].emplace_back(0.0f);
-    }
-    #elif SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD
-    // so we have a buffer for each hardware thread
-    auto const numThreads = std::thread::hardware_concurrency();
-    forkUnionBuffer.resize(numThreads);
-
-    for (auto & curThreadSpeakerBuffer : forkUnionBuffer) {
-        // then within each thread we need a buffer for each speaker
-        if (numSpeakers.has_value())
-            curThreadSpeakerBuffer.resize(*numSpeakers);
-
-        // and each speaker buffer contains bufferSize samples
-        for (auto & curSpeakerBuffer : curThreadSpeakerBuffer)
-            curSpeakerBuffer.assign(newBufferSize, 0.f);
-    }
-    #endif
-}
-#endif
-
 //==============================================================================
 void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers)
 {
@@ -800,10 +761,6 @@ void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers
     jassert(mAudioProcessor);
     juce::ScopedLock const lock{ mAudioProcessor->getLock() };
     mOutputBuffer.init(speakers);
-
-#if SG_USE_FORK_UNION
-    initForkUnionBuffer (SpeakerAudioBuffer::MAX_NUM_SAMPLES, speakers.size());
-#endif
 }
 
 //==============================================================================
@@ -815,10 +772,6 @@ void AudioManager::setBufferSize(int const newBufferSize)
     mInputBuffer.setNumSamples(newBufferSize);
     mOutputBuffer.setNumSamples(newBufferSize);
     mStereoOutputBuffer.setSize(2, newBufferSize);
-
-#if SG_USE_FORK_UNION
-    initForkUnionBuffer (newBufferSize, tl::nullopt);
-#endif
 }
 
 //==============================================================================
@@ -836,9 +789,11 @@ void AudioManager::audioDeviceError(juce::String const & /*errorMessage*/)
 }
 
 //==============================================================================
-void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * /*device*/)
+void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * device)
 {
     // when AudioProcessor will be a real AudioSource, prepareToPlay() should be called here.
+
+    mSampleRate = device->getCurrentSampleRate();
 }
 
 //==============================================================================

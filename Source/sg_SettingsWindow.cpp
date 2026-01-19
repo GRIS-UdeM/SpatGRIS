@@ -24,7 +24,6 @@
 #include "sg_MainComponent.hpp"
 #include "sg_SpeakerViewComponent.hpp"
 
-
 #include <bitset>
 
 namespace gris
@@ -53,20 +52,21 @@ bool isNotPowerOfTwo(int const value)
 } // namespace
 
 //==============================================================================
-SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & lookAndFeel)
+SettingsComponent::SettingsComponent(MainContentComponent & parent,
+                                     SpeakerViewComponent & sVComponent,
+                                     GrisLookAndFeel & glaf)
     : mMainContentComponent(parent)
     , mSVComponent(sVComponent)
-    , mLookAndFeel(lookAndFeel)
+    , mLookAndFeel(glaf)
 {
-
     mInitialOSCPort = parent.getOscPort();
     mInitialExtraUDPInputPort = mSVComponent.getExtraUDPInputPort();
     mInitialExtraUDPOutputPort = mSVComponent.getExtraUDPOutputPort();
     mInitialExtraUDPOutputAddress = mSVComponent.getExtraUDPOutputAddress();
 
-    // If the project doesn't have a standaloneSpeakerViewOutputPort, pre-sets the extra output port to the default SpeakerView listening port.
-    // This does not activate the extra listenUDP call, it just saves keypresses for
-    // the user.
+    // If the project doesn't have a standaloneSpeakerViewOutputPort, pre-sets the extra output port to the default
+    // SpeakerView listening port. This does not activate the extra listenUDP call, it just saves keypresses for the
+    // user.
     if (!mInitialExtraUDPOutputPort) {
         mInitialExtraUDPOutputPort = DEFAULT_UDP_OUTPUT_PORT;
     }
@@ -96,17 +96,16 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewC
               addAndMakeVisible(combo);
           };
 
-    auto initTextEditor
-        = [this](juce::TextEditor & edit, juce::StringRef tooltip, juce::StringRef default_val) {
-          edit.setTooltip(tooltip);
-          edit.setTextToShowWhenEmpty("", mLookAndFeel.getOffColour());
-          edit.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-          edit.setLookAndFeel(&mLookAndFeel);
-          edit.setBounds(0, 0, RIGHT_COL_WIDTH, COMPONENT_HEIGHT);
-          edit.setText(juce::String{ default_val });
-          edit.addListener(this);
-          addAndMakeVisible(edit);
-        };
+    auto initTextEditor = [this](juce::TextEditor & edit, juce::StringRef tooltip, juce::StringRef default_val) {
+        edit.setTooltip(tooltip);
+        edit.setTextToShowWhenEmpty("", mLookAndFeel.getOffColour());
+        edit.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+        edit.setLookAndFeel(&mLookAndFeel);
+        edit.setBounds(0, 0, RIGHT_COL_WIDTH, COMPONENT_HEIGHT);
+        edit.setText(juce::String{ default_val });
+        edit.addListener(this);
+        addAndMakeVisible(edit);
+    };
 
     auto & audioManager{ AudioManager::getInstance() };
 
@@ -132,7 +131,7 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewC
     initSectionLabel(mSpatNetworkSettings);
 
     initLabel(mOscInputPortLabel);
-    initTextEditor(mOscInputPortTextEditor, "Port Socket OSC Input", juce::String{mInitialOSCPort});
+    initTextEditor(mOscInputPortTextEditor, "Port Socket OSC Input", juce::String{ mInitialOSCPort });
     mOscInputPortTextEditor.setInputRestrictions(5, "0123456789");
 
     initSectionLabel(mSpeakerViewNetworkSettings);
@@ -143,7 +142,9 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, SpeakerViewC
     mSpeakerViewInputPortTextEditor.setInputRestrictions(5, "0123456789");
 
     initLabel(mSpeakerViewOutputAddressLabel);
-    initTextEditor(mSpeakerViewOutputAddressTextEditor, "Standalone SpeakerViewData Output Address", mInitialExtraUDPOutputAddress.value_or(""));
+    initTextEditor(mSpeakerViewOutputAddressTextEditor,
+                   "Standalone SpeakerViewData Output Address",
+                   mInitialExtraUDPOutputAddress.value_or(""));
     // we want an ip address here
     mSpeakerViewOutputAddressTextEditor.setInputRestrictions(15, "0123456789.");
 
@@ -176,8 +177,7 @@ SettingsComponent::~SettingsComponent()
     if (newUDPInputPortTextValue.isEmpty()) {
         mMainContentComponent.setStandaloneSpeakerViewInputPort(tl::nullopt);
         mSVComponent.disableExtraUDPInput();
-    }
-    else if (newUDPInputPort != mInitialExtraUDPInputPort) {
+    } else if (newUDPInputPort != mInitialExtraUDPInputPort) {
         if (!mSVComponent.setExtraUDPInputPort(newUDPInputPort)) {
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
                                                    "Could not change standalone SpeakerView input port",
@@ -205,7 +205,6 @@ SettingsComponent::~SettingsComponent()
     } else {
         mSVComponent.setExtraUDPOutput(newUDPOutputPort, newUDPOutputAddress);
         mMainContentComponent.setStandaloneSpeakerViewOutput(newUDPOutputPort, newUDPOutputAddress);
-
     }
 }
 
@@ -423,7 +422,7 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
     }
 }
 
-void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
+void SettingsComponent::textEditorFocusLost(juce::TextEditor & textEditor)
 {
     if (&textEditor == &mSpeakerViewOutputAddressTextEditor && textEditor.getText() != "") {
         // Validate IP address (thanks
@@ -438,8 +437,7 @@ void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
     else if (&textEditor == &mOscInputPortTextEditor
              || (textEditor.getText().isNotEmpty()
                  && (&textEditor == &mSpeakerViewInputPortTextEditor
-                     || &textEditor == &mSpeakerViewOutputPortTextEditor)))
-    {
+                     || &textEditor == &mSpeakerViewOutputPortTextEditor))) {
         // We allow empty values for the extraUDP ports to represent a null option..
         if (textEditor.getText().getIntValue() < minUDPPort) {
             textEditor.setText(minUDPPortString);
@@ -450,7 +448,9 @@ void SettingsComponent::textEditorFocusLost(juce::TextEditor& textEditor)
 }
 
 //==============================================================================
-SettingsWindow::SettingsWindow(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & grisLookAndFeel)
+SettingsWindow::SettingsWindow(MainContentComponent & parent,
+                               SpeakerViewComponent & sVComponent,
+                               GrisLookAndFeel & grisLookAndFeel)
     : DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(parent)
     , mPropertiesComponent(parent, sVComponent, grisLookAndFeel)

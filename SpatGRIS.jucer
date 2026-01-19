@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="4.0.0"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="4.0.1"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" cppLanguageStandard="latest" jucerFormatVersion="1"
               displaySplashScreen="1" maxBinaryFileSize="1048576" addUsingNamespaceToJuceHeader="0"
-              defines="JUCE_MODAL_LOOPS_PERMITTED=1" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS&#10;../../submodules/AlgoGRIS/submodules/fork_union/include&#10;../../submodules/AlgoGRIS/submodules/StructGRIS">
+              defines="JUCE_MODAL_LOOPS_PERMITTED=1&#10;MULTICORE_DSP=0" headerPath="../../submodules/&#10;../../submodules/jack2/common&#10;../../submodules/AlgoGRIS&#10;../../submodules/AlgoGRIS/submodules/fork_union/include&#10;../../submodules/AlgoGRIS/submodules/StructGRIS">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="PUwJqY" name="cog_icon.png" compile="0" resource="1" file="Resources/cog_icon.png"/>
@@ -23,10 +23,10 @@
             xcodeResource="1"/>
       <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
             file="Source/SinkinSans-400Regular.otf" xcodeResource="1"/>
-      <FILE id="LuKwvo" name="SpatGRIS_3.3.7_Manual_EN.pdf" compile="0" resource="1"
-            file="Resources/SpatGRIS_3.3.7_Manual_EN.pdf" xcodeResource="1"/>
-      <FILE id="QYglW0" name="SpatGRIS_3.3.7_Manuel_FR.pdf" compile="0" resource="1"
-            file="Resources/SpatGRIS_3.3.7_Manuel_FR.pdf" xcodeResource="1"/>
+      <FILE id="LuKwvo" name="SpatGRIS_4.0.1_Manual_EN.pdf" compile="0" resource="1"
+            file="Resources/SpatGRIS_4.0.1_Manual_EN.pdf" xcodeResource="1"/>
+      <FILE id="QYglW0" name="SpatGRIS_4.0.1_Manuel_FR.pdf" compile="0" resource="1"
+            file="Resources/SpatGRIS_4.0.1_Manuel_FR.pdf" xcodeResource="1"/>
       <FILE id="NHix3D" name="SpatGRIS4_Logo.png" compile="0" resource="1"
             file="Resources/SpatGRIS4_Logo.png"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
@@ -127,6 +127,10 @@
                   file="Source/sg_LayoutComponent.hpp"/>
             <FILE id="HejRjk" name="sg_MinSizedComponent.hpp" compile="0" resource="0"
                   file="Source/sg_MinSizedComponent.hpp"/>
+            <FILE id="FgODKv" name="sg_NumSlider.cpp" compile="1" resource="0"
+                  file="Source/sg_NumSlider.cpp"/>
+            <FILE id="pgASwY" name="sg_NumSlider.hpp" compile="0" resource="0"
+                  file="Source/sg_NumSlider.hpp"/>
             <FILE id="XMwxQU" name="sg_RecordButton.cpp" compile="1" resource="0"
                   file="Source/sg_RecordButton.cpp"/>
             <FILE id="mGRo1q" name="sg_RecordButton.hpp" compile="0" resource="0"
@@ -238,6 +242,18 @@
     </GROUP>
     <GROUP id="{755DB51A-2CFD-1B50-3D92-CF35F1E89E3D}" name="submodules">
       <GROUP id="{1FBCD2DD-9050-30FD-E1BE-E07C1F83877B}" name="AlgoGRIS">
+        <FILE id="crzhzv" name="sg_ParallelSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_ParallelSpatAlgorithm.cpp"/>
+        <FILE id="IrsK2x" name="sg_ParallelSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_ParallelSpatAlgorithm.hpp"/>
+        <FILE id="ZvEAgD" name="sg_ParallelVbapSpatAlgorithm.cpp" compile="1"
+              resource="0" file="submodules/AlgoGRIS/sg_ParallelVbapSpatAlgorithm.cpp"/>
+        <FILE id="qc0Xkd" name="sg_ParallelVbapSpatAlgorithm.hpp" compile="0"
+              resource="0" file="submodules/AlgoGRIS/sg_ParallelVbapSpatAlgorithm.hpp"/>
+        <FILE id="vebF0a" name="sg_ParallelMbapSpatAlgorithm.cpp" compile="1"
+              resource="0" file="submodules/AlgoGRIS/sg_ParallelMbapSpatAlgorithm.cpp"/>
+        <FILE id="ZjvJRR" name="sg_ParallelMbapSpatAlgorithm.hpp" compile="0"
+              resource="0" file="submodules/AlgoGRIS/sg_ParallelMbapSpatAlgorithm.hpp"/>
         <GROUP id="{A45D1137-A159-7D72-0988-A5D9CD18249A}" name="submodules">
           <GROUP id="{7E5D6A36-608D-6F84-EB57-694120F99FAC}" name="StructGRIS">
             <GROUP id="{A324FA3A-41AE-A94A-2925-6D244656F392}" name="Containers">
@@ -348,8 +364,6 @@
               file="submodules/AlgoGRIS/sg_HrtfSpatAlgorithm.cpp"/>
         <FILE id="X5DiSM" name="sg_HrtfSpatAlgorithm.hpp" compile="0" resource="0"
               file="submodules/AlgoGRIS/sg_HrtfSpatAlgorithm.hpp"/>
-        <FILE id="WH2cPI" name="sg_HybridSpatAlgorithm.cpp" compile="1" resource="0"
-              file="submodules/AlgoGRIS/sg_HybridSpatAlgorithm.cpp"/>
         <FILE id="GTiaFP" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
               file="submodules/AlgoGRIS/sg_HybridSpatAlgorithm.hpp"/>
         <FILE id="ha7T9L" name="sg_MbapSpatAlgorithm.cpp" compile="1" resource="0"
@@ -372,7 +386,7 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="GLUT" customXcodeResourceFolders="Resources/default_preset&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="GLUT" customXcodeResourceFolders="Resources/default_preset&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects&#10;submodules/AlgoGRIS/hrtf_compact"
                smallIcon="" bigIcon="NHix3D" microphonePermissionNeeded="1"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                iosDevelopmentTeamID="62PMMWH49Z" sendAppleEventsPermissionNeeded="1"
@@ -380,9 +394,9 @@
                applicationCategory="public.app-category.music">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.13 SDK" isDebug="1" optimisation="1"
-                       targetName="SpatGRIS" fastMath="1" macOSDeploymentTarget="10.13"/>
+                       targetName="SpatGRIS" fastMath="0" macOSDeploymentTarget="10.13"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       osxArchitecture="Native" fastMath="1"/>
+                       osxArchitecture="Native" fastMath="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
@@ -399,6 +413,7 @@
         <MODULEPATH id="juce_audio_utils" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="NHix3D"
@@ -426,13 +441,15 @@
         <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="NHix3D">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\dev\ASIO_SDK\common"
-                       fastMath="1"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\dev\ASIO_SDK\common"/>
+                       fastMath="0"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\dev\ASIO_SDK\common"
+                       fastMath="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
@@ -449,6 +466,7 @@
         <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
         <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
   </EXPORTFORMATS>
@@ -457,6 +475,8 @@
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="0"/>
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>

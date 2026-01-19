@@ -28,7 +28,7 @@ SmallToggleButton::SmallToggleButton(bool const isToggle,
                                      juce::String const & text,
                                      juce::String const & toolTip,
                                      Listener & listener,
-                                     SmallGrisLookAndFeel & lookAndFeel)
+                                     SmallGrisLookAndFeel & sglaf)
     : mListener(listener)
 
     , mLabel("", text)
@@ -37,11 +37,11 @@ SmallToggleButton::SmallToggleButton(bool const isToggle,
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const initColors = [&](Component & component) {
-        component.setLookAndFeel(&lookAndFeel);
-        component.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::textColourOnId, lookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::textColourOffId, lookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::buttonColourId, lookAndFeel.getBackgroundColour());
+        component.setLookAndFeel(&sglaf);
+        component.setColour(juce::Label::textColourId, sglaf.getFontColour());
+        component.setColour(juce::TextButton::textColourOnId, sglaf.getFontColour());
+        component.setColour(juce::TextButton::textColourOffId, sglaf.getFontColour());
+        component.setColour(juce::TextButton::buttonColourId, sglaf.getBackgroundColour());
         addAndMakeVisible(component);
     };
 

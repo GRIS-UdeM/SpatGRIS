@@ -43,7 +43,6 @@
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
-
 namespace gris
 {
 class MainWindow;
@@ -194,10 +193,10 @@ public:
      */
     void setStandaloneSpeakerViewOutput(tl::optional<int> port, tl::optional<juce::String> address);
 
-
     void setSpeakerSetupDiffusion(float diffusion);
 
     void setPinkNoiseGain(tl::optional<dbfs_t> gain);
+    void setPinkNoiseType(bool isPulsed);
 
     void setSourceColor(source_index_t sourceIndex, juce::Colour colour) override;
     void setSourceState(source_index_t sourceIndex, SliceState state) override;
@@ -227,6 +226,8 @@ public:
     //==============================================================================
     // Control Panel
     void setSpatMode(SpatMode const spatMode);
+    void setMulticoreDSPState(bool const state);
+    void setMulticoreDSPPreset(int preset);
     void setStereoMode(tl::optional<StereoMode> stereoMode);
     void setStereoRouting(StereoRouting const & routing);
     void cubeAttenuationDbChanged(dbfs_t value);
@@ -259,6 +260,7 @@ public:
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
 
+    void updateSpeakerSetupValueTree();
     void requestSpeakerRefresh()
     {
         if (mSpeakersRefreshAsyncUpdater)
@@ -278,10 +280,11 @@ public:
     class SpeakersRefreshAsyncUpdater : public juce::AsyncUpdater
     {
     public:
-        SpeakersRefreshAsyncUpdater (MainContentComponent& owner) : mOwner (owner) {}
-        void handleAsyncUpdate () override { mOwner.refreshSpeakers (); }
+        SpeakersRefreshAsyncUpdater(MainContentComponent & owner) : mOwner(owner) {}
+        void handleAsyncUpdate() override { mOwner.refreshSpeakers(); }
+
     private:
-        MainContentComponent& mOwner;
+        MainContentComponent & mOwner;
     };
     std::unique_ptr<SpeakersRefreshAsyncUpdater> mSpeakersRefreshAsyncUpdater;
 
@@ -330,8 +333,6 @@ public:
     bool speakerViewShouldGrabFocus();
     void resetSpeakerViewShouldGrabFocus();
 
-
-
 private:
     //==============================================================================
     [[nodiscard]] bool isProjectModified() const;
@@ -367,7 +368,7 @@ private:
 
     /** This is called by the SpeakersRefreshAsyncUpdater when MainContentComponent::requestSpeakerRefresh() is called.
      */
-    void refreshSpeakers ();
+    void refreshSpeakers();
     void refreshSourceSlices();
     void refreshSpeakerSlices();
 

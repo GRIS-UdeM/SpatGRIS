@@ -23,9 +23,9 @@ namespace gris
 {
 //==============================================================================
 StereoSliceComponent::StereoSliceComponent(juce::String const & id,
-                                           GrisLookAndFeel & lookAndFeel,
+                                           GrisLookAndFeel & glaf,
                                            SmallGrisLookAndFeel & smallLookAndFeel)
-    : AbstractSliceComponent(lookAndFeel, smallLookAndFeel)
+    : AbstractSliceComponent(glaf, smallLookAndFeel)
     , mIdButton(false, id, "", *this, smallLookAndFeel)
 {
     mLayout.addSection(mIdButton).withFixedSize(SLICES_ID_BUTTON_HEIGHT);

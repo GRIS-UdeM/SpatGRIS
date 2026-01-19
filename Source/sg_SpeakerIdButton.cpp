@@ -24,12 +24,10 @@
 namespace gris
 {
 //==============================================================================
-SpeakerIdButton::SpeakerIdButton(output_patch_t const outputPatch,
-                                 Listener & listener,
-                                 SmallGrisLookAndFeel & lookAndFeel)
+SpeakerIdButton::SpeakerIdButton(output_patch_t const outputPatch, Listener & listener, SmallGrisLookAndFeel & glaf)
     : mListener(listener)
-    , mLookAndFeel(lookAndFeel)
-    , mButton(false, juce::String{ outputPatch.get() }, "Select speaker", *this, lookAndFeel)
+    , mLookAndFeel(glaf)
+    , mButton(false, juce::String{ outputPatch.get() }, "Select speaker", *this, glaf)
 {
     addAndMakeVisible(mButton);
 }

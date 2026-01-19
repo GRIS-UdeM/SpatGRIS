@@ -23,6 +23,7 @@
 #include "Data/sg_constants.hpp"
 #include "sg_GeneralMuteButton.hpp"
 #include "sg_LayoutComponent.hpp"
+#include "sg_NumSlider.hpp"
 #include "sg_RecordButton.hpp"
 #include "sg_SpatSlider.hpp"
 #include "sg_SubPanelComponent.hpp"
@@ -74,18 +75,9 @@ class SpatSettingsSubPanel final
     , juce::ComboBox::Listener
     , juce::TextButton::Listener
 {
-    struct AttenuationValues {
-        juce::Array<dbfs_t> dbValues{};
-        juce::StringArray dbStrings{};
-        juce::Array<hz_t> hzValues{};
-        juce::StringArray hzStrings{};
-    };
-
     ControlPanel & mControlPanel;
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
-
-    AttenuationValues mAttenuationValues{};
 
     LayoutComponent mCol1Layout{ LayoutComponent::Orientation::vertical, false, false, mLookAndFeel };
     LayoutComponent mAlgorithmButtonsLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
@@ -93,6 +85,10 @@ class SpatSettingsSubPanel final
     LayoutComponent mCol2Layout{ LayoutComponent::Orientation::vertical, false, false, mLookAndFeel };
     LayoutComponent mAttenuationLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
     LayoutComponent mStereoRoutingLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
+    const std::string stereoRoutingLayoutName{ "stereo routing layout" };
+
+    LayoutComponent mMulticoreLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
+    const std::string multicoreLayoutName{ "multicore routing layout" };
 
     juce::Label mAlgorithmSelectionLabel{};
     juce::Label mAttenuationSettingsLabel{};
@@ -102,13 +98,28 @@ class SpatSettingsSubPanel final
     juce::TextButton mCubeButton{};
     juce::TextButton mHybridButton{};
 
-    juce::ComboBox mAttenuationDbCombo{};
-    juce::ComboBox mAttenuationHzCombo{};
+    juce::Label mMulticoreLabel{};
+    const std::string multicoreLabelName{ "multicore label" };
+
+    NumSlider mAttenuationDbSlider;
+    NumSlider mAttenuationHzSlider;
 
     juce::Label mStereoReductionLabel{};
     juce::Label mStereoRoutingLabel{};
+    const std::string stereoRoutingLabelName{ "stereo routing label" };
 
     juce::ComboBox mStereoReductionCombo{};
+    juce::TextButton mMulticoreDSPToggle{};
+    juce::TextButton mMulticoreDSPCPUPresetToggle{};
+    juce::TextButton mMulticoreDSPLatencyPresetToggle{};
+    /**
+     * Used to swap the multicore DSP toggles and the stereo routing dropdowns.
+     */
+    SwappableComponent mBottomLeftComponentSwapper{};
+    /**
+     * Used to swap between the multicore DSP label and the stereo routing label.
+     */
+    SwappableComponent mTopLeftComponentSwapper{};
 
     juce::Label mLeftLabel{};
     juce::ComboBox mLeftCombo{};
@@ -126,6 +137,8 @@ public:
     void updateMaxOutputPatch(output_patch_t maxOutputPatch, StereoRouting const & routing);
     //==============================================================================
     void setSpatMode(SpatMode spatMode);
+    void setMulticoreDSP(bool useMulticoreDSP);
+    void setMulticoreDSPPreset(int preset);
     void setStereoMode(tl::optional<StereoMode> const & stereoMode);
     void setAttenuationDb(dbfs_t attenuation);
     void setAttenuationHz(hz_t freq);
@@ -135,6 +148,10 @@ public:
     [[nodiscard]] tl::optional<StereoMode> getStereoMode() const;
 
 private:
+    // TODO: the other radio button constants are in StructGRIS but I really don't think they
+    // need to be common between SpatGRIS and AlgoGRIS. These belong in a SpatGRIS constant file somewhere.
+    static constexpr auto MULTICORE_PRESETS_RADIO_GROUP_ID = 4;
+    static constexpr auto NOT_A_RADIO_BUTTON_ID = 0;
     //==============================================================================
     [[nodiscard]] SpatMode getSpatMode() const;
     [[nodiscard]] bool shouldShowAttenuationSettings() const;
@@ -145,8 +162,6 @@ private:
     //==============================================================================
     void buttonClicked(juce::Button * button) override;
     void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
-    //==============================================================================
-    static AttenuationValues getAttenuationValues();
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpatSettingsSubPanel)
 };
@@ -177,6 +192,8 @@ public:
     void setMasterGain(dbfs_t gain);
     void setInterpolation(float interpolation);
     void setSpatMode(SpatMode spatMode);
+    void setMulticoreDSP(bool useMulticoreDSP);
+    void setMulticoreDSPPreset(int preset);
     void setStereoMode(tl::optional<StereoMode> const & mode);
     void setCubeAttenuationDb(dbfs_t value);
     void setCubeAttenuationHz(hz_t value);

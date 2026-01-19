@@ -27,7 +27,7 @@ namespace gris
 DirectOutSelectorComponent::DirectOutSelectorComponent(tl::optional<output_patch_t> const & directOut,
                                                        std::shared_ptr<Choices> choices,
                                                        Listener & listener,
-                                                       SmallGrisLookAndFeel & lookAndFeel)
+                                                       SmallGrisLookAndFeel & glaf)
     : mListener(listener)
     , mChoices(std::move(choices))
     , mButton("", "Direct out")
@@ -36,8 +36,8 @@ DirectOutSelectorComponent::DirectOutSelectorComponent(tl::optional<output_patch
 
     addAndMakeVisible(mButton);
 
-    mButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-    mButton.setLookAndFeel(&lookAndFeel);
+    mButton.setColour(juce::Label::textColourId, glaf.getFontColour());
+    mButton.setLookAndFeel(&glaf);
 
     setDirectOut(directOut);
 }

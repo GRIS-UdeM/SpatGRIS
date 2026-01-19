@@ -41,14 +41,14 @@ SpatSlider::SpatSlider(float const minValue,
                        juce::String const & label,
                        juce::String const & tooltip,
                        Listener & listener,
-                       GrisLookAndFeel & lookAndFeel)
+                       GrisLookAndFeel & glaf)
     : mListener(listener)
     , mLabel("", label)
-    , mSlider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow)
+    , mSlider(juce::Slider::SliderStyle::RotaryVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mLabel.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
+    mLabel.setColour(juce::Label::ColourIds::textColourId, glaf.getFontColour());
     mLabel.setJustificationType(juce::Justification::centredTop);
     mLabel.setInterceptsMouseClicks(false, false);
 
@@ -60,7 +60,7 @@ SpatSlider::SpatSlider(float const minValue,
     mSlider.setTooltip(tooltip);
     mSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f, juce::MathConstants<float>::pi * 2.7f, true);
     mSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, ENTRY_BOX_WIDTH, ENTRY_BOX_HEIGHT);
-    mSlider.setLookAndFeel(&lookAndFeel);
+    mSlider.setLookAndFeel(&glaf);
 
     addAndMakeVisible(mSlider);
 }

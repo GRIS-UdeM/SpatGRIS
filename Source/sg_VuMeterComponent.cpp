@@ -19,9 +19,9 @@
 
 #include "sg_VuMeterComponent.hpp"
 
-#include "sg_GrisLookAndFeel.hpp"
 #include "Data/sg_Narrow.hpp"
 #include "Data/sg_constants.hpp"
+#include "sg_GrisLookAndFeel.hpp"
 
 namespace
 {
@@ -82,9 +82,9 @@ void VuMeterComponent::resized()
         gb.drawLine(start_f, y_f, with_f, y_f, 1.0f);
         gm.drawLine(start_f, y_f, with_f, y_f, 1.0f);
         if (i % 2 == 1) {
-            gf.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
-            gb.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
-            gm.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
+            gf.drawText(juce::String(i * -6), start - 15, y - 5, 16, 10, juce::Justification::centred, false);
+            gb.drawText(juce::String(i * -6), start - 15, y - 5, 16, 10, juce::Justification::centred, false);
+            gm.drawText(juce::String(i * -6), start - 15, y - 5, 16, 10, juce::Justification::centred, false);
         }
     }
 }
@@ -111,7 +111,7 @@ void VuMeterComponent::paint(juce::Graphics & g)
     g.drawImage(mVuMeterBit, 0, h, width, rel, 0, h, width, rel);
     g.drawImage(mVuMeterBackBit, 0, 0, width, h, 0, 0, width, h);
     if (mIsClipping) {
-        g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1));
+        g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1.0f));
         juce::Rectangle<float> const clipRect{ 0.5, 0.5, narrow<float>(height - 1), 5 };
         g.fillRect(clipRect);
     }

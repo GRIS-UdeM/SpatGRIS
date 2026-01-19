@@ -68,11 +68,10 @@ class SettingsComponent final
     juce::ComboBox mBufferSizeCombo;
 
     //==============================================================================
-    juce::Label mSpatNetworkSettings{ "", "Spatialisation Data Network Settings" };
+    juce::Label mSpatNetworkSettings{ "", "Spatialization Data Network Settings" };
 
     juce::Label mOscInputPortLabel{ "", "OSC Input Port :" };
     juce::TextEditor mOscInputPortTextEditor{};
-
 
     juce::Label mSpeakerViewNetworkSettings{ "", "Standalone SpeakerView Network Settings :" };
 
@@ -115,6 +114,7 @@ public:
     void textEditorFocusLost(juce::TextEditor & text_editor) override;
 
     void placeComponents();
+
 private:
     //==============================================================================
     void fillComboBoxes();
@@ -133,7 +133,9 @@ class SettingsWindow final : public juce::DocumentWindow
 
 public:
     //==============================================================================
-    SettingsWindow(MainContentComponent & parent, SpeakerViewComponent & sVComponent, GrisLookAndFeel & grisLookAndFeel);
+    SettingsWindow(MainContentComponent & parent,
+                   SpeakerViewComponent & sVComponent,
+                   GrisLookAndFeel & grisLookAndFeel);
     //==============================================================================
     SettingsWindow() = delete;
     ~SettingsWindow() override = default;

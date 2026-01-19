@@ -1,4 +1,4 @@
-﻿/*
+/*
  This file is part of SpatGRIS.
 
  SpatGRIS is free software: you can redistribute it and/or modify
@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "SpeakerTreeComponent.hpp"
 #include "SpeakerSetupContainerHeader.hpp"
+#include "SpeakerTreeComponent.hpp"
 
 namespace gris
 {
@@ -44,7 +44,7 @@ public:
 
     juce::String getUniqueName() const override;
 
-    bool isSpeakerGroup() const { return lineValueTree.getType () == SPEAKER_GROUP; }
+    bool isSpeakerGroup() const { return lineValueTree.getType() == SPEAKER_GROUP; }
 
     bool mightContainSubItems() override { return isSpeakerGroup(); }
 
@@ -63,25 +63,28 @@ public:
      */
     std::unique_ptr<juce::Component> createItemComponent() override;
 
-    void itemOpennessChanged (bool isNowOpen) override;
+    void itemOpennessChanged(bool isNowOpen) override;
 
-    juce::var getDragSourceDescription () override { return lineValueTree.getType ().toString(); }
+    juce::var getDragSourceDescription() override { return lineValueTree.getType().toString(); }
 
-    bool isInterestedInDragSource (const juce::DragAndDropTarget::SourceDetails& /*dragSourceDetails*/) override
+    bool isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails & /*dragSourceDetails*/) override
     {
-        return mightContainSubItems ();
+        return mightContainSubItems();
     }
 
-    void itemDropped (const juce::DragAndDropTarget::SourceDetails&, int insertIndex) override;
+    void itemDropped(const juce::DragAndDropTarget::SourceDetails &, int insertIndex) override;
 
-    static void moveItems (juce::TreeView& treeView, const juce::OwnedArray<juce::ValueTree>& items,
-                           juce::ValueTree newParent, int insertIndex, juce::UndoManager& undoManager);
+    static void moveItems(juce::TreeView & treeView,
+                          const juce::OwnedArray<juce::ValueTree> & items,
+                          juce::ValueTree newParent,
+                          int insertIndex,
+                          juce::UndoManager & undoManager);
 
-    static void getSelectedTreeViewItems (juce::TreeView& treeView, juce::OwnedArray<juce::ValueTree>& items);
+    static void getSelectedTreeViewItems(juce::TreeView & treeView, juce::OwnedArray<juce::ValueTree> & items);
 
-    void selectChildSpeaker (tl::optional<output_patch_t> const outputPatch);
+    void selectChildSpeaker(tl::optional<output_patch_t> const outputPatch);
 
-    void sort (juce::ValueTree vt, SpeakerColumnHeader::ColumnID comparisonKey, int sortDirection);
+    void sort(juce::ValueTree vt, SpeakerColumnHeader::ColumnID comparisonKey, int sortDirection);
 
     juce::ValueTree getValueTree() { return lineValueTree; }
 
@@ -91,18 +94,27 @@ public:
 
 private:
     juce::ValueTree lineValueTree;
-    juce::UndoManager& undoManager;
-    std::function<void ()> onSelectionChanged;
+    juce::UndoManager & undoManager;
+    std::function<void()> onSelectionChanged;
 
-    void refreshSubItems ();
+    void refreshSubItems();
     void itemSelectionChanged(bool isNowSelected) override;
 
-    void valueTreeChildAdded (juce::ValueTree& parentTree, juce::ValueTree&) override { treeChildrenChanged (parentTree); }
-    void valueTreeChildRemoved (juce::ValueTree& parentTree, juce::ValueTree&, int) override { treeChildrenChanged (parentTree); }
-    void valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int) override { treeChildrenChanged (parentTree); }
+    void valueTreeChildAdded(juce::ValueTree & parentTree, juce::ValueTree &) override
+    {
+        treeChildrenChanged(parentTree);
+    }
+    void valueTreeChildRemoved(juce::ValueTree & parentTree, juce::ValueTree &, int) override
+    {
+        treeChildrenChanged(parentTree);
+    }
+    void valueTreeChildOrderChanged(juce::ValueTree & parentTree, int, int) override
+    {
+        treeChildrenChanged(parentTree);
+    }
 
-    void treeChildrenChanged (const juce::ValueTree& parentTree);
+    void treeChildrenChanged(const juce::ValueTree & parentTree);
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerSetupLine)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpeakerSetupLine)
 };
 } // namespace gris

@@ -4,8 +4,8 @@
 #define AppExeName "SpatGRIS.exe"
 #define ControlGrisDir "ControlGRIS"
 #define SpeakerViewDir "SpeakerView"
-#define ManualENName "SpatGRIS_3.3.7_Manual_EN.pdf"
-#define ManualFRName "SpatGRIS_3.3.7_Manuel_FR.pdf"
+#define ManualENName "SpatGRIS_4.0.1_Manual_EN.pdf"
+#define ManualFRName "SpatGRIS_4.0.1_Manuel_FR.pdf"
 #define RootDir ".."
 
 #define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
@@ -39,8 +39,8 @@ DisableDirPage=no
 DisableProgramGroupPage=yes
 LicenseFile="..\LICENSE"
 OutputDir=.
-OutputBaseFilename="{#AppName}_{#AppVersion}_Windows_x64"  
-PrivilegesRequired=admin 
+OutputBaseFilename="{#AppName}_{#AppVersion}_Windows_x64"
+PrivilegesRequired=admin
 SetupIconFile="{#ResourcesDir}\ServerGRIS_icon_doc.ico"
 SolidCompression=yes
 WizardStyle=modern
@@ -73,7 +73,7 @@ Source: "{#ControlGrisDir}\ControlGRIS2.vst3\*"; DestDir: "C:\Program Files\Comm
 Source: "ControlGris\ControlGRIS2.aaxplugin\*"; DestDir: "C:\Program Files\Common Files\Avid\Audio\Plug-Ins\ControlGRIS2.aaxplugin"; Components: AAX; Flags: ignoreversion recursesubdirs createallsubdirs;
 
 ; ControlGRIS standalone
-Source: "{#ControlGrisDir}\ControlGRIS2.exe"; DestDir: "{app}"; Components: ControlGRIS2Standalone; Flags: ignoreversion 
+Source: "{#ControlGrisDir}\ControlGRIS2.exe"; DestDir: "{app}"; Components: ControlGRIS2Standalone; Flags: ignoreversion
 
 ; SpeakerView
 Source: "{#SpeakerViewDir}\SpeakerView.exe"; DestDir: "{app}"; Components: SpeakerView; Flags: ignoreversion

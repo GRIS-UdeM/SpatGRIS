@@ -19,10 +19,10 @@
 
 #include "sg_AboutWindow.hpp"
 
-#include "sg_GrisLookAndFeel.hpp"
-#include "sg_MainComponent.hpp"
 #include "Data/sg_constants.hpp"
 #include "Misc/sg_DefaultFiles.hpp"
+#include "sg_GrisLookAndFeel.hpp"
+#include "sg_MainComponent.hpp"
 
 namespace gris
 {
@@ -46,8 +46,12 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lnf
     mTitleLabel.setColour(juce::Label::textColourId, lnf.getFontColour());
     addAndMakeVisible(mTitleLabel);
 
+    juce::String versionInfos{};
     auto const version{ juce::JUCEApplication::getInstance()->getApplicationVersion() };
-    mVersionLabel.setText("Version " + version, juce::NotificationType::dontSendNotification);
+    auto const juceVersion{ juce::String("made with " + juce::SystemStats::getJUCEVersion()) };
+    versionInfos << "Version " + version + "\n\n";
+    versionInfos << juceVersion;
+    mVersionLabel.setText(versionInfos, juce::NotificationType::dontSendNotification);
     mVersionLabel.setJustificationType(juce::Justification::horizontallyCentred);
     mVersionLabel.setBounds(5, 180, 390, 50);
     mVersionLabel.setLookAndFeel(&lnf);
@@ -91,9 +95,7 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lnf
 }
 
 //==============================================================================
-AboutWindow::AboutWindow(juce::String const & name,
-                         GrisLookAndFeel & lnf,
-                         MainContentComponent & mainContentComponent)
+AboutWindow::AboutWindow(juce::String const & name, GrisLookAndFeel & lnf, MainContentComponent & mainContentComponent)
     : DocumentWindow(name, lnf.getBackgroundColour(), closeButton)
     , mMainContentComponent(mainContentComponent)
 {

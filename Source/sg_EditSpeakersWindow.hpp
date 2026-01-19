@@ -20,9 +20,9 @@
 #pragma once
 
 #include "Data/sg_LogicStrucs.hpp"
-#include "tl/optional.hpp"
-#include "sg_Box.hpp"
 #include "UI/Windows/SpeakerSetup/SpeakerSetupContainer.hpp"
+#include "sg_Box.hpp"
+#include "tl/optional.hpp"
 
 #define DEBUG_SPEAKER_EDITION 0
 
@@ -53,8 +53,7 @@ struct LabelWrapper {
 
 //==============================================================================
 
-struct LabelTextEditorWrapper : public LabelWrapper
-{
+struct LabelTextEditorWrapper : public LabelWrapper {
     explicit LabelTextEditorWrapper(GrisLookAndFeel & lookAndFeel);
     ~LabelTextEditorWrapper() { editor.setLookAndFeel(nullptr); }
 
@@ -88,11 +87,11 @@ struct LabelTextEditorWrapper : public LabelWrapper
 
 //==============================================================================
 
-struct LabelComboBoxWrapper : public LabelWrapper
-{
+struct LabelComboBoxWrapper : public LabelWrapper {
     explicit LabelComboBoxWrapper(GrisLookAndFeel & lookAndFeel);
 
-    int getSelectionAsInt(){ return comboBox.getText().getIntValue(); }
+    juce::String getSelectionAsString() { return comboBox.getText(); }
+    int getSelectionAsInt() { return comboBox.getText().getIntValue(); }
     void setVisible(bool visible) override
     {
         LabelWrapper::setVisible(visible);
@@ -125,7 +124,7 @@ class EditSpeakersWindow final
 {
 private:
     MainContentComponent & mMainContentComponent;
-    const SpatGrisData& spatGrisData;
+    const SpatGrisData & spatGrisData;
     GrisLookAndFeel & mLookAndFeel;
 
     Box mViewportWrapper;
@@ -134,7 +133,7 @@ private:
     juce::TextButton mSaveAsSpeakerSetupButton;
     juce::TextButton mSaveSpeakerSetupButton;
 
-    //add ring of speakers
+    // add ring of speakers
     juce::Label mRingTitle;
     LabelTextEditorWrapper mRingSpeakers;
     LabelTextEditorWrapper mRingElevation;
@@ -149,10 +148,24 @@ private:
     LabelTextEditorWrapper mPolyY;
     LabelTextEditorWrapper mPolyZ;
     LabelTextEditorWrapper mPolyRadius;
-
     juce::TextButton mAddPolyButton;
 
+    // add grid of speakers
+    juce::Label mGridTitle;
+    LabelComboBoxWrapper mGridAlignment;
+    LabelTextEditorWrapper mGridNumCols;
+    LabelTextEditorWrapper mGridNumRows;
+    LabelTextEditorWrapper mGridX;
+    LabelTextEditorWrapper mGridY;
+    LabelTextEditorWrapper mGridZ;
+    LabelTextEditorWrapper mGridWidth;
+    LabelTextEditorWrapper mGridHeight;
+    juce::TextButton mAddGridButton;
+    void clampGridXYZ(juce::TextEditor & textEditor);
+    void clampGridWH(juce::TextEditor & textEditor);
+
     juce::ToggleButton mPinkNoiseToggleButton;
+    juce::ComboBox mPinkNoiseTypeCombo;
     juce::Slider mPinkNoiseGainSlider;
 
     juce::Label mDiffusionLabel;
@@ -165,12 +178,13 @@ private:
     tl::optional<int> mDragStartY{};
     bool mShouldComputeSpeakers{};
     juce::SparseSet<int> mLastSelectedRows{};
+
 public:
     //==============================================================================
     EditSpeakersWindow(juce::String const & name,
                        GrisLookAndFeel & lookAndFeel,
                        MainContentComponent & mainContentComponent,
-                       juce::UndoManager& undoMan);
+                       juce::UndoManager & undoMan);
     //==============================================================================
     EditSpeakersWindow() = delete;
     SG_DELETE_COPY_AND_MOVE(EditSpeakersWindow)
@@ -179,15 +193,17 @@ public:
     void selectSpeaker(tl::optional<output_patch_t> outputPatch) { mSpeakerSetupContainer.selectSpeaker(outputPatch); }
 
     void togglePolyhedraExtraWidgets();
+    void toggleGridWidgets();
 
     /** This is called in a variety of places, including in MainContentComponent::refreshSpeakers()
-    *   when the spatMode changes.*/
+     *   when the spatMode changes.*/
     void updateWinContent();
 
     /**
      * Returns the speaker ordering exactly as it is displayed in the window.
      */
     juce::Array<output_patch_t> getSpeakerOutputPatchOrder();
+
 private:
     bool isAddingGroup = false;
     //==============================================================================
@@ -197,7 +213,7 @@ private:
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     void computeSpeakers();
     void addSpeakerGroup(int numSpeakers, Position groupPosition, std::function<Position(int)> getSpeakerPosition);
-    juce::ValueTree addNewSpeakerToVt (const gris::output_patch_t& newOutputPatch, juce::ValueTree parent, int index);
+    juce::ValueTree addNewSpeakerToVt(const gris::output_patch_t & newOutputPatch, juce::ValueTree parent, int index);
 
     //==============================================================================
     // VIRTUALS
@@ -205,14 +221,14 @@ private:
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void textEditorFocusLost(juce::TextEditor &) override;
     void closeButtonPressed() override;
-    bool keyPressed (const juce::KeyPress &key) override;
-    void resized () override;
-    void sliderValueChanged (juce::Slider* slider) override;
+    bool keyPressed(const juce::KeyPress & key) override;
+    void resized() override;
+    void sliderValueChanged(juce::Slider * slider) override;
     void valueTreePropertyChanged(juce::ValueTree & vt, const juce::Identifier & property) override;
     void valueTreeChildAdded(juce::ValueTree & parent, juce::ValueTree & child) override;
     void valueTreeChildRemoved(juce::ValueTree & parent, juce::ValueTree & child, int idInParent) override;
 
-    juce::UndoManager& undoManager;
+    juce::UndoManager & undoManager;
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };

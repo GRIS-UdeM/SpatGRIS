@@ -1,4 +1,4 @@
-﻿/*
+/*
  This file is part of SpatGRIS.
 
  SpatGRIS is free software: you can redistribute it and/or modify
@@ -16,8 +16,8 @@
 */
 
 #include "SpeakerSetupLine.hpp"
-#include "SpeakerTreeComponent.hpp"
 #include "SpeakerGroupSettingsWindow.hpp"
+#include "SpeakerTreeComponent.hpp"
 
 namespace gris
 {
@@ -33,28 +33,28 @@ SpeakerSetupLine::SpeakerSetupLine(const juce::ValueTree & v,
     lineValueTree.addListener(this);
 }
 
-std::unique_ptr<juce::Component> SpeakerSetupLine::createItemComponent ()
+std::unique_ptr<juce::Component> SpeakerSetupLine::createItemComponent()
 {
-    if (mightContainSubItems ())
-        return std::make_unique<SpeakerGroupComponent> (this, lineValueTree, undoManager);
+    if (mightContainSubItems())
+        return std::make_unique<SpeakerGroupComponent>(this, lineValueTree, undoManager);
     else
-        return std::make_unique<SpeakerComponent> (this, lineValueTree, undoManager);
+        return std::make_unique<SpeakerComponent>(this, lineValueTree, undoManager);
 }
 
-void SpeakerSetupLine::itemOpennessChanged (bool isNowOpen)
+void SpeakerSetupLine::itemOpennessChanged(bool isNowOpen)
 {
-    if (isNowOpen && getNumSubItems () == 0)
-        refreshSubItems ();
+    if (isNowOpen && getNumSubItems() == 0)
+        refreshSubItems();
     else
-        clearSubItems ();
+        clearSubItems();
 }
 
-void SpeakerSetupLine::itemDropped (const juce::DragAndDropTarget::SourceDetails&, int insertIndex)
+void SpeakerSetupLine::itemDropped(const juce::DragAndDropTarget::SourceDetails &, int insertIndex)
 {
     juce::OwnedArray<juce::ValueTree> selectedTrees;
-    getSelectedTreeViewItems (*getOwnerView (), selectedTrees);
+    getSelectedTreeViewItems(*getOwnerView(), selectedTrees);
 
-    moveItems (*getOwnerView (), selectedTrees, lineValueTree, insertIndex, undoManager);
+    moveItems(*getOwnerView(), selectedTrees, lineValueTree, insertIndex, undoManager);
 }
 
 void SpeakerSetupLine::moveItems(juce::TreeView & /*treeView*/,
@@ -89,13 +89,13 @@ void SpeakerSetupLine::moveItems(juce::TreeView & /*treeView*/,
     }
 }
 
-void SpeakerSetupLine::getSelectedTreeViewItems (juce::TreeView& treeView, juce::OwnedArray<juce::ValueTree>& items)
+void SpeakerSetupLine::getSelectedTreeViewItems(juce::TreeView & treeView, juce::OwnedArray<juce::ValueTree> & items)
 {
-    auto numSelected = treeView.getNumSelectedItems ();
+    auto numSelected = treeView.getNumSelectedItems();
 
     for (int i = 0; i < numSelected; ++i)
-        if (auto* vti = dynamic_cast<SpeakerSetupLine*> (treeView.getSelectedItem (i)))
-            items.add (new juce::ValueTree (vti->lineValueTree));
+        if (auto * vti = dynamic_cast<SpeakerSetupLine *>(treeView.getSelectedItem(i)))
+            items.add(new juce::ValueTree(vti->lineValueTree));
 }
 
 void SpeakerSetupLine::selectChildSpeaker(tl::optional<output_patch_t> const outputPatch)
@@ -109,57 +109,56 @@ void SpeakerSetupLine::selectChildSpeaker(tl::optional<output_patch_t> const out
         if (speakerSetupLine->getOutputPatch() == outputPatch)
             speakerSetupLine->setSelected(true, juce::dontSendNotification);
         else
-            speakerSetupLine->setSelected (false, juce::dontSendNotification);
+            speakerSetupLine->setSelected(false, juce::dontSendNotification);
     }
 }
 
-  struct ValueTreeComparator {
+struct ValueTreeComparator {
+    SpeakerColumnHeader::ColumnID sortId;
+    /**
+     * 1 for ascending, -1 for descending
+     */
+    int sortDirection;
 
-      SpeakerColumnHeader::ColumnID sortId;
-      /**
-       * 1 for ascending, -1 for descending
-       */
-      int sortDirection;
+    juce::var getSortValue(const juce::ValueTree & valueTree)
+    {
+        auto position = juce::VariantConverter<Position>::fromVar(valueTree[CARTESIAN_POSITION]);
 
-      juce::var getSortValue(const juce::ValueTree & valueTree)
-      {
-          auto position = juce::VariantConverter<Position>::fromVar(valueTree[CARTESIAN_POSITION]);
-
-          juce::var sortValue;
-          switch (sortId) {
-              case SpeakerColumnHeader::ColumnID::ID:
-                  if (valueTree.hasProperty(SPEAKER_PATCH_ID))
-                      sortValue = valueTree[SPEAKER_PATCH_ID];
-                  else if (valueTree.hasProperty(SPEAKER_GROUP_NAME))
-                      sortValue = valueTree[SPEAKER_GROUP_NAME];
-                  break;
-              case SpeakerColumnHeader::ColumnID::X:
-                  sortValue = position.getCartesian().x;
-                  break;
-              case SpeakerColumnHeader::ColumnID::Y:
-                  sortValue = position.getCartesian().y;
-                  break;
-              case SpeakerColumnHeader::ColumnID::Z:
-                  sortValue = position.getCartesian().z;
-                  break;
-              case SpeakerColumnHeader::ColumnID::Azimuth:
-                  sortValue = position.getPolar().azimuth.get();
-                  break;
-              case SpeakerColumnHeader::ColumnID::Elevation:
-                  sortValue = position.getPolar().elevation.get();
-                  break;
-              case SpeakerColumnHeader::ColumnID::Distance:
-                  sortValue = position.getPolar().length;
-                  break;
-              case SpeakerColumnHeader::ColumnID::Gain:
-                  sortValue = valueTree[GAIN];
-                  break;
-              case SpeakerColumnHeader::ColumnID::Highpass:
-                  sortValue = valueTree[HIGHPASS_FREQ];
-                  break;
-          }
-          return sortValue;
-      }
+        juce::var sortValue;
+        switch (sortId) {
+        case SpeakerColumnHeader::ColumnID::ID:
+            if (valueTree.hasProperty(SPEAKER_PATCH_ID))
+                sortValue = valueTree[SPEAKER_PATCH_ID];
+            else if (valueTree.hasProperty(SPEAKER_GROUP_NAME))
+                sortValue = valueTree[SPEAKER_GROUP_NAME];
+            break;
+        case SpeakerColumnHeader::ColumnID::X:
+            sortValue = position.getCartesian().x;
+            break;
+        case SpeakerColumnHeader::ColumnID::Y:
+            sortValue = position.getCartesian().y;
+            break;
+        case SpeakerColumnHeader::ColumnID::Z:
+            sortValue = position.getCartesian().z;
+            break;
+        case SpeakerColumnHeader::ColumnID::Azimuth:
+            sortValue = position.getPolar().azimuth.get();
+            break;
+        case SpeakerColumnHeader::ColumnID::Elevation:
+            sortValue = position.getPolar().elevation.get();
+            break;
+        case SpeakerColumnHeader::ColumnID::Distance:
+            sortValue = position.getPolar().length;
+            break;
+        case SpeakerColumnHeader::ColumnID::Gain:
+            sortValue = valueTree[GAIN];
+            break;
+        case SpeakerColumnHeader::ColumnID::Highpass:
+            sortValue = valueTree[HIGHPASS_FREQ];
+            break;
+        }
+        return sortValue;
+    }
 
     int compareElements(const juce::ValueTree & first, const juce::ValueTree & second)
     {
@@ -202,7 +201,7 @@ void SpeakerSetupLine::sort(juce::ValueTree vt, SpeakerColumnHeader::ColumnID co
         sort(speakerGroup, comparisonKey, sortDirection);
 
     // then actually sort all children
-    ValueTreeComparator comparison{comparisonKey, sortDirection};
+    ValueTreeComparator comparison{ comparisonKey, sortDirection };
     allChildren.sort(comparison, true);
 
     // and rebuild the tree
@@ -211,9 +210,9 @@ void SpeakerSetupLine::sort(juce::ValueTree vt, SpeakerColumnHeader::ColumnID co
         vt.appendChild(speaker, &undoManager);
 }
 
-tl::optional<output_patch_t> SpeakerSetupLine::getOutputPatch ()
+tl::optional<output_patch_t> SpeakerSetupLine::getOutputPatch()
 {
-    if (lineValueTree.getType () == SPEAKER && lineValueTree.hasProperty(SPEAKER_PATCH_ID))
+    if (lineValueTree.getType() == SPEAKER && lineValueTree.hasProperty(SPEAKER_PATCH_ID))
         return output_patch_t{ lineValueTree[SPEAKER_PATCH_ID] };
     else
         return tl::nullopt;
@@ -222,24 +221,24 @@ tl::optional<output_patch_t> SpeakerSetupLine::getOutputPatch ()
 void SpeakerSetupLine::refreshSubItems()
 {
     // Note: we also have logic in SpeakerSetupContainer::reload() to restore the openness of our tree.
-    // It would seem like only one of those would be enough but currently both are required to restore the state properly
+    // It would seem like only one of those would be enough but currently both are required to restore the state
+    // properly
 
     // by default the addSubItem() call below will automatically open the sub-item, so if they are
     // currently closed we cache their UUID here and restore the closedness after the addSubItem() call
     std::unordered_set<juce::String> closedSubItems;
     for (int i = 0; i < getNumSubItems(); ++i)
-        if (auto* item = dynamic_cast<SpeakerSetupLine*>(getSubItem(i)))
-            if (! item->isOpen())
+        if (auto * item = dynamic_cast<SpeakerSetupLine *>(getSubItem(i)))
+            if (!item->isOpen())
                 closedSubItems.insert(item->lineValueTree[UUID]);
 
     // clear everything
     clearSubItems();
 
     // re-add the sub-items
-    for (int i = 0; i < lineValueTree.getNumChildren(); ++i)
-    {
+    for (int i = 0; i < lineValueTree.getNumChildren(); ++i) {
         auto childTree = lineValueTree.getChild(i);
-        auto* childItem = new SpeakerSetupLine(childTree, undoManager, onSelectionChanged);
+        auto * childItem = new SpeakerSetupLine(childTree, undoManager, onSelectionChanged);
 
         addSubItem(childItem);
 
@@ -254,12 +253,11 @@ void SpeakerSetupLine::itemSelectionChanged(bool /*isNowSelected*/)
     onSelectionChanged();
 }
 
-void SpeakerSetupLine::treeChildrenChanged (const juce::ValueTree& parentTree)
+void SpeakerSetupLine::treeChildrenChanged(const juce::ValueTree & parentTree)
 {
-    if (parentTree == lineValueTree)
-    {
-        refreshSubItems ();
-        treeHasChanged ();
+    if (parentTree == lineValueTree) {
+        refreshSubItems();
+        treeHasChanged();
     }
 }
 

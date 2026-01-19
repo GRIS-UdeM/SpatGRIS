@@ -26,7 +26,6 @@
 #include "Data/sg_constants.hpp"
 #include "sg_AudioManager.hpp"
 #include "sg_MainComponent.hpp"
-#include "sg_PinkNoiseGenerator.hpp"
 
 #include <array>
 
@@ -106,19 +105,19 @@ void AudioProcessor::processOutputModifiersAndPeaks(SpeakerAudioBuffer & speaker
 //==============================================================================
 void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
                                   SpeakerAudioBuffer & speakerBuffer,
-#if SG_USE_FORK_UNION
-    #if SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS
-                                  ForkUnionBuffer & forkUnionBuffer,
-    #elif SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD
-                                  ForkUnionBuffer & forkUnionBuffer,
-    #endif
-#endif
-                                  juce::AudioBuffer<float> & stereoBuffer) noexcept [[clang::nonblocking]]
+                                  juce::AudioBuffer<float> & stereoBuffer,
+                                  double sampleRate) noexcept NONBLOCKING
 {
     // Skip if the user is editing the speaker setup.
     juce::ScopedTryLock const lock{ mLock };
     if (!lock.isLocked()) {
         return;
+    }
+
+    if (mPulsedNoiseParams.sampleRate != sampleRate && mAudioData.config->pinkNoisePulsed) {
+        mPulsedNoiseParams.sampleRate = sampleRate;
+        mPulsedNoiseParams.phaseIncrement
+            = static_cast<float>(mPulsedNoiseParams.sawFrequency / mPulsedNoiseParams.sampleRate);
     }
 
     jassert(sourceBuffer.getNumSamples() == speakerBuffer.getNumSamples());
@@ -136,18 +135,15 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
             activeChannels.push_back(channel.key);
         }
         auto data{ speakerBuffer.getArrayOfWritePointers(activeChannels) };
-        fillWithPinkNoise(data.data(), numSamples, narrow<int>(data.size()), *mAudioData.config->pinkNoiseGain);
+        fillWithPinkNoise(data.data(),
+                          numSamples,
+                          narrow<int>(data.size()),
+                          *mAudioData.config->pinkNoiseGain,
+                          mAudioData.config->pinkNoisePulsed,
+                          mPulsedNoiseParams);
     } else {
         // Process spat algorithm
-        mSpatAlgorithm->process(*mAudioData.config,
-                                sourceBuffer,
-                                speakerBuffer,
-#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
-                                forkUnionBuffer,
-#endif
-                                stereoBuffer,
-                                sourcePeaks,
-                                nullptr);
+        mSpatAlgorithm->process(*mAudioData.config, sourceBuffer, speakerBuffer, stereoBuffer, sourcePeaks, nullptr);
 
         // Process direct outs
         for (auto const & directOutPair : mAudioData.config->directOutPairs) {
@@ -165,7 +161,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
             stereoBuffer.applyGain(0.0f);
         } else {
             auto const & masterGain{ mAudioData.config->masterGain };
-            if (! juce::approximatelyEqual (masterGain, 0.0f)) {
+            if (!juce::approximatelyEqual(masterGain, 0.0f)) {
                 stereoBuffer.applyGain(masterGain);
             }
             auto * stereoPeaksTicket{ mAudioData.stereoPeaksUpdater.acquire() };

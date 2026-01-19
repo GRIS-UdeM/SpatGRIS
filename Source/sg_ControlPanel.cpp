@@ -83,24 +83,29 @@ void GainsSubPanel::sliderMoved(float const value, SpatSlider * const slider)
 //==============================================================================
 SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
                                            MainContentComponent & mainContentComponent,
-                                           GrisLookAndFeel & lookAndFeel)
-    : SubPanelComponent(LayoutComponent::Orientation::horizontal, lookAndFeel)
+                                           GrisLookAndFeel & glaf)
+    : SubPanelComponent(LayoutComponent::Orientation::horizontal, glaf)
     , mControlPanel(controlPanel)
     , mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(lookAndFeel)
-    , mAttenuationValues(getAttenuationValues())
+    , mLookAndFeel(glaf)
+    , mAttenuationDbSlider(glaf, -48, 0, 1, 0, 0, "dB", "")
+    , mAttenuationHzSlider(glaf, 125, 8000, 1, 0, 8000, "Hz", "")
 {
     auto const initLabel = [&](juce::Label & label,
                                juce::String const & text,
                                juce::Justification const justification = juce::Justification::centredTop) {
         label.setText(text, juce::dontSendNotification);
         label.setJustificationType(justification);
-        label.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
+        label.setColour(juce::Label::ColourIds::textColourId, glaf.getFontColour());
     };
 
-    auto const initButton = [&](juce::Button & button, juce::String const & text, juce::String const & tooltip) {
+    auto const initButton = [&](juce::Button & button,
+                                juce::String const & text,
+                                juce::String const & tooltip,
+                                int radioButtonId = SPAT_MODE_BUTTONS_RADIO_GROUP_ID) {
         button.setClickingTogglesState(true);
-        button.setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);
+        if (radioButtonId)
+            button.setRadioGroupId(radioButtonId, juce::dontSendNotification);
         button.setButtonText(text);
         button.setTooltip(tooltip);
         button.addListener(this);
@@ -109,29 +114,46 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     initLabel(mAlgorithmSelectionLabel, "Algorithm selection");
     initLabel(mStereoReductionLabel, "Stereo reduction");
     initLabel(mStereoRoutingLabel, "Stereo routing");
-    initLabel(mLeftLabel, "Left :", juce::Justification::topRight);
-    initLabel(mRightLabel, "Right :", juce::Justification::topRight);
+    initLabel(mMulticoreLabel, "Multicore DSP Settings");
+    initLabel(mLeftLabel, "L :", juce::Justification::topRight);
+    initLabel(mRightLabel, "R :", juce::Justification::topRight);
 
-    mAttenuationSettingsButton.setColour(juce::ToggleButton::ColourIds::textColourId, lookAndFeel.getFontColour());
+    mAttenuationSettingsButton.setColour(juce::ToggleButton::ColourIds::textColourId, glaf.getFontColour());
     mAttenuationSettingsButton.onClick = [this] {
         updateAttenuationState();
         updateLayout();
+    };
+    mAttenuationDbSlider.onValueChange = [this] {
+        auto const attenuation{ static_cast<dbfs_t>(static_cast<float>(mAttenuationDbSlider.getValue())) };
+        mMainContentComponent.cubeAttenuationDbChanged(attenuation);
+    };
+    mAttenuationHzSlider.onValueChange = [this] {
+        auto const freq{ static_cast<hz_t>(static_cast<float>(mAttenuationHzSlider.getValue())) };
+        mMainContentComponent.cubeAttenuationHzChanged(freq);
     };
 
     initButton(mDomeButton, spatModeToString(SpatMode::vbap), spatModeToTooltip(SpatMode::vbap));
     initButton(mCubeButton, spatModeToString(SpatMode::mbap), spatModeToTooltip(SpatMode::mbap));
     initButton(mHybridButton, spatModeToString(SpatMode::hybrid), spatModeToTooltip(SpatMode::hybrid));
 
+    initButton(mMulticoreDSPToggle,
+               "Multicore DSP",
+               "Experimental : This will use more CPU resources but can perform better on large speaker setups. Does "
+               "not parallelize stereo or binaural reductions.",
+               NOT_A_RADIO_BUTTON_ID);
+    initButton(mMulticoreDSPCPUPresetToggle,
+               "A",
+               "This preset uses less idle CPU but can perform worse.",
+               MULTICORE_PRESETS_RADIO_GROUP_ID);
+    initButton(mMulticoreDSPLatencyPresetToggle,
+               "B",
+               "This preset uses more idle CPU but can perform better.",
+               MULTICORE_PRESETS_RADIO_GROUP_ID);
+
     juce::StringArray items{ "None" };
     items.addArray(STEREO_MODE_STRINGS);
     mStereoReductionCombo.addItemList(items, 1);
     mStereoReductionCombo.addListener(this);
-
-    mAttenuationDbCombo.addItemList(mAttenuationValues.dbStrings, 1);
-    mAttenuationDbCombo.addListener(this);
-
-    mAttenuationHzCombo.addItemList(mAttenuationValues.hzStrings, 1);
-    mAttenuationHzCombo.addListener(this);
 
     mLeftCombo.addListener(this);
     mRightCombo.addListener(this);
@@ -154,22 +176,55 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
     mCol1Layout.addSection(mStereoReductionCombo).withFixedSize(ROW_2_CONTENT_HEIGHT);
 
     static constexpr auto COL_2_HALF_WIDTH = (COL_2_WIDTH - COL_INNER_PADDING) / 2;
-    mAttenuationLayout.addSection(mAttenuationDbCombo)
-        .withFixedSize(COL_2_HALF_WIDTH)
+    mAttenuationLayout.addSection(mAttenuationDbSlider)
+        .withFixedSize(COL_2_HALF_WIDTH - 3)
+        .withVerticalPadding(1)
+        .withLeftPadding(1)
         .withRightPadding(COL_INNER_PADDING);
-    mAttenuationLayout.addSection(mAttenuationHzCombo).withFixedSize(COL_2_HALF_WIDTH);
+    mAttenuationLayout.addSection(mAttenuationHzSlider)
+        .withFixedSize(COL_2_HALF_WIDTH - 3)
+        .withVerticalPadding(1)
+        .withLeftPadding(1)
+        .withRightPadding(COL_INNER_PADDING);
 
     static constexpr auto COL_2_QUARTER_WIDTH = COL_2_HALF_WIDTH / 2;
+    static constexpr auto COL_2_SPACER = 15;
+    static constexpr auto COL_2_TOP_PADDING = ROW_2_CONTENT_HEIGHT / 4;
     mStereoRoutingLayout.clearSections();
-    mStereoRoutingLayout.addSection(mLeftLabel).withFixedSize(COL_2_QUARTER_WIDTH);
-    mStereoRoutingLayout.addSection(mLeftCombo).withFixedSize(COL_2_QUARTER_WIDTH).withRightPadding(COL_INNER_PADDING);
-    mStereoRoutingLayout.addSection(mRightLabel).withFixedSize(COL_2_QUARTER_WIDTH);
-    mStereoRoutingLayout.addSection(mRightCombo).withFixedSize(COL_2_QUARTER_WIDTH);
+    mStereoRoutingLayout.addSection(mLeftLabel)
+        .withFixedSize(COL_2_QUARTER_WIDTH - COL_2_SPACER)
+        .withTopPadding(COL_2_TOP_PADDING);
+    mStereoRoutingLayout.addSection(mLeftCombo).withFixedSize(COL_2_QUARTER_WIDTH + COL_2_SPACER);
+    mStereoRoutingLayout.addSection(mRightLabel)
+        .withFixedSize(COL_2_QUARTER_WIDTH - COL_2_SPACER)
+        .withTopPadding(COL_2_TOP_PADDING);
+    mStereoRoutingLayout.addSection(mRightCombo).withFixedSize(COL_2_QUARTER_WIDTH + COL_2_SPACER);
+
+    mMulticoreLayout.addSection(mMulticoreDSPToggle).withFixedSize(COL_2_HALF_WIDTH);
+    mMulticoreLayout.addSection(mMulticoreDSPCPUPresetToggle).withFixedSize(COL_2_QUARTER_WIDTH);
+    mMulticoreLayout.addSection(mMulticoreDSPLatencyPresetToggle).withFixedSize(COL_2_QUARTER_WIDTH);
 
     mCol2Layout.addSection(mAttenuationSettingsButton).withFixedSize(LABEL_HEIGHT);
     mCol2Layout.addSection(mAttenuationLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
-    mCol2Layout.addSection(mStereoRoutingLabel).withFixedSize(LABEL_HEIGHT);
-    mCol2Layout.addSection(mStereoRoutingLayout).withFixedSize(ROW_2_CONTENT_HEIGHT);
+
+#if MULTICORE_DSP
+    mTopLeftComponentSwapper.addComponent(multicoreLabelName,
+                                          juce::Component::SafePointer<juce::Component>(&mMulticoreLabel));
+#endif
+    mTopLeftComponentSwapper.addComponent(stereoRoutingLabelName,
+                                          juce::Component::SafePointer<juce::Component>(&mStereoRoutingLabel));
+
+    mCol2Layout.addSection(mTopLeftComponentSwapper).withFixedSize(LABEL_HEIGHT);
+
+#if MULTICORE_DSP
+    mBottomLeftComponentSwapper.addComponent(multicoreLayoutName,
+                                             juce::Component::SafePointer<juce::Component>(&mMulticoreLayout));
+#endif
+    mBottomLeftComponentSwapper.addComponent(stereoRoutingLayoutName,
+                                             juce::Component::SafePointer<juce::Component>(&mStereoRoutingLayout));
+    addAndMakeVisible(mBottomLeftComponentSwapper);
+
+    mCol2Layout.addSection(mBottomLeftComponentSwapper).withFixedSize(ROW_2_CONTENT_HEIGHT);
 
     updateLayout();
 }
@@ -264,6 +319,24 @@ void SpatSettingsSubPanel::setSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
+void SpatSettingsSubPanel::setMulticoreDSP(bool useMulticoreDSP)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mMulticoreDSPToggle.setToggleState(useMulticoreDSP, juce::dontSendNotification);
+}
+
+//==============================================================================
+void SpatSettingsSubPanel::setMulticoreDSPPreset(int preset)
+{
+    if (preset == OPTIMIZE_CPU_MULTICORE_PRESET) {
+        mMulticoreDSPCPUPresetToggle.setToggleState(true, juce::dontSendNotification);
+    } else if (preset == OPTIMIZE_LATENCY_MULTICORE_PRESET) {
+        mMulticoreDSPLatencyPresetToggle.setToggleState(true, juce::dontSendNotification);
+    }
+    JUCE_ASSERT_MESSAGE_THREAD;
+}
+
+//==============================================================================
 void SpatSettingsSubPanel::setStereoMode(tl::optional<StereoMode> const & stereoMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -282,8 +355,7 @@ void SpatSettingsSubPanel::setAttenuationDb(dbfs_t const attenuation)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const index{ mAttenuationValues.dbValues.indexOf(attenuation) };
-    mAttenuationDbCombo.setSelectedItemIndex(index, juce::dontSendNotification);
+    mAttenuationDbSlider.setValue(attenuation.get());
 }
 
 //==============================================================================
@@ -291,8 +363,7 @@ void SpatSettingsSubPanel::setAttenuationHz(hz_t const freq)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const index{ mAttenuationValues.hzValues.indexOf(freq) };
-    mAttenuationHzCombo.setSelectedItemIndex(index);
+    mAttenuationHzSlider.setValue(freq.get());
 }
 
 //==============================================================================
@@ -334,7 +405,7 @@ void SpatSettingsSubPanel::updateEnabledStereoRoutings()
     auto const rightId{ mRightCombo.getSelectedId() };
 
     jassert(mLeftCombo.getNumItems() == mRightCombo.getNumItems());
-    jassert(leftId == 0 && rightId == 0 || mLeftCombo.getSelectedId() != mRightCombo.getSelectedId());
+    jassert((leftId == 0 && rightId == 0) || mLeftCombo.getSelectedId() != mRightCombo.getSelectedId());
 
     for (int i{}; i < mLeftCombo.getNumItems(); ++i) {
         auto const itemId{ mLeftCombo.getItemId(i) };
@@ -352,73 +423,74 @@ void SpatSettingsSubPanel::updateLayout()
     auto const showRouting{ shouldShowStereoRouting() };
     auto const isAttenuationActive{ mAttenuationSettingsButton.getToggleState() };
 
-    mAttenuationDbCombo.setEnabled(isAttenuationActive);
-    mAttenuationHzCombo.setEnabled(isAttenuationActive);
+    mAttenuationDbSlider.setEnabled(isAttenuationActive);
+    mAttenuationHzSlider.setEnabled(isAttenuationActive);
 
     mAttenuationSettingsLabel.setVisible(showAttenuation);
     mAttenuationSettingsButton.setVisible(showAttenuation);
-    mAttenuationDbCombo.setVisible(showAttenuation);
-    mAttenuationHzCombo.setVisible(showAttenuation);
+    mAttenuationDbSlider.setVisible(showAttenuation);
+    mAttenuationHzSlider.setVisible(showAttenuation);
 
     mStereoRoutingLabel.setVisible(showRouting);
-    mLeftLabel.setVisible(showRouting);
-    mLeftCombo.setVisible(showRouting);
-    mRightLabel.setVisible(showRouting);
-    mRightCombo.setVisible(showRouting);
+
+    // We may have previously set the visibility of these to false.
+    mBottomLeftComponentSwapper.setVisible(true);
+    mTopLeftComponentSwapper.setVisible(true);
+    if (showRouting) {
+        mBottomLeftComponentSwapper.showComponent(stereoRoutingLayoutName);
+        mTopLeftComponentSwapper.showComponent(stereoRoutingLabelName);
+    } // we should not show the multicoreDSPToggle in hybrid mode because it should have no effect.
+    else if (getSpatMode() != SpatMode::hybrid) {
+        mBottomLeftComponentSwapper.showComponent(multicoreLayoutName);
+        mTopLeftComponentSwapper.showComponent(multicoreLabelName);
+    } else {
+        // if we are in hybrid mode and we should not show routing, hide everything.
+        mBottomLeftComponentSwapper.setVisible(false);
+        mTopLeftComponentSwapper.setVisible(false);
+    }
 
     clearSections();
     addSection(mCol1Layout).withFixedSize(COL_1_WIDTH).withHorizontalPadding(COL_PADDING);
-    if (showAttenuation || showRouting) {
-        addSection(mCol2Layout).withFixedSize(COL_2_WIDTH).withLeftPadding(COL_PADDING);
-    }
+    addSection(mCol2Layout).withFixedSize(COL_2_WIDTH).withLeftPadding(COL_PADDING);
 }
 
 //==============================================================================
 void SpatSettingsSubPanel::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    if (button == &mDomeButton || button == &mCubeButton || button == &mHybridButton) {
+        if (!button->getToggleState()) {
+            return;
+        }
 
-    if (!button->getToggleState()) {
-        return;
+        auto const getSpatMode = [&]() {
+            if (button == &mDomeButton) {
+                return SpatMode::vbap;
+            }
+            if (button == &mCubeButton) {
+                return SpatMode::mbap;
+            }
+            jassert(button == &mHybridButton);
+            return SpatMode::hybrid;
+        };
+
+        auto const spatMode{ getSpatMode() };
+        mMainContentComponent.setSpatMode(spatMode);
+        updateLayout();
+        mControlPanel.forceLayoutUpdate();
+    } else if (button == &mMulticoreDSPToggle) {
+        mMainContentComponent.setMulticoreDSPState(button->getToggleState());
+    } else if (button == &mMulticoreDSPCPUPresetToggle && button->getToggleState()) {
+        mMainContentComponent.setMulticoreDSPPreset(OPTIMIZE_CPU_MULTICORE_PRESET);
+    } else if (button == &mMulticoreDSPLatencyPresetToggle && button->getToggleState()) {
+        mMainContentComponent.setMulticoreDSPPreset(OPTIMIZE_LATENCY_MULTICORE_PRESET);
     }
-
-    auto const getSpatMode = [&]() {
-        if (button == &mDomeButton) {
-            return SpatMode::vbap;
-        }
-        if (button == &mCubeButton) {
-            return SpatMode::mbap;
-        }
-        jassert(button == &mHybridButton);
-        return SpatMode::hybrid;
-    };
-
-    auto const spatMode{ getSpatMode() };
-    mMainContentComponent.setSpatMode(spatMode);
-    updateLayout();
-    mControlPanel.forceLayoutUpdate();
 }
 
 //==============================================================================
 void SpatSettingsSubPanel::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-
-    if (comboBoxThatHasChanged == &mAttenuationDbCombo) {
-        auto const index{ std::max(mAttenuationDbCombo.getSelectedItemIndex(), 0) };
-        auto const attenuation{ mAttenuationValues.dbValues[index] };
-        mMainContentComponent.cubeAttenuationDbChanged(attenuation);
-
-        return;
-    }
-
-    if (comboBoxThatHasChanged == &mAttenuationHzCombo) {
-        auto const index{ std::max(mAttenuationHzCombo.getSelectedItemIndex(), 0) };
-        auto const freq{ mAttenuationValues.hzValues[index] };
-        mMainContentComponent.cubeAttenuationHzChanged(freq);
-
-        return;
-    }
 
     if (comboBoxThatHasChanged == &mStereoReductionCombo) {
         auto const stereoMode{ getStereoMode() };
@@ -444,27 +516,9 @@ void SpatSettingsSubPanel::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
 }
 
 //==============================================================================
-SpatSettingsSubPanel::AttenuationValues SpatSettingsSubPanel::getAttenuationValues()
-{
-    AttenuationValues result{};
-
-    for (auto const & string : ATTENUATION_DB_STRINGS) {
-        result.dbValues.add(dbfs_t{ string.getFloatValue() });
-        result.dbStrings.add(string + " db");
-    }
-
-    for (auto const & string : ATTENUATION_FREQUENCY_STRINGS) {
-        result.hzValues.add(hz_t{ string.getFloatValue() });
-        result.hzStrings.add(string + " Hz");
-    }
-
-    return result;
-}
-
-//==============================================================================
-ControlPanel::ControlPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
+ControlPanel::ControlPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & glaf)
     : mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(lookAndFeel)
+    , mLookAndFeel(glaf)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -499,6 +553,19 @@ void ControlPanel::setSpatMode(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mSpatSettingsSubPanel.setSpatMode(spatMode);
+}
+
+// used to set the multicore dsp button's toggle state from the main component at
+// project load time.
+void ControlPanel::setMulticoreDSP(bool useMulticoreDSP)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mSpatSettingsSubPanel.setMulticoreDSP(useMulticoreDSP);
+}
+void ControlPanel::setMulticoreDSPPreset(int preset)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mSpatSettingsSubPanel.setMulticoreDSPPreset(preset);
 }
 
 //==============================================================================

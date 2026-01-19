@@ -33,9 +33,9 @@ static void appendNumber(std::string & str, float val)
     if (std::abs(val) < 1e-6f)
         val = 0.f;
 
-    // We are not using to_chars directly as it may not be available
-    // on every platform (e.g. older macOS).
-    // See notes here: https://en.cppreference.com/w/cpp/utility/to_chars
+        // We are not using to_chars directly as it may not be available
+        // on every platform (e.g. older macOS).
+        // See notes here: https://en.cppreference.com/w/cpp/utility/to_chars
 #if __cpp_lib_to_chars >= 201611L
     static constexpr auto precision = 3;
     static constexpr auto format = std::chars_format::general;
@@ -60,25 +60,20 @@ static void appendNumber(std::string & str, int val)
 #endif
 }
 
-
 //==============================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
     : mMainContentComponent(mainContentComponent)
     , mUDPDefaultOutputPort(DEFAULT_UDP_OUTPUT_PORT)
     , mUDPDefaultOutputAddress(localhost)
 {
+    const auto extraUDPOutputPort
+        = mainContentComponent.getData().appData.networkSettings.standaloneSpeakerViewOutputPort;
+    const auto extraUDPOutputAddress
+        = mainContentComponent.getData().appData.networkSettings.standaloneSpeakerViewOutputAddress;
+    const auto extraUDPInputPort
+        = mainContentComponent.getData().appData.networkSettings.standaloneSpeakerViewInputPort;
 
-    const auto uDPExtraOutputPort = mainContentComponent.getData().project.standaloneSpeakerViewOutputPort;
-    const auto uDPExtraOutputAddress = mainContentComponent.getData().project.standaloneSpeakerViewOutputAddress;
-    const auto extraUDPInputPort = mainContentComponent.getData().project.standaloneSpeakerViewInputPort;
-    if (extraUDPInputPort) {
-        setExtraUDPInputPort(*extraUDPInputPort);
-    }
-
-    // If we have an address and port, enable sending to the extra standalone SpeakerView.
-    if (uDPExtraOutputPort && uDPExtraOutputAddress) {
-        setExtraUDPOutput(*uDPExtraOutputPort, *uDPExtraOutputAddress);
-    }
+    initExtraPorts(extraUDPInputPort, extraUDPOutputPort, extraUDPOutputAddress);
 
     mUdpReceiverSocket.bindToPort(DEFAULT_UDP_INPUT_PORT);
 }
@@ -87,6 +82,24 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentCom
 SpeakerViewComponent::~SpeakerViewComponent()
 {
     stopTimer();
+}
+
+void SpeakerViewComponent::initExtraPorts(tl::optional<int> extraUDPInputPort,
+                                          tl::optional<int> extraUDPOutputPort,
+                                          tl::optional<juce::String> extraUDPOutputAddress)
+{
+    if (extraUDPInputPort) {
+        setExtraUDPInputPort(*extraUDPInputPort);
+    } else {
+        disableExtraUDPInput();
+    }
+
+    // If we have an address and port, enable sending to the extra standalone SpeakerView.
+    if (extraUDPOutputPort && extraUDPOutputAddress) {
+        setExtraUDPOutput(*extraUDPOutputPort, *extraUDPOutputAddress);
+    } else {
+        disableExtraUDPOutput();
+    }
 }
 
 bool SpeakerViewComponent::setExtraUDPInputPort(int const port)
@@ -112,18 +125,20 @@ void SpeakerViewComponent::disableExtraUDPInput()
 
 tl::optional<int> SpeakerViewComponent::getExtraUDPInputPort() const
 {
-  return extraUdpReceiverSocket ? tl::optional<int>{ extraUdpReceiverSocket->getBoundPort() } : tl::nullopt;
+    return extraUdpReceiverSocket ? tl::optional<int>{ extraUdpReceiverSocket->getBoundPort() } : tl::nullopt;
 }
 
-void SpeakerViewComponent::setExtraUDPOutput(int const port, const juce::StringRef address) {
+void SpeakerViewComponent::setExtraUDPOutput(int const port, const juce::StringRef address)
+{
     mUDPExtraOutputPort = port;
     mUDPExtraOutputAddress = address;
     if (!extraUdpSenderSocket) {
-      extraUdpSenderSocket = std::make_unique<juce::DatagramSocket>();
+        extraUdpSenderSocket = std::make_unique<juce::DatagramSocket>();
     }
 }
 
-void SpeakerViewComponent::disableExtraUDPOutput() {
+void SpeakerViewComponent::disableExtraUDPOutput()
+{
     mUDPExtraOutputPort = tl::nullopt;
     mUDPExtraOutputAddress = tl::nullopt;
     extraUdpSenderSocket.reset();
@@ -340,14 +355,14 @@ void SpeakerViewComponent::prepareSpeakersJson()
             auto center_position = speaker_centers[speaker.key];
 
             if (center_position) {
-              auto const & center_cartesion_pos = center_position->getCartesian();
-              mJsonSpeakers += ",[";
-              appendNumber(mJsonSpeakers, center_cartesion_pos.x);
-              mJsonSpeakers += ",";
-              appendNumber(mJsonSpeakers, center_cartesion_pos.y);
-              mJsonSpeakers += ",";
-              appendNumber(mJsonSpeakers, center_cartesion_pos.z);
-              mJsonSpeakers += "]";
+                auto const & center_cartesion_pos = center_position->getCartesian();
+                mJsonSpeakers += ",[";
+                appendNumber(mJsonSpeakers, center_cartesion_pos.x);
+                mJsonSpeakers += ",";
+                appendNumber(mJsonSpeakers, center_cartesion_pos.y);
+                mJsonSpeakers += ",";
+                appendNumber(mJsonSpeakers, center_cartesion_pos.z);
+                mJsonSpeakers += "]";
             }
             mJsonSpeakers += "],";
 
@@ -389,9 +404,8 @@ void SpeakerViewComponent::hiResTimerCallback()
         mOldJsonSGInfos = mJsonSGInfos;
     }
 
-    mTicksSinceKeepalive+=1;
-    mTicksSinceKeepalive%=10;
-
+    mTicksSinceKeepalive += 1;
+    mTicksSinceKeepalive %= 10;
 }
 
 //==============================================================================
@@ -400,24 +414,22 @@ void SpeakerViewComponent::prepareSGInfos()
     auto * topLevelComp = mMainContentComponent.getTopLevelComponent();
     auto const & spatMode{ static_cast<int>(mData.warmData.spatMode) };
     auto const & viewSettings{ mData.warmData.viewSettings };
-    auto appendProperty = [&str=mJsonSGInfos] <typename P> (std::string_view name, const P& prop) {
-      str += '"';
-      str += name;
-      str += "\":";
-      if constexpr(std::is_same_v<bool, P>) {
-        str += prop ? "true" : "false";
-      }
-      else if constexpr(std::is_same_v<juce::String, P>) {
+    auto appendProperty = [&str = mJsonSGInfos]<typename P>(std::string_view name, const P & prop) {
         str += '"';
-        str += prop.toStdString();
-        str += '"';
-      }
-      else if constexpr(std::is_arithmetic_v<P>){
-        appendNumber(str, prop);
-      } else {
-        static_assert(P::is_not_a_known_type);
-      }
-      str += ",";
+        str += name;
+        str += "\":";
+        if constexpr (std::is_same_v<bool, P>) {
+            str += prop ? "true" : "false";
+        } else if constexpr (std::is_same_v<juce::String, P>) {
+            str += '"';
+            str += prop.toStdString();
+            str += '"';
+        } else if constexpr (std::is_arithmetic_v<P>) {
+            appendNumber(str, prop);
+        } else {
+            static_assert(P::is_not_a_known_type);
+        }
+        str += ",";
     };
 
     mJsonSGInfos.clear();
@@ -442,7 +454,7 @@ void SpeakerViewComponent::prepareSGInfos()
 
     mJsonSGInfos += "\"spkTriplets\":[";
 
-    if(!mData.coldData.triplets.isEmpty()) {
+    if (!mData.coldData.triplets.isEmpty()) {
         for (auto const & triplet : mData.coldData.triplets) {
             mJsonSGInfos += '[';
             appendNumber(mJsonSGInfos, triplet.id1.get());
@@ -470,7 +482,7 @@ bool SpeakerViewComponent::isHiResTimerThread()
 }
 
 //==============================================================================
-void SpeakerViewComponent::listenUDP(juce::DatagramSocket& socket)
+void SpeakerViewComponent::listenUDP(juce::DatagramSocket & socket)
 {
     if (!isHiResTimerThread()) {
         return;
@@ -482,7 +494,7 @@ void SpeakerViewComponent::listenUDP(juce::DatagramSocket& socket)
     auto packetSize = socket.read(receiveBuffer, mMaxBufferSize, false, senderAddress, senderPort);
 
     if (packetSize > 0) {
-        juce::String receivedData(receiveBuffer, packetSize);
+        juce::String receivedData(receiveBuffer, static_cast<size_t>(packetSize));
         juce::var jsonResult;
         auto res = juce::JSON::parse(receivedData, jsonResult);
 
@@ -588,7 +600,8 @@ void SpeakerViewComponent::sendUDP(const std::string & toSend)
 {
     auto cStrToSend = toSend.c_str();
     auto size = static_cast<int>(toSend.size());
-    [[maybe_unused]] int bytesWritten = udpSenderSocket.write(mUDPDefaultOutputAddress, mUDPDefaultOutputPort, cStrToSend, size);
+    [[maybe_unused]] int bytesWritten
+        = udpSenderSocket.write(mUDPDefaultOutputAddress, mUDPDefaultOutputPort, cStrToSend, size);
     jassert(!(bytesWritten < 0));
     if (extraUdpSenderSocket) {
         [[maybe_unused]] int extraBytesWritten

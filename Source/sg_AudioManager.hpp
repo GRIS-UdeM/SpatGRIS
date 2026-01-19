@@ -19,9 +19,9 @@
 
 #pragma once
 
+#include "Containers/sg_TaggedAudioBuffer.hpp"
 #include "Data/sg_AudioStructs.hpp"
 #include "Data/sg_LogicStrucs.hpp"
-#include "Containers/sg_TaggedAudioBuffer.hpp"
 
 #include <JuceHeader.h>
 
@@ -50,7 +50,7 @@ class AudioManager final : juce::AudioSourcePlayer
         // A pointer to the audio format. Note that the format writer is actually owned and accessed by the
         // ThreadedWriter : this pointer is never actually used. This has been left in only for doing sanity checks
         // assertions.
-        juce::AudioFormatWriter * audioFormatWriter{};
+        juce::AudioFormatWriter * audioFormatWriterPtr{};
         // A collection of pointers to the buffers that will get recorded on disk. Note that this is NOT null terminated
         // : all pointers are non-null and valid.
         juce::Array<float const *> dataToRecord{};
@@ -82,9 +82,6 @@ private:
     juce::AudioDeviceManager mAudioDeviceManager{};
     SourceAudioBuffer mInputBuffer{};
     SpeakerAudioBuffer mOutputBuffer{};
-#if SG_USE_FORK_UNION && (SG_FU_METHOD == SG_FU_USE_ARRAY_OF_ATOMICS || SG_FU_METHOD == SG_FU_USE_BUFFER_PER_THREAD)
-    ForkUnionBuffer forkUnionBuffer;
-#endif
 
     juce::AudioBuffer<float> mStereoOutputBuffer{};
     tl::optional<StereoRouting> mStereoRouting{};
@@ -140,21 +137,18 @@ public:
     juce::Array<juce::File> & getAudioFiles();
 
     void initInputBuffer(juce::Array<source_index_t> const & sources);
-#if SG_USE_FORK_UNION
-    void initForkUnionBuffer (int bufferSize, tl::optional<int> speakerCount);
-#endif
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);
     void setBufferSize(int newBufferSize);
     void setStereoRouting(tl::optional<StereoRouting> const & stereoRouting);
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;
-    void audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
-                                           int totalNumInputChannels,
-                                           float* const* outputChannelData,
-                                           int totalNumOutputChannels,
-                                           int numSamples,
-                                           const juce::AudioIODeviceCallbackContext& context) override;
+    void audioDeviceIOCallbackWithContext(const float * const * inputChannelData,
+                                          int totalNumInputChannels,
+                                          float * const * outputChannelData,
+                                          int totalNumOutputChannels,
+                                          int numSamples,
+                                          const juce::AudioIODeviceCallbackContext & context) override;
     void audioDeviceAboutToStart(juce::AudioIODevice * device) override;
     void audioDeviceStopped() override;
     //==============================================================================
@@ -182,6 +176,7 @@ private:
                                           double requestedSampleRate,
                                           int requestedBufferSize);
     //==============================================================================
+    double mSampleRate{};
 
     JUCE_LEAK_DETECTOR(AudioManager)
 }; // class AudioManager
