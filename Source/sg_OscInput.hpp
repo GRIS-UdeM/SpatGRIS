@@ -38,7 +38,8 @@ class OscInput final
         resetSourcePosition,
         sourceHybridMode,
         legacySourcePosition,
-        legacyResetSourcePosition
+        legacyResetSourcePosition,
+        sourceColour
     };
 
     MainContentComponent & mMainContentComponent;
@@ -77,6 +78,7 @@ private:
     void processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
     void processLegacySourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
     void processSourceHybridModeMessage(juce::OSCMessage const & message) const noexcept;
+    void processSourceColourMessage(juce::OSCMessage const & message) const noexcept;
     MessageType getMessageType(juce::OSCMessage const & message) const noexcept;
 
     enum class SourceIndexBase { fromZero, fromOne };

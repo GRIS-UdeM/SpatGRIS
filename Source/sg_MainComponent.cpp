@@ -2309,6 +2309,11 @@ void MainContentComponent::setPinkNoiseType(bool isPulsed)
 void MainContentComponent::setSourceColor(source_index_t const sourceIndex, juce::Colour const colour)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (sourceIndex > getMaxProjectSourceIndex()) {
+        return;
+    }
+
     juce::ScopedWriteLock const lock{ mLock };
 
     mData.project.sources[sourceIndex].colour = colour;

@@ -230,6 +230,19 @@ void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) 
 }
 
 //==============================================================================
+void OscInput::processSourceColourMessage(juce::OSCMessage const & message) const noexcept
+{
+    auto const sourceIndex{ extractSourceIndex(message[1], SourceIndexBase::fromZero) };
+    auto const sourceColour{ juce::Colour(message[2].getColour().toInt32()) };
+
+    if (sourceIndex) {
+        juce::MessageManager::callAsync([this, sourceIndex = *sourceIndex, sourceColour] {
+            this->mMainContentComponent.setSourceColor(sourceIndex, sourceColour);
+        });
+    }
+}
+
+//==============================================================================
 void OscInput::addToBuffer(juce::String const & string) const
 {
     if (mLogBuffer.isActive()) {
@@ -323,6 +336,14 @@ OscInput::MessageType OscInput::getMessageType(juce::OSCMessage const & message)
         return MessageType::legacyResetSourcePosition;
     }
 
+    if (firstArg == "colour") {
+        if (message.size() != 3) {
+            addErrorToBuffer("expected a source colour message to be exactly 3 arguments long.");
+            return MessageType::invalid;
+        }
+        return MessageType::sourceColour;
+    }
+
     addErrorToBuffer(juce::String{ "unknown command \"" } + firstArg + "\".");
     return MessageType::invalid;
 }
@@ -369,6 +390,9 @@ void OscInput::oscMessageReceived(juce::OSCMessage const & message)
         return;
     case MessageType::sourceHybridMode:
         processSourceHybridModeMessage(message);
+        return;
+    case MessageType::sourceColour:
+        processSourceColourMessage(message);
         return;
     case MessageType::invalid:
         break;
