@@ -168,7 +168,19 @@ juce::String SpeakerTreeComponent::getPositionCoordinateTrimmedText(Position::Co
     case Position::Coordinate::z:
         return juce::String(position.getCartesian().z, 3);
     case Position::Coordinate::azimuth:
-        return juce::String(position.getPolar().azimuth.get() / radians_t::RADIAN_PER_DEGREE, 1);
+        {
+            // We want 0 to 360 degrees, 0 degree at (0, 1), 90 degrees at (1, 0), 180 degrees at (0, -1)
+            // and 270 degrees at (-1, 0) so it is a clockwise rotation.
+            // Without this following code, 0 degree is at (1, 0) and it is a counterclockwise rotation
+            // from -180 to 180 degrees.
+            // Clockwise rotation, so (minus) -radians_t::RADIAN_PER_DEGREE
+            auto deg{ position.getPolar().azimuth.get() / -radians_t::RADIAN_PER_DEGREE };
+            deg += 90.0f;
+            deg = std::fmod(deg, 360.0f);
+            if (deg < 0.0f)
+                deg += 360.0f;
+            return juce::String(deg, 1);
+        }
     case Position::Coordinate::elevation:
         return juce::String(position.getPolar().elevation.get() / radians_t::RADIAN_PER_DEGREE, 1);
     case Position::Coordinate::radius:
@@ -191,7 +203,19 @@ void SpeakerTreeComponent::setPositionCoordinate(Position::Coordinate coordinate
         case Position::Coordinate::z:
             return position.withZ(newValue);
         case Position::Coordinate::azimuth:
-            return Position{ position.getPolar().withAzimuth(radians_t(newValue * radians_t::RADIAN_PER_DEGREE)) };
+            {
+                // We want 0 to 360 degrees, 0 degree at (0, 1), 90 degrees at (1, 0), 180 degrees at (0, -1)
+                // and 270 degrees at (-1, 0) so it is a clockwise rotation.
+                // Without this following code, 0 degree is at (1, 0) and it is a counterclockwise rotation
+                // from -180 to 180 degrees.
+                auto deg{ newValue };
+                deg -= 90.0f;
+                deg = std::fmod(deg, 360.0f);
+                if (deg < 0.0f)
+                    deg += 360.0f;
+                // Clockwise rotation, so (minus) -radians_t::RADIAN_PER_DEGREE
+                return Position{ position.getPolar().withAzimuth(radians_t(deg * -radians_t::RADIAN_PER_DEGREE)) };
+            }
         case Position::Coordinate::elevation:
             return Position{ position.getPolar().withElevation(radians_t(newValue * radians_t::RADIAN_PER_DEGREE)) };
         case Position::Coordinate::radius:
