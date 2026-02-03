@@ -15,8 +15,8 @@ juce::File const DEFAULT_CUBE_PROJECT{ RESOURCES_DIR.getChildFile(
     "templates/Projects/CUBE/default_project18(8X2-Subs2).xml") };
 juce::File const DEFAULT_CUBE_SPEAKER_SETUP{ RESOURCES_DIR.getChildFile(
     "templates/Speaker setups/CUBE/Cube_default_speaker_setup.xml") };
-juce::File const MANUAL_FILE_EN{ RESOURCES_DIR.getChildFile("SpatGRIS_4.0.1_Manual_EN.pdf") };
-juce::File const MANUAL_FILE_FR{ RESOURCES_DIR.getChildFile("SpatGRIS_4.0.1_Manuel_FR.pdf") };
+juce::File const MANUAL_FILE_EN{ RESOURCES_DIR.getChildFile("SpatGRIS_4.0.2_Manual_EN.pdf") };
+juce::File const MANUAL_FILE_FR{ RESOURCES_DIR.getChildFile("SpatGRIS_4.0.2_Manuel_FR.pdf") };
 juce::File const ICON_SMALL_FILE{ RESOURCES_DIR.getChildFile("ServerGRIS_icon_splash_small.png") };
 
 bool FileTemplate::operator<(FileTemplate const & other) const noexcept
