@@ -4,8 +4,8 @@
 #define AppExeName "SpatGRIS.exe"
 #define ControlGrisDir "ControlGRIS"
 #define SpeakerViewDir "SpeakerView"
-#define ManualENName "SpatGRIS_4.0.2_Manual_EN.pdf"
-#define ManualFRName "SpatGRIS_4.0.2_Manuel_FR.pdf"
+#define ManualENName "SpatGRIS_4.0.1_Manual_EN.pdf"
+#define ManualFRName "SpatGRIS_4.0.1_Manuel_FR.pdf"
 #define RootDir ".."
 
 #define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
