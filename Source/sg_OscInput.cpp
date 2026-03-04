@@ -29,10 +29,12 @@ namespace
 constexpr auto INT_TAG = 'i';
 constexpr auto FLOAT_TAG = 'f';
 constexpr auto STRING_TAG = 's';
+constexpr auto COLOUR_TAG = 'r';
 
 auto constexpr IS_INT = [](juce::OSCArgument const & arg) -> bool { return arg.getType() == INT_TAG; };
 auto constexpr IS_FLOAT = [](juce::OSCArgument const & arg) -> bool { return arg.getType() == FLOAT_TAG; };
 auto constexpr IS_STRING = [](juce::OSCArgument const & arg) -> bool { return arg.getType() == STRING_TAG; };
+auto constexpr IS_COLOUR = [](juce::OSCArgument const & arg) -> bool { return arg.getType() == COLOUR_TAG; };
 
 juce::String const SPAT_GRIS_OSC_ADDRESS = "/spat/serv";
 
@@ -47,6 +49,9 @@ juce::String argumentToString(juce::OSCArgument const & argument) noexcept
     }
     if (IS_STRING(argument)) {
         return argument.getString();
+    }
+    if (IS_COLOUR(argument)) {
+        return juce::String{ argument.getColour().toInt32() };
     }
     return "<INVALID TYPE>";
 }
