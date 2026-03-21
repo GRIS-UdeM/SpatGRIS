@@ -371,6 +371,7 @@ private:
     void refreshSpeakers();
     void refreshSourceSlices();
     void refreshSpeakerSlices();
+    void refreshSpeakersTitle();
 
     void updateSourceSpatData(source_index_t sourceIndex);
 
