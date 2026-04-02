@@ -393,10 +393,10 @@
                sendAppleEventsPermissionText="SpatGris requires the ability to send Apple events to facilitate communication with SpeakerView."
                applicationCategory="public.app-category.music">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" osxCompatibility="10.13 SDK" isDebug="1" optimisation="1"
-                       targetName="SpatGRIS" fastMath="0" macOSDeploymentTarget="10.13"/>
+        <CONFIGURATION name="Debug" osxCompatibility="11.5 SDK" isDebug="1" optimisation="1"
+                       targetName="SpatGRIS" fastMath="0" macOSDeploymentTarget="11.5"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       osxArchitecture="Native" fastMath="0"/>
+                       fastMath="0" macOSDeploymentTarget="11.5" osxCompatibility="11.5 SDK"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
