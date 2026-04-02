@@ -190,7 +190,11 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // Speaker panel
         mSpeakersLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
-        mSpeakersSection = std::make_unique<TitledComponent>("Speakers", mSpeakersLayout.get(), mLookAndFeel);
+        auto speakerSetupName{ juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension() };
+        speakerSetupName = speakerSetupName == "" ? "" : juce::String(" - " + speakerSetupName);
+        mSpeakersSection = std::make_unique<TitledComponent>(juce::String("Speakers" + speakerSetupName),
+                                                             mSpeakersLayout.get(),
+                                                             mLookAndFeel);
 
         // main sections
         mMainLayout->addSection(mInfoPanel.get()).withChildMinSize().withRightPadding(5);
@@ -1988,6 +1992,15 @@ void MainContentComponent::refreshSpeakerSlices()
 }
 
 //==============================================================================
+void MainContentComponent::refreshSpeakersTitle()
+{
+    auto speakerSetupName{ juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension() };
+    speakerSetupName = speakerSetupName == "" ? "" : juce::String(" - " + speakerSetupName);
+    mSpeakersSection->setTitle("Speakers" + speakerSetupName);
+    mSpeakersSection->repaint();
+}
+
+//==============================================================================
 void MainContentComponent::updateSourceSpatData(source_index_t const sourceIndex)
 {
     jassert(!isProbablyAudioThread());
@@ -2879,6 +2892,7 @@ void MainContentComponent::refreshSpeakers()
     refreshSourceSlices();
     refreshSpeakerSlices();
     refreshViewportConfig();
+    refreshSpeakersTitle();
     if (mEditSpeakersWindow != nullptr) {
         mEditSpeakersWindow->updateWinContent();
     }
