@@ -52,6 +52,31 @@ bool isNotPowerOfTwo(int const value)
 } // namespace
 
 //==============================================================================
+void DeviceCombobox::mouseDown(const juce::MouseEvent & e)
+{
+    juce::PopupMenu pm;
+
+    for (int i{}; i < getNumItems(); ++i) {
+        const int id = getItemId(i);
+        pm.addItem(id, getItemText(i));
+    }
+
+    pm.showMenuAsync(juce::PopupMenu::Options{}, [this](int resultId) {
+        if (resultId <= 0) {
+            return;
+        }
+
+        const int oldId = getSelectedId();
+        if (resultId == oldId) {
+            setSelectedId(-1, juce::dontSendNotification);
+            setSelectedId(resultId, juce::sendNotificationAsync);
+        } else {
+            setSelectedId(resultId, juce::sendNotificationAsync);
+        }
+    });
+}
+
+//==============================================================================
 SettingsComponent::SettingsComponent(MainContentComponent & parent,
                                      SpeakerViewComponent & sVComponent,
                                      GrisLookAndFeel & glaf)

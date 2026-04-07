@@ -287,6 +287,11 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     initAudioManager();
     initAudioProcessor();
 
+    // (to check the audio interface connection)
+    mLastAudioDeviceType = AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDeviceType();
+    mLastAudioOutputDevice = AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice()->getName();
+    mLastAudioInputDevice = AudioManager::getInstance().getAudioDeviceManager().getAudioDeviceSetup().inputDeviceName;
+
     mSpeakersRefreshAsyncUpdater = std::make_unique<SpeakersRefreshAsyncUpdater>(*this);
 
     // Change the extra speaker view input and output ports if they exist
@@ -1804,6 +1809,54 @@ void MainContentComponent::audioParametersChanged()
 
     auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
 
+    auto * deviceTypeObject{ AudioManager::getInstance().getAudioDeviceManager().getCurrentDeviceTypeObject() };
+    jassert(deviceTypeObject);
+    deviceTypeObject->scanForDevices();
+
+    auto currentAudioDeviceType = AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDeviceType();
+    juce::String currentAudioOutputDevice{};
+    juce::String currentAudioInputDevice{};
+    if (currentAudioDevice != nullptr) {
+        currentAudioOutputDevice = currentAudioDevice->getName();
+        currentAudioInputDevice
+            = AudioManager::getInstance().getAudioDeviceManager().getAudioDeviceSetup().inputDeviceName;
+    }
+
+    auto const & deviceTypes{ AudioManager::getInstance().getAudioDeviceManager().getAvailableDeviceTypes() };
+    juce::StringArray resultInputDevices{};
+    juce::StringArray resultOutputDevices{};
+    for (auto const * deviceType : deviceTypes) {
+        if (deviceType->getTypeName().compare(currentAudioDeviceType) == 0) {
+            resultInputDevices = deviceType->getDeviceNames(true);
+            resultOutputDevices = deviceType->getDeviceNames(false);
+        }
+    }
+
+    if ((mLastAudioOutputDevice.isNotEmpty() && !resultOutputDevices.contains(mLastAudioOutputDevice))
+        || (mLastAudioInputDevice.isNotEmpty() && !resultInputDevices.contains(currentAudioInputDevice))) {
+        if (currentAudioDevice != nullptr) {
+            if (currentAudioDevice->isPlaying()) {
+                currentAudioDevice->close();
+                juce::String msg{
+                    juce::String("The audio engine has been closed to prevent feedback.\n")
+                    + juce::String(
+                        "Selecting desired audio input or ouptut in the Settings will automatically activate it.")
+                };
+                juce::AlertWindow::showAsync(juce::MessageBoxOptions()
+                                                 .withIconType(juce::MessageBoxIconType::WarningIcon)
+                                                 .withTitle("Audio Device Connection Lost")
+                                                 .withMessage(msg)
+                                                 .withButton("Cancel")
+                                                 .withButton("Mute")
+                                                 .withButton("Settings"),
+                                             [this](int res) { audioDeviceConnectionLostCallback(res); });
+            }
+        }
+    }
+    mLastAudioDeviceType = currentAudioDeviceType;
+    mLastAudioOutputDevice = currentAudioOutputDevice;
+    mLastAudioInputDevice = currentAudioInputDevice;
+
     if (currentAudioDevice) {
         auto const deviceTypeName{ currentAudioDevice->getTypeName() };
         auto const setup{ AudioManager::getInstance().getAudioDeviceManager().getAudioDeviceSetup() };
@@ -3199,6 +3252,20 @@ void MainContentComponent::reassignSourcesPositions()
             continue;
         }
         updateSourceSpatData(source.key);
+    }
+}
+
+//==============================================================================
+void MainContentComponent::audioDeviceConnectionLostCallback(int res)
+{
+    switch (res) {
+    case 0: // Settings
+        handleShowPreferences();
+        break;
+    case 1: // Cancel
+        [[fallthrough]];
+    default:
+        break;
     }
 }
 

@@ -28,6 +28,15 @@ class MainContentComponent;
 class GrisLookAndFeel;
 
 //==============================================================================
+/* A ComboBox that allows to reselect the same menu item */
+class DeviceCombobox : public juce::ComboBox
+{
+public:
+    DeviceCombobox() = default;
+    void mouseDown(const juce::MouseEvent & e) override;
+};
+
+//==============================================================================
 class SettingsComponent final
     : public juce::Component
     , public juce::TextButton::Listener
@@ -56,10 +65,10 @@ class SettingsComponent final
     juce::ComboBox mDeviceTypeCombo{};
 
     juce::Label mInputDeviceLabel{ "", "Audio input device :" };
-    juce::ComboBox mInputDeviceCombo{};
+    DeviceCombobox mInputDeviceCombo{};
 
     juce::Label mOutputDeviceLabel{ "", "Audio output device :" };
-    juce::ComboBox mOutputDeviceCombo{};
+    DeviceCombobox mOutputDeviceCombo{};
 
     juce::Label mSampleRateLabel{ "", "Sampling Rate (hz) :" };
     juce::ComboBox mSampleRateCombo;
