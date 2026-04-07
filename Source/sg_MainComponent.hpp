@@ -97,6 +97,9 @@ class MainContentComponent final
     std::unique_ptr<PlayerWindow> mPlayerWindow{};
 
     //==============================================================================
+    // audio device (to check the audio interface connection)
+    juce::String mLastAudioDeviceType, mLastAudioOutputDevice, mLastAudioInputDevice;
+
     // info section
     std::unique_ptr<InfoPanel> mInfoPanel{};
 
@@ -379,6 +382,8 @@ private:
     void refreshSpatAlgorithm();
     void updatePeaks();
     void reassignSourcesPositions();
+
+    void audioDeviceConnectionLostCallback(int res);
     //==============================================================================
     // OSC
     void startOsc();
