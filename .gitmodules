@@ -7,3 +7,6 @@
 [submodule "submodules/libmysofa"]
 	path = submodules/libmysofa
 	url = https://github.com/hoene/libmysofa.git
+[submodule "submodules/libspatialaudio"]
+	path = submodules/libspatialaudio
+	url = https://github.com/videolan/libspatialaudio.git
