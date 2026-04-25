@@ -4,3 +4,6 @@
 [submodule "submodules/jack2"]
 	path = submodules/jack2
 	url = git@github.com:jackaudio/jack2.git
+[submodule "submodules/libmysofa"]
+	path = submodules/libmysofa
+	url = https://github.com/hoene/libmysofa.git
