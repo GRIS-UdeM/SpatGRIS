@@ -391,12 +391,15 @@
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                iosDevelopmentTeamID="62PMMWH49Z" sendAppleEventsPermissionNeeded="1"
                sendAppleEventsPermissionText="SpatGris requires the ability to send Apple events to facilitate communication with SpeakerView."
-               applicationCategory="public.app-category.music">
+               applicationCategory="public.app-category.music" externalLibraries="spatialaudio&#10;mysofa&#10;z">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.13 SDK" isDebug="1" optimisation="1"
-                       targetName="SpatGRIS" fastMath="0" macOSDeploymentTarget="10.13"/>
+                       targetName="SpatGRIS" fastMath="0" macOSDeploymentTarget="10.13"
+                       headerPath="../../submodules/libspatialaudio/install/include&#10;../../submodules/libmysofa/out/include"
+                       libraryPath="../../submodules/libspatialaudio/install/lib&#10;../../submodules/libmysofa/out/lib"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       osxArchitecture="Native" fastMath="0"/>
+                       osxArchitecture="Native" fastMath="0" headerPath="../../submodules/libspatialaudio/install/include&#10;../../submodules/libmysofa/out/include"
+                       libraryPath="../../submodules/libspatialaudio/install/lib&#10;../../submodules/libmysofa/out/lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
