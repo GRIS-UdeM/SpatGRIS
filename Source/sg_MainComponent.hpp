@@ -364,6 +364,9 @@ private:
     void handleColorizeInputs();
     void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
+    void handleOpenSofaFile();
+    void handleSetBinauralAmbOrder(int order);
+    void handleBinauralLowCpuMode();
     void handleShowOscMonitorWindow();
 
     /** This is called by the SpeakersRefreshAsyncUpdater when MainContentComponent::requestSpeakerRefresh() is called.
@@ -394,6 +397,7 @@ private:
     [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
     bool loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption option);
     bool loadProject(juce::File const & file, bool discardCurrentProject);
+    bool loadSofaFile(juce::File const & file);
     bool saveProject(tl::optional<juce::File> maybeFile);
     bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;

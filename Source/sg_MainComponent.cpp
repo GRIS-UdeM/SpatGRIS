@@ -475,6 +475,21 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
 }
 
 //==============================================================================
+bool MainContentComponent::loadSofaFile(juce::File const & file)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    if (!file.existsAsFile()) {
+        return false;
+    }
+
+    mData.appData.binaraulSettings.lastSofaFile = file.getFullPathName();
+    refreshSpatAlgorithm();
+    return true;
+}
+
+//==============================================================================
 void MainContentComponent::handleOpenProject()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -545,6 +560,52 @@ void MainContentComponent::handleSaveSpeakerSetupAs()
     juce::ScopedReadLock const lock{ mLock };
 
     [[maybe_unused]] auto const success{ saveSpeakerSetup(tl::nullopt) };
+}
+
+//==============================================================================
+void MainContentComponent::handleOpenSofaFile()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    juce::File const lastSofa{ mData.appData.binaraulSettings.lastSofaFile };
+
+    auto const initialFile{ lastSofa.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
+                                juce::File::SpecialLocationType::userDocumentsDirectory)
+                                                                     : lastSofa };
+
+    juce::FileChooser fc{ "Choose a file to open...", {}, "*.sofa", true };
+
+    if (!fc.browseForFileToOpen()) {
+        return;
+    }
+
+    auto const chosen{ fc.getResult() };
+    [[maybe_unused]] auto const success{ loadSofaFile(chosen) };
+}
+
+//==============================================================================
+void MainContentComponent::handleSetBinauralAmbOrder(int order)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    if (order < 1 && order > 3) {
+        return;
+    }
+
+    mData.appData.binaraulSettings.ambisonicOrder = order;
+    refreshSpatAlgorithm();
+}
+
+//==============================================================================
+void MainContentComponent::handleBinauralLowCpuMode()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    mData.appData.binaraulSettings.lowCpuMode = !mData.appData.binaraulSettings.lowCpuMode;
+    refreshSpatAlgorithm();
 }
 
 //==============================================================================
@@ -1266,13 +1327,18 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 31> ids{ CommandId::newProjectId,
+    constexpr std::array<CommandId, 36> ids{ CommandId::newProjectId,
                                              CommandId::openProjectId,
                                              CommandId::saveProjectId,
                                              CommandId::saveProjectAsId,
                                              CommandId::openSpeakerSetupId,
                                              CommandId::saveSpeakerSetupId,
                                              CommandId::saveSpeakerSetupAsId,
+                                             CommandId::openSofaFileId,
+                                             CommandId::setAmbisonicOrder1,
+                                             CommandId::setAmbisonicOrder2,
+                                             CommandId::setAmbisonicOrder3,
+                                             CommandId::useLowCpuMode,
                                              CommandId::showSpeakerEditId,
                                              CommandId::show2DViewId,
                                              CommandId::showPlayerWindowId,
@@ -1361,6 +1427,26 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
                        generalCategory,
                        0);
         result.addDefaultKeypress('E', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier);
+        return;
+    case CommandId::openSofaFileId:
+        result.setInfo("Open SOFA file", "Choose a SOFA file on disk", generalCategory, 0);
+        result.addDefaultKeypress('B', juce::ModifierKeys::commandModifier);
+        return;
+    case CommandId::setAmbisonicOrder1:
+        result.setInfo("Ambisonic 1st order", "Use 1st ambisonic order", generalCategory, 0);
+        result.setTicked(mData.appData.binaraulSettings.ambisonicOrder == 1);
+        return;
+    case CommandId::setAmbisonicOrder2:
+        result.setInfo("Ambisonic 2nd order", "Use 2nd ambisonic order", generalCategory, 0);
+        result.setTicked(mData.appData.binaraulSettings.ambisonicOrder == 2);
+        return;
+    case CommandId::setAmbisonicOrder3:
+        result.setInfo("Ambisonic 3rd order", "Use 3rd ambisonic order", generalCategory, 0);
+        result.setTicked(mData.appData.binaraulSettings.ambisonicOrder == 3);
+        return;
+    case CommandId::useLowCpuMode:
+        result.setInfo("Use Symmetric Head (Low CPU Mode)", "Use Low CPU Mode", generalCategory, 0);
+        result.setTicked(mData.appData.binaraulSettings.lowCpuMode);
         return;
     case CommandId::showSpeakerEditId:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
@@ -1506,6 +1592,21 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::saveSpeakerSetupAsId:
             handleSaveSpeakerSetupAs();
+            break;
+        case CommandId::openSofaFileId:
+            handleOpenSofaFile();
+            break;
+        case CommandId::setAmbisonicOrder1:
+            handleSetBinauralAmbOrder(1);
+            break;
+        case CommandId::setAmbisonicOrder2:
+            handleSetBinauralAmbOrder(2);
+            break;
+        case CommandId::setAmbisonicOrder3:
+            handleSetBinauralAmbOrder(3);
+            break;
+        case CommandId::useLowCpuMode:
+            handleBinauralLowCpuMode();
             break;
         case CommandId::showSpeakerEditId:
             handleShowSpeakerEditWindow();
@@ -1686,6 +1787,16 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         return menu;
     };
 
+    auto const getBinauralSettingsMenu = [&]() {
+        juce::PopupMenu menu{};
+        menu.addCommandItem(commandManager, CommandId::setAmbisonicOrder1);
+        menu.addCommandItem(commandManager, CommandId::setAmbisonicOrder2);
+        menu.addCommandItem(commandManager, CommandId::setAmbisonicOrder3);
+        menu.addSeparator();
+        menu.addCommandItem(commandManager, CommandId::useLowCpuMode);
+        return menu;
+    };
+
     juce::PopupMenu menu;
 
     if (menuName == "File") {
@@ -1699,6 +1810,9 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addSubMenu("Speaker Setup Templates", getSpeakerSetupTemplatesMenu());
         menu.addCommandItem(commandManager, CommandId::saveSpeakerSetupId);
         menu.addCommandItem(commandManager, CommandId::saveSpeakerSetupAsId);
+        menu.addSeparator();
+        menu.addCommandItem(commandManager, CommandId::openSofaFileId);
+        menu.addSubMenu("Binaural Settings", getBinauralSettingsMenu());
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::openSettingsWindowId);
 #if !JUCE_MAC
@@ -2441,6 +2555,7 @@ void MainContentComponent::refreshSpatAlgorithm()
                                                        mData.project.sources,
                                                        mData.appData.audioSettings.sampleRate,
                                                        mData.appData.audioSettings.bufferSize,
+                                                       mData.appData.binaraulSettings,
                                                        shouldUseMulticoreDSP) };
 
     if (newSpatAlgorithm->getError()
