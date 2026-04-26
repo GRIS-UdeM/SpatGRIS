@@ -49,6 +49,8 @@ public:
         return mContentComponent->getMinHeight() + TITLE_HEIGHT;
     }
 
+    void setTitle(juce::String title);
+
 private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(TitledComponent)
