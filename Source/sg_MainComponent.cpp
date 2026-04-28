@@ -488,7 +488,7 @@ bool MainContentComponent::loadSofaFile(juce::File const & file)
         return false;
     }
 
-    mData.appData.binaraulSettings.lastSofaFile = file.getFullPathName();
+    mData.appData.binauralSettings.lastSofaFile = file.getFullPathName();
     refreshSpatAlgorithm();
     return true;
 }
@@ -572,7 +572,7 @@ void MainContentComponent::handleOpenSofaFile()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    juce::File const lastSofa{ mData.appData.binaraulSettings.lastSofaFile };
+    juce::File const lastSofa{ mData.appData.binauralSettings.lastSofaFile };
 
     auto const initialFile{ lastSofa.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
                                 juce::File::SpecialLocationType::userDocumentsDirectory)
@@ -598,7 +598,7 @@ void MainContentComponent::handleSetBinauralAmbOrder(int order)
         return;
     }
 
-    mData.appData.binaraulSettings.ambisonicOrder = order;
+    mData.appData.binauralSettings.ambisonicOrder = order;
     refreshSpatAlgorithm();
 }
 
@@ -608,7 +608,7 @@ void MainContentComponent::handleBinauralLowCpuMode()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    mData.appData.binaraulSettings.lowCpuMode = !mData.appData.binaraulSettings.lowCpuMode;
+    mData.appData.binauralSettings.lowCpuMode = !mData.appData.binauralSettings.lowCpuMode;
     refreshSpatAlgorithm();
 }
 
@@ -1438,19 +1438,19 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         return;
     case CommandId::setAmbisonicOrder1:
         result.setInfo("Ambisonic 1st order", "Use 1st ambisonic order", generalCategory, 0);
-        result.setTicked(mData.appData.binaraulSettings.ambisonicOrder == 1);
+        result.setTicked(mData.appData.binauralSettings.ambisonicOrder == 1);
         return;
     case CommandId::setAmbisonicOrder2:
         result.setInfo("Ambisonic 2nd order", "Use 2nd ambisonic order", generalCategory, 0);
-        result.setTicked(mData.appData.binaraulSettings.ambisonicOrder == 2);
+        result.setTicked(mData.appData.binauralSettings.ambisonicOrder == 2);
         return;
     case CommandId::setAmbisonicOrder3:
         result.setInfo("Ambisonic 3rd order", "Use 3rd ambisonic order", generalCategory, 0);
-        result.setTicked(mData.appData.binaraulSettings.ambisonicOrder == 3);
+        result.setTicked(mData.appData.binauralSettings.ambisonicOrder == 3);
         return;
     case CommandId::useLowCpuMode:
         result.setInfo("Use Symmetric Head (Low CPU Mode)", "Use Low CPU Mode", generalCategory, 0);
-        result.setTicked(mData.appData.binaraulSettings.lowCpuMode);
+        result.setTicked(mData.appData.binauralSettings.lowCpuMode);
         return;
     case CommandId::showSpeakerEditId:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
@@ -2568,7 +2568,7 @@ void MainContentComponent::refreshSpatAlgorithm()
                                                        mData.project.sources,
                                                        mData.appData.audioSettings.sampleRate,
                                                        mData.appData.audioSettings.bufferSize,
-                                                       mData.appData.binaraulSettings,
+                                                       mData.appData.binauralSettings,
                                                        shouldUseMulticoreDSP) };
 
     if (newSpatAlgorithm->getError()
