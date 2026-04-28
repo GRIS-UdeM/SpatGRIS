@@ -399,8 +399,8 @@
                        libraryPath="../../submodules/AlgoGRIS/submodules/libspatialaudio/install/lib&#10;../../submodules/AlgoGRIS/submodules/libmysofa/out/lib"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        fastMath="0" macOSDeploymentTarget="11.5" osxCompatibility="11.5 SDK"
-                       headerPath="../../submodules/libspatialaudio/install/include&#10;../../submodules/libmysofa/out/include"
-                       libraryPath="../../submodules/libspatialaudio/install/lib&#10;../../submodules/libmysofa/out/lib"/>
+                       headerPath="../../submodules/AlgoGRIS/submodules/libspatialaudio/install/include&#10;../../submodules/AlgoGRIS/submodules/libmysofa/out/include&#10;"
+                       libraryPath="../../submodules/AlgoGRIS/submodules/libspatialaudio/install/lib&#10;../../submodules/AlgoGRIS/submodules/libmysofa/out/lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
