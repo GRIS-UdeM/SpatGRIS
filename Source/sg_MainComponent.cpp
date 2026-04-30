@@ -163,6 +163,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // Control panel
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
         mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
+        updateControlsSectionTitle();
 
         // Note : mData.project is not loaded yet at this point. You can't rely on
         // the values it contains.
@@ -500,9 +501,10 @@ void MainContentComponent::handleOpenProject()
     juce::ScopedWriteLock const lock{ mLock };
 
     juce::File const & lastProject{ mData.appData.lastProject };
-    juce::File const initialPath{ lastProject.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
-                                      juce::File::SpecialLocationType::userDocumentsDirectory)
-                                                                              : lastProject };
+    juce::File const initialPath{ lastProject.isAChildOf(CURRENT_WORKING_DIR)
+                                      ? juce::File::getSpecialLocation(
+                                            juce::File::SpecialLocationType::userDocumentsDirectory)
+                                      : lastProject };
 
     juce::FileChooser fc{ "Choose a file to open...", initialPath, "*.xml", true, false, this };
 
@@ -542,9 +544,10 @@ void MainContentComponent::handleOpenSpeakerSetup()
 
     juce::File const lastSetup{ mData.appData.lastSpeakerSetup };
 
-    auto const initialFile{ lastSetup.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
-                                juce::File::SpecialLocationType::userDocumentsDirectory)
-                                                                      : lastSetup };
+    auto const initialFile{ lastSetup.isAChildOf(CURRENT_WORKING_DIR)
+                                ? juce::File::getSpecialLocation(
+                                      juce::File::SpecialLocationType::userDocumentsDirectory)
+                                : lastSetup };
 
     juce::FileChooser fc{ "Choose a file to open...", initialFile, "*.xml", true };
 
@@ -574,9 +577,10 @@ void MainContentComponent::handleOpenSofaFile()
 
     juce::File const lastSofa{ mData.appData.binauralSettings.lastSofaFile };
 
-    auto const initialFile{ lastSofa.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
-                                juce::File::SpecialLocationType::userDocumentsDirectory)
-                                                                     : lastSofa };
+    auto const initialFile{ lastSofa.isAChildOf(CURRENT_WORKING_DIR)
+                                ? juce::File::getSpecialLocation(
+                                      juce::File::SpecialLocationType::userDocumentsDirectory)
+                                : lastSofa };
 
     juce::FileChooser fc{ "Choose a file to open...", {}, "*.sofa", true };
 
@@ -586,6 +590,10 @@ void MainContentComponent::handleOpenSofaFile()
 
     auto const chosen{ fc.getResult() };
     [[maybe_unused]] auto const success{ loadSofaFile(chosen) };
+
+    if (success) {
+        updateControlsSectionTitle();
+    }
 }
 
 //==============================================================================
@@ -1030,6 +1038,8 @@ void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMo
     mData.appData.viewSettings.showSpeakerTriplets = false;
     mData.appData.stereoMode = stereoMode;
 
+    updateControlsSectionTitle();
+
     AudioManager::getInstance().setStereoRouting(stereoMode ? tl::make_optional(mData.appData.stereoRouting)
                                                             : tl::nullopt);
 
@@ -1046,6 +1056,18 @@ void MainContentComponent::setStereoRouting(StereoRouting const & routing)
 
     mData.appData.stereoRouting = routing;
     AudioManager::getInstance().setStereoRouting(mData.appData.stereoMode ? tl::make_optional(routing) : tl::nullopt);
+}
+
+//==============================================================================
+void MainContentComponent::updateControlsSectionTitle()
+{
+    if (mData.appData.stereoMode == StereoMode::hrtf) {
+        mControlsSection->setSecondTitle(juce::String("SOFA file - ")
+                                             + juce::File(mData.appData.binauralSettings.lastSofaFile).getFileName(),
+                                         173);
+    } else {
+        mControlsSection->setSecondTitle("");
+    }
 }
 
 //==============================================================================

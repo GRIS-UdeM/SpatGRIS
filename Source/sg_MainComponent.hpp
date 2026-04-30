@@ -230,6 +230,7 @@ public:
     void setMulticoreDSPPreset(int preset);
     void setStereoMode(tl::optional<StereoMode> stereoMode);
     void setStereoRouting(StereoRouting const & routing);
+    void updateControlsSectionTitle();
     void cubeAttenuationDbChanged(dbfs_t value);
     void cubeAttenuationHzChanged(hz_t value);
     void cubeAttenuationBypassState(AttenuationBypassSate state);

@@ -33,6 +33,8 @@ class TitledComponent final : public MinSizedComponent
     juce::String mTitle{};
     MinSizedComponent * mContentComponent;
     GrisLookAndFeel & mLookAndFeel;
+    juce::String mSecondTitle{ "" };
+    int mSecondTitleXOffset{};
 
 public:
     //==============================================================================
@@ -50,6 +52,7 @@ public:
     }
 
     void setTitle(juce::String title);
+    void setSecondTitle(juce::String secondTitle, int secondTitleXOffset = 0);
 
 private:
     //==============================================================================
