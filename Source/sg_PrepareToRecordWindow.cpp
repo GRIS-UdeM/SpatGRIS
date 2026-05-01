@@ -49,7 +49,7 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
     auto const validDirectory{ recordingDirectory.isDirectory()
                                    ? recordingDirectory
                                    : juce::File::getSpecialLocation(
-                                       juce::File::SpecialLocationType::userDesktopDirectory) };
+                                         juce::File::SpecialLocationType::userDesktopDirectory) };
     auto const path{ validDirectory.getChildFile(DEFAULT_FILE_NAME) };
     mPathEditor.setColour(juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
     mPathEditor.setColour(juce::TextEditor::ColourIds::outlineColourId, juce::Colours::white);
