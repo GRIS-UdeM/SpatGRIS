@@ -21,6 +21,7 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
+#define MULTICORE_DSP 1
 
 namespace
 {
