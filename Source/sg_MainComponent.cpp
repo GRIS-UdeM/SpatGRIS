@@ -2577,6 +2577,8 @@ void MainContentComponent::refreshSpatAlgorithm()
 
     auto & oldSpatAlgorithm{ mAudioProcessor->getSpatAlgorithm() };
 
+    mIsRefreshingSpatAlgorithm = true;
+
     // AbstractSpatAlgorithm::make can make a hybrid mode algorithm with multicore dsp
     // enable but this has been benchmarked to be less performant than single core.
     const bool shouldUseMulticoreDSP = mData.project.useMulticoreDSP && mData.project.spatMode != SpatMode::hybrid;
@@ -2632,6 +2634,7 @@ void MainContentComponent::refreshSpatAlgorithm()
     }
 
     oldSpatAlgorithm = std::move(newSpatAlgorithm);
+    mIsRefreshingSpatAlgorithm = false;
 
     refreshAudioProcessor();
     reassignSourcesPositions();
@@ -3325,7 +3328,7 @@ void MainContentComponent::timerCallback()
     JUCE_ASSERT_MESSAGE_THREAD;
 
     // Update levels
-    if (!mIsLoadingSpeakerSetupOrProjectFile) {
+    if (!mIsLoadingSpeakerSetupOrProjectFile && !mIsRefreshingSpatAlgorithm) {
         updatePeaks();
     }
 

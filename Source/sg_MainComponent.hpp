@@ -123,6 +123,7 @@ class MainContentComponent final
 
     bool mIsProcessForeground{ true };
     bool mIsLoadingSpeakerSetupOrProjectFile{ false };
+    bool mIsRefreshingSpatAlgorithm{ false };
     bool mSpeakerViewShouldGrabFocus{ false };
 
     GrisLookAndFeel & mLookAndFeel;
