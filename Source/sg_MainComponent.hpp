@@ -367,6 +367,9 @@ private:
     void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
     void handleOpenSofaFile();
+    void handleSetBinauralRender(BinauralRenderer renderer);
+    void handleSetUseDefaultBinauralHRIRs();
+    void handleSetEnableHRIRsDiffuseEQ();
     void handleSetBinauralAmbOrder(int order);
     void handleBinauralLowCpuMode();
     void handleShowOscMonitorWindow();

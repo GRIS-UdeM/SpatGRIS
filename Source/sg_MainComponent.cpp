@@ -597,6 +597,38 @@ void MainContentComponent::handleOpenSofaFile()
 }
 
 //==============================================================================
+void MainContentComponent::handleSetBinauralRender(BinauralRenderer renderer)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    mData.appData.binauralSettings.renderer = renderer;
+    updateControlsSectionTitle();
+    refreshSpatAlgorithm();
+}
+
+//==============================================================================
+void MainContentComponent::handleSetUseDefaultBinauralHRIRs()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    mData.appData.binauralSettings.useDefaultHRIRs = !mData.appData.binauralSettings.useDefaultHRIRs;
+    updateControlsSectionTitle();
+    refreshSpatAlgorithm();
+}
+
+//==============================================================================
+void MainContentComponent::handleSetEnableHRIRsDiffuseEQ()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    mData.appData.binauralSettings.enableHRIRsDiffuseEQ = !mData.appData.binauralSettings.enableHRIRsDiffuseEQ;
+    refreshSpatAlgorithm();
+}
+
+//==============================================================================
 void MainContentComponent::handleSetBinauralAmbOrder(int order)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1062,9 +1094,11 @@ void MainContentComponent::setStereoRouting(StereoRouting const & routing)
 void MainContentComponent::updateControlsSectionTitle()
 {
     if (mData.appData.stereoMode == StereoMode::hrtf) {
-        mControlsSection->setSecondTitle(juce::String("SOFA file - ")
-                                             + juce::File(mData.appData.binauralSettings.lastSofaFile).getFileName(),
-                                         173);
+        auto title{ mData.appData.binauralSettings.useDefaultHRIRs
+                            && mData.appData.binauralSettings.renderer == BinauralRenderer::saf
+                        ? juce::String("SAF default HRIRs")
+                        : juce::File(mData.appData.binauralSettings.lastSofaFile).getFileName() };
+        mControlsSection->setSecondTitle(juce::String("SOFA file - ") + title, 173);
     } else {
         mControlsSection->setSecondTitle("");
     }
@@ -1353,7 +1387,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 36> ids{ CommandId::newProjectId,
+    constexpr std::array<CommandId, 40> ids{ CommandId::newProjectId,
                                              CommandId::openProjectId,
                                              CommandId::saveProjectId,
                                              CommandId::saveProjectAsId,
@@ -1361,6 +1395,10 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
                                              CommandId::saveSpeakerSetupId,
                                              CommandId::saveSpeakerSetupAsId,
                                              CommandId::openSofaFileId,
+                                             CommandId::setBinauralRendrerSAF,
+                                             CommandId::setUseDefaultBinauralHRIRs,
+                                             CommandId::setEnableHRIRsDiffuseEQ,
+                                             CommandId::setBinauralRendrerSpatialaudio,
                                              CommandId::setAmbisonicOrder1,
                                              CommandId::setAmbisonicOrder2,
                                              CommandId::setAmbisonicOrder3,
@@ -1457,6 +1495,28 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case CommandId::openSofaFileId:
         result.setInfo("Open SOFA file", "Choose a SOFA file on disk", generalCategory, 0);
         result.addDefaultKeypress('B', juce::ModifierKeys::commandModifier);
+        return;
+    case CommandId::setBinauralRendrerSAF:
+        result.setInfo("SAF Binaural Renderer", "Use SAF library for binaural rendering", generalCategory, 0);
+        result.setTicked(mData.appData.binauralSettings.renderer == BinauralRenderer::saf);
+        return;
+    case CommandId::setUseDefaultBinauralHRIRs:
+        result.setInfo("Use Default Binaural HRIRs",
+                       "Use SAF default HRIRs for binaural rendering",
+                       generalCategory,
+                       0);
+        result.setTicked(mData.appData.binauralSettings.useDefaultHRIRs == true);
+        return;
+    case CommandId::setEnableHRIRsDiffuseEQ:
+        result.setInfo("Enable HRIRs Diffuse EQ", "Enable SAF HRIRs diffuse EQ", generalCategory, 0);
+        result.setTicked(mData.appData.binauralSettings.enableHRIRsDiffuseEQ == true);
+        return;
+    case CommandId::setBinauralRendrerSpatialaudio:
+        result.setInfo("Libspatialaudio Binaural Renderer",
+                       "Use Libspatialaudio library for binaural rendering",
+                       generalCategory,
+                       0);
+        result.setTicked(mData.appData.binauralSettings.renderer == BinauralRenderer::spatialaudio);
         return;
     case CommandId::setAmbisonicOrder1:
         result.setInfo("Ambisonic 1st order", "Use 1st ambisonic order", generalCategory, 0);
@@ -1621,6 +1681,18 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::openSofaFileId:
             handleOpenSofaFile();
+            break;
+        case CommandId::setBinauralRendrerSAF:
+            handleSetBinauralRender(BinauralRenderer::saf);
+            break;
+        case CommandId::setUseDefaultBinauralHRIRs:
+            handleSetUseDefaultBinauralHRIRs();
+            break;
+        case CommandId::setEnableHRIRsDiffuseEQ:
+            handleSetEnableHRIRsDiffuseEQ();
+            break;
+        case CommandId::setBinauralRendrerSpatialaudio:
+            handleSetBinauralRender(BinauralRenderer::spatialaudio);
             break;
         case CommandId::setAmbisonicOrder1:
             handleSetBinauralAmbOrder(1);
@@ -1814,13 +1886,22 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
     };
 
     auto const getBinauralSettingsMenu = [&]() {
-        juce::PopupMenu menu{};
-        menu.addCommandItem(commandManager, CommandId::setAmbisonicOrder1);
-        menu.addCommandItem(commandManager, CommandId::setAmbisonicOrder2);
-        menu.addCommandItem(commandManager, CommandId::setAmbisonicOrder3);
-        menu.addSeparator();
-        menu.addCommandItem(commandManager, CommandId::useLowCpuMode);
-        return menu;
+        juce::PopupMenu menuSAF{};
+        menuSAF.addCommandItem(commandManager, CommandId::setUseDefaultBinauralHRIRs);
+        menuSAF.addCommandItem(commandManager, CommandId::setEnableHRIRsDiffuseEQ);
+
+        juce::PopupMenu menuSpatialaudio{};
+        menuSpatialaudio.addCommandItem(commandManager, CommandId::setAmbisonicOrder1);
+        menuSpatialaudio.addCommandItem(commandManager, CommandId::setAmbisonicOrder2);
+        menuSpatialaudio.addCommandItem(commandManager, CommandId::setAmbisonicOrder3);
+        menuSpatialaudio.addSeparator();
+        menuSpatialaudio.addCommandItem(commandManager, CommandId::useLowCpuMode);
+
+        if (mData.appData.binauralSettings.renderer == BinauralRenderer::spatialaudio) {
+            return menuSpatialaudio;
+        } else {
+            return menuSAF;
+        }
     };
 
     juce::PopupMenu menu;
@@ -1838,6 +1919,8 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, CommandId::saveSpeakerSetupAsId);
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::openSofaFileId);
+        menu.addCommandItem(commandManager, CommandId::setBinauralRendrerSAF);
+        menu.addCommandItem(commandManager, CommandId::setBinauralRendrerSpatialaudio);
         menu.addSubMenu("Binaural Settings", getBinauralSettingsMenu());
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::openSettingsWindowId);
