@@ -172,7 +172,6 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
             mAudioData.stereoPeaksUpdater.setMostRecent(stereoPeaksTicket);
         }
     }
-    // TODO: should not process if stereo mode is hrtf
     auto * speakerPeaksTicket{ mAudioData.speakerPeaksUpdater.acquire() };
     auto & speakerPeaks{ speakerPeaksTicket->get() };
     // Process speaker peaks/gains/highpass
