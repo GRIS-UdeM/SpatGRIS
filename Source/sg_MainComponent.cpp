@@ -1508,7 +1508,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setTicked(mData.appData.binauralSettings.useDefaultHRIRs == true);
         return;
     case CommandId::setEnableHRIRsDiffuseEQ:
-        result.setInfo("Enable HRIRs Diffuse EQ", "Enable SAF HRIRs diffuse EQ", generalCategory, 0);
+        result.setInfo("Apply Diffuse-Field EQ", "Apply SAF diffuse-field EQ to the HRIRs", generalCategory, 0);
         result.setTicked(mData.appData.binauralSettings.enableHRIRsDiffuseEQ == true);
         return;
     case CommandId::setBinauralRendrerSpatialaudio:
