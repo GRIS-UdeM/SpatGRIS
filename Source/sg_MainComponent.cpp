@@ -1754,7 +1754,8 @@ void MainContentComponent::audioParametersChanged()
                 juce::String msg{
                     juce::String("The audio engine has been closed to prevent feedback.\n")
                     + juce::String(
-                        "Selecting desired audio input or ouptut in the Settings will automatically activate it.")
+                        "Selecting desired audio input or ouptut in the Settings will automatically activate it.\n")
+                    + juce::String("The audio output will remain muted. Remember to unmute it afterwards.")
                 };
                 juce::AlertWindow::showAsync(juce::MessageBoxOptions()
                                                  .withIconType(juce::MessageBoxIconType::WarningIcon)
