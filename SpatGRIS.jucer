@@ -391,17 +391,17 @@
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                iosDevelopmentTeamID="62PMMWH49Z" sendAppleEventsPermissionNeeded="1"
                sendAppleEventsPermissionText="SpatGris requires the ability to send Apple events to facilitate communication with SpeakerView."
-               applicationCategory="public.app-category.music" externalLibraries="spatialaudio&#10;mysofa&#10;z&#10;saf&#10;saf_example_binauraliser_nf"
+               applicationCategory="public.app-category.music" externalLibraries="saf&#10;saf_example_binauraliser_nf"
                extraDefs="SAF_USE_APPLE_ACCELERATE_LP64">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="11.5 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" fastMath="0" macOSDeploymentTarget="11.5"
-                       headerPath="../../submodules/AlgoGRIS/submodules/libspatialaudio/install/include&#10;../../submodules/AlgoGRIS/submodules/libmysofa/out/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
-                       libraryPath="../../submodules/AlgoGRIS/submodules/libspatialaudio/install/lib&#10;../../submodules/AlgoGRIS/submodules/libmysofa/out/lib&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/examples"/>
+                       headerPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
+                       libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/examples"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        fastMath="0" macOSDeploymentTarget="11.5" osxCompatibility="11.5 SDK"
-                       headerPath="../../submodules/AlgoGRIS/submodules/libspatialaudio/install/include&#10;../../submodules/AlgoGRIS/submodules/libmysofa/out/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
-                       libraryPath="../../submodules/AlgoGRIS/submodules/libspatialaudio/install/lib&#10;../../submodules/AlgoGRIS/submodules/libmysofa/out/lib&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/examples"/>
+                       headerPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
+                       libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/examples"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>

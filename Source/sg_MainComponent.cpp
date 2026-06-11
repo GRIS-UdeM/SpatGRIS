@@ -602,17 +602,6 @@ void MainContentComponent::handleOpenSofaFile()
 }
 
 //==============================================================================
-void MainContentComponent::handleSetBinauralRender(BinauralRenderer renderer)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
-
-    mData.appData.binauralSettings.renderer = renderer;
-    updateControlsSectionTitle();
-    refreshSpatAlgorithm();
-}
-
-//==============================================================================
 void MainContentComponent::handleSetUseDefaultBinauralHRIRs()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -630,30 +619,6 @@ void MainContentComponent::handleSetEnableHRIRsDiffuseEQ()
     juce::ScopedReadLock const lock{ mLock };
 
     mData.appData.binauralSettings.enableHRIRsDiffuseEQ = !mData.appData.binauralSettings.enableHRIRsDiffuseEQ;
-    refreshSpatAlgorithm();
-}
-
-//==============================================================================
-void MainContentComponent::handleSetBinauralAmbOrder(int order)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
-
-    if (order < 1 && order > 3) {
-        return;
-    }
-
-    mData.appData.binauralSettings.ambisonicOrder = order;
-    refreshSpatAlgorithm();
-}
-
-//==============================================================================
-void MainContentComponent::handleBinauralLowCpuMode()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
-
-    mData.appData.binauralSettings.lowCpuMode = !mData.appData.binauralSettings.lowCpuMode;
     refreshSpatAlgorithm();
 }
 
@@ -1099,10 +1064,10 @@ void MainContentComponent::setStereoRouting(StereoRouting const & routing)
 void MainContentComponent::updateControlsSectionTitle()
 {
     if (mData.appData.stereoMode == StereoMode::hrtf) {
-        auto title{ mData.appData.binauralSettings.useDefaultHRIRs
-                            && mData.appData.binauralSettings.renderer == BinauralRenderer::saf
+        auto sofaFilename{ juce::File(mData.appData.binauralSettings.lastSofaFile).getFileName() };
+        auto title{ mData.appData.binauralSettings.useDefaultHRIRs || sofaFilename.isEmpty()
                         ? juce::String("SAF default HRIRs")
-                        : juce::File(mData.appData.binauralSettings.lastSofaFile).getFileName() };
+                        : sofaFilename };
         mControlsSection->setSecondTitle(juce::String("SOFA file - ") + title, 173);
     } else {
         mControlsSection->setSecondTitle("");
@@ -1392,7 +1357,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 40> ids{ CommandId::newProjectId,
+    constexpr std::array<CommandId, 34> ids{ CommandId::newProjectId,
                                              CommandId::openProjectId,
                                              CommandId::saveProjectId,
                                              CommandId::saveProjectAsId,
@@ -1400,14 +1365,8 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
                                              CommandId::saveSpeakerSetupId,
                                              CommandId::saveSpeakerSetupAsId,
                                              CommandId::openSofaFileId,
-                                             CommandId::setBinauralRendrerSAF,
                                              CommandId::setUseDefaultBinauralHRIRs,
                                              CommandId::setEnableHRIRsDiffuseEQ,
-                                             CommandId::setBinauralRendrerSpatialaudio,
-                                             CommandId::setAmbisonicOrder1,
-                                             CommandId::setAmbisonicOrder2,
-                                             CommandId::setAmbisonicOrder3,
-                                             CommandId::useLowCpuMode,
                                              CommandId::showSpeakerEditId,
                                              CommandId::show2DViewId,
                                              CommandId::showPlayerWindowId,
@@ -1501,10 +1460,6 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Open SOFA file", "Choose a SOFA file on disk", generalCategory, 0);
         result.addDefaultKeypress('B', juce::ModifierKeys::commandModifier);
         return;
-    case CommandId::setBinauralRendrerSAF:
-        result.setInfo("SAF Binaural Renderer", "Use SAF library for binaural rendering", generalCategory, 0);
-        result.setTicked(mData.appData.binauralSettings.renderer == BinauralRenderer::saf);
-        return;
     case CommandId::setUseDefaultBinauralHRIRs:
         result.setInfo("Use Default Binaural HRIRs",
                        "Use SAF default HRIRs for binaural rendering",
@@ -1515,29 +1470,6 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case CommandId::setEnableHRIRsDiffuseEQ:
         result.setInfo("Apply Diffuse-Field EQ", "Apply SAF diffuse-field EQ to the HRIRs", generalCategory, 0);
         result.setTicked(mData.appData.binauralSettings.enableHRIRsDiffuseEQ == true);
-        return;
-    case CommandId::setBinauralRendrerSpatialaudio:
-        result.setInfo("Libspatialaudio Binaural Renderer",
-                       "Use Libspatialaudio library for binaural rendering",
-                       generalCategory,
-                       0);
-        result.setTicked(mData.appData.binauralSettings.renderer == BinauralRenderer::spatialaudio);
-        return;
-    case CommandId::setAmbisonicOrder1:
-        result.setInfo("Ambisonic 1st order", "Use 1st ambisonic order", generalCategory, 0);
-        result.setTicked(mData.appData.binauralSettings.ambisonicOrder == 1);
-        return;
-    case CommandId::setAmbisonicOrder2:
-        result.setInfo("Ambisonic 2nd order", "Use 2nd ambisonic order", generalCategory, 0);
-        result.setTicked(mData.appData.binauralSettings.ambisonicOrder == 2);
-        return;
-    case CommandId::setAmbisonicOrder3:
-        result.setInfo("Ambisonic 3rd order", "Use 3rd ambisonic order", generalCategory, 0);
-        result.setTicked(mData.appData.binauralSettings.ambisonicOrder == 3);
-        return;
-    case CommandId::useLowCpuMode:
-        result.setInfo("Use Symmetric Head (Low CPU Mode)", "Use Low CPU Mode", generalCategory, 0);
-        result.setTicked(mData.appData.binauralSettings.lowCpuMode);
         return;
     case CommandId::showSpeakerEditId:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
@@ -1687,29 +1619,11 @@ bool MainContentComponent::perform(InvocationInfo const & info)
         case CommandId::openSofaFileId:
             handleOpenSofaFile();
             break;
-        case CommandId::setBinauralRendrerSAF:
-            handleSetBinauralRender(BinauralRenderer::saf);
-            break;
         case CommandId::setUseDefaultBinauralHRIRs:
             handleSetUseDefaultBinauralHRIRs();
             break;
         case CommandId::setEnableHRIRsDiffuseEQ:
             handleSetEnableHRIRsDiffuseEQ();
-            break;
-        case CommandId::setBinauralRendrerSpatialaudio:
-            handleSetBinauralRender(BinauralRenderer::spatialaudio);
-            break;
-        case CommandId::setAmbisonicOrder1:
-            handleSetBinauralAmbOrder(1);
-            break;
-        case CommandId::setAmbisonicOrder2:
-            handleSetBinauralAmbOrder(2);
-            break;
-        case CommandId::setAmbisonicOrder3:
-            handleSetBinauralAmbOrder(3);
-            break;
-        case CommandId::useLowCpuMode:
-            handleBinauralLowCpuMode();
             break;
         case CommandId::showSpeakerEditId:
             handleShowSpeakerEditWindow();
@@ -1943,18 +1857,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menuSAF.addCommandItem(commandManager, CommandId::setUseDefaultBinauralHRIRs);
         menuSAF.addCommandItem(commandManager, CommandId::setEnableHRIRsDiffuseEQ);
 
-        juce::PopupMenu menuSpatialaudio{};
-        menuSpatialaudio.addCommandItem(commandManager, CommandId::setAmbisonicOrder1);
-        menuSpatialaudio.addCommandItem(commandManager, CommandId::setAmbisonicOrder2);
-        menuSpatialaudio.addCommandItem(commandManager, CommandId::setAmbisonicOrder3);
-        menuSpatialaudio.addSeparator();
-        menuSpatialaudio.addCommandItem(commandManager, CommandId::useLowCpuMode);
-
-        if (mData.appData.binauralSettings.renderer == BinauralRenderer::spatialaudio) {
-            return menuSpatialaudio;
-        } else {
-            return menuSAF;
-        }
+        return menuSAF;
     };
 
     juce::PopupMenu menu;
@@ -1972,8 +1875,6 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, CommandId::saveSpeakerSetupAsId);
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::openSofaFileId);
-        menu.addCommandItem(commandManager, CommandId::setBinauralRendrerSAF);
-        menu.addCommandItem(commandManager, CommandId::setBinauralRendrerSpatialaudio);
         menu.addSubMenu("Binaural Settings", getBinauralSettingsMenu());
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::openSettingsWindowId);
