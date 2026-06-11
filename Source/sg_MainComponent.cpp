@@ -1847,9 +1847,9 @@ void MainContentComponent::audioParametersChanged()
                                                  .withTitle("Audio Device Connection Lost")
                                                  .withMessage(msg)
                                                  .withButton("Cancel")
-                                                 .withButton("Mute")
                                                  .withButton("Settings"),
                                              [this](int res) { audioDeviceConnectionLostCallback(res); });
+                generalMuteButtonPressed();
             }
         }
     }
