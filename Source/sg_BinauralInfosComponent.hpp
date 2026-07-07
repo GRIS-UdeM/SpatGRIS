@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma onec
+#pragma once
 
 #include "Data/sg_Macros.hpp"
 #include <JuceHeader.h>
@@ -26,7 +26,7 @@ namespace gris
 {
 class GrisLookAndFeel;
 
-//============================================================================
+//===========================================================================
 class BinauralInfosComponent final : public juce::Component, public juce::Timer
 {
     static constexpr auto TITLE_HEIGHT = 18;
