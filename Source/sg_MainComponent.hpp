@@ -43,6 +43,7 @@
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
+#include "sg_BinauralInfosComponent.hpp"
 namespace gris
 {
 class MainWindow;
@@ -115,6 +116,7 @@ class MainContentComponent final
 
     // Controls section
     std::unique_ptr<TitledComponent> mControlsSection{};
+    std::unique_ptr<BinauralInfosComponent> mBinauralInfosComponent{};
     std::unique_ptr<ControlPanel> mControlPanel{};
 
     std::unique_ptr<LayoutComponent> mMainLayout{};
@@ -128,6 +130,7 @@ class MainContentComponent final
     bool mIsLoadingSpeakerSetupOrProjectFile{ false };
     bool mIsRefreshingSpatAlgorithm{ false };
     bool mSpeakerViewShouldGrabFocus{ false };
+    bool mIsProcessingBinauralSofaFile{ false };
 
     GrisLookAndFeel & mLookAndFeel;
     SmallGrisLookAndFeel & mSmallLookAndFeel;
@@ -387,6 +390,8 @@ private:
     void refreshSpatAlgorithm();
     void updatePeaks();
     void reassignSourcesPositions();
+
+    void setBinauralReadyToProcess();
 
     void audioDeviceConnectionLostCallback(int res);
     //==============================================================================

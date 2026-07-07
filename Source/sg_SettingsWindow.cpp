@@ -52,7 +52,7 @@ bool isNotPowerOfTwo(int const value)
 } // namespace
 
 //==============================================================================
-void DeviceCombobox::mouseDown(const juce::MouseEvent & e)
+void DeviceCombobox::mouseDown(const juce::MouseEvent & /*e*/)
 {
     juce::PopupMenu pm;
 

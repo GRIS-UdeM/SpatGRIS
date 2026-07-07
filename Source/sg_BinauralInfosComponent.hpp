@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Gaël Lane Lépine
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,43 +17,45 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#pragma onec
 
-#include "sg_MinSizedComponent.hpp"
+#include "Data/sg_Macros.hpp"
+#include <JuceHeader.h>
 
 namespace gris
 {
 class GrisLookAndFeel;
 
-//==============================================================================
-class TitledComponent final : public MinSizedComponent
+//============================================================================
+class BinauralInfosComponent final : public juce::Component, public juce::Timer
 {
     static constexpr auto TITLE_HEIGHT = 18;
 
-    juce::String mTitle{};
-    MinSizedComponent * mContentComponent;
     GrisLookAndFeel & mLookAndFeel;
+    juce::String mTitle{ "" };
+    //int mSecondTitleXOffset{};
+    double progressVal{ -1.0 };
+    juce::ProgressBar mSpinningWheel{ progressVal };
+    bool mShowSucceedCheck{ false };
 
-public:
+    public:
     //==============================================================================
-    TitledComponent(juce::String title, MinSizedComponent * contentComponent, GrisLookAndFeel & lookAndFeel);
-    ~TitledComponent() override = default;
-    SG_DELETE_COPY_AND_MOVE(TitledComponent)
+    BinauralInfosComponent(GrisLookAndFeel & lookAndFeel);
+    ~BinauralInfosComponent() override = default;
+    SG_DELETE_COPY_AND_MOVE(BinauralInfosComponent)
     //==============================================================================
     void resized() override;
     void paint(juce::Graphics & g) override;
+    void timerCallback() override;
 
-    [[nodiscard]] int getMinWidth() const noexcept override { return mContentComponent->getMinWidth(); }
-    [[nodiscard]] int getMinHeight() const noexcept override
-    {
-        return mContentComponent->getMinHeight() + TITLE_HEIGHT;
-    }
-
-    void setTitle(juce::String title);
+    //void setBinauralTitle(juce::String title);
+    void setBinauralFileName(juce::String fileName);
+    void showSpinningWheel(bool showSpinningWheel);
+    void showCheckSign();
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(TitledComponent)
+    JUCE_LEAK_DETECTOR(BinauralInfosComponent)
 };
 
 } // namespace gris

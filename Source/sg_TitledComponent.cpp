@@ -51,24 +51,12 @@ void TitledComponent::paint(juce::Graphics & g)
         g.setColour(mLookAndFeel.getFontColour());
         g.drawText(mTitle, 0, 0, getWidth(), TITLE_HEIGHT + 2, juce::Justification::left);
     }
-    if (mSecondTitle != "") {
-        g.setColour(mLookAndFeel.getFontColour());
-        g.drawText(mSecondTitle, mSecondTitleXOffset, 0, getWidth(), TITLE_HEIGHT + 2, juce::Justification::left);
-    }
 }
 
 //==============================================================================
 void TitledComponent::setTitle(juce::String title)
 {
     mTitle = title;
-}
-
-//==============================================================================
-void TitledComponent::setSecondTitle(juce::String secondTitle, int secondTitleXOffset)
-{
-    mSecondTitle = secondTitle;
-    mSecondTitleXOffset = secondTitleXOffset;
-    repaint();
 }
 
 } // namespace gris

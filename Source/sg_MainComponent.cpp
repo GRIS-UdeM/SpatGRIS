@@ -163,6 +163,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // Control panel
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
         mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
+        mBinauralInfosComponent = std::make_unique<BinauralInfosComponent>(mLookAndFeel);
+        mControlsSection->addAndMakeVisible(mBinauralInfosComponent.get());
         updateControlsSectionTitle();
 
         // Note : mData.project is not loaded yet at this point. You can't rely on
@@ -1068,9 +1070,9 @@ void MainContentComponent::updateControlsSectionTitle()
         auto title{ mData.appData.binauralSettings.useDefaultHRIRs || sofaFilename.isEmpty()
                         ? juce::String("SAF default HRIRs")
                         : sofaFilename };
-        mControlsSection->setSecondTitle(juce::String("SOFA file - ") + title, 173);
+        mBinauralInfosComponent->setBinauralFileName(juce::String("SOFA file - ") + title);
     } else {
-        mControlsSection->setSecondTitle("");
+        mBinauralInfosComponent->setBinauralFileName("");
     }
 }
 
@@ -2633,6 +2635,11 @@ void MainContentComponent::refreshSpatAlgorithm()
                                                        mData.appData.binauralSettings,
                                                        shouldUseMulticoreDSP) };
 
+    if (mData.appData.stereoMode == StereoMode::hrtf) {
+        mIsProcessingBinauralSofaFile = true;
+        newSpatAlgorithm->setCallback([this]() { setBinauralReadyToProcess(); });
+    }
+
     if (newSpatAlgorithm->getError()
         && (!oldSpatAlgorithm || oldSpatAlgorithm->getError() != newSpatAlgorithm->getError())) {
         switch (*newSpatAlgorithm->getError()) {
@@ -3158,6 +3165,14 @@ void MainContentComponent::reassignSourcesPositions()
 }
 
 //==============================================================================
+void MainContentComponent::setBinauralReadyToProcess()
+{
+    mIsProcessingBinauralSofaFile = false;
+    mBinauralInfosComponent->showSpinningWheel(false);
+    mBinauralInfosComponent->showCheckSign();
+}
+
+//==============================================================================
 void MainContentComponent::audioDeviceConnectionLostCallback(int res)
 {
     switch (res) {
@@ -3413,6 +3428,12 @@ void MainContentComponent::timerCallback()
             mEditSpeakersWindow->setAlwaysOnTop(true);
         } else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
             mEditSpeakersWindow->setAlwaysOnTop(false);
+        }
+    }
+
+    if (mData.appData.stereoMode == StereoMode::hrtf) {
+        if (mIsProcessingBinauralSofaFile) {
+            mBinauralInfosComponent->showSpinningWheel(true);
         }
     }
 }
@@ -3871,6 +3892,8 @@ void MainContentComponent::resized()
                                      availableBounds.getHeight(),
                                      false,
                                      true);
+
+    mBinauralInfosComponent->setBounds(157, 0, getWidth(), 20);
 }
 
 } // namespace gris

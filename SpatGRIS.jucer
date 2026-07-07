@@ -109,6 +109,10 @@
               <FILE id="P02EOB" name="sg_VuMeterComponent.hpp" compile="0" resource="0"
                     file="Source/sg_VuMeterComponent.hpp"/>
             </GROUP>
+            <FILE id="RlnZta" name="sg_BinauralInfosComponent.cpp" compile="1"
+                  resource="0" file="Source/sg_BinauralInfosComponent.cpp"/>
+            <FILE id="rglGtO" name="sg_BinauralInfosComponent.hpp" compile="0"
+                  resource="0" file="Source/sg_BinauralInfosComponent.hpp"/>
             <FILE id="FXUVD7" name="sg_ControlPanel.cpp" compile="1" resource="0"
                   file="Source/sg_ControlPanel.cpp"/>
             <FILE id="Q33KJr" name="sg_ControlPanel.hpp" compile="0" resource="0"
@@ -449,12 +453,14 @@
         <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="NHix3D">
+    <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="NHix3D" externalLibraries="saf_mkl_custom_lp64.lib&#10;saf.lib&#10;saf_example_binauraliser_nf.lib"
+            extraDefs="SAF_USE_INTEL_MKL_LP64&#10;SAF_ENABLE_SOFA_READER_MODULE">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\dev\ASIO_SDK\common"
-                       fastMath="0"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\dev\ASIO_SDK\common"
-                       fastMath="0"/>
+        <CONFIGURATION isDebug="1" name="Debug" fastMath="0" headerPath="C:\Program Files (x86)\Intel\oneAPI\mkl\latest\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
+                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\dependencies\Win64\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build\framework\Debug&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build\examples\Debug"/>
+        <CONFIGURATION name="Release" fastMath="0" headerPath="C:\Program Files (x86)\Intel\oneAPI\mkl\latest\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
+                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\dependencies\Win64\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build\framework\Release&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build\examples\Release"
+                       isDebug="0" alwaysGenerateDebugSymbols="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
@@ -474,6 +480,32 @@
         <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
+    <VS2026 targetFolder="Builds/VisualStudio2026" bigIcon="NHix3D" extraDefs="SAF_USE_INTEL_MKL_LP64&#10;SAF_ENABLE_SOFA_READER_MODULE"
+            externalLibraries="saf_mkl_custom_lp64.lib&#10;saf.lib&#10;saf_example_binauraliser_nf.lib">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\Program Files (x86)\Intel\oneAPI\mkl\latest\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
+                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\dependencies\Win64\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build\framework\Debug&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build\examples\Debug"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\Program Files (x86)\Intel\oneAPI\mkl\latest\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
+                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\dependencies\Win64\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build\framework\Release&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build\examples\Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+        <MODULEPATH id="juce_osc" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2026>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
