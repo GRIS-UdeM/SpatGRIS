@@ -51,8 +51,32 @@ For the submodules:
 cd SpatGRIS
 git submodule update --init --recursive
 ```
+#### 2. Build the Spatial_Audio_Framework (SAF) libraries for the binaural stereo reduction
 
-#### 2. Build the Projucer
+##### MacOS
+
+```
+cd submodules/AlgoGRIS/build_scripts
+./MacOS_build_Spatial_Audio_Framework_lib.sh
+```
+
+##### Windows
+
+On Windows, we use a SAF/MKL dynamic library. Install Intel oneAPI Math Kernel Library, then run the following script from the x64 Native Tools Command Prompt for VS 2022 (or 2026) as Administrator :
+```
+cd /d [path-to-]\submodules\AlgoGRIS\build_scripts
+.\GRIS_install-safmkl_oneAPI_2026.bat
+```
+
+Then with git-bash :
+```
+cd submodules/AlgoGRIS/build_scripts
+./Win_build_Spatial_Audio_Framework_lib.sh
+```
+
+##### Linux
+
+#### 3. Build the Projucer
 
 JUCE is included as a submodule. Go to `SpatGRIS/submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/extras/Projucer/Builds/` and build the Projucer for your plateform.
 Ensure that the Projucer global paths are set correctly. JUCE path is `SpatGRIS/submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE` and modules path is `SpatGRIS/submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules`.
@@ -65,18 +89,18 @@ libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev \
 libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-dev
 ```
 
-#### 3. Generating project files
+#### 4. Generating project files
 
 ```bash
 cd <SpatGRIS-path>
 <path-to-projucer> --resave SpatGRIS.jucer
 ```
 
-#### Compiling
+#### 5. Compiling
 
 Go to the generated `Builds/` folder.
 
-On Windows, use the Visual Studio 2022 solution file.
+On Windows, use the Visual Studio 2022/2026 solution file.
 
 On MacOS, use the Xcode project. You will have to supply your own developer ID to XCode.
 
