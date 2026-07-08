@@ -1,0 +1,11 @@
+THIRD_PARTY_NOTICES
+
+This project includes third-party components distributed under separate terms.
+
+1. Intel oneMKL / Intel Simplified Software License (ISSL)
+   Component: saf_mkl_custom_lp64.dll
+   Purpose: custom MKL-based DLL used by the Windows platform build of the project
+   License text: see thirdparty/Intel-ISSL.txt
+
+The above component is redistributed with the required copyright notice,
+license terms, and disclaimer.
