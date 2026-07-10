@@ -426,12 +426,16 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="NHix3D"
-                extraLinkerFlags="-latomic">
+                extraLinkerFlags="-latomic&#10;-Wl,-rpath,'$$ORIGIN'" externalLibraries="saf_mkl_custom_lp64&#10;saf_example_binauraliser_nf&#10;saf"
+                extraDefs="SAF_USE_INTEL_MKL_LP64&#10;SAF_ENABLE_SOFA_READER_MODULE">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
-                       recommendedWarnings="GCC" extraCompilerFlags="-fdiagnostics-color=always"/>
+                       recommendedWarnings="LLVM" extraCompilerFlags="-fdiagnostics-color=always"
+                       headerPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include&#10;/opt/intel/oneapi/mkl/latest/include/"
+                       libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-debug/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-debug/examples&#10;../../submodules/AlgoGRIS/saf_custom_libs&#10;"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       linkTimeOptimisation="1" recommendedWarnings="GCC"/>
+                       linkTimeOptimisation="1" recommendedWarnings="LLVM" headerPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include&#10;/opt/intel/oneapi/mkl/latest/include/"
+                       libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-release/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-release/examples&#10;../../submodules/AlgoGRIS/saf_custom_libs&#10;"/>
         <CONFIGURATION isDebug="0" name="RTSan" extraCompilerFlags="-fdiagnostics-color=always -fsanitize=realtime"
                        optimisation="1" recommendedWarnings="GCC" extraLinkerFlags="-fsanitize=realtime"/>
       </CONFIGURATIONS>
