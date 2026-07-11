@@ -26,6 +26,7 @@
 #include "sg_AboutWindow.hpp"
 #include "sg_AddRemoveSourcesWindow.hpp"
 #include "sg_AudioProcessor.hpp"
+#include "sg_BinauralInfosComponent.hpp"
 #include "sg_Configuration.hpp"
 #include "sg_ControlPanel.hpp"
 #include "sg_EditSpeakersWindow.hpp"
@@ -43,7 +44,6 @@
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
-#include "sg_BinauralInfosComponent.hpp"
 namespace gris
 {
 class MainWindow;

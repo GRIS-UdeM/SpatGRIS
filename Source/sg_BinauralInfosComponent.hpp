@@ -27,18 +27,19 @@ namespace gris
 class GrisLookAndFeel;
 
 //===========================================================================
-class BinauralInfosComponent final : public juce::Component, public juce::Timer
+class BinauralInfosComponent final
+    : public juce::Component
+    , public juce::Timer
 {
     static constexpr auto TITLE_HEIGHT = 18;
 
     GrisLookAndFeel & mLookAndFeel;
     juce::String mTitle{ "" };
-    //int mSecondTitleXOffset{};
     double progressVal{ -1.0 };
     juce::ProgressBar mSpinningWheel{ progressVal };
     bool mShowSucceedCheck{ false };
 
-    public:
+public:
     //==============================================================================
     BinauralInfosComponent(GrisLookAndFeel & lookAndFeel);
     ~BinauralInfosComponent() override = default;
@@ -48,7 +49,6 @@ class BinauralInfosComponent final : public juce::Component, public juce::Timer
     void paint(juce::Graphics & g) override;
     void timerCallback() override;
 
-    //void setBinauralTitle(juce::String title);
     void setBinauralFileName(juce::String fileName);
     void showSpinningWheel(bool showSpinningWheel);
     void showCheckSign();

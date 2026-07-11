@@ -46,7 +46,12 @@ void BinauralInfosComponent::paint(juce::Graphics & g)
         g.drawText(mTitle, 16, 0, getWidth(), TITLE_HEIGHT + 2, juce::Justification::left);
         if (mShowSucceedCheck) {
             g.setColour(mLookAndFeel.getOnColour());
-            g.drawText(juce::String::charToString(0x2713), 3, 0, getWidth(), TITLE_HEIGHT + 2, juce::Justification::left);
+            g.drawText(juce::String::charToString(0x2713),
+                       3,
+                       0,
+                       getWidth(),
+                       TITLE_HEIGHT + 2,
+                       juce::Justification::left);
         }
     }
 }
