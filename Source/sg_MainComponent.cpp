@@ -2857,11 +2857,20 @@ tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File 
         auto const version{ SpatGrisVersion::fromString(
             mainXmlElem->getStringAttribute(SpeakerSetup::XmlTags::VERSION)) };
         if (version.compare(SPAT_GRIS_VERSION) > 0) {
+            // TODO: Not sure this can be hit since v4...
             displayError("This speaker setup was created using a newer version of SpatGRIS that is not compatible with "
                          "this one.\nPlease upgrade to the latest version.");
         } else {
             displayError("File \"" + file.getFullPathName()
                          + "\" is missing one more mandatory parameters.\nYour file might be corrupted.");
+        }
+    } else {
+        auto ssVersion{ SpatGrisVersion::fromString(
+            speakerSetup->speakerSetupValueTree[SPEAKER_SETUP_VERSION].toString()) };
+        if (ssVersion.compare(SPAT_GRIS_VERSION) > 0) {
+            displayError("This speaker setup was created using a newer version of SpatGRIS that is not compatible with "
+                         "this one.\nPlease upgrade to the latest version.");
+            speakerSetup = tl::nullopt;
         }
     }
 
