@@ -396,16 +396,16 @@
                iosDevelopmentTeamID="62PMMWH49Z" sendAppleEventsPermissionNeeded="1"
                sendAppleEventsPermissionText="SpatGris requires the ability to send Apple events to facilitate communication with SpeakerView."
                applicationCategory="public.app-category.music" externalLibraries="saf&#10;saf_example_binauraliser_nf"
-               extraDefs="SAF_USE_APPLE_ACCELERATE_LP64">
+               extraDefs="SAF_USE_APPLE_ACCELERATE_LP64&#10;SAF_ENABLE_SOFA_READER_MODULE">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="11.5 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" fastMath="0" macOSDeploymentTarget="11.5"
                        headerPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
-                       libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/examples"/>
+                       libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-debug/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-debug/examples"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        fastMath="0" macOSDeploymentTarget="11.5" osxCompatibility="11.5 SDK"
                        headerPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
-                       libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/examples"/>
+                       libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-release/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-release/examples"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
