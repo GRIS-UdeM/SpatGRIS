@@ -373,8 +373,7 @@ private:
     void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
     void handleOpenSofaFile();
-    void handleSetUseDefaultBinauralHRIRs();
-    void handleSetEnableHRIRsDiffuseEQ();
+    void handleSetUseDefaultBinauralProfile();
     void handleShowOscMonitorWindow();
 
     /** This is called by the SpeakersRefreshAsyncUpdater when MainContentComponent::requestSpeakerRefresh() is called.
@@ -391,7 +390,7 @@ private:
     void updatePeaks();
     void reassignSourcesPositions();
 
-    void setBinauralReadyToProcess();
+    void setBinauralReadyToProcess(int state);
 
     void audioDeviceConnectionLostCallback(int res);
     //==============================================================================

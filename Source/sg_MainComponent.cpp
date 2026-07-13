@@ -497,6 +497,7 @@ bool MainContentComponent::loadSofaFile(juce::File const & file)
     }
 
     mData.appData.binauralSettings.lastSofaFile = file.getFullPathName();
+    mData.appData.binauralSettings.useDefaultBinauralProfile = false;
     refreshSpatAlgorithm();
     return true;
 }
@@ -604,23 +605,13 @@ void MainContentComponent::handleOpenSofaFile()
 }
 
 //==============================================================================
-void MainContentComponent::handleSetUseDefaultBinauralHRIRs()
+void MainContentComponent::handleSetUseDefaultBinauralProfile()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    mData.appData.binauralSettings.useDefaultHRIRs = !mData.appData.binauralSettings.useDefaultHRIRs;
+    mData.appData.binauralSettings.useDefaultBinauralProfile = true;
     updateControlsSectionTitle();
-    refreshSpatAlgorithm();
-}
-
-//==============================================================================
-void MainContentComponent::handleSetEnableHRIRsDiffuseEQ()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
-
-    mData.appData.binauralSettings.enableHRIRsDiffuseEQ = !mData.appData.binauralSettings.enableHRIRsDiffuseEQ;
     refreshSpatAlgorithm();
 }
 
@@ -1067,10 +1058,10 @@ void MainContentComponent::updateControlsSectionTitle()
 {
     if (mData.appData.stereoMode == StereoMode::hrtf) {
         auto sofaFilename{ juce::File(mData.appData.binauralSettings.lastSofaFile).getFileName() };
-        auto title{ mData.appData.binauralSettings.useDefaultHRIRs || sofaFilename.isEmpty()
-                        ? juce::String("SAF default HRIRs")
-                        : sofaFilename };
-        mBinauralInfosComponent->setBinauralFileName(juce::String("SOFA file - ") + title);
+        auto title{ mData.appData.binauralSettings.useDefaultBinauralProfile || sofaFilename.isEmpty()
+                        ? juce::String(" - Default Profile")
+                        : juce::String(" SOFA file - ") + sofaFilename };
+        mBinauralInfosComponent->setBinauralFileName(juce::String("Binaural") + title);
     } else {
         mBinauralInfosComponent->setBinauralFileName("");
     }
@@ -1359,7 +1350,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 34> ids{ CommandId::newProjectId,
+    constexpr std::array<CommandId, 33> ids{ CommandId::newProjectId,
                                              CommandId::openProjectId,
                                              CommandId::saveProjectId,
                                              CommandId::saveProjectAsId,
@@ -1367,8 +1358,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
                                              CommandId::saveSpeakerSetupId,
                                              CommandId::saveSpeakerSetupAsId,
                                              CommandId::openSofaFileId,
-                                             CommandId::setUseDefaultBinauralHRIRs,
-                                             CommandId::setEnableHRIRsDiffuseEQ,
+                                             CommandId::setUseDefaultBinauralProfile,
                                              CommandId::showSpeakerEditId,
                                              CommandId::show2DViewId,
                                              CommandId::showPlayerWindowId,
@@ -1459,19 +1449,14 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.addDefaultKeypress('E', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier);
         return;
     case CommandId::openSofaFileId:
-        result.setInfo("Open SOFA file", "Choose a SOFA file on disk", generalCategory, 0);
+        result.setInfo("Open Binaural SOFA file", "Choose a SOFA file on disk", generalCategory, 0);
         result.addDefaultKeypress('B', juce::ModifierKeys::commandModifier);
         return;
-    case CommandId::setUseDefaultBinauralHRIRs:
-        result.setInfo("Use Default Binaural HRIRs",
+    case CommandId::setUseDefaultBinauralProfile:
+        result.setInfo("Use Default Binaural Profile",
                        "Use SAF default HRIRs for binaural rendering",
                        generalCategory,
                        0);
-        result.setTicked(mData.appData.binauralSettings.useDefaultHRIRs == true);
-        return;
-    case CommandId::setEnableHRIRsDiffuseEQ:
-        result.setInfo("Apply Diffuse-Field EQ", "Apply SAF diffuse-field EQ to the HRIRs", generalCategory, 0);
-        result.setTicked(mData.appData.binauralSettings.enableHRIRsDiffuseEQ == true);
         return;
     case CommandId::showSpeakerEditId:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
@@ -1621,11 +1606,8 @@ bool MainContentComponent::perform(InvocationInfo const & info)
         case CommandId::openSofaFileId:
             handleOpenSofaFile();
             break;
-        case CommandId::setUseDefaultBinauralHRIRs:
-            handleSetUseDefaultBinauralHRIRs();
-            break;
-        case CommandId::setEnableHRIRsDiffuseEQ:
-            handleSetEnableHRIRsDiffuseEQ();
+        case CommandId::setUseDefaultBinauralProfile:
+            handleSetUseDefaultBinauralProfile();
             break;
         case CommandId::showSpeakerEditId:
             handleShowSpeakerEditWindow();
@@ -1855,14 +1837,6 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         return menu;
     };
 
-    auto const getBinauralSettingsMenu = [&]() {
-        juce::PopupMenu menuSAF{};
-        menuSAF.addCommandItem(commandManager, CommandId::setUseDefaultBinauralHRIRs);
-        menuSAF.addCommandItem(commandManager, CommandId::setEnableHRIRsDiffuseEQ);
-
-        return menuSAF;
-    };
-
     juce::PopupMenu menu;
 
     if (menuName == "File") {
@@ -1878,7 +1852,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, CommandId::saveSpeakerSetupAsId);
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::openSofaFileId);
-        menu.addSubMenu("Binaural Settings", getBinauralSettingsMenu());
+        menu.addCommandItem(commandManager, CommandId::setUseDefaultBinauralProfile);
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::openSettingsWindowId);
 #if !JUCE_MAC
@@ -2637,7 +2611,7 @@ void MainContentComponent::refreshSpatAlgorithm()
 
     if (mData.appData.stereoMode == StereoMode::hrtf) {
         mIsProcessingBinauralSofaFile = true;
-        newSpatAlgorithm->setCallback([this]() { setBinauralReadyToProcess(); });
+        newSpatAlgorithm->setCallback([this](int state) { setBinauralReadyToProcess(state); });
     }
 
     if (newSpatAlgorithm->getError()
@@ -3174,11 +3148,22 @@ void MainContentComponent::reassignSourcesPositions()
 }
 
 //==============================================================================
-void MainContentComponent::setBinauralReadyToProcess()
+void MainContentComponent::setBinauralReadyToProcess(int state)
 {
-    mIsProcessingBinauralSofaFile = false;
-    mBinauralInfosComponent->showSpinningWheel(false);
-    mBinauralInfosComponent->showCheckSign();
+    switch (state) {
+    case 0:
+        // success loading a sofa file
+        mIsProcessingBinauralSofaFile = false;
+        mBinauralInfosComponent->showSpinningWheel(false);
+        mBinauralInfosComponent->showCheckSign();
+        break;
+    case 1:
+        // failed to load sofa file. Using default
+        handleSetUseDefaultBinauralProfile();
+        break;
+    default:
+        return;
+    }
 }
 
 //==============================================================================
