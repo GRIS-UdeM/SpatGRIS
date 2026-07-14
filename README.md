@@ -55,7 +55,7 @@ git submodule update --init --recursive
 
 ##### MacOS
 
-```
+```bash
 cd submodules/AlgoGRIS/build_scripts
 ./MacOS_build_Spatial_Audio_Framework_lib.sh
 ```
@@ -64,17 +64,24 @@ cd submodules/AlgoGRIS/build_scripts
 
 On Windows, we use a SAF/MKL dynamic library. Install Intel oneAPI Math Kernel Library, then run the following script from the x64 Native Tools Command Prompt for VS 2022 (or 2026) as Administrator :
 ```
-cd /d [path-to-]\submodules\AlgoGRIS\build_scripts
+cd /d [path-to]\submodules\AlgoGRIS\build_scripts
 .\GRIS_install-safmkl_oneAPI_2026.bat
 ```
 
 Then with git-bash :
-```
+```bash
 cd submodules/AlgoGRIS/build_scripts
 ./Win_build_Spatial_Audio_Framework_lib.sh
 ```
 
 ##### Linux
+
+On Linux, we use a SAF/MKL dynamic library. Install Intel oneAPI Math Kernel Library for your distribution, then run the following scripts :
+```bash
+cd submodules/AlgoGRIS/build_scripts
+./GRIS_install-safmkl-linux.sh
+./Linux_build_Spatial_Audio_Framework_lib.sh
+```
 
 #### 3. Build the Projucer
 
@@ -83,10 +90,15 @@ Ensure that the Projucer global paths are set correctly. JUCE path is `SpatGRIS/
 
 ##### Additional dependencies on Linux :
 
+From the [JUCE github website](https://github.com/juce-framework/JUCE/blob/develop/docs/Linux%20Dependencies.md) :
 ```bash
-sudo apt-get install clang++-14 ladspa-sdk libasound2-dev \
-libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev \
-libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-dev
+sudo apt install libasound2-dev libjack-jackd2-dev \
+    ladspa-sdk \
+    libcurl4-openssl-dev  \
+    libfreetype6-dev libfontconfig1-dev \
+    libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
+    libwebkit2gtk-4.1-dev \
+    libglu1-mesa-dev mesa-common-dev
 ```
 
 #### 4. Generating project files
@@ -108,7 +120,7 @@ On Linux :
 
 ```bash
 cd Builds/LinuxMakeFile
-make CONFIG=Release CXX=clang++-14 -j 8
+make CONFIG=Release CXX=clang++ CC=clang -j8
 ```
 
 ## Running
