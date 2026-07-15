@@ -8,7 +8,7 @@
 #define ManualFRName "SpatGRIS_4.0.3_Manuel_FR.pdf"
 #define RootDir ".."
 
-#define BuildDir RootDir + "\Builds\VisualStudio2022\x64\Release\App"
+#define BuildDir RootDir + "\Builds\VisualStudio2026\x64\Release\App"
 #define ControlGrisVersionLong GetVersionNumbersString(ControlGrisDir + "\ControlGRIS2.vst3\Contents\x86_64-win\ControlGRIS2.vst3")
 #define SpeakerViewVersion GetFileVersion(SpeakerViewDir + "\SpeakerView.exe")
 #define ResourcesDir RootDir + "\Resources"
@@ -18,6 +18,14 @@
 #define ControlGrisVersion Copy(ControlGrisVersionLong, 0, Len(ControlGrisVersionLong) - 2)
 #define AaxInPath RootDir + "\installer\ControlGris\ControlGRIS2.aaxplugin"
 #define AaxOutPath "C:\Program Files\Common Files\Avid\Audio\Plug-Ins\ControlGRIS2.aaxplugin"
+
+#define GRIS_SAF_mkl_lib AlgoGRISDir + "\saf_custom_libs\saf_mkl_custom_lp64.dll"
+#define OpenBLAS_lib BuildDir + "\openblas.dll"
+#define LAPACK_lib BuildDir + "\liblapack.dll"
+#define Fortran_lib BuildDir + "\libgfortran-5.dll"
+#define Gcc_s_seh_lib BuildDir + "\libgcc_s_seh-1.dll"
+#define Winpthread_lib BuildDir + "\libwinpthread-1.dll"
+#define QuadMath_lib BuildDir + "\libquadmath-0.dll"
 
 #define AppVersionLong GetVersionNumbersString(AppExePath)
 
@@ -60,6 +68,13 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#AppExePath}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#GRIS_SAF_mkl_lib}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#OpenBLAS_lib}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#LAPACK_lib}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#Fortran_lib}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#Gcc_s_seh_lib}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#Winpthread_lib}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#QuadMath_lib}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#AlgoGRISDir}\hrtf_compact\*"; DestDir: "{app}\Resources\hrtf_compact"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\default_preset\*"; DestDir: "{app}\Resources\default_preset"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\templates\*"; DestDir: "{app}\Resources\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
