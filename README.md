@@ -51,7 +51,7 @@ For the submodules:
 cd SpatGRIS
 git submodule update --init --recursive
 ```
-#### 2. Build the Spatial_Audio_Framework (SAF) libraries for the binaural stereo reduction
+#### 2. Build the [Spatial_Audio_Framework](https://github.com/leomccormack/Spatial_Audio_Framework) (SAF) libraries for the binaural stereo reduction
 
 ##### MacOS
 
