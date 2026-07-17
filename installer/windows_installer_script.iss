@@ -75,7 +75,6 @@ Source: "{#Fortran_lib}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Gcc_s_seh_lib}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Winpthread_lib}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#QuadMath_lib}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#AlgoGRISDir}\hrtf_compact\*"; DestDir: "{app}\Resources\hrtf_compact"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\default_preset\*"; DestDir: "{app}\Resources\default_preset"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\templates\*"; DestDir: "{app}\Resources\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\{#ManualENName}"; DestDir: "{app}\Resources"; Flags: ignoreversion
