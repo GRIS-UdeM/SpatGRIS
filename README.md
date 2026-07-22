@@ -62,10 +62,16 @@ cd submodules/AlgoGRIS/build_scripts
 
 ##### Windows
 
-On Windows, we use a SAF/MKL dynamic library. Install Intel oneAPI Math Kernel Library, then run the following script from the x64 Native Tools Command Prompt for VS 2022 (or 2026) as Administrator :
+On Windows, we use SAF with OpenBLAS/LAPACKE.
+```bash
+cd submodules/AlgoGRIS/submodules/Spatial_Audio_Framework
+git clone https://github.com/Reference-LAPACK/lapack.git
+```
+
+Install Intel oneAPI Fortran compiler, then run the following script from the Intel oneAPI command prompt for Intel 64 for Visual Studio 2026 :
 ```
 cd /d [path-to]\submodules\AlgoGRIS\build_scripts
-.\GRIS_install-safmkl_oneAPI_2026.bat
+.\GRIS_install_saf-lapack.bat
 ```
 
 Then with git-bash :
@@ -76,7 +82,7 @@ cd submodules/AlgoGRIS/build_scripts
 
 ##### Linux
 
-On Linux, we use a SAF/MKL dynamic library. Install Intel oneAPI Math Kernel Library for your distribution, then run the following scripts :
+On Linux, we use SAF with OpenBLAS/LAPACKE.
 ```bash
 cd submodules/AlgoGRIS/build_scripts
 ./GRIS_install-safmkl-linux.sh
