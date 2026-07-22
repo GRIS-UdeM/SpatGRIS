@@ -82,8 +82,8 @@ cd submodules/AlgoGRIS/build_scripts
 
 ##### Linux
 
-On Linux, we use SAF with OpenBLAS/LAPACKE.
-Install `cblas` and `lapacke` for your distribution.
+On Linux, we use SAF with OpenBLAS/LAPACKE and FFTW.
+Install `cblas`, `lapacke` and `fftw` for your distribution.
 Then :
 ```bash
 cd submodules/AlgoGRIS/build_scripts
