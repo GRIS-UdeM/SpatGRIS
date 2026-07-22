@@ -83,9 +83,10 @@ cd submodules/AlgoGRIS/build_scripts
 ##### Linux
 
 On Linux, we use SAF with OpenBLAS/LAPACKE.
+Install `cblas` and `lapacke` for your distribution.
+Then :
 ```bash
 cd submodules/AlgoGRIS/build_scripts
-./GRIS_install-safmkl-linux.sh
 ./Linux_build_Spatial_Audio_Framework_lib.sh
 ```
 
