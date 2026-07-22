@@ -19,7 +19,6 @@
 #define AaxInPath RootDir + "\installer\ControlGris\ControlGRIS2.aaxplugin"
 #define AaxOutPath "C:\Program Files\Common Files\Avid\Audio\Plug-Ins\ControlGRIS2.aaxplugin"
 
-#define GRIS_SAF_mkl_lib AlgoGRISDir + "\saf_custom_libs\saf_mkl_custom_lp64.dll"
 #define OpenBLAS_lib BuildDir + "\openblas.dll"
 #define LAPACK_lib BuildDir + "\liblapack.dll"
 #define Fortran_lib BuildDir + "\libgfortran-5.dll"
@@ -68,7 +67,6 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#AppExePath}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#GRIS_SAF_mkl_lib}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#OpenBLAS_lib}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#LAPACK_lib}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Fortran_lib}"; DestDir: "{app}"; Flags: ignoreversion
