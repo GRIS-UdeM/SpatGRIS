@@ -20,11 +20,7 @@
 #define AaxOutPath "C:\Program Files\Common Files\Avid\Audio\Plug-Ins\ControlGRIS2.aaxplugin"
 
 #define OpenBLAS_lib BuildDir + "\openblas.dll"
-#define LAPACK_lib BuildDir + "\liblapack.dll"
-#define Fortran_lib BuildDir + "\libgfortran-5.dll"
-#define Gcc_s_seh_lib BuildDir + "\libgcc_s_seh-1.dll"
-#define Winpthread_lib BuildDir + "\libwinpthread-1.dll"
-#define QuadMath_lib BuildDir + "\libquadmath-0.dll"
+#define LibOpenBLAS_lib BuildDir + "\libopenblas.dll"
 
 #define AppVersionLong GetVersionNumbersString(AppExePath)
 
@@ -68,11 +64,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "{#AppExePath}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#OpenBLAS_lib}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#LAPACK_lib}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#Fortran_lib}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#Gcc_s_seh_lib}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#Winpthread_lib}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#QuadMath_lib}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#LibOpenBLAS_lib}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ResourcesDir}\default_preset\*"; DestDir: "{app}\Resources\default_preset"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\templates\*"; DestDir: "{app}\Resources\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ResourcesDir}\{#ManualENName}"; DestDir: "{app}\Resources"; Flags: ignoreversion

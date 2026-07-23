@@ -458,13 +458,13 @@
         <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="NHix3D" externalLibraries="liblapacke.lib&#10;saf.lib&#10;saf_example_binauraliser_nf.lib"
-            extraDefs="SAF_USE_OPEN_BLAS_AND_LAPACKE&#10;SAF_ENABLE_SOFA_READER_MODULE&#10;NOMINMAX">
+    <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="NHix3D" externalLibraries="libopenblas.lib&#10;saf.lib&#10;saf_example_binauraliser_nf.lib"
+            extraDefs="SAF_USE_OPEN_BLAS_AND_LAPACKE=1&#10;SAF_ENABLE_SOFA_READER_MODULE=1&#10;NOMINMAX">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" fastMath="0" headerPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\CBLAS\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\LAPACKE\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
-                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\build\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapacke\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-debug\framework\Debug&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-debug\examples\Debug"/>
-        <CONFIGURATION name="Release" fastMath="0" headerPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\CBLAS\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\LAPACKE\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
-                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\build\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapacke\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-release\framework\Release&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-release\examples\Release"
+        <CONFIGURATION isDebug="1" name="Debug" fastMath="0" headerPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
+                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-debug\framework\Debug&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-debug\examples\Debug"/>
+        <CONFIGURATION name="Release" fastMath="0" headerPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
+                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-release\framework\Release&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-release\examples\Release"
                        isDebug="0" alwaysGenerateDebugSymbols="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -485,13 +485,13 @@
         <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
-    <VS2026 targetFolder="Builds/VisualStudio2026" bigIcon="NHix3D" extraDefs="SAF_USE_OPEN_BLAS_AND_LAPACKE&#10;SAF_ENABLE_SOFA_READER_MODULE&#10;NOMINMAX"
-            externalLibraries="liblapacke.lib&#10;saf.lib&#10;saf_example_binauraliser_nf.lib">
+    <VS2026 targetFolder="Builds/VisualStudio2026" bigIcon="NHix3D" extraDefs="SAF_USE_OPEN_BLAS_AND_LAPACKE=1&#10;SAF_ENABLE_SOFA_READER_MODULE=1&#10;NOMINMAX"
+            externalLibraries="libopenblas.lib&#10;saf.lib&#10;saf_example_binauraliser_nf.lib">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\CBLAS\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\LAPACKE\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
-                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\build\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapacke\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-debug\framework\Debug&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-debug\examples\Debug"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\CBLAS\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\LAPACKE\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
-                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapack\build\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\lapacke\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-release\framework\Release&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-release\examples\Release"/>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
+                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-debug\framework\Debug&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-debug\examples\Debug"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
+                       libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-release\framework\Release&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-release\examples\Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
