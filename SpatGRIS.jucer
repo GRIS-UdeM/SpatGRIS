@@ -431,10 +431,10 @@
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
                        recommendedWarnings="LLVM" extraCompilerFlags="-fdiagnostics-color=always&#10;-march=native"
-                       headerPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
+                       headerPath="/usr/include/openblas&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
                        libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-debug/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-debug/examples&#10;"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       linkTimeOptimisation="1" recommendedWarnings="LLVM" headerPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
+                       linkTimeOptimisation="1" recommendedWarnings="LLVM" headerPath="/usr/include/openblas&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
                        libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-release/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-release/examples&#10;"
                        extraCompilerFlags="-march=native"/>
         <CONFIGURATION isDebug="0" name="RTSan" extraCompilerFlags="-fdiagnostics-color=always -fsanitize=realtime"
