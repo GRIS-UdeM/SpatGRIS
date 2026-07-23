@@ -62,19 +62,6 @@ cd submodules/AlgoGRIS/build_scripts
 
 ##### Windows
 
-On Windows, we use SAF with OpenBLAS/LAPACKE.
-```bash
-cd submodules/AlgoGRIS/submodules/Spatial_Audio_Framework
-git clone https://github.com/Reference-LAPACK/lapack.git
-```
-
-Install Intel oneAPI Fortran compiler, then run the following script from the Intel oneAPI command prompt for Intel 64 for Visual Studio 2026 :
-```
-cd /d [path-to]\submodules\AlgoGRIS\build_scripts
-.\GRIS_install_saf-lapack.bat
-```
-
-Then with git-bash :
 ```bash
 cd submodules/AlgoGRIS/build_scripts
 ./Win_build_Spatial_Audio_Framework_lib.sh
@@ -82,7 +69,6 @@ cd submodules/AlgoGRIS/build_scripts
 
 ##### Linux
 
-On Linux, we use SAF with OpenBLAS/LAPACKE and FFTW.
 Install `cblas`, `lapacke` and `fftw` for your distribution.
 Then :
 ```bash
