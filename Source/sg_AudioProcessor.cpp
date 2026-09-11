@@ -58,6 +58,12 @@ void AudioProcessor::setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig)
 }
 
 //==============================================================================
+void AudioProcessor::setShouldProcessAmbiAlgo(bool shouldProcess)
+{
+    mShouldProcessAmbiAlgo.set(shouldProcess);
+}
+
+//==============================================================================
 void AudioProcessor::processInputPeaks(SourceAudioBuffer & inputBuffer, SourcePeaks & peaks) const noexcept
 {
     for (auto const channel : inputBuffer) {
@@ -150,6 +156,15 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
             auto const & origin{ sourceBuffer[directOutPair.first] };
             auto & dest{ speakerBuffer[directOutPair.second] };
             dest.addFrom(0, 0, origin, 0, 0, numSamples);
+        }
+
+        if (mShouldProcessAmbiAlgo.get()) {
+            mAmbiEncSpatAlgorithm->process(*mAudioData.config,
+                                           sourceBuffer,
+                                           speakerBuffer,
+                                           stereoBuffer,
+                                           sourcePeaks,
+                                           nullptr);
         }
     }
 

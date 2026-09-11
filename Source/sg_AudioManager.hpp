@@ -71,6 +71,7 @@ public:
     /** The main parameters needed before starting a recording. */
     struct RecordingParameters {
         juce::String path{};
+        juce::String ambisonicPath{};
         RecordingOptions options{};
         double sampleRate{};
         juce::Array<output_patch_t> speakersToRecord{};
@@ -83,13 +84,19 @@ private:
     SourceAudioBuffer mInputBuffer{};
     SpeakerAudioBuffer mOutputBuffer{};
 
+    juce::AudioBuffer<float> mOutputAmbiBuffer{};
     juce::AudioBuffer<float> mStereoOutputBuffer{};
     tl::optional<StereoRouting> mStereoRouting{};
     // Recording
     bool mIsRecording{};
+    bool mIsRecordingAmbiFiles{};
+    bool mIsRecordingOnlyAmbisonic{};
+    int mNumSpeakersDirectOutOnly{};
     juce::Atomic<int64_t> mNumSamplesRecorded{};
     juce::OwnedArray<FileRecorder> mRecorders{};
+    juce::OwnedArray<FileRecorder> mAmbiRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
+    juce::TimeSliceThread mAmbiRecordersThread{ "SpatGRIS ambisonic recording thread" };
     // Playing
     juce::AudioFormatManager mFormatManager{};
     juce::Array<juce::File> mAudioFiles; // for audio thumbnails
@@ -138,6 +145,7 @@ public:
 
     void initInputBuffer(juce::Array<source_index_t> const & sources);
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);
+    void initAmbiOutputBuffer(int ambisonicOrder, int newBufferSize, int numSpeakersDirectOutOnly);
     void setBufferSize(int newBufferSize);
     void setStereoRouting(tl::optional<StereoRouting> const & stereoRouting);
     //==============================================================================

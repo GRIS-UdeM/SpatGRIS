@@ -22,6 +22,7 @@
 #include "Containers/sg_TaggedAudioBuffer.hpp"
 #include "Data/sg_AudioStructs.hpp"
 #include "sg_AbstractSpatAlgorithm.hpp"
+#include "sg_AmbiEncSpatAlgorithm.hpp"
 #include "sg_PinkNoiseGenerator.hpp"
 #include <JuceHeader.h>
 
@@ -36,8 +37,10 @@ class AudioProcessor
     AudioData mAudioData{};
     juce::CriticalSection mLock{};
     std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
+    std::unique_ptr<AbstractSpatAlgorithm> mAmbiEncSpatAlgorithm{};// only used when recording to ambisonics
     juce::Random mRandomNoise{};
     PulsedNoiseParams mPulsedNoiseParams{};
+    juce::Atomic<bool> mShouldProcessAmbiAlgo{};
 
 public:
     //==============================================================================
@@ -46,6 +49,7 @@ public:
     SG_DELETE_COPY_AND_MOVE(AudioProcessor)
     //==============================================================================
     void setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig);
+    void setShouldProcessAmbiAlgo(bool shouldProcess);
     [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mLock; }
     void processAudio(SourceAudioBuffer & sourceBuffer,
                       SpeakerAudioBuffer & speakerBuffer,
@@ -57,6 +61,9 @@ public:
 
     auto const & getSpatAlgorithm() const { return mSpatAlgorithm; }
     auto & getSpatAlgorithm() { return mSpatAlgorithm; }
+
+    auto const & getAmbiEncSpatAlgorithm() const { return mAmbiEncSpatAlgorithm; }
+    auto & getAmbiEncSpatAlgorithm() { return mAmbiEncSpatAlgorithm; }
 
 private:
     //==============================================================================

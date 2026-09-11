@@ -246,6 +246,10 @@
     </GROUP>
     <GROUP id="{755DB51A-2CFD-1B50-3D92-CF35F1E89E3D}" name="submodules">
       <GROUP id="{1FBCD2DD-9050-30FD-E1BE-E07C1F83877B}" name="AlgoGRIS">
+        <FILE id="pTovlL" name="sg_AmbiEncSpatAlgorithm.cpp" compile="1" resource="0"
+              file="submodules/AlgoGRIS/sg_AmbiEncSpatAlgorithm.cpp"/>
+        <FILE id="tCHpi0" name="sg_AmbiEncSpatAlgorithm.hpp" compile="0" resource="0"
+              file="submodules/AlgoGRIS/sg_AmbiEncSpatAlgorithm.hpp"/>
         <FILE id="crzhzv" name="sg_ParallelSpatAlgorithm.cpp" compile="1" resource="0"
               file="submodules/AlgoGRIS/sg_ParallelSpatAlgorithm.cpp"/>
         <FILE id="IrsK2x" name="sg_ParallelSpatAlgorithm.hpp" compile="0" resource="0"
@@ -486,7 +490,7 @@
       </MODULEPATHS>
     </VS2022>
     <VS2026 targetFolder="Builds/VisualStudio2026" bigIcon="NHix3D" extraDefs="SAF_USE_OPEN_BLAS_AND_LAPACKE=1&#10;SAF_ENABLE_SOFA_READER_MODULE=1&#10;NOMINMAX"
-            externalLibraries="libopenblas.lib&#10;saf.lib&#10;saf_example_binauraliser_nf.lib">
+            externalLibraries="libopenblas.lib&#10;saf.lib&#10;saf_example_binauraliser_nf.lib&#10;saf_example_ambi_enc.lib">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
                        libraryPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\lib&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-debug\framework\Debug&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\build-debug\examples\Debug"/>

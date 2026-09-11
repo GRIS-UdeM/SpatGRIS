@@ -3480,12 +3480,44 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
         return result;
     };
 
-    auto speakersToRecord = getSpeakersToRecord();
+    auto const getNumSpeakersDirectOutOnly = [&]() -> int {
+        int result{};
 
-    AudioManager::RecordingParameters const recordingParams{ fileOrDirectory.getFullPathName(),
-                                                             mData.appData.recordingOptions,
-                                                             mData.appData.audioSettings.sampleRate,
-                                                             std::move(speakersToRecord) };
+        for (auto & spk : mData.speakerSetup.speakers) {
+            if (spk.value->isDirectOutOnly) {
+                ++result;
+            }
+        }
+
+        return result;
+    };
+
+    auto speakersToRecord = getSpeakersToRecord();
+    auto numSpeakersDirectOutOnly = getNumSpeakersDirectOutOnly();
+
+    if (mData.appData.recordingOptions.shouldRecordAmbisonicFiles) {
+        auto & ambiEncSpatAlgorithm{ mAudioProcessor->getAmbiEncSpatAlgorithm() };
+        auto newAmbiEncSpatAlgorithm{ AmbiEncSpatAlgorithm::make(mData.speakerSetup,
+                                                                 mData.project.spatMode,
+                                                                 mData.project.sources,
+                                                                 mData.appData.audioSettings.sampleRate,
+                                                                 mData.appData.audioSettings.bufferSize,
+                                                                 mData.appData.binauralSettings) };
+        ambiEncSpatAlgorithm = std::move(newAmbiEncSpatAlgorithm);
+        static_cast<AmbiEncSpatAlgorithm *>(ambiEncSpatAlgorithm.get())
+            ->configure(mData.appData.recordingOptions.ambisonicOrder);
+        AudioManager::getInstance().initAmbiOutputBuffer(mData.appData.recordingOptions.ambisonicOrder,
+                                                         mData.appData.audioSettings.bufferSize,
+                                                         numSpeakersDirectOutOnly);
+    }
+
+    AudioManager::RecordingParameters const recordingParams{
+        fileOrDirectory.getFullPathName(),
+        juce::String(fileOrDirectory.getParentDirectory().getFullPathName() + juce::File::getSeparatorString()
+                     + "ambisonic_files"),
+        mData.appData.recordingOptions,
+        mData.appData.audioSettings.sampleRate,
+        std::move(speakersToRecord) };
     if (AudioManager::getInstance().prepareToRecord(recordingParams)) {
         AudioManager::getInstance().startRecording();
 

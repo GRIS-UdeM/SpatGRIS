@@ -37,6 +37,9 @@ using flags = juce::FileBrowserComponent::FileChooserFlags;
 } // namespace
 
 //==============================================================================
+juce::StringArray const RECORDING_MODE_STRINGS{ "Audio", "Ambisonic", "Audio and Ambisonic" };
+
+//==============================================================================
 PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingDirectory,
                                                    RecordingOptions const & recordingOptions,
                                                    MainContentComponent & mainContentComponent,
@@ -93,6 +96,32 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
     mSaveSpeakerSetupToggleButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mSaveSpeakerSetupToggleButton.setLookAndFeel(&mLookAndFeel);
     addAndMakeVisible(mSaveSpeakerSetupToggleButton);
+
+    mRecordingModeLabel.setText("Recording Mode", juce::dontSendNotification);
+    addAndMakeVisible(mRecordingModeLabel);
+
+    mAmbisonicOrderLabel.setText("Ambisonic Order", juce::dontSendNotification);
+    addAndMakeVisible(mAmbisonicOrderLabel);
+
+    mRecordingModeComboBox.addListener(this);
+    mRecordingModeComboBox.setLookAndFeel(&mLookAndFeel);
+    mRecordingModeComboBox.addItemList(RECORDING_MODE_STRINGS, 1);
+    mRecordingModeComboBox.setSelectedId(static_cast<int>(RecordMode::audioOnly));
+    mRecordingModeComboBox.onChange = [this] {
+        mAmbisonicOrderLabel.setVisible(mRecordingModeComboBox.getSelectedId() != static_cast<int>(RecordMode::audioOnly));
+        mAmbisonicOrderComboBox.setVisible(mRecordingModeComboBox.getSelectedId()
+                                           != static_cast<int>(RecordMode::audioOnly));
+    };
+    addAndMakeVisible(mRecordingModeComboBox);
+
+
+    mAmbisonicOrderComboBox.addListener(this);
+    mAmbisonicOrderComboBox.setLookAndFeel(&mLookAndFeel);
+    for (int i{ 1 }; i <= 10; ++i) {
+        mAmbisonicOrderComboBox.addItem(juce::String(i), i);
+    }
+    mAmbisonicOrderComboBox.setSelectedId(1, juce::dontSendNotification);
+    addAndMakeVisible(mAmbisonicOrderComboBox);
 
     mRecordButton.setButtonText("Record");
     mRecordButton.addListener(this);
@@ -162,7 +191,16 @@ void PrepareToRecordComponent::resized()
     mInterleavedButton.setBounds(xOffset, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
     nextButton();
     mSaveSpeakerSetupToggleButton.setBounds(xOffset + 10, yOffset + 10, 150, 24);
+    mRecordingModeLabel.setBounds(xOffset + 9, yOffset - 40, 100, 24);
+    mRecordingModeComboBox.setBounds(xOffset + 110, yOffset - 40, 160, 24);
+    mAmbisonicOrderLabel.setBounds(xOffset + 9, yOffset - 15, 100, 24);
+    mAmbisonicOrderComboBox.setBounds(xOffset + 110, yOffset - 15, 50, 24);
     mRecordButton.setBounds(WIDTH - PADDING - BUTTONS_WIDTH, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
+
+
+    mAmbisonicOrderLabel.setVisible(mRecordingModeComboBox.getSelectedId() != static_cast<int>(RecordMode::audioOnly));
+    mAmbisonicOrderComboBox.setVisible(mRecordingModeComboBox.getSelectedId()
+                                       != static_cast<int>(RecordMode::audioOnly));
 }
 
 //==============================================================================
@@ -235,7 +273,15 @@ void PrepareToRecordComponent::performRecord()
         return;
     }
 
-    RecordingOptions const recordingOptions{ format, fileType, mSaveSpeakerSetupToggleButton.getToggleState() };
+    RecordingOptions const recordingOptions{
+        format,
+        fileType,
+        mSaveSpeakerSetupToggleButton.getToggleState(),
+        mRecordingModeComboBox.getSelectedId() == static_cast<int>(RecordMode::ambisonicOnly)
+            || mRecordingModeComboBox.getSelectedId() == static_cast<int>(RecordMode::audioAndAmbisonic),
+        mAmbisonicOrderComboBox.getSelectedId(),
+        mRecordingModeComboBox.getSelectedId() == static_cast<int>(RecordMode::ambisonicOnly)
+    };
     mMainContentComponent.prepareAndStartRecording(finalPath, recordingOptions);
 }
 

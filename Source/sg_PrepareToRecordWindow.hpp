@@ -27,9 +27,16 @@ class MainContentComponent;
 class GrisLookAndFeel;
 
 //==============================================================================
+enum class RecordMode : int { audioOnly = 1, ambisonicOnly, audioAndAmbisonic };
+
+//==============================================================================
+extern juce::StringArray const RECORDING_MODE_STRINGS;
+
+//==============================================================================
 class PrepareToRecordComponent final
     : public juce::Component
     , public juce::TextButton::Listener
+    , public juce::ComboBox::Listener
 {
     static constexpr auto DEFAULT_FILE_NAME = "recording";
 
@@ -43,6 +50,12 @@ class PrepareToRecordComponent final
     juce::TextButton mAiffButton{};
 
     juce::ToggleButton mSaveSpeakerSetupToggleButton{};
+
+    juce::Label mRecordingModeLabel{};
+    juce::ComboBox mRecordingModeComboBox{};
+
+    juce::Label mAmbisonicOrderLabel{};
+    juce::ComboBox mAmbisonicOrderComboBox{};
 #ifdef __APPLE__
     juce::TextButton mCafButton{};
 #endif
@@ -62,6 +75,7 @@ public:
     //==============================================================================
     void resized() override;
     void buttonClicked(juce::Button * button) override;
+    void comboBoxChanged(juce::ComboBox * /*comboBoxThatHasChanged*/) override {}
 
 private:
     //==============================================================================
