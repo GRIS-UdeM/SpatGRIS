@@ -399,7 +399,7 @@
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                iosDevelopmentTeamID="62PMMWH49Z" sendAppleEventsPermissionNeeded="1"
                sendAppleEventsPermissionText="SpatGris requires the ability to send Apple events to facilitate communication with SpeakerView."
-               applicationCategory="public.app-category.music" externalLibraries="saf&#10;saf_example_binauraliser_nf"
+               applicationCategory="public.app-category.music" externalLibraries="saf&#10;saf_example_binauraliser_nf&#10;saf_example_ambi_enc"
                extraDefs="SAF_USE_APPLE_ACCELERATE_LP64&#10;SAF_ENABLE_SOFA_READER_MODULE">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="11.5 SDK" isDebug="1" optimisation="1"
