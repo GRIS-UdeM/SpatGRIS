@@ -11,6 +11,7 @@ Spatial_Audio_Framework (ISC license for included modules)
 ---------
 
 Copyright 2022 Michael McCrea, Leo McCormack
+Copyright 2016 Leo McCormack
 Copyright 2018-2021 Leo McCormack
 Copyright 2020 Leo McCormack
 
