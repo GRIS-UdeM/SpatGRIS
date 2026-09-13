@@ -430,7 +430,7 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="NHix3D"
-                extraLinkerFlags="-latomic" externalLibraries="cblas&#10;lapacke&#10;fftw3f&#10;saf_example_binauraliser_nf&#10;saf"
+                extraLinkerFlags="-latomic" externalLibraries="cblas&#10;lapacke&#10;fftw3f&#10;saf_example_binauraliser_nf&#10;saf_example_ambi_enc&#10;saf"
                 extraDefs="SAF_USE_OPEN_BLAS_AND_LAPACKE=1&#10;SAF_USE_FFTW=1&#10;SAF_ENABLE_SIMD=1&#10;SAF_ENABLE_SOFA_READER_MODULE=1">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
