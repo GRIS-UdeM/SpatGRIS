@@ -64,6 +64,7 @@ private:
     DirectOutSelectorComponent mDirectOutSelectorComponent;
 
     bool mShouldShowHybridSpatModes{};
+    bool mIsVisible{ true };
 
 public:
     //==============================================================================
@@ -84,6 +85,7 @@ public:
     void setSourceColour(juce::Colour colour);
     void setProjectSpatMode(SpatMode spatMode);
     void setHybridSpatMode(SpatMode spatMode);
+    void setSliceVisible(bool isVisible);
     //==============================================================================
     void muteSoloButtonClicked(SliceState state) override;
     void sourceIdButtonColorChanged(SourceIdButton * button, juce::Colour color) override;

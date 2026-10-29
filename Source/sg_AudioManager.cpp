@@ -93,7 +93,9 @@ void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputC
         mStereoOutputBuffer.clear();
     }
     mOutputBuffer.silence();
-    mOutputAmbiBuffer.clear();
+    mOutputAmbiEncBuffer.clear();
+    mInputAmbiDecBuffer.clear();
+    mInputAmbiDecSrcAudioBuffer.silence();
 
     std::for_each_n(outputChannelData, totalNumOutputChannels, [numSamples](float * const data) {
         std::fill_n(data, numSamples, 0.0f);
@@ -107,17 +109,43 @@ void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputC
     // if there is a player, copy audio file data to buffers, if not,
     // copy input data to buffers
     if (isPlaying()) {
-        auto const numInputChannelsToCopy{ mTransportSources.size() };
-        for (int i{}; i < numInputChannelsToCopy; ++i) {
-            source_index_t const sourceIndex{ mTransportSourcesIndexes[i]->get() };
-            auto & buffer{ mInputBuffer[sourceIndex] };
-            juce::AudioSourceChannelInfo const info{ buffer };
-            mTransportSources.getUnchecked(i)->getNextAudioBlock(info);
+        if (mAudioProcessor->getAudioData().config->playerMode == PlayerMode::audio) {
+            auto const numInputChannelsToCopy{ mTransportSources.size() };
+            for (int i{}; i < numInputChannelsToCopy; ++i) {
+                source_index_t const sourceIndex{ mTransportSourcesIndexes[i]->get() };
+                auto & buffer{ mInputBuffer[sourceIndex] };
+                juce::AudioSourceChannelInfo const info{ buffer };
+                mTransportSources.getUnchecked(i)->getNextAudioBlock(info);
 
-            // make sure all the audioTransportSources are in sync
-            if (i > 0) {
-                mTransportSources.getUnchecked(i)->setNextReadPosition(
-                    mTransportSources.getUnchecked(0)->getNextReadPosition());
+                // make sure all the audioTransportSources are in sync
+                if (i > 0) {
+                    mTransportSources.getUnchecked(i)->setNextReadPosition(
+                        mTransportSources.getUnchecked(0)->getNextReadPosition());
+                }
+            }
+        } else { // play ambisonic files
+            auto const & ambiDecSpatAlgo = mAudioProcessor->getAmbiDecSpatAlgorithm();
+            if (ambiDecSpatAlgo != nullptr) {
+                auto const numInputChannelsToCopy{ mAmbiTransportSources.size() };
+                mInputAmbiDecChannelPtrs.clearQuick();
+                for (int i{}; i < numInputChannelsToCopy; ++i) {
+                    source_index_t const sourceIndex{ mAmbiTransportSourcesIndexes[i]->get() };
+                    auto & buffer{ mInputAmbiDecSrcAudioBuffer[sourceIndex] };
+                    juce::AudioSourceChannelInfo const info{ buffer };
+                    mAmbiTransportSources.getUnchecked(i)->getNextAudioBlock(info);
+
+                    // make sure all the audioTransportSources are in sync
+                    if (i > 0) {
+                        mAmbiTransportSources.getUnchecked(i)->setNextReadPosition(
+                            mAmbiTransportSources.getUnchecked(0)->getNextReadPosition());
+                    }
+
+                    mInputAmbiDecChannelPtrs.add(mInputAmbiDecSrcAudioBuffer[sourceIndex].getWritePointer(0));
+                }
+                mInputAmbiDecBuffer.setDataToReferTo(mInputAmbiDecChannelPtrs.getRawDataPointer(),
+                                                     numInputChannelsToCopy,
+                                                     numSamples);
+                static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgo.get())->copyAmbPlayerBuffer(mInputAmbiDecBuffer);
             }
         }
     } else {
@@ -173,7 +201,7 @@ void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputC
         }
         if (mIsRecordingAmbiFiles) {
             auto const & ambiEncSpatAlgo = mAudioProcessor->getAmbiEncSpatAlgorithm();
-            static_cast<AmbiEncSpatAlgorithm *>(ambiEncSpatAlgo.get())->copyAmbProcessedBuffer(mOutputAmbiBuffer);
+            static_cast<AmbiEncSpatAlgorithm *>(ambiEncSpatAlgo.get())->copyAmbProcessedBuffer(mOutputAmbiEncBuffer);
             for (auto const & recorder : mAmbiRecorders) {
                 jassert(recorder->audioFormatWriterPtr->getNumChannels() == recorder->dataToRecord.size());
                 auto const success{ recorder->threadedWriter->write(recorder->dataToRecord.data(), numSamples) };
@@ -298,99 +326,27 @@ int64_t AudioManager::getNumSamplesRecorded() const
 }
 
 //==============================================================================
-bool AudioManager::prepareAudioPlayer(juce::File const & folder)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto * currentAudioDevice{ mAudioDeviceManager.getCurrentAudioDevice() };
-    jassert(currentAudioDevice);
-    if (!currentAudioDevice) {
-        return false;
-    }
-
-    if (mFormatsRegistered == false) {
-        mFormatManager.registerBasicFormats();
-        mFormatsRegistered = true;
-    }
-
-    if (isPlaying()) {
-        stopPlaying();
-    }
-
-    mAudioFiles.clear();
-    mTransportSources.clear(true);
-    mReaderSources.clear(true);
-    mTransportSourcesIndexes.clear(true);
-
-    // load audio files and sort them
-    auto files = folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.wav;*.aif;*.aiff");
-    FileSorter sorter;
-    files.sort(sorter);
-    mAudioFiles = files; // for audio thumbnails
-
-    for (const auto & filenameThatWasFound : files) {
-        jassert(filenameThatWasFound.existsAsFile());
-
-        // audio format to use
-        mAudioFormat = mFormatManager.findFormatForFileExtension(filenameThatWasFound.getFileExtension());
-        jassert(mAudioFormat);
-
-        // for AudioFormatReaderSource
-        // auto * reader = mAudioFormat->createMemoryMappedReader(filenameThatWasFound);
-        juce::AudioFormatReader * reader = nullptr;
-        auto localFile = juce::URL(filenameThatWasFound);
-        reader = mFormatManager.createReaderFor(localFile.getLocalFile());
-        jassert(reader);
-
-        // make sure the file is mono
-        jassert(reader->getChannelLayout().size() == 1);
-        // for AudioFormatReaderSource
-        // reader->mapEntireFile();
-
-        mReaderSources.add(new juce::AudioFormatReaderSource(reader, true));
-
-        auto transportSource = std::make_unique<juce::AudioTransportSource>();
-        transportSource->setSource(mReaderSources.getLast(), 32768, &mPlayerThread, reader->sampleRate);
-
-        // get channel of audio file
-        auto channel{ filenameThatWasFound.getFileNameWithoutExtension()
-                          .fromLastOccurrenceOf(juce::String("-"), false, true)
-                          .getIntValue() };
-        source_index_t sourceIndex{ channel };
-
-        mTransportSources.add(transportSource.release());
-        mTransportSourcesIndexes.add(new source_index_t(sourceIndex));
-    }
-
-    // check all audio files are the same length
-    for (auto transportSource : mTransportSources) {
-        if (transportSource->getTotalLength() != mTransportSources[0]->getTotalLength()) {
-            mTransportSourcesIndexes.clear(true);
-            mTransportSources.clear(true);
-            mReaderSources.clear(true);
-            mAudioFiles.clear();
-            return false;
-        }
-    }
-
-    juce::Thread::RealtimeOptions threadOptions;
-    mPlayerThread.startRealtimeThread(threadOptions.withPriority(9));
-    reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
-                           currentAudioDevice->getCurrentSampleRate());
-    return true;
-}
-
-//==============================================================================
 void AudioManager::startPlaying()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    // Two loops to avoid clicks
-    for (auto transportSource : mTransportSources) {
-        transportSource->setGain(1.0f);
-    }
-    for (auto transportSource : mTransportSources) {
-        transportSource->start();
+    if (mAudioProcessor->getAudioData().config->playerMode == PlayerMode::audio) {
+        // Two loops to avoid clicks
+        for (auto transportSource : mTransportSources) {
+            transportSource->setGain(1.0f);
+        }
+        for (auto transportSource : mTransportSources) {
+            transportSource->start();
+        }
+    } else {
+        // Two loops to avoid clicks
+        for (auto transportSource : mAmbiTransportSources) {
+            transportSource->setGain(1.0f);
+        }
+        for (auto transportSource : mAmbiTransportSources) {
+            transportSource->start();
+        }
+        mAudioProcessor->setShouldProcessAmbiDecAlgo(true);
     }
 
     mIsPlaying = true;
@@ -401,12 +357,23 @@ void AudioManager::stopPlaying()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    // Two loops to avoid clicks
-    for (auto transportSource : mTransportSources) {
-        transportSource->setGain(0.001f);
-    }
-    for (auto transportSource : mTransportSources) {
-        transportSource->stop();
+    if (mAudioProcessor->getAudioData().config->playerMode == PlayerMode::audio) {
+        // Two loops to avoid clicks
+        for (auto transportSource : mTransportSources) {
+            transportSource->setGain(0.001f);
+        }
+        for (auto transportSource : mTransportSources) {
+            transportSource->stop();
+        }
+    } else {
+        // Two loops to avoid clicks
+        for (auto transportSource : mAmbiTransportSources) {
+            transportSource->setGain(0.001f);
+        }
+        for (auto transportSource : mAmbiTransportSources) {
+            transportSource->stop();
+        }
+        mAudioProcessor->setShouldProcessAmbiDecAlgo(false);
     }
 
     mIsPlaying = false;
@@ -432,9 +399,13 @@ void AudioManager::unloadPlayer()
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mTransportSources.clear(true);
+    mAmbiTransportSources.clear(true);
     mReaderSources.clear(true);
+    mAmbiReaderSources.clear(true);
     mAudioFiles.clear();
+    mAmbiAudioFiles.clear();
     mPlayerThread.stopThread(-1);
+    mAmbiPlayerThread.stopThread(-1);
 }
 
 //==============================================================================
@@ -445,6 +416,9 @@ void AudioManager::setPosition(double const newPos)
     for (auto transportSource : mTransportSources) {
         transportSource->setPosition(newPos);
     }
+    for (auto transportSource : mAmbiTransportSources) {
+        transportSource->setPosition(newPos);
+    }
 }
 
 //==============================================================================
@@ -452,7 +426,7 @@ void AudioManager::reloadPlayerAudioFiles(int currentBufferSize, double currentS
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (mTransportSources.size() == 0) {
+    if (mTransportSources.size() == 0 && mAmbiTransportSources.size() == 0) {
         return;
     }
 
@@ -460,6 +434,100 @@ void AudioManager::reloadPlayerAudioFiles(int currentBufferSize, double currentS
         transportSource->prepareToPlay(currentBufferSize, currentSampleRate);
         transportSource->setPosition(0.0);
     }
+    for (auto ambiTransportSource : mAmbiTransportSources) {
+        ambiTransportSource->prepareToPlay(currentBufferSize, currentSampleRate);
+        ambiTransportSource->setPosition(0.0);
+    }
+}
+
+//==============================================================================
+bool AudioManager::preparePlayer(juce::File const & folder, PlayerMode mode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto * currentAudioDevice{ mAudioDeviceManager.getCurrentAudioDevice() };
+    jassert(currentAudioDevice);
+    if (!currentAudioDevice) {
+        return false;
+    }
+
+    auto & formatManager = mode == PlayerMode::audio ? mFormatManager : mAmbiFormatManager;
+    auto & formatsRegistered = mode == PlayerMode::audio ? mFormatsRegistered : mAmbiFormatsRegistered;
+    auto & audioFiles = mode == PlayerMode::audio ? mAudioFiles : mAmbiAudioFiles;
+    auto & readerSources = mode == PlayerMode::audio ? mReaderSources : mAmbiReaderSources;
+    auto & transportSources = mode == PlayerMode::audio ? mTransportSources : mAmbiTransportSources;
+    auto & transportSourceIndexes = mode == PlayerMode::audio ? mTransportSourcesIndexes : mAmbiTransportSourcesIndexes;
+    auto & playerThread = mode == PlayerMode::audio ? mPlayerThread : mAmbiPlayerThread;
+    auto & audioFormat = mode == PlayerMode::audio ? mAudioFormat : mAmbiAudioFormat;
+
+    if (formatsRegistered == false) {
+        formatManager.registerBasicFormats();
+        formatsRegistered = true;
+    }
+
+    if (isPlaying()) {
+        stopPlaying();
+    }
+
+    audioFiles.clear();
+    transportSources.clear(true);
+    readerSources.clear(true);
+    transportSourceIndexes.clear(true);
+
+    // load audio/ambisonic files and sort them
+    auto files = folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.wav;*.aif;*.aiff");
+    FileSorter sorter;
+    files.sort(sorter);
+    audioFiles = files; // for audio thumbnails
+
+    for (const auto & filenameThatWasFound : files) {
+        jassert(filenameThatWasFound.existsAsFile());
+
+        // audio format to use
+        audioFormat = formatManager.findFormatForFileExtension(filenameThatWasFound.getFileExtension());
+        jassert(audioFormat);
+
+        // for AudioFormatReaderSource
+        juce::AudioFormatReader * reader = nullptr;
+        auto localFile = juce::URL(filenameThatWasFound);
+        reader = formatManager.createReaderFor(localFile.getLocalFile());
+        jassert(reader);
+
+        // make sure the file is mono
+        jassert(reader->getChannelLayout().size() == 1);
+
+        readerSources.add(new juce::AudioFormatReaderSource(reader, true));
+
+        auto transportSource = std::make_unique<juce::AudioTransportSource>();
+        transportSource->setSource(readerSources.getLast(), 32768, &playerThread, reader->sampleRate);
+
+        // get channel of audio file
+        auto channel{ filenameThatWasFound.getFileNameWithoutExtension()
+                          .fromLastOccurrenceOf(juce::String("-"), false, true)
+                          .getIntValue() };
+        source_index_t sourceIndex{ channel };
+
+        transportSources.add(transportSource.release());
+        transportSourceIndexes.add(new source_index_t(sourceIndex));
+    }
+
+    // check all audio files are the same length
+    for (auto source : transportSources) {
+        if (source->getTotalLength() != transportSources[0]->getTotalLength()) {
+            transportSourceIndexes.clear(true);
+            transportSources.clear(true);
+            readerSources.clear(true);
+            audioFiles.clear();
+            return false;
+        }
+    }
+
+    juce::Thread::RealtimeOptions threadOptions;
+    playerThread.startRealtimeThread(threadOptions.withPriority(9));
+    reloadPlayerAudioFiles(currentAudioDevice->getCurrentBufferSizeSamples(),
+                           currentAudioDevice->getCurrentSampleRate());
+
+    return true;
 }
 
 //==============================================================================
@@ -478,6 +546,24 @@ juce::AudioFormatManager & AudioManager::getAudioFormatManager()
 juce::Array<juce::File> & AudioManager::getAudioFiles()
 {
     return mAudioFiles;
+}
+
+//==============================================================================
+juce::OwnedArray<juce::AudioTransportSource> & AudioManager::getAmbiTransportSources()
+{
+    return mAmbiTransportSources;
+}
+
+//==============================================================================
+juce::AudioFormatManager & AudioManager::getAmbiAudioFormatManager()
+{
+    return mAmbiFormatManager;
+}
+
+//==============================================================================
+juce::Array<juce::File> & AudioManager::getAmbiAudioFiles()
+{
+    return mAmbiAudioFiles;
 }
 
 //==============================================================================
@@ -514,9 +600,9 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
 
     int numAmbiChan{};
     if (recordingParams.options.shouldRecordAmbisonicFiles) {
-        mAudioProcessor->setShouldProcessAmbiAlgo(true);
+        mAudioProcessor->setShouldProcessAmbiEncAlgo(true);
         mIsRecordingAmbiFiles = true;
-        numAmbiChan = mOutputAmbiBuffer.getNumChannels();
+        numAmbiChan = mOutputAmbiEncBuffer.getNumChannels();
     }
 
     static auto const GET_AUDIO_FORMAT = [](RecordingFormat const format) -> std::unique_ptr<juce::AudioFormat> {
@@ -609,13 +695,13 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
     auto const getSeparateAmbisonicFilePath = [&]() {
         juce::StringArray result{};
         result.ensureStorageAllocated(numAmbiChan);
-        for (int i{}; i < numAmbiChan - mNumSpeakersDirectOutOnly; ++i) {
+        for (int i{}; i < numAmbiChan - mNumAmbiEncSpeakersDirectOutOnly; ++i) {
             auto const path{ baseOutputAmbiFile + "-" + juce::String{ i + 1 } + extension };
             jassert(!result.contains(path));
             result.add(path);
         }
-        for (int i{ numAmbiChan - mNumSpeakersDirectOutOnly }; i < numAmbiChan; ++i) {
-            auto const path{ baseOutputAmbiFile + "-sub-" + juce::String{ i + 1 } + extension };
+        for (int i{ numAmbiChan - mNumAmbiEncSpeakersDirectOutOnly }; i < numAmbiChan; ++i) {
+            auto const path{ baseOutputAmbiFile + "-direct-" + juce::String{ i + 1 } + extension };
             jassert(!result.contains(path));
             result.add(path);
         }
@@ -758,7 +844,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         for (int ch{}; ch < numAmbiChan; ++ch) {
             auto const & filePath{ ambiFilePaths[ch] };
             juce::Array<float const *> dataToRecord{};
-            dataToRecord.add(mOutputAmbiBuffer.getReadPointer(ch));
+            dataToRecord.add(mOutputAmbiEncBuffer.getReadPointer(ch));
             auto recordingInfo{ MAKE_RECORDING_INFO(filePath,
                                                     *audioFormat,
                                                     recordingParams.sampleRate,
@@ -836,7 +922,7 @@ void AudioManager::stopRecording()
     mAmbiRecordersThread.stopThread(-1);
     mIsRecording = false;
     mIsRecordingOnlyAmbisonic = false;
-    mAudioProcessor->setShouldProcessAmbiAlgo(false);
+    mAudioProcessor->setShouldProcessAmbiEncAlgo(false);
     mIsRecordingAmbiFiles = false;
 }
 
@@ -859,11 +945,29 @@ void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers
 }
 
 //==============================================================================
-void AudioManager::initAmbiOutputBuffer(int ambisonicOrder, int newBufferSize, int numSpeakersDirectOutOnly)
+void AudioManager::initAmbiEncOutputBuffer(int ambisonicOrder, int newBufferSize, int numSpeakersDirectOutOnly)
 {
-    mNumSpeakersDirectOutOnly = numSpeakersDirectOutOnly;
+    mNumAmbiEncSpeakersDirectOutOnly = numSpeakersDirectOutOnly;
     auto const numAmbiChan{ ((ambisonicOrder + 1) * (ambisonicOrder + 1)) + numSpeakersDirectOutOnly };
-    mOutputAmbiBuffer.setSize(numAmbiChan, newBufferSize);
+    mOutputAmbiEncBuffer.setSize(numAmbiChan, newBufferSize);
+}
+
+//==============================================================================
+void AudioManager::initAmbiDecInputBuffer(int numAmbiChannels, int newBufferSize, int numSpeakersDirectOutOnly)
+{
+    juce::Array<source_index_t> sources;
+    auto const totalNumChan{ numAmbiChannels + numSpeakersDirectOutOnly };
+
+    for (int i{ 1 }; i <= totalNumChan; ++i) {
+        sources.add(static_cast<source_index_t>(i));
+    }
+
+    juce::ScopedLock const lock{ mAudioProcessor->getLock() };
+    mInputAmbiDecSrcAudioBuffer.init(sources);
+    mInputAmbiDecSrcAudioBuffer.setNumSamples(newBufferSize);
+    mInputAmbiDecBuffer.setSize(totalNumChan, newBufferSize);
+    mInputAmbiDecBuffer.clear();
+    mInputAmbiDecChannelPtrs.ensureStorageAllocated(totalNumChan);
 }
 
 //==============================================================================

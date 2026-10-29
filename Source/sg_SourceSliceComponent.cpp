@@ -86,6 +86,13 @@ void SourceSliceComponent::setHybridSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
+void SourceSliceComponent::setSliceVisible(bool isVisible)
+{
+    mIsVisible = isVisible;
+    rebuildLayout();
+}
+
+//==============================================================================
 void SourceSliceComponent::muteSoloButtonClicked(SliceState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -169,6 +176,7 @@ void SourceSliceComponent::rebuildLayout()
         .withChildMinSize()
         .withHorizontalPadding(INNER_ELEMENTS_PADDING)
         .withBottomPadding(INNER_ELEMENTS_PADDING);
+    mLayout.setVisible(mIsVisible);
 }
 
 } // namespace gris

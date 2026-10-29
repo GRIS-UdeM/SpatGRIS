@@ -22,6 +22,7 @@
 #include "Data/sg_LogicStrucs.hpp"
 #include "Data/sg_Macros.hpp"
 #include "Data/sg_constants.hpp"
+// #include "sg_NumSlider.hpp"
 
 #include <JuceHeader.h>
 
@@ -43,16 +44,53 @@ class PlayerComponent final
 
     juce::ReadWriteLock mLock{};
 
-    juce::TextButton mLoadWavFilesAndSpeakerSetupButton{};
+    PlayerMode mPlayerMode{ PlayerMode::audio };
+
+    juce::Label mPlayerModeLabel{};
+    juce::ComboBox mPlayerModeComboBox{};
+    juce::Label mAmbiOrderLabel{};
+    juce::ComboBox mAmbiOrderComboBox{};
+    //// Ambisonic Controls
+    // juce::ToggleButton mShowAmbisonicControlsButton{};
+    // juce::Label mLowFreqDecoderLabel{};
+    // juce::Label mHighFreqDecoderLabel{};
+    // juce::Label mCrossoverLabel{};
+    // juce::Label mLowFreqMethodLabel{};
+    // juce::Label mHighFreqMethodLabel{};
+    // juce::Label mLowFreqNormFactorLabel{};
+    // juce::Label mHighFreqNormFactorLabel{};
+    // juce::ComboBox mLowFreqMethodComboBox{};
+    // juce::ComboBox mHighFreqMethodComboBox{};
+    // juce::ComboBox mLowFreqNormFactorComboBox{};
+    // juce::ComboBox mHighFreqNormFactorComboBox{};
+    // juce::ToggleButton mLowFreqDirectionalWeightingButton{};
+    // juce::ToggleButton mHighFreqDirectionalWeightingButton{};
+    // NumSlider mCrossOverSlider;
+    // juce::StringArray mAmbiDecMethods{ "SAD", "MMD", "EPAD", "AllRAD" };
+
+    double progressVal{ -1.0 };
+    juce::ProgressBar mSpinningWheel{ progressVal };
+    bool mIsAmbisonicDecoderReadyToProcess{};
+    bool mIsLoadingAmbisonicOrder{ false };
+    bool mShowSucceedCheck{ false };
+
+    juce::TextButton mLoadFilesButton{};
     juce::TextButton mSavePlayerProjectButton{};
     juce::TextButton mPlayButton{};
     juce::TextButton mStopButton{};
     juce::Label mTimeCodeLabel{};
 
     std::unique_ptr<ThumbnailComp> mThumbnails;
+    std::unique_ptr<ThumbnailComp> mAmbisonicThumbnails;
     tl::optional<SpeakerSetup> mPlayerSpeakerSetup;
     juce::File mPlayerFilesFolder{};
+    juce::File mPlayerAmbisonicFilesFolder{};
+    int mNumAmbiFiles{};
+    int mNumAmbiDirectFiles{};
+    bool mCanReloadPlayer{};
+    bool mCanReloadAmbisonicPlayer{};
     int mBlinkNTimes{ 5 };
+    bool mMakeButtonBlink{ false };
 
 public:
     //==============================================================================
@@ -65,16 +103,21 @@ public:
     void resized() override;
     //==============================================================================
     double getTimeCode() const;
+    PlayerMode getPlayerMode() const;
     //==============================================================================
     void setTimeCode(double const timeInSec);
     void playAudio();
     void stopAudio();
     void loadPlayer(bool handleNewProject = true);
+    void showSpinningWheel(bool showSpinningWheel);
+    void showCheckSign();
+    void setAmbisonicDecoderReadyToProcess(int state);
 
 private:
     //==============================================================================
-    void handleOpenWavFilesAndSpeakerSetup();
-    bool validateWavFilesAndSpeakerSetup(juce::File const & folder);
+    void handleOpenFiles();
+    bool validateAudioFilesAndSpeakerSetup(juce::File const & folder);
+    bool validateAmbisonicFiles(juce::File const & folder);
     //==============================================================================
     void paint(juce::Graphics & g) override;
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
@@ -114,7 +157,7 @@ public:
     //==============================================================================
     void setSources();
     void updateCursorPosition();
-    void addThumbnails(int numThumbnails);
+    void setThumbnails(int numThumbnails);
 
     //==============================================================================
     int getNumSources() const;
@@ -149,7 +192,9 @@ public:
     void closeButtonPressed() override;
     bool keyPressed(const juce::KeyPress & k) override;
     //==============================================================================
+    void stopAudio();
     void reloadPlayer();
+    void setAmbisonicDecoderReadyToProcess(int state);
 
 private:
     //==============================================================================

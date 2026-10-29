@@ -58,9 +58,15 @@ void AudioProcessor::setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig)
 }
 
 //==============================================================================
-void AudioProcessor::setShouldProcessAmbiAlgo(bool shouldProcess)
+void AudioProcessor::setShouldProcessAmbiEncAlgo(bool shouldProcess)
 {
-    mShouldProcessAmbiAlgo.set(shouldProcess);
+    mShouldProcessAmbiEncAlgo.set(shouldProcess);
+}
+
+//==============================================================================
+void AudioProcessor::setShouldProcessAmbiDecAlgo(bool shouldProcess)
+{
+    mShouldProcessAmbiDecAlgo.set(shouldProcess);
 }
 
 //==============================================================================
@@ -132,7 +138,9 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
     // Process source peaks
     auto * sourcePeaksTicket{ mAudioData.sourcePeaksUpdater.acquire() };
     auto & sourcePeaks{ sourcePeaksTicket->get() };
-    processInputPeaks(sourceBuffer, sourcePeaks);
+    if (!mShouldProcessAmbiDecAlgo.get()) {
+        processInputPeaks(sourceBuffer, sourcePeaks);
+    }
 
     if (mAudioData.config->pinkNoiseGain) {
         // Process pink noise
@@ -148,23 +156,33 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
                           mAudioData.config->pinkNoisePulsed,
                           mPulsedNoiseParams);
     } else {
-        // Process spat algorithm
-        mSpatAlgorithm->process(*mAudioData.config, sourceBuffer, speakerBuffer, stereoBuffer, sourcePeaks, nullptr);
-
-        // Process direct outs
-        for (auto const & directOutPair : mAudioData.config->directOutPairs) {
-            auto const & origin{ sourceBuffer[directOutPair.first] };
-            auto & dest{ speakerBuffer[directOutPair.second] };
-            dest.addFrom(0, 0, origin, 0, 0, numSamples);
+        // Process spat algorithm and/or Ambisonic Player
+        if (mShouldProcessAmbiDecAlgo.get()) {
+            mAmbiDecSpatAlgorithm
+                ->process(*mAudioData.config, sourceBuffer, speakerBuffer, stereoBuffer, sourcePeaks, nullptr);
+            processInputPeaks(sourceBuffer, sourcePeaks);
+            if (mAudioData.config->isStereo) {
+                mSpatAlgorithm
+                    ->process(*mAudioData.config, sourceBuffer, speakerBuffer, stereoBuffer, sourcePeaks, nullptr);
+            }
+        } else {
+            mSpatAlgorithm
+                ->process(*mAudioData.config, sourceBuffer, speakerBuffer, stereoBuffer, sourcePeaks, nullptr);
         }
 
-        if (mShouldProcessAmbiAlgo.get()) {
-            mAmbiEncSpatAlgorithm->process(*mAudioData.config,
-                                           sourceBuffer,
-                                           speakerBuffer,
-                                           stereoBuffer,
-                                           sourcePeaks,
-                                           nullptr);
+        // Process direct outs (no need if there is an Ambisonic Player)
+        if (!mShouldProcessAmbiDecAlgo.get()) {
+            for (auto const & directOutPair : mAudioData.config->directOutPairs) {
+                auto const & origin{ sourceBuffer[directOutPair.first] };
+                auto & dest{ speakerBuffer[directOutPair.second] };
+                dest.addFrom(0, 0, origin, 0, 0, numSamples);
+            }
+        }
+
+        // Process Ambisonic encoding (recording)
+        if (mShouldProcessAmbiEncAlgo.get()) {
+            mAmbiEncSpatAlgorithm
+                ->process(*mAudioData.config, sourceBuffer, speakerBuffer, stereoBuffer, sourcePeaks, nullptr);
         }
     }
 

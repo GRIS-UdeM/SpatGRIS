@@ -1064,6 +1064,7 @@ void MainContentComponent::updateControlsSectionTitle()
         mBinauralInfosComponent->setBinauralFileName(juce::String("Binaural") + title);
     } else {
         mBinauralInfosComponent->setBinauralFileName("");
+        mBinauralInfosComponent->showSpinningWheel(false);
     }
 }
 
@@ -2078,26 +2079,49 @@ void MainContentComponent::refreshSourceSlices()
 
     auto const directOutChoices{ std::make_shared<DirectOutSelectorComponent::Choices>() };
 
+    auto addSourceSlice = [&](auto const & source, bool visible) {
+        auto newSlice = std::make_unique<SourceSliceComponent>(source.key,
+                                                               source.value->directOut,
+                                                               mData.project.spatMode,
+                                                               source.value->hybridSpatMode,
+                                                               source.value->colour,
+                                                               directOutChoices,
+                                                               *this,
+                                                               mLookAndFeel,
+                                                               mSmallLookAndFeel);
+
+        newSlice->setState(source.value->state, isAtLeastOneSourceSolo);
+
+        auto & addedSlice = mSourceSliceComponents.add(source.key, std::move(newSlice));
+        if (!visible)
+            addedSlice.setSliceVisible(false);
+
+        mSourcesInnerLayout->addSection(&addedSlice).withChildMinSize();
+    };
+
     for (const auto speaker : mData.speakerSetup.speakers) {
         auto & destination{ speaker.value->isDirectOutOnly ? directOutChoices->directOutputPatches
                                                            : directOutChoices->nonDirectOutputPatches };
         destination.add(speaker.key);
     }
 
-    for (auto source : mData.project.sources) {
-        auto newSlice{ std::make_unique<SourceSliceComponent>(source.key,
-                                                              source.value->directOut,
-                                                              mData.project.spatMode,
-                                                              source.value->hybridSpatMode,
-                                                              source.value->colour,
-                                                              directOutChoices,
-                                                              *this,
-                                                              mLookAndFeel,
-                                                              mSmallLookAndFeel) };
-        auto const & state{ source.value->state };
-        newSlice->setState(state, isAtLeastOneSourceSolo);
-        auto & addedSlice{ mSourceSliceComponents.add(source.key, std::move(newSlice)) };
-        mSourcesInnerLayout->addSection(&addedSlice).withChildMinSize();
+    if (mData.appData.playerExists && mData.appData.playerMode == PlayerMode::ambisonic) {
+        for (int i{}; i < mData.appData.playerAmbisonicDirectOutSources.size(); ++i) {
+            auto source{ mData.project.sources.getConstNode(mData.appData.playerAmbisonicDirectOutSources[i]) };
+            addSourceSlice(source, true);
+        }
+        for (const auto & source : mData.project.sources) {
+            const bool notPresent
+                = std::none_of(mData.appData.playerAmbisonicDirectOutSources.begin(),
+                               mData.appData.playerAmbisonicDirectOutSources.end(),
+                               [&source](const auto & directOutSrc) { return directOutSrc == source.key; });
+            if (notPresent) {
+                addSourceSlice(source, false);
+            }
+        }
+    } else {
+        for (auto const & source : mData.project.sources)
+            addSourceSlice(source, true);
     }
 
     mSourcesInnerLayout->resized();
@@ -3083,6 +3107,10 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
         }
     }
 
+    if (mPlayerWindow != nullptr) {
+        mPlayerWindow->stopAudio();
+    }
+
     juce::ScopedWriteLock const lock{ mLock };
 
     mIsLoadingSpeakerSetupOrProjectFile = true;
@@ -3506,9 +3534,9 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
         ambiEncSpatAlgorithm = std::move(newAmbiEncSpatAlgorithm);
         static_cast<AmbiEncSpatAlgorithm *>(ambiEncSpatAlgorithm.get())
             ->configure(mData.appData.recordingOptions.ambisonicOrder);
-        AudioManager::getInstance().initAmbiOutputBuffer(mData.appData.recordingOptions.ambisonicOrder,
-                                                         mData.appData.audioSettings.bufferSize,
-                                                         numSpeakersDirectOutOnly);
+        AudioManager::getInstance().initAmbiEncOutputBuffer(mData.appData.recordingOptions.ambisonicOrder,
+                                                            mData.appData.audioSettings.bufferSize,
+                                                            numSpeakersDirectOutOnly);
     }
 
     AudioManager::RecordingParameters const recordingParams{
@@ -3517,7 +3545,8 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
                      + "ambisonic_files"),
         mData.appData.recordingOptions,
         mData.appData.audioSettings.sampleRate,
-        std::move(speakersToRecord) };
+        std::move(speakersToRecord)
+    };
     if (AudioManager::getInstance().prepareToRecord(recordingParams)) {
         AudioManager::getInstance().startRecording();
 
@@ -3606,7 +3635,7 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
                 mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSourceColor());
             }
 
-            // reset source output
+            // reset source output UTILE ???
             setSourceDirectOut(sourceIndex, tl::nullopt);
             setSourceState(sourceIndex, SliceState::normal);
         }
@@ -3647,6 +3676,171 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
             }
         }
     }
+
+    refreshAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*playerAmbiconicFilesFolder*/)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    // auto const playerProjectFile{ playerAmbiconicFilesFolder.getFullPathName() + juce::File::getSeparatorString()
+    //                               + "ambisonic_player_project.xml" };
+    // const juce::File projectFile{ playerProjectFile };
+    // if (projectFile.existsAsFile()) {
+    //     loadProject(projectFile, true);
+    // }
+
+    // Get ambisonic and direct out files
+    juce::StringArray ambisonicFileList;
+    juce::StringArray ambisonicDirectsFileList;
+    juce::StringArray ambisonicFileExtensions{ ".wav", ".aif", ".aiff" };
+    auto & ambFilesAudioManager{ AudioManager::getInstance().getAmbiAudioFiles() };
+
+    for (const auto & filenameThatWasFound : ambFilesAudioManager) {
+        jassert(filenameThatWasFound.existsAsFile());
+
+        if (ambisonicFileExtensions.contains(filenameThatWasFound.getFileExtension())) {
+            if (filenameThatWasFound.getFileNameWithoutExtension().contains("-direct-")) {
+                ambisonicDirectsFileList.add(filenameThatWasFound.getFileNameWithoutExtension().substring(
+                    filenameThatWasFound.getFileNameWithoutExtension().lastIndexOfChar('-') + 1));
+            } else {
+                ambisonicFileList.add(filenameThatWasFound.getFileNameWithoutExtension().substring(
+                    filenameThatWasFound.getFileNameWithoutExtension().lastIndexOfChar('-') + 1));
+            }
+        }
+    }
+
+    // instead of numSourcesChanged, remove all sources and rebuild them from the player speaker setup
+    for (auto source : mData.project.sources) {
+        removeSource(source.key);
+    }
+    for (auto const & outputPatch : mData.speakerSetup.ordering) {
+        auto const index{ outputPatch.get() };
+        auto newSource{ std::make_unique<SourceData>() };
+        auto const newSourceIndex{ static_cast<source_index_t>(outputPatch.get()) };
+
+        mData.project.ordering.insert(index, newSourceIndex);
+        mData.project.sources.add(newSourceIndex, std::move(newSource));
+        DBG("Added source # " << index);
+    }
+    // add direct out sources if needed
+    int numDirectoutSpks{};
+    std::vector<output_patch_t> directoutSrcIndexes;
+    mData.appData.playerAmbisonicDirectOutSources.clear();
+    for (auto const & spk : mData.speakerSetup.speakers) {
+        if (spk.value->isDirectOutOnly) {
+            ++numDirectoutSpks;
+            directoutSrcIndexes.push_back(spk.key);
+        }
+    }
+    std::reverse(directoutSrcIndexes.begin(), directoutSrcIndexes.end());
+    if (numDirectoutSpks > 0) {
+        while (ambisonicDirectsFileList.size() > numDirectoutSpks) {
+            auto const newDirectSrcIndex{ getFirstAvailableProjectSourceIndex() };
+            auto const index{ newDirectSrcIndex.get() };
+            auto newSource{ std::make_unique<SourceData>() };
+            newSource->directOut = directoutSrcIndexes.back();
+            directoutSrcIndexes.pop_back();
+            ++numDirectoutSpks;
+
+            mData.project.ordering.insert(index, newDirectSrcIndex);
+            mData.project.sources.add(newDirectSrcIndex, std::move(newSource));
+        }
+    }
+
+    refreshAudioProcessor();
+    audioParametersChanged(); // Make sure the size of the buffers does not reset to MAX_NUM_SAMPLES
+    handleResetSourcesPositions();
+
+    for (auto & speaker : mData.speakerSetup.speakers) {
+        // update sources data from speakers position of speaker setup
+        source_index_t const sourceIndex{ speaker.key.get() };
+        auto source = mData.project.sources.getNode(sourceIndex);
+        source.value->position = speaker.value->position;
+        source.value->azimuthSpan = 0.0f;
+        source.value->zenithSpan = 0.0f;
+
+        auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
+        spatAlgorithm.updateSpatData(source.key, *source.value);
+    }
+
+    // manage direct outputs speakers
+    juce::Array<source_index_t> playerDirectOutSpeakers{};
+    juce::Array<output_patch_t> speakerSetupDirectOutSpeakers{};
+
+    for (auto & speaker : mData.speakerSetup.speakers) {
+        if (speaker.value->isDirectOutOnly) {
+            source_index_t const sourceIndex{ speaker.key.get() };
+            playerDirectOutSpeakers.add(sourceIndex);
+            speakerSetupDirectOutSpeakers.add(speaker.key);
+        }
+    }
+
+    if (ambisonicDirectsFileList.size() > 0 && speakerSetupDirectOutSpeakers.size() == 0) {
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::WarningIcon,
+            "Missing Direct out Speakers for the Ambisonic Player",
+            "Some recorded direct out audio files could not be assigned to a Speaker Setup direct output. The "
+            "current Speaker Setup needs at least one direct output for the Ambisonic Player to play them.",
+            "OK");
+    }
+
+    if (playerDirectOutSpeakers.size() > 0 && speakerSetupDirectOutSpeakers.size() > 0) {
+        int setupIndex{};
+        int playerIndex{};
+        while (playerIndex < playerDirectOutSpeakers.size()) {
+            setSourceDirectOut(playerDirectOutSpeakers[playerIndex], speakerSetupDirectOutSpeakers[setupIndex]);
+            setSourceState(playerDirectOutSpeakers[playerIndex], SliceState::normal);
+            ++setupIndex;
+            ++playerIndex;
+            if (setupIndex == speakerSetupDirectOutSpeakers.size()
+                && playerDirectOutSpeakers.size() > speakerSetupDirectOutSpeakers.size()) {
+                setupIndex %= speakerSetupDirectOutSpeakers.size();
+            }
+        }
+    }
+
+    // Manage Source colour
+    for (auto & source : mData.project.sources) {
+        if (source.value->directOut) {
+            source.value->colour = mLookAndFeel.getSubColor();
+            mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSubColor());
+        } else {
+            source.value->colour = mLookAndFeel.getSourceColor();
+            mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSourceColor());
+        }
+    }
+
+    refreshAudioProcessor();
+
+    for (auto & source : mData.project.sources) {
+        if (source.value->directOut) {
+            mData.appData.playerAmbisonicDirectOutSources.push_back(source.key);
+        }
+    }
+    refreshSourceSlices();
+
+    // init AmbiDec algo
+    auto & ambiDecSpatAlgorithm{ mAudioProcessor->getAmbiDecSpatAlgorithm() };
+    auto newAmbiDecSpatAlgorithm{ AmbiDecSpatAlgorithm::make(mData.speakerSetup,
+                                                             mData.project.spatMode,
+                                                             mData.project.sources,
+                                                             mData.appData.audioSettings.sampleRate,
+                                                             mData.appData.audioSettings.bufferSize,
+                                                             mData.appData.binauralSettings) };
+    ambiDecSpatAlgorithm = std::move(newAmbiDecSpatAlgorithm);
+    static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())
+        ->configure(ambisonicFileList.size(), ambisonicDirectsFileList.size());
+    AudioManager::getInstance().initAmbiDecInputBuffer(ambisonicFileList.size(),
+                                                       mData.appData.audioSettings.bufferSize,
+                                                       ambisonicDirectsFileList.size());
+    static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())->setCallback([this](int state) {
+        if (mPlayerWindow != nullptr) {
+            mPlayerWindow->setAmbisonicDecoderReadyToProcess(state);
+        }
+    });
 
     refreshAudioProcessor();
 }
@@ -3858,20 +4052,26 @@ bool MainContentComponent::savePlayerProject(juce::File & playerFilesFolder)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
+    auto playerMode{ mData.appData.playerMode };
+    auto playerProjectFileName{ playerMode == PlayerMode::audio ? juce::String("player_project.xml")
+                                                                : juce::String("ambisonic_player_project.xml") };
     auto const playerProjectFile{ playerFilesFolder.getFullPathName() + juce::File::getSeparatorString()
-                                  + "player_project.xml" };
+                                  + playerProjectFileName };
     const juce::File file{ playerProjectFile };
     bool shouldOverwriteProjectFile{ true };
 
     if (file.exists()) {
-        auto const result{ juce::AlertWindow::showOkCancelBox(
-            juce::MessageBoxIconType::WarningIcon,
-            "File exists",
-            "The Player Project file already exists. Would you like to overwrite it ?",
-            "Overwrite",
-            "Cancel",
-            nullptr,
-            nullptr) };
+        auto msg{ playerMode == PlayerMode::audio
+                      ? juce::String("The Player Project file already exists. Would you like to overwrite it ?")
+                      : juce::String(
+                            "The Ambisonic Player Project file already exists. Would you like to overwrite it ?") };
+        auto const result{ juce::AlertWindow::showOkCancelBox(juce::MessageBoxIconType::WarningIcon,
+                                                              "File exists",
+                                                              msg,
+                                                              "Overwrite",
+                                                              "Cancel",
+                                                              nullptr,
+                                                              nullptr) };
 
         // 0 = Cancel, 1 = Overwrite
         if (result == 0) {
@@ -3893,6 +4093,12 @@ bool MainContentComponent::savePlayerProject(juce::File & playerFilesFolder)
         return true;
     }
     return false;
+}
+
+//==============================================================================
+void MainContentComponent::setPlayerMode(PlayerMode mode)
+{
+    mData.appData.playerMode = mode;
 }
 
 //==============================================================================

@@ -22,6 +22,7 @@
 #include "Containers/sg_TaggedAudioBuffer.hpp"
 #include "Data/sg_AudioStructs.hpp"
 #include "sg_AbstractSpatAlgorithm.hpp"
+#include "sg_AmbiDecSpatAlgorithm.hpp"
 #include "sg_AmbiEncSpatAlgorithm.hpp"
 #include "sg_PinkNoiseGenerator.hpp"
 #include <JuceHeader.h>
@@ -37,10 +38,12 @@ class AudioProcessor
     AudioData mAudioData{};
     juce::CriticalSection mLock{};
     std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
-    std::unique_ptr<AbstractSpatAlgorithm> mAmbiEncSpatAlgorithm{};// only used when recording to ambisonics
+    std::unique_ptr<AbstractSpatAlgorithm> mAmbiEncSpatAlgorithm{}; // only used when recording to ambisonics
+    std::unique_ptr<AbstractSpatAlgorithm> mAmbiDecSpatAlgorithm{}; // only used when playing ambisonic files
     juce::Random mRandomNoise{};
     PulsedNoiseParams mPulsedNoiseParams{};
-    juce::Atomic<bool> mShouldProcessAmbiAlgo{};
+    juce::Atomic<bool> mShouldProcessAmbiEncAlgo{};
+    juce::Atomic<bool> mShouldProcessAmbiDecAlgo{};
 
 public:
     //==============================================================================
@@ -49,7 +52,8 @@ public:
     SG_DELETE_COPY_AND_MOVE(AudioProcessor)
     //==============================================================================
     void setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig);
-    void setShouldProcessAmbiAlgo(bool shouldProcess);
+    void setShouldProcessAmbiEncAlgo(bool shouldProcess);
+    void setShouldProcessAmbiDecAlgo(bool shouldProcess);
     [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mLock; }
     void processAudio(SourceAudioBuffer & sourceBuffer,
                       SpeakerAudioBuffer & speakerBuffer,
@@ -64,6 +68,9 @@ public:
 
     auto const & getAmbiEncSpatAlgorithm() const { return mAmbiEncSpatAlgorithm; }
     auto & getAmbiEncSpatAlgorithm() { return mAmbiEncSpatAlgorithm; }
+
+    auto const & getAmbiDecSpatAlgorithm() const { return mAmbiDecSpatAlgorithm; }
+    auto & getAmbiDecSpatAlgorithm() { return mAmbiDecSpatAlgorithm; }
 
 private:
     //==============================================================================

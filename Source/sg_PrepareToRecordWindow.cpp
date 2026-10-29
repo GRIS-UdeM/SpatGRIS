@@ -37,7 +37,9 @@ using flags = juce::FileBrowserComponent::FileChooserFlags;
 } // namespace
 
 //==============================================================================
-juce::StringArray const RECORDING_MODE_STRINGS{ "Audio", "Ambisonic", "Audio and Ambisonic" };
+juce::StringArray const RECORDING_MODE_STRINGS{ "Multichannel",
+                                                "Ambisonic B-Format",
+                                                "Multichannel and Ambisonic B-Format" };
 
 //==============================================================================
 PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingDirectory,
@@ -108,12 +110,12 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
     mRecordingModeComboBox.addItemList(RECORDING_MODE_STRINGS, 1);
     mRecordingModeComboBox.setSelectedId(static_cast<int>(RecordMode::audioOnly));
     mRecordingModeComboBox.onChange = [this] {
-        mAmbisonicOrderLabel.setVisible(mRecordingModeComboBox.getSelectedId() != static_cast<int>(RecordMode::audioOnly));
+        mAmbisonicOrderLabel.setVisible(mRecordingModeComboBox.getSelectedId()
+                                        != static_cast<int>(RecordMode::audioOnly));
         mAmbisonicOrderComboBox.setVisible(mRecordingModeComboBox.getSelectedId()
                                            != static_cast<int>(RecordMode::audioOnly));
     };
     addAndMakeVisible(mRecordingModeComboBox);
-
 
     mAmbisonicOrderComboBox.addListener(this);
     mAmbisonicOrderComboBox.setLookAndFeel(&mLookAndFeel);
@@ -196,7 +198,6 @@ void PrepareToRecordComponent::resized()
     mAmbisonicOrderLabel.setBounds(xOffset + 9, yOffset - 15, 100, 24);
     mAmbisonicOrderComboBox.setBounds(xOffset + 110, yOffset - 15, 50, 24);
     mRecordButton.setBounds(WIDTH - PADDING - BUTTONS_WIDTH, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
-
 
     mAmbisonicOrderLabel.setVisible(mRecordingModeComboBox.getSelectedId() != static_cast<int>(RecordMode::audioOnly));
     mAmbisonicOrderComboBox.setVisible(mRecordingModeComboBox.getSelectedId()

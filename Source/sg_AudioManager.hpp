@@ -84,20 +84,26 @@ private:
     SourceAudioBuffer mInputBuffer{};
     SpeakerAudioBuffer mOutputBuffer{};
 
-    juce::AudioBuffer<float> mOutputAmbiBuffer{};
+    juce::AudioBuffer<float> mOutputAmbiEncBuffer{};
+    SourceAudioBuffer mInputAmbiDecSrcAudioBuffer{};
+    juce::AudioBuffer<float> mInputAmbiDecBuffer{};
+    juce::Array<float *> mInputAmbiDecChannelPtrs;
     juce::AudioBuffer<float> mStereoOutputBuffer{};
     tl::optional<StereoRouting> mStereoRouting{};
     // Recording
     bool mIsRecording{};
     bool mIsRecordingAmbiFiles{};
     bool mIsRecordingOnlyAmbisonic{};
-    int mNumSpeakersDirectOutOnly{};
+    int mNumAmbiEncSpeakersDirectOutOnly{};
     juce::Atomic<int64_t> mNumSamplesRecorded{};
     juce::OwnedArray<FileRecorder> mRecorders{};
     juce::OwnedArray<FileRecorder> mAmbiRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
     juce::TimeSliceThread mAmbiRecordersThread{ "SpatGRIS ambisonic recording thread" };
     // Playing
+    std::atomic<bool> mIsPlaying{};
+    std::atomic<bool> mIsPlayerLoading{};
+    // -- audio
     juce::AudioFormatManager mFormatManager{};
     juce::Array<juce::File> mAudioFiles; // for audio thumbnails
     juce::OwnedArray<juce::AudioFormatReaderSource> mReaderSources;
@@ -106,8 +112,16 @@ private:
     juce::TimeSliceThread mPlayerThread{ "SpatGRIS player thread" };
     juce::AudioFormat * mAudioFormat{};
     bool mFormatsRegistered{};
-    std::atomic<bool> mIsPlaying{};
-    std::atomic<bool> mIsPlayerLoading{};
+    // -- ambisonics
+    juce::AudioFormatManager mAmbiFormatManager{};
+    juce::Array<juce::File> mAmbiAudioFiles; // for audio thumbnails
+    juce::OwnedArray<juce::AudioFormatReaderSource> mAmbiReaderSources;
+    juce::OwnedArray<juce::AudioTransportSource> mAmbiTransportSources{};
+    juce::OwnedArray<source_index_t> mAmbiTransportSourcesIndexes{};
+    juce::TimeSliceThread mAmbiPlayerThread{ "SpatGRIS ambisonic player thread" };
+    juce::AudioFormat * mAmbiAudioFormat{};
+    bool mAmbiFormatsRegistered{};
+
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -131,7 +145,6 @@ public:
     int64_t getNumSamplesRecorded() const;
 
     // Player stuff
-    bool prepareAudioPlayer(juce::File const & folder);
     void startPlaying();
     void stopPlaying();
     bool isPlaying() const;
@@ -139,13 +152,20 @@ public:
     void unloadPlayer();
     void setPosition(double const newPos);
     void reloadPlayerAudioFiles(int currentBufferSize, double currentSampleRate);
+    bool preparePlayer(juce::File const & folder, PlayerMode mode);
+    // -- audio
     juce::OwnedArray<juce::AudioTransportSource> & getTransportSources();
     juce::AudioFormatManager & getAudioFormatManager();
     juce::Array<juce::File> & getAudioFiles();
+    // -- ambisonics
+    juce::OwnedArray<juce::AudioTransportSource> & getAmbiTransportSources();
+    juce::AudioFormatManager & getAmbiAudioFormatManager();
+    juce::Array<juce::File> & getAmbiAudioFiles();
 
     void initInputBuffer(juce::Array<source_index_t> const & sources);
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);
-    void initAmbiOutputBuffer(int ambisonicOrder, int newBufferSize, int numSpeakersDirectOutOnly);
+    void initAmbiEncOutputBuffer(int ambisonicOrder, int newBufferSize, int numSpeakersDirectOutOnly);
+    void initAmbiDecInputBuffer(int numAmbiChannels, int newBufferSize, int numSpeakersDirectOutOnly);
     void setBufferSize(int newBufferSize);
     void setStereoRouting(tl::optional<StereoRouting> const & stereoRouting);
     //==============================================================================
