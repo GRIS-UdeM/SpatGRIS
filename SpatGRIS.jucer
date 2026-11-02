@@ -407,15 +407,15 @@
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                iosDevelopmentTeamID="62PMMWH49Z" sendAppleEventsPermissionNeeded="1"
                sendAppleEventsPermissionText="SpatGris requires the ability to send Apple events to facilitate communication with SpeakerView."
-               applicationCategory="public.app-category.music" externalLibraries="saf&#10;saf_example_binauraliser_nf&#10;saf_example_ambi_enc"
+               applicationCategory="public.app-category.music" externalLibraries="saf&#10;saf_example_binauraliser_nf&#10;saf_example_ambi_enc&#10;saf_example_ambi_dec"
                extraDefs="SAF_USE_APPLE_ACCELERATE_LP64&#10;SAF_ENABLE_SOFA_READER_MODULE">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" osxCompatibility="11.5 SDK" isDebug="1" optimisation="1"
-                       targetName="SpatGRIS" fastMath="0" macOSDeploymentTarget="11.5"
+        <CONFIGURATION name="Debug" osxCompatibility="12 SDK" isDebug="1" optimisation="1"
+                       targetName="SpatGRIS" fastMath="0" macOSDeploymentTarget="12"
                        headerPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
                        libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-debug/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-debug/examples"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       fastMath="0" macOSDeploymentTarget="11.5" osxCompatibility="11.5 SDK"
+                       fastMath="0" macOSDeploymentTarget="12" osxCompatibility="12 SDK"
                        headerPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/framework/include&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/examples/include"
                        libraryPath="../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-release/framework&#10;../../submodules/AlgoGRIS/submodules/Spatial_Audio_Framework/build/build-release/examples"/>
       </CONFIGURATIONS>
@@ -470,7 +470,7 @@
         <MODULEPATH id="juce_audio_processors_headless" path="submodules/AlgoGRIS/submodules/StructGRIS/submodules/JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="NHix3D" externalLibraries="libopenblas.lib&#10;saf.lib&#10;saf_example_binauraliser_nf.lib&#10;saf_example_ambi_enc.lib"
+    <VS2022 targetFolder="Builds/VisualStudio2022" bigIcon="NHix3D" externalLibraries="libopenblas.lib&#10;saf.lib&#10;saf_example_binauraliser_nf.lib&#10;saf_example_ambi_enc.lib&#10;saf_example_ambi_dec.lib"
             extraDefs="SAF_USE_OPEN_BLAS_AND_LAPACKE=1&#10;SAF_ENABLE_SOFA_READER_MODULE=1&#10;NOMINMAX">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" fastMath="0" headerPath="..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\OpenBLAS\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\framework\include&#10;..\..\submodules\AlgoGRIS\submodules\Spatial_Audio_Framework\examples\include"
