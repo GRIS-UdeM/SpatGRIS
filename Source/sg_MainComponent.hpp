@@ -400,8 +400,9 @@ private:
     void startOsc();
     void stopOsc();
     //==============================================================================
-    // Player control
+    // Player
     void handlePlayerPlayStop();
+    void initAndConfigureAmbiDecAlgorithm(int ambisonicFileCount, int directOutFileCount);
     //==============================================================================
     // SpeakerView
     int getSpeakerViewPIDOnMacOS() const;

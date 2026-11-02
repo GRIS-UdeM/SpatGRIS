@@ -71,16 +71,18 @@ void ThumbnailComp::paint(juce::Graphics & g)
     if (mTransportSources.size() > 0) {
         updateCursorPosition();
 
-        if (mThumbnails[0]->getTotalLength() > 0.0) {
-            auto thumbArea = getLocalBounds();
+        if (!mThumbnails.isEmpty()) {
+            if (mThumbnails[0]->getTotalLength() > 0.0) {
+                auto thumbArea = getLocalBounds();
 
-            int i{ mThumbnails.size() };
-            for (auto thumbnail : mThumbnails) {
-                thumbnail->drawChannels(g,
-                                        thumbArea.removeFromTop(thumbArea.getHeight() / i--),
-                                        0.0,
-                                        thumbnail->getTotalLength(),
-                                        1.0f);
+                int i{ mThumbnails.size() };
+                for (auto thumbnail : mThumbnails) {
+                    thumbnail->drawChannels(g,
+                                            thumbArea.removeFromTop(thumbArea.getHeight() / i--),
+                                            0.0,
+                                            thumbnail->getTotalLength(),
+                                            1.0f);
+                }
             }
         }
     } else {
@@ -284,7 +286,7 @@ PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, Gr
             mAmbisonicThumbnails->setVisible(false);
             if (mCanReloadPlayer) {
                 AudioManager::getInstance().preparePlayer(mPlayerFilesFolder, mPlayerMode);
-                loadPlayer();
+                loadPlayer(false);
             }
             // mShowAmbisonicControlsButton.setVisible(false);
             mAmbiOrderLabel.setVisible(false);
@@ -299,7 +301,7 @@ PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, Gr
             mAmbisonicThumbnails->setVisible(true);
             if (mCanReloadAmbisonicPlayer) {
                 AudioManager::getInstance().preparePlayer(mPlayerAmbisonicFilesFolder, mPlayerMode);
-                loadPlayer();
+                loadPlayer(false);
             }
             // mShowAmbisonicControlsButton.setVisible(true);
             mAmbiOrderLabel.setVisible(true);
@@ -615,6 +617,16 @@ void PlayerComponent::stopAudio()
 //==============================================================================
 void PlayerComponent::loadPlayer(bool handleNewProject)
 {
+    if (!handleNewProject) {
+        if (mPlayerMode == PlayerMode::audio) {
+            if (mThumbnails->getNumSources() == 0)
+                return;
+        } else if (mPlayerMode == PlayerMode::ambisonic) {
+            if (mAmbisonicThumbnails->getNumSources() == 0)
+                return;
+        }
+    }
+
     AudioManager::getInstance().setPlayerLoading(true);
 
     if (mPlayerMode == PlayerMode::audio) {

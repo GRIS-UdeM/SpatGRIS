@@ -3579,6 +3579,29 @@ tl::optional<SpeakerSetup> MainContentComponent::playerExtractSpeakerSetup(juce:
 }
 
 //==============================================================================
+void MainContentComponent::initAndConfigureAmbiDecAlgorithm(int ambisonicFileCount, int directOutFileCount)
+{
+    auto & ambiDecSpatAlgorithm{ mAudioProcessor->getAmbiDecSpatAlgorithm() };
+    auto newAmbiDecSpatAlgorithm{ AmbiDecSpatAlgorithm::make(mData.speakerSetup,
+                                                             mData.project.spatMode,
+                                                             mData.project.sources,
+                                                             mData.appData.audioSettings.sampleRate,
+                                                             mData.appData.audioSettings.bufferSize,
+                                                             mData.appData.binauralSettings) };
+    ambiDecSpatAlgorithm = std::move(newAmbiDecSpatAlgorithm);
+    static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())
+    ->configure(ambisonicFileCount, directOutFileCount);
+    AudioManager::getInstance().initAmbiDecInputBuffer(ambisonicFileCount,
+                                                       mData.appData.audioSettings.bufferSize,
+                                                       directOutFileCount);
+    static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())->setCallback([this](int state) {
+        if (mPlayerWindow != nullptr) {
+            mPlayerWindow->setAmbisonicDecoderReadyToProcess(state);
+        }
+    });
+}
+
+//==============================================================================
 void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetup> & playerSpeakerSetup,
                                                         juce::File & playerFilesFolder)
 {
@@ -3692,38 +3715,41 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
     //     loadProject(projectFile, true);
     // }
 
-    // Get ambisonic and direct out files
-    juce::StringArray ambisonicFileList;
-    juce::StringArray ambisonicDirectsFileList;
-    juce::StringArray ambisonicFileExtensions{ ".wav", ".aif", ".aiff" };
+    // Get ambisonic and direct out files count
     auto & ambFilesAudioManager{ AudioManager::getInstance().getAmbiAudioFiles() };
+    int ambisonicFileCount = 0;
+    int directFileCount = 0;
 
-    for (const auto & filenameThatWasFound : ambFilesAudioManager) {
-        jassert(filenameThatWasFound.existsAsFile());
+    for (const auto& file : ambFilesAudioManager)
+    {
+        const auto extension = file.getFileExtension();
+        const bool isAudio =
+            extension.equalsIgnoreCase(".wav")
+            || extension.equalsIgnoreCase(".aif")
+            || extension.equalsIgnoreCase(".aiff");
 
-        if (ambisonicFileExtensions.contains(filenameThatWasFound.getFileExtension())) {
-            if (filenameThatWasFound.getFileNameWithoutExtension().contains("-direct-")) {
-                ambisonicDirectsFileList.add(filenameThatWasFound.getFileNameWithoutExtension().substring(
-                    filenameThatWasFound.getFileNameWithoutExtension().lastIndexOfChar('-') + 1));
-            } else {
-                ambisonicFileList.add(filenameThatWasFound.getFileNameWithoutExtension().substring(
-                    filenameThatWasFound.getFileNameWithoutExtension().lastIndexOfChar('-') + 1));
-            }
-        }
+        if (!isAudio)
+            continue;
+
+        if (file.getFileNameWithoutExtension().contains("-direct-"))
+            ++directFileCount;
+        else
+            ++ambisonicFileCount;
     }
 
-    // instead of numSourcesChanged, remove all sources and rebuild them from the player speaker setup
+    // instead of numSourcesChanged, remove all sources and rebuild them from the current speaker setup
     for (auto source : mData.project.sources) {
         removeSource(source.key);
     }
     for (auto const & outputPatch : mData.speakerSetup.ordering) {
-        auto const index{ outputPatch.get() };
-        auto newSource{ std::make_unique<SourceData>() };
-        auto const newSourceIndex{ static_cast<source_index_t>(outputPatch.get()) };
+        if (!mData.speakerSetup.speakers[outputPatch].isDirectOutOnly) {
+            auto const index{ outputPatch.get() };
+            auto newSource{ std::make_unique<SourceData>() };
+            auto const newSourceIndex{ static_cast<source_index_t>(outputPatch.get()) };
 
-        mData.project.ordering.insert(index, newSourceIndex);
-        mData.project.sources.add(newSourceIndex, std::move(newSource));
-        DBG("Added source # " << index);
+            mData.project.ordering.insert(index, newSourceIndex);
+            mData.project.sources.add(newSourceIndex, std::move(newSource));
+        }
     }
     // add direct out sources if needed
     int numDirectoutSpks{};
@@ -3735,16 +3761,27 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
             directoutSrcIndexes.push_back(spk.key);
         }
     }
-    std::reverse(directoutSrcIndexes.begin(), directoutSrcIndexes.end());
     if (numDirectoutSpks > 0) {
-        while (ambisonicDirectsFileList.size() > numDirectoutSpks) {
+        for (int i{}; i < directFileCount; ++i) {
+            if (i < directoutSrcIndexes.size()) {
+                auto const index{ directoutSrcIndexes[i].get() };
+                auto newSource{ std::make_unique<SourceData>() };
+                auto const newSourceIndex{ static_cast<source_index_t>(directoutSrcIndexes[i].get()) };
+
+                mData.project.ordering.insert(index, newSourceIndex);
+                mData.project.sources.add(newSourceIndex, std::move(newSource));
+            }
+        }
+        // add additional direct output sources if the speaker setup does not include enough.
+        const auto additionalSourceCount = directFileCount - static_cast<int>(directoutSrcIndexes.size());
+        for (int i = 0; i < additionalSourceCount; ++i)
+        {
             auto const newDirectSrcIndex{ getFirstAvailableProjectSourceIndex() };
             auto const index{ newDirectSrcIndex.get() };
-            auto newSource{ std::make_unique<SourceData>() };
-            newSource->directOut = directoutSrcIndexes.back();
-            directoutSrcIndexes.pop_back();
-            ++numDirectoutSpks;
 
+            auto newSource{ std::make_unique<SourceData>() };
+            newSource->directOut =
+                directoutSrcIndexes[static_cast<std::size_t>(i) % directoutSrcIndexes.size()];
             mData.project.ordering.insert(index, newDirectSrcIndex);
             mData.project.sources.add(newDirectSrcIndex, std::move(newSource));
         }
@@ -3757,13 +3794,15 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
     for (auto & speaker : mData.speakerSetup.speakers) {
         // update sources data from speakers position of speaker setup
         source_index_t const sourceIndex{ speaker.key.get() };
-        auto source = mData.project.sources.getNode(sourceIndex);
-        source.value->position = speaker.value->position;
-        source.value->azimuthSpan = 0.0f;
-        source.value->zenithSpan = 0.0f;
+        if (mData.project.sources.contains(sourceIndex)) {
+            auto source = mData.project.sources.getNode(sourceIndex);
+            source.value->position = speaker.value->position;
+            source.value->azimuthSpan = 0.0f;
+            source.value->zenithSpan = 0.0f;
 
-        auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
-        spatAlgorithm.updateSpatData(source.key, *source.value);
+            auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
+            spatAlgorithm.updateSpatData(source.key, *source.value);
+        }
     }
 
     // manage direct outputs speakers
@@ -3778,7 +3817,7 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
         }
     }
 
-    if (ambisonicDirectsFileList.size() > 0 && speakerSetupDirectOutSpeakers.size() == 0) {
+    if (directFileCount > 0 && speakerSetupDirectOutSpeakers.size() == 0) {
         juce::AlertWindow::showMessageBoxAsync(
             juce::MessageBoxIconType::WarningIcon,
             "Missing Direct out Speakers for the Ambisonic Player",
@@ -3787,19 +3826,12 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
             "OK");
     }
 
-    if (playerDirectOutSpeakers.size() > 0 && speakerSetupDirectOutSpeakers.size() > 0) {
-        int setupIndex{};
-        int playerIndex{};
-        while (playerIndex < playerDirectOutSpeakers.size()) {
-            setSourceDirectOut(playerDirectOutSpeakers[playerIndex], speakerSetupDirectOutSpeakers[setupIndex]);
-            setSourceState(playerDirectOutSpeakers[playerIndex], SliceState::normal);
-            ++setupIndex;
-            ++playerIndex;
-            if (setupIndex == speakerSetupDirectOutSpeakers.size()
-                && playerDirectOutSpeakers.size() > speakerSetupDirectOutSpeakers.size()) {
-                setupIndex %= speakerSetupDirectOutSpeakers.size();
-            }
-        }
+    const int assignmentCount = std::min(playerDirectOutSpeakers.size(), directFileCount);
+    for (int i = 0; i < assignmentCount; ++i)
+    {
+        setSourceDirectOut(playerDirectOutSpeakers[i],
+                           speakerSetupDirectOutSpeakers[i]);
+        setSourceState(playerDirectOutSpeakers[i], SliceState::normal);
     }
 
     // Manage Source colour
@@ -3822,25 +3854,8 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
     }
     refreshSourceSlices();
 
-    // init AmbiDec algo
-    auto & ambiDecSpatAlgorithm{ mAudioProcessor->getAmbiDecSpatAlgorithm() };
-    auto newAmbiDecSpatAlgorithm{ AmbiDecSpatAlgorithm::make(mData.speakerSetup,
-                                                             mData.project.spatMode,
-                                                             mData.project.sources,
-                                                             mData.appData.audioSettings.sampleRate,
-                                                             mData.appData.audioSettings.bufferSize,
-                                                             mData.appData.binauralSettings) };
-    ambiDecSpatAlgorithm = std::move(newAmbiDecSpatAlgorithm);
-    static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())
-        ->configure(ambisonicFileList.size(), ambisonicDirectsFileList.size());
-    AudioManager::getInstance().initAmbiDecInputBuffer(ambisonicFileList.size(),
-                                                       mData.appData.audioSettings.bufferSize,
-                                                       ambisonicDirectsFileList.size());
-    static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())->setCallback([this](int state) {
-        if (mPlayerWindow != nullptr) {
-            mPlayerWindow->setAmbisonicDecoderReadyToProcess(state);
-        }
-    });
+    // AmbiDec algo
+    initAndConfigureAmbiDecAlgorithm(ambisonicFileCount, directFileCount);
 
     refreshAudioProcessor();
 }
