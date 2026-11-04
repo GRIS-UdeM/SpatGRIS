@@ -696,7 +696,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         juce::StringArray result{};
         result.ensureStorageAllocated(numAmbiChan);
         for (int i{}; i < numAmbiChan - mNumAmbiEncSpeakersDirectOutOnly; ++i) {
-            auto const path{ baseOutputAmbiFile + "-" + juce::String{ i + 1 } + extension };
+            auto const path{ baseOutputAmbiFile + "-amb-" + juce::String{ i + 1 } + extension };
             jassert(!result.contains(path));
             result.add(path);
         }
