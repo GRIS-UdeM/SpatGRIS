@@ -69,7 +69,7 @@ cd submodules/AlgoGRIS/build_scripts
 
 ##### Linux
 
-Install the `openblas` package, which provides the BLAS and LAPACK libraries, as well as `fftw`, appropriate for your distribution.
+Install the `openblas` package, which provides the BLAS and LAPACK libraries appropriate for your distribution.
 Then :
 ```bash
 cd submodules/AlgoGRIS/build_scripts
