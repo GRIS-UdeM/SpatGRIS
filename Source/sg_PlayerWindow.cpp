@@ -900,6 +900,8 @@ PlayerWindow::PlayerWindow(MainContentComponent & mainContentComponent, GrisLook
     // setAlwaysOnTop(true);
     setContentNonOwned(&mPlayerComponent, false);
     centreWithSize(800, 400);
+    setTopLeftPosition(mMainContentComponent.getTopLevelComponent()->getX(),
+                       mMainContentComponent.getTopLevelComponent()->getY());
     DocumentWindow::setVisible(true);
 }
 
