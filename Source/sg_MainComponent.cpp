@@ -3589,8 +3589,7 @@ void MainContentComponent::initAndConfigureAmbiDecAlgorithm(int ambisonicFileCou
                                                              mData.appData.audioSettings.bufferSize,
                                                              mData.appData.binauralSettings) };
     ambiDecSpatAlgorithm = std::move(newAmbiDecSpatAlgorithm);
-    static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())
-    ->configure(ambisonicFileCount, directOutFileCount);
+    static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())->configure(ambisonicFileCount, directOutFileCount);
     AudioManager::getInstance().initAmbiDecInputBuffer(ambisonicFileCount,
                                                        mData.appData.audioSettings.bufferSize,
                                                        directOutFileCount);
@@ -3720,13 +3719,10 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
     int ambisonicFileCount = 0;
     int directFileCount = 0;
 
-    for (const auto& file : ambFilesAudioManager)
-    {
+    for (const auto & file : ambFilesAudioManager) {
         const auto extension = file.getFileExtension();
-        const bool isAudio =
-            extension.equalsIgnoreCase(".wav")
-            || extension.equalsIgnoreCase(".aif")
-            || extension.equalsIgnoreCase(".aiff");
+        const bool isAudio = extension.equalsIgnoreCase(".wav") || extension.equalsIgnoreCase(".aif")
+                             || extension.equalsIgnoreCase(".aiff");
 
         if (!isAudio)
             continue;
@@ -3774,14 +3770,12 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
         }
         // add additional direct output sources if the speaker setup does not include enough.
         const auto additionalSourceCount = directFileCount - static_cast<int>(directoutSrcIndexes.size());
-        for (int i = 0; i < additionalSourceCount; ++i)
-        {
+        for (int i = 0; i < additionalSourceCount; ++i) {
             auto const newDirectSrcIndex{ getFirstAvailableProjectSourceIndex() };
             auto const index{ newDirectSrcIndex.get() };
 
             auto newSource{ std::make_unique<SourceData>() };
-            newSource->directOut =
-                directoutSrcIndexes[static_cast<std::size_t>(i) % directoutSrcIndexes.size()];
+            newSource->directOut = directoutSrcIndexes[static_cast<std::size_t>(i) % directoutSrcIndexes.size()];
             mData.project.ordering.insert(index, newDirectSrcIndex);
             mData.project.sources.add(newDirectSrcIndex, std::move(newSource));
         }
@@ -3827,10 +3821,8 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
     }
 
     const int assignmentCount = std::min(playerDirectOutSpeakers.size(), directFileCount);
-    for (int i = 0; i < assignmentCount; ++i)
-    {
-        setSourceDirectOut(playerDirectOutSpeakers[i],
-                           speakerSetupDirectOutSpeakers[i]);
+    for (int i = 0; i < assignmentCount; ++i) {
+        setSourceDirectOut(playerDirectOutSpeakers[i], speakerSetupDirectOutSpeakers[i]);
         setSourceState(playerDirectOutSpeakers[i], SliceState::normal);
     }
 
