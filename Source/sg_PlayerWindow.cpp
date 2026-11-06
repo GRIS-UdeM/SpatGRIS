@@ -445,7 +445,7 @@ void PlayerComponent::handleOpenFiles()
         if (validateAmbisonicFiles(chosen)) {
             if (AudioManager::getInstance().preparePlayer(chosen, mPlayerMode)) {
                 mPlayerAmbisonicFilesFolder = chosen;
-                loadPlayer();
+                loadPlayer(false);
             } else {
                 displayError("Ambisonic files do not have the same length.");
             }
@@ -650,10 +650,6 @@ void PlayerComponent::loadPlayer(bool handleNewProject)
         mCanReloadPlayer = true;
     } else {
         mIsAmbisonicDecoderReadyToProcess = false;
-
-        if (handleNewProject) {
-            mMainContentComponent.handleNewProjectForPlayer();
-        }
 
         mMainContentComponent.handleAmbisonicPlayerSourcesPositions(mPlayerAmbisonicFilesFolder);
         mAmbisonicThumbnails->setThumbnails(mNumAmbiFiles + mNumAmbiDirectFiles);
