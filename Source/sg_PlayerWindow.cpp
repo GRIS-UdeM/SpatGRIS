@@ -650,6 +650,7 @@ void PlayerComponent::loadPlayer(bool handleNewProject)
         mCanReloadPlayer = true;
     } else {
         mIsAmbisonicDecoderReadyToProcess = false;
+        showSpinningWheel(true);
 
         mMainContentComponent.handleAmbisonicPlayerSourcesPositions(mPlayerAmbisonicFilesFolder);
         mAmbisonicThumbnails->setThumbnails(mNumAmbiFiles + mNumAmbiDirectFiles);
