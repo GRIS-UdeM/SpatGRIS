@@ -669,6 +669,8 @@ void PlayerComponent::loadPlayer(bool handleNewProject)
         auto ambisonicOrder{ static_cast<int>(std::sqrt(mNumAmbiFiles)) - 1 };
         jassert((ambisonicOrder + 1) * (ambisonicOrder + 1) == mNumAmbiFiles);
         mAmbiOrderComboBox.setSelectedId(ambisonicOrder, juce::sendNotification);
+
+        resized();
     }
 
     AudioManager::getInstance().setPlayerLoading(false);
@@ -830,6 +832,8 @@ void PlayerComponent::resized()
     mTimeCodeLabel.setBounds(controls.removeFromLeft(controls.getWidth() / 2).reduced(1));
     mStopButton.setBounds(controls.removeFromRight(controls.getWidth() / 2));
     mPlayButton.setBounds(controls);
+
+    mAmbiOrderComboBox.setEnabled(mAmbisonicThumbnails.get()->getNumSources() > 0);
 }
 
 //==============================================================================
