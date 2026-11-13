@@ -29,8 +29,9 @@ namespace
 constexpr int PADDING = 10;
 constexpr auto BUTTONS_WIDTH = 100;
 constexpr auto BUTTONS_HEIGHT = 30;
+constexpr auto LABELS_WIDTH = 100;
 constexpr auto WIDTH = 600;
-constexpr auto NUM_ROWS = 3;
+constexpr auto NUM_ROWS = 4;
 constexpr auto HEIGHT = PADDING * (NUM_ROWS + 1) + BUTTONS_HEIGHT * NUM_ROWS;
 
 using flags = juce::FileBrowserComponent::FileChooserFlags;
@@ -51,11 +52,18 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    mPathLabel.setText("Folder Path", juce::dontSendNotification);
+    addAndMakeVisible(mPathLabel);
+    mFileNameLabel.setText("File Name", juce::dontSendNotification);
+    addAndMakeVisible(mFileNameLabel);
+
     auto const validDirectory{ recordingDirectory.isDirectory()
                                    ? recordingDirectory
                                    : juce::File::getSpecialLocation(
                                          juce::File::SpecialLocationType::userDesktopDirectory) };
-    auto const path{ validDirectory.getChildFile(DEFAULT_FILE_NAME) };
+    auto const path{ validDirectory };
+    auto const filename{ juce::String(DEFAULT_FILE_NAME) };
+
     mPathEditor.setColour(juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
     mPathEditor.setColour(juce::TextEditor::ColourIds::outlineColourId, juce::Colours::white);
     mPathEditor.setBorder(juce::BorderSize<int>{ 1 });
@@ -64,6 +72,15 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
     mPathEditor.setScrollbarsShown(true);
     mPathEditor.onFocusLost = [&]() { mPathEditor.setCaretPosition(mPathEditor.getText().length()); };
     addAndMakeVisible(mPathEditor);
+
+    mFileNameEditor.setColour(juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
+    mFileNameEditor.setColour(juce::TextEditor::ColourIds::outlineColourId, juce::Colours::white);
+    mFileNameEditor.setBorder(juce::BorderSize<int>{ 1 });
+    mFileNameEditor.setText(filename);
+    mFileNameEditor.setJustification(juce::Justification::centredRight);
+    mFileNameEditor.setScrollbarsShown(true);
+    mFileNameEditor.onFocusLost = [&]() { mFileNameEditor.setCaretPosition(mFileNameEditor.getText().length()); };
+    addAndMakeVisible(mFileNameEditor);
 
     mBrowseButton.setButtonText("Browse");
     mBrowseButton.addListener(this);
@@ -170,10 +187,18 @@ void PrepareToRecordComponent::resized()
     auto const nextButton = [&]() { xOffset += BUTTONS_WIDTH; };
     auto const resetX = [&]() { xOffset = PADDING; };
 
-    auto const pathWidth{ WIDTH - PADDING * 3 - BUTTONS_WIDTH };
-    auto const pathBounds{ juce::Rectangle<int>{ PADDING, PADDING, pathWidth, BUTTONS_HEIGHT }.reduced(0, 1) };
+    auto const pathWidth{ WIDTH - LABELS_WIDTH - PADDING * 3 - BUTTONS_WIDTH };
+    auto const pathBounds{
+        juce::Rectangle<int>{ PADDING + LABELS_WIDTH, PADDING, pathWidth, BUTTONS_HEIGHT }.reduced(0, 1)
+    };
+    mPathLabel.setBounds(PADDING, PADDING, LABELS_WIDTH, BUTTONS_HEIGHT);
     mPathEditor.setBounds(pathBounds);
-    mBrowseButton.setBounds(PADDING * 2 + pathWidth, PADDING, BUTTONS_WIDTH, BUTTONS_HEIGHT);
+    mBrowseButton.setBounds(PADDING * 2 + pathWidth + LABELS_WIDTH, PADDING, BUTTONS_WIDTH, BUTTONS_HEIGHT);
+
+    nextLine();
+
+    mFileNameLabel.setBounds(xOffset, yOffset, LABELS_WIDTH, BUTTONS_HEIGHT);
+    mFileNameEditor.setBounds(PADDING + LABELS_WIDTH, yOffset, pathWidth, BUTTONS_HEIGHT);
 
     nextLine();
 
@@ -231,14 +256,16 @@ void PrepareToRecordComponent::buttonClicked(juce::Button * button)
 void PrepareToRecordComponent::performBrowse()
 {
     auto const extension{ "*." + recordingFormatToString(getSelectedFormat()).toLowerCase() };
+    auto const filePath{ mPathEditor.getText() + juce::File::getSeparatorString() + mFileNameEditor.getText() };
 
-    juce::FileChooser fileChooser{ "SpatGris recording", mPathEditor.getText(), extension, true, false, this };
+    juce::FileChooser fileChooser{ "SpatGris recording", filePath, extension, true, false, this };
     if (!fileChooser.browseForFileToSave(false)) {
         return;
     }
     auto const file{ fileChooser.getResult() };
 
-    mPathEditor.setText(file.getFullPathName(), juce::dontSendNotification);
+    mPathEditor.setText(file.getParentDirectory().getFullPathName(), juce::dontSendNotification);
+    mFileNameEditor.setText(file.getFileName(), juce::dontSendNotification);
     adjustPathExtension();
 }
 
@@ -250,7 +277,7 @@ void PrepareToRecordComponent::performRecord()
     auto const fileType{ getSelectedFileType() };
     auto const format{ getSelectedFormat() };
 
-    juce::File const path{ mPathEditor.getText() };
+    juce::File const path{ mPathEditor.getText() + juce::File::getSeparatorString() + mFileNameEditor.getText() };
 
     auto const getFinalPath = [&]() {
         auto const expectedExtension{ "." + recordingFormatToString(format).toLowerCase() };
@@ -306,16 +333,18 @@ void PrepareToRecordComponent::adjustPathExtension()
     auto const newFormat{ getSelectedFormat() };
     auto const newExtension{ "." + recordingFormatToString(newFormat).toLowerCase() };
     auto const currentPath{ mPathEditor.getText() };
+    auto const currentFileName{ mFileNameEditor.getText() };
 
     for (auto const & possibleExtension : RECORDING_FORMAT_STRINGS) {
         auto const extensionToTest{ "." + possibleExtension.toLowerCase() };
-        if (currentPath.endsWithIgnoreCase(extensionToTest)) {
-            mPathEditor.setText(currentPath.upToLastOccurrenceOf(extensionToTest, false, true) + newExtension);
+        if (currentFileName.endsWithIgnoreCase(extensionToTest)) {
+            mFileNameEditor.setText(currentFileName.upToLastOccurrenceOf(extensionToTest, false, true) + newExtension);
             return;
         }
     }
 
-    mPathEditor.setText(currentPath + newExtension);
+    mPathEditor.setText(currentPath);
+    mFileNameEditor.setText(currentFileName + newExtension);
 }
 
 //==============================================================================

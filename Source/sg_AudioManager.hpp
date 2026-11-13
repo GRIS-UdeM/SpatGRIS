@@ -71,10 +71,11 @@ public:
     /** The main parameters needed before starting a recording. */
     struct RecordingParameters {
         juce::String path{};
-        juce::String ambisonicPath{};
         RecordingOptions options{};
         double sampleRate{};
         juce::Array<output_patch_t> speakersToRecord{};
+        juce::String & lastSpeakerSetup;
+        SpeakerSetup & speakerSetup;
     };
 
 private:

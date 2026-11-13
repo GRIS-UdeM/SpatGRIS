@@ -666,12 +666,14 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
     };
 
     // Compute file paths
+    auto const multichannel_folder{ juce::String("mutlichannel_files") };
+    auto const ambisonic_folder{ juce::String("ambisonic_files") };
     auto const baseOutputFile{ juce::File{ recordingParams.path }.getParentDirectory().getFullPathName()
+                               + juce::File::getSeparatorString() + multichannel_folder
                                + juce::File::getSeparatorString()
                                + juce::File{ recordingParams.path }.getFileNameWithoutExtension() };
-    auto const baseOutputAmbiFile{ juce::File{ recordingParams.ambisonicPath }.getParentDirectory().getFullPathName()
-                                   + juce::File::getSeparatorString()
-                                   + juce::File{ recordingParams.ambisonicPath }.getFileNameWithoutExtension()
+    auto const baseOutputAmbiFile{ juce::File{ recordingParams.path }.getParentDirectory().getFullPathName()
+                                   + juce::File::getSeparatorString() + ambisonic_folder
                                    + juce::File::getSeparatorString()
                                    + juce::File{ recordingParams.path }.getFileNameWithoutExtension() };
     auto const extension{ juce::File{ recordingParams.path }.getFileExtension() };
@@ -877,6 +879,9 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
 
     // Make recorders
     if (!mIsRecordingOnlyAmbisonic) {
+        if (!juce::File(baseOutputFile).getParentDirectory().exists()) {
+            juce::File(baseOutputFile).getParentDirectory().createDirectory();
+        }
         auto const success{ makeRecorders() };
         if (!success) {
             jassertfalse;
@@ -892,6 +897,16 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
             jassertfalse;
             return false;
         }
+    }
+
+    // export speaker setup
+    if (recordingParams.options.shouldSaveSpeakerSetup) {
+        juce::File const & lastSpeakerSetup{ recordingParams.lastSpeakerSetup };
+        auto const file{ juce::File(baseOutputFile).getParentDirectory().getFullPathName()
+                         + juce::File::getSeparatorString() + lastSpeakerSetup.getFileName() };
+        auto const content{ recordingParams.speakerSetup.toXml() };
+        [[maybe_unused]] auto const success{ content->writeTo(file) };
+        jassert(success);
     }
 
     if (!mIsRecordingOnlyAmbisonic)

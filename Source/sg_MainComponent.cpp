@@ -3540,25 +3540,11 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
     }
 
     AudioManager::RecordingParameters const recordingParams{
-        fileOrDirectory.getFullPathName(),
-        juce::String(fileOrDirectory.getParentDirectory().getFullPathName() + juce::File::getSeparatorString()
-                     + "ambisonic_files"),
-        mData.appData.recordingOptions,
-        mData.appData.audioSettings.sampleRate,
-        std::move(speakersToRecord)
+        fileOrDirectory.getFullPathName(), mData.appData.recordingOptions, mData.appData.audioSettings.sampleRate,
+        std::move(speakersToRecord),       mData.appData.lastSpeakerSetup, mData.speakerSetup
     };
     if (AudioManager::getInstance().prepareToRecord(recordingParams)) {
         AudioManager::getInstance().startRecording();
-
-        // export speaker setup
-        if (recordingOptions.shouldSaveSpeakerSetup) {
-            juce::File const & lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
-            auto const file{ fileOrDirectory.getParentDirectory().getFullPathName() + juce::File::getSeparatorString()
-                             + lastSpeakerSetup.getFileName() };
-            auto const content{ mData.speakerSetup.toXml() };
-            [[maybe_unused]] auto const success{ content->writeTo(file) };
-            jassert(success);
-        }
 
         mControlPanel->setRecordButtonState(RecordButton::State::recording);
         mPrepareToRecordWindow.reset();

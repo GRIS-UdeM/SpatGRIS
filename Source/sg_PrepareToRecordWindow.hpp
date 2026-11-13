@@ -43,7 +43,10 @@ class PrepareToRecordComponent final
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
 
+    juce::Label mPathLabel;
+    juce::Label mFileNameLabel;
     juce::TextEditor mPathEditor{};
+    juce::TextEditor mFileNameEditor{};
     juce::TextButton mBrowseButton{};
 
     juce::TextButton mWavButton{};
