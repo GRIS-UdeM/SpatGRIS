@@ -598,12 +598,14 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
 
     mIsRecordingOnlyAmbisonic = recordingParams.options.recordOnlyAmbisonic;
 
-    int numAmbiChan{};
+    int totalNumAmbiBufferChannels{};
+    int numAmbiChannels{};
     if (recordingParams.options.shouldRecordAmbisonicFiles) {
         mAudioProcessor->setShouldProcessAmbiEncAlgo(true);
         mIsRecordingAmbiFiles = true;
-        numAmbiChan = mOutputAmbiEncBuffer.getNumChannels();
+        totalNumAmbiBufferChannels = mOutputAmbiEncBuffer.getNumChannels();
     }
+    numAmbiChannels = totalNumAmbiBufferChannels - mNumAmbiEncSpeakersDirectOutOnly;
 
     static auto const GET_AUDIO_FORMAT = [](RecordingFormat const format) -> std::unique_ptr<juce::AudioFormat> {
         std::unique_ptr<juce::AudioFormat> audioFormat{};
@@ -694,22 +696,33 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         }
         return result;
     };
-    auto const getSeparateAmbisonicFilePath = [&]() {
+    auto const getInterleavedAmbisonicFilePath = [&]() {
         juce::StringArray result{};
-        result.ensureStorageAllocated(numAmbiChan);
-        for (int i{}; i < numAmbiChan - mNumAmbiEncSpeakersDirectOutOnly; ++i) {
-            auto const path{ baseOutputAmbiFile + "-amb-" + juce::String{ i + 1 } + extension };
-            jassert(!result.contains(path));
-            result.add(path);
-        }
-        for (int i{ numAmbiChan - mNumAmbiEncSpeakersDirectOutOnly }; i < numAmbiChan; ++i) {
+        result.ensureStorageAllocated(totalNumAmbiBufferChannels);
+        result.add(baseOutputAmbiFile + "-amb" + extension);
+        for (int i{ numAmbiChannels }; i < totalNumAmbiBufferChannels; ++i) {
             auto const path{ baseOutputAmbiFile + "-direct-" + juce::String{ i + 1 } + extension };
             jassert(!result.contains(path));
             result.add(path);
         }
         return result;
     };
-    auto const getFilePaths = [&]() {
+    auto const getSeparateAmbisonicFilePath = [&]() {
+        juce::StringArray result{};
+        result.ensureStorageAllocated(totalNumAmbiBufferChannels);
+        for (int i{}; i < numAmbiChannels; ++i) {
+            auto const path{ baseOutputAmbiFile + "-amb-" + juce::String{ i + 1 } + extension };
+            jassert(!result.contains(path));
+            result.add(path);
+        }
+        for (int i{ numAmbiChannels }; i < totalNumAmbiBufferChannels; ++i) {
+            auto const path{ baseOutputAmbiFile + "-direct-" + juce::String{ i + 1 } + extension };
+            jassert(!result.contains(path));
+            result.add(path);
+        }
+        return result;
+    };
+    auto const getMultichannelFilePaths = [&]() {
         if (recordingParams.options.fileType == RecordingFileType::interleaved) {
             return juce::StringArray{ baseOutputFile + extension };
         }
@@ -722,8 +735,16 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return getSeparateSpeakersFilePath();
     };
 
-    auto const filePaths{ getFilePaths() };
-    auto const ambiFilePaths{ getSeparateAmbisonicFilePath() };
+    auto const getAmbisonicFilePaths = [&]() {
+        if (recordingParams.options.fileType == RecordingFileType::interleaved) {
+            return getInterleavedAmbisonicFilePath();
+        }
+
+        return getSeparateAmbisonicFilePath();
+    };
+
+    auto const filePaths{ getMultichannelFilePaths() };
+    auto const ambiFilePaths{ getAmbisonicFilePaths() };
 
     // Delete files if needed
     auto const checkDeleteFiles = [&](juce::StringArray path) {
@@ -764,7 +785,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return false;
 
     auto const recordingBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * recordingParams.speakersToRecord.size() };
-    auto const recordingAmbiBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * numAmbiChan };
+    auto const recordingAmbiBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * totalNumAmbiBufferChannels };
 
     auto const makeInterleavedStereoRecorder = [&]() {
         jassert(filePaths.size() == 1);
@@ -841,9 +862,50 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return true;
     };
 
+    auto const makeInterleavedAmbisonicRecorder = [&]() {
+        jassert(ambiFilePaths.size() == mNumAmbiEncSpeakersDirectOutOnly + 1);
+        auto const & filePath{ ambiFilePaths[0] };
+        const int numChannelsToRecord = numAmbiChannels;
+        jassert(numChannelsToRecord >= 0 && numChannelsToRecord <= mOutputAmbiEncBuffer.getNumChannels());
+        juce::Array<const float *> interleavedDataToRecord;
+        interleavedDataToRecord.ensureStorageAllocated(numChannelsToRecord);
+
+        for (int ch = 0; ch < numChannelsToRecord; ++ch)
+            interleavedDataToRecord.add(mOutputAmbiEncBuffer.getReadPointer(ch));
+
+        auto recordingInterleavedInfo{ MAKE_RECORDING_INFO(filePath,
+                                                           *audioFormat,
+                                                           recordingParams.sampleRate,
+                                                           recordingBufferSize,
+                                                           std::move(interleavedDataToRecord),
+                                                           mAmbiRecordersThread) };
+        if (!recordingInterleavedInfo) {
+            return false;
+        }
+        mAmbiRecorders.add(std::move(recordingInterleavedInfo));
+
+        for (int ch{ numAmbiChannels }, filePathIndex{ 1 }; ch < totalNumAmbiBufferChannels;
+             ++ch, ++filePathIndex) {
+            auto const & directFilePath{ ambiFilePaths[filePathIndex] };
+            juce::Array<float const *> dataToRecord{};
+            dataToRecord.add(mOutputAmbiEncBuffer.getReadPointer(ch));
+            auto recordingInfo{ MAKE_RECORDING_INFO(directFilePath,
+                                                    *audioFormat,
+                                                    recordingParams.sampleRate,
+                                                    recordingAmbiBufferSize,
+                                                    std::move(dataToRecord),
+                                                    mAmbiRecordersThread) };
+            if (!recordingInfo) {
+                return false;
+            }
+            mAmbiRecorders.add(std::move(recordingInfo));
+        }
+        return true;
+    };
+
     auto const makeSeparateAmbiRecorder = [&]() {
-        jassert(ambiFilePaths.size() == numAmbiChan);
-        for (int ch{}; ch < numAmbiChan; ++ch) {
+        jassert(ambiFilePaths.size() == totalNumAmbiBufferChannels);
+        for (int ch{}; ch < totalNumAmbiBufferChannels; ++ch) {
             auto const & filePath{ ambiFilePaths[ch] };
             juce::Array<float const *> dataToRecord{};
             dataToRecord.add(mOutputAmbiEncBuffer.getReadPointer(ch));
@@ -877,6 +939,15 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         return makeSeparateSpeakersRecorder();
     };
 
+    auto const makeAmbiRecorders = [&]() {
+        auto const isInterleaved{ recordingParams.options.fileType == RecordingFileType::interleaved };
+        if (isInterleaved) {
+            return makeInterleavedAmbisonicRecorder();
+        }
+
+        return makeSeparateAmbiRecorder();
+    };
+
     // Make recorders
     if (!mIsRecordingOnlyAmbisonic) {
         if (!juce::File(baseOutputFile).getParentDirectory().exists()) {
@@ -892,7 +963,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         if (!juce::File(baseOutputAmbiFile).getParentDirectory().exists()) {
             juce::File(baseOutputAmbiFile).getParentDirectory().createDirectory();
         }
-        auto const ambiSuccess{ makeSeparateAmbiRecorder() };
+        auto const ambiSuccess{ makeAmbiRecorders() };
         if (!ambiSuccess) {
             jassertfalse;
             return false;
