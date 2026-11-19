@@ -290,7 +290,7 @@ void EditSpeakersWindow::addSpeakerGroup(int numSpeakers,
                                          Position groupPosition,
                                          std::function<Position(int)> getSpeakerPosition)
 {
-    if (mMainContentComponent.getNumSpeakerOutputPatch() + numSpeakers >= MAX_NUM_SPEAKERS)
+    if (mMainContentComponent.getNumSpeakerOutputPatch() + numSpeakers > MAX_NUM_SPEAKERS)
         return;
 
     auto mainGroup = mSpeakerSetupContainer.getMainSpeakerGroup();
