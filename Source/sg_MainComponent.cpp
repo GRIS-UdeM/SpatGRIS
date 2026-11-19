@@ -2497,7 +2497,7 @@ void MainContentComponent::setSourceColor(source_index_t const sourceIndex, juce
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (sourceIndex > getMaxProjectSourceIndex()) {
+    if (sourceIndex > getMaxProjectSourceIndex() || !mData.project.sources.contains(sourceIndex)) {
         return;
     }
 
