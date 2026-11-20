@@ -85,7 +85,7 @@ class PlayerComponent final
     tl::optional<SpeakerSetup> mPlayerSpeakerSetup;
     juce::File mPlayerFilesFolder{};
     juce::File mPlayerAmbisonicFilesFolder{};
-    int mNumAmbiFiles{};
+    int mNumAmbiChannels{};
     int mNumAmbiDirectFiles{};
     bool mCanReloadPlayer{};
     bool mCanReloadAmbisonicPlayer{};
@@ -132,6 +132,17 @@ class ThumbnailComp
     , public juce::ChangeListener
     , private juce::Timer
 {
+    class PlayheadOverlay final : public juce::Component
+    {
+    public:
+        explicit PlayheadOverlay(GrisLookAndFeel & glaf);
+        void paint(juce::Graphics & g) override;
+
+    private:
+        GrisLookAndFeel & mLookAndFeel;
+        JUCE_LEAK_DETECTOR(PlayheadOverlay)
+    }; // class PlayheadOverlay
+
     juce::CriticalSection mLock{};
 
     PlayerComponent & mPlayerComponent;
@@ -141,8 +152,9 @@ class ThumbnailComp
     juce::AudioFormatManager & mManager;
     juce::AudioThumbnailCache mThumbnailCache{ MAX_NUM_SOURCES };
     juce::OwnedArray<juce::AudioThumbnail> mThumbnails;
+    juce::Image mWaveformCache;
 
-    juce::DrawableRectangle currentPositionMarker{};
+    PlayheadOverlay mCurrentPositionMarker;
 
 public:
     //==============================================================================
@@ -158,6 +170,7 @@ public:
     void setSources();
     void updateCursorPosition();
     void setThumbnails(int numThumbnails);
+    void rebuildWaveformCache();
 
     //==============================================================================
     int getNumSources() const;

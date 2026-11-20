@@ -153,7 +153,7 @@ public:
     void unloadPlayer();
     void setPosition(double const newPos);
     void reloadPlayerAudioFiles(int currentBufferSize, double currentSampleRate);
-    bool preparePlayer(juce::File const & folder, PlayerMode mode);
+    bool preparePlayer(juce::File const & folder, PlayerMode mode, tl::optional<SpeakerSetup> & playerSpeakerSetup);
     // -- audio
     juce::OwnedArray<juce::AudioTransportSource> & getTransportSources();
     juce::AudioFormatManager & getAudioFormatManager();
@@ -209,4 +209,26 @@ private:
 
     JUCE_LEAK_DETECTOR(AudioManager)
 }; // class AudioManager
+
+//==============================================================================
+class MonoChannelReaderSource final : public juce::AudioFormatReaderSource
+{
+public:
+    MonoChannelReaderSource(juce::AudioFormatReader * reader, int channel);
+    SG_DELETE_COPY_AND_MOVE(MonoChannelReaderSource)
+
+    //==============================================================================
+    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
+    void releaseResources() override { juce::AudioFormatReaderSource::releaseResources(); }
+    void getNextAudioBlock(const juce::AudioSourceChannelInfo & info) override;
+
+    //==============================================================================
+private:
+    int mChannelIndex;
+    int mChannelCount;
+    std::vector<float *> mReaderDestinations;
+
+    JUCE_LEAK_DETECTOR(MonoChannelReaderSource)
+};
+
 } // namespace gris

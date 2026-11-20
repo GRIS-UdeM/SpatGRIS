@@ -441,7 +441,9 @@ void AudioManager::reloadPlayerAudioFiles(int currentBufferSize, double currentS
 }
 
 //==============================================================================
-bool AudioManager::preparePlayer(juce::File const & folder, PlayerMode mode)
+bool AudioManager::preparePlayer(juce::File const & folder,
+                                 PlayerMode mode,
+                                 tl::optional<SpeakerSetup> & playerSpeakerSetup)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -487,28 +489,58 @@ bool AudioManager::preparePlayer(juce::File const & folder, PlayerMode mode)
         audioFormat = formatManager.findFormatForFileExtension(filenameThatWasFound.getFileExtension());
         jassert(audioFormat);
 
-        // for AudioFormatReaderSource
-        juce::AudioFormatReader * reader = nullptr;
-        auto localFile = juce::URL(filenameThatWasFound);
-        reader = formatManager.createReaderFor(localFile.getLocalFile());
-        jassert(reader);
+        std::unique_ptr<juce::AudioFormatReader> probe(formatManager.createReaderFor(filenameThatWasFound));
+        if (!probe)
+            continue;
 
-        // make sure the file is mono
-        jassert(reader->getChannelLayout().size() == 1);
+        const auto channelCount = probe->numChannels;
 
-        readerSources.add(new juce::AudioFormatReaderSource(reader, true));
+        if (channelCount > 1) {
+            for (int channel = 0; channel < channelCount; ++channel) {
+                auto * channelReader = formatManager.createReaderFor(filenameThatWasFound);
+                if (channelReader == nullptr)
+                    continue;
 
-        auto transportSource = std::make_unique<juce::AudioTransportSource>();
-        transportSource->setSource(readerSources.getLast(), 32768, &playerThread, reader->sampleRate);
+                auto * channelSource = new MonoChannelReaderSource(channelReader, channel);
+                auto * sourcePtr = channelSource;
+                readerSources.add(channelSource);
 
-        // get channel of audio file
-        auto channel{ filenameThatWasFound.getFileNameWithoutExtension()
-                          .fromLastOccurrenceOf(juce::String("-"), false, true)
-                          .getIntValue() };
-        source_index_t sourceIndex{ channel };
+                auto transport = std::make_unique<juce::AudioTransportSource>();
+                transport->setSource(sourcePtr, 32768, &playerThread, channelReader->sampleRate, 1);
 
-        transportSources.add(transportSource.release());
-        transportSourceIndexes.add(new source_index_t(sourceIndex));
+                source_index_t sourceIndex{};
+                if (mode == PlayerMode::ambisonic) {
+                    sourceIndex = static_cast<source_index_t>(channel + source_index_t::OFFSET);
+                } else {
+                    jassert(channelCount == playerSpeakerSetup->speakers.size());
+                    sourceIndex = static_cast<source_index_t>(playerSpeakerSetup->ordering.getUnchecked(channel).get());
+                }
+                transportSources.add(transport.release());
+                transportSourceIndexes.add(new source_index_t(sourceIndex));
+            }
+        } else {
+            juce::AudioFormatReader * reader = nullptr;
+            auto localFile = juce::URL(filenameThatWasFound);
+            reader = formatManager.createReaderFor(localFile.getLocalFile());
+            jassert(reader);
+
+            // make sure the file is mono
+            jassert(reader->getChannelLayout().size() == 1);
+
+            readerSources.add(new juce::AudioFormatReaderSource(reader, true));
+
+            auto transportSource = std::make_unique<juce::AudioTransportSource>();
+            transportSource->setSource(readerSources.getLast(), 32768, &playerThread, reader->sampleRate);
+
+            // get channel of audio file
+            auto channel{ filenameThatWasFound.getFileNameWithoutExtension()
+                              .fromLastOccurrenceOf(juce::String("-"), false, true)
+                              .getIntValue() };
+            source_index_t sourceIndex{ channel };
+
+            transportSources.add(transportSource.release());
+            transportSourceIndexes.add(new source_index_t(sourceIndex));
+        }
     }
 
     // check all audio files are the same length
@@ -784,8 +816,8 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
     if (mIsRecordingAmbiFiles && !checkDeleteFiles(ambiFilePaths))
         return false;
 
-    auto const recordingBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * recordingParams.speakersToRecord.size() };
-    auto const recordingAmbiBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * totalNumAmbiBufferChannels };
+    auto const recordingBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES };
+    auto const recordingAmbiBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES };
 
     auto const makeInterleavedStereoRecorder = [&]() {
         jassert(filePaths.size() == 1);
@@ -876,7 +908,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         auto recordingInterleavedInfo{ MAKE_RECORDING_INFO(filePath,
                                                            *audioFormat,
                                                            recordingParams.sampleRate,
-                                                           recordingBufferSize,
+                                                           recordingAmbiBufferSize,
                                                            std::move(interleavedDataToRecord),
                                                            mAmbiRecordersThread) };
         if (!recordingInterleavedInfo) {
@@ -1108,4 +1140,65 @@ void AudioManager::free()
     JUCE_ASSERT_MESSAGE_THREAD;
     mInstance.reset();
 }
+
+//==============================================================================
+MonoChannelReaderSource::MonoChannelReaderSource(juce::AudioFormatReader * reader, int channel)
+    : juce::AudioFormatReaderSource(reader, true)
+    , mChannelIndex(channel)
+    , mChannelCount(static_cast<int>(reader->numChannels))
+{
+    jassert(reader != nullptr);
+    jassert(mChannelIndex >= 0 && mChannelIndex < mChannelCount);
+    mReaderDestinations.resize(static_cast<size_t>(mChannelIndex + 1), nullptr);
+}
+
+//==============================================================================
+void MonoChannelReaderSource::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
+{
+    juce::AudioFormatReaderSource::prepareToPlay(samplesPerBlockExpected, sampleRate);
+}
+
+//==============================================================================
+void MonoChannelReaderSource::getNextAudioBlock(const juce::AudioSourceChannelInfo & info)
+{
+    if (info.buffer == nullptr)
+        return;
+
+    info.clearActiveBufferRegion();
+
+    auto * reader = getAudioFormatReader();
+    const auto totalLength = getTotalLength();
+
+    if (reader == nullptr || mChannelIndex < 0 || mChannelIndex >= mChannelCount || info.buffer->getNumChannels() == 0
+        || totalLength <= 0)
+        return;
+
+    auto position = getNextReadPosition();
+    int samplesDone = 0;
+
+    while (samplesDone < info.numSamples) {
+        if (position >= totalLength) {
+            if (!isLooping())
+                break;
+
+            position = 0;
+        }
+
+        const auto count
+            = static_cast<int>(juce::jmin<juce::int64>(info.numSamples - samplesDone, totalLength - position));
+
+        // Null destinations skip the other source channels.
+        mReaderDestinations[static_cast<size_t>(mChannelIndex)]
+            = info.buffer->getWritePointer(0, info.startSample + samplesDone);
+
+        if (!reader->read(mReaderDestinations.data(), mChannelIndex + 1, position, count))
+            break;
+
+        position += count;
+        samplesDone += count;
+    }
+
+    setNextReadPosition(position);
+}
+
 } // namespace gris

@@ -32,9 +32,9 @@ ThumbnailComp::ThumbnailComp(PlayerComponent & playerComponent,
     , mLookAndFeel(glaf)
     , mTransportSources(transportSources)
     , mManager(manager)
+    , mCurrentPositionMarker(glaf)
 {
-    currentPositionMarker.setFill(mLookAndFeel.getLightColour());
-    addAndMakeVisible(currentPositionMarker);
+    addAndMakeVisible(mCurrentPositionMarker);
 }
 
 //==============================================================================
@@ -69,27 +69,13 @@ void ThumbnailComp::paint(juce::Graphics & g)
     g.setColour(mLookAndFeel.getLightColour());
 
     if (mTransportSources.size() > 0) {
-        updateCursorPosition();
-
-        if (!mThumbnails.isEmpty()) {
-            if (mThumbnails[0]->getTotalLength() > 0.0) {
-                auto thumbArea = getLocalBounds();
-
-                int i{ mThumbnails.size() };
-                for (auto thumbnail : mThumbnails) {
-                    thumbnail->drawChannels(g,
-                                            thumbArea.removeFromTop(thumbArea.getHeight() / i--),
-                                            0.0,
-                                            thumbnail->getTotalLength(),
-                                            1.0f);
-                }
-            }
-        }
+        if (mWaveformCache.isValid())
+            g.drawImageAt(mWaveformCache, 0, 0);
     } else {
         g.setFont(mLookAndFeel.getFont());
 
         auto localBounds{ getLocalBounds().reduced(10) };
-        auto textRect{ localBounds.removeFromTop(140) };
+        auto textRect{ localBounds.removeFromTop(150) };
 
         auto sourcesRect{ localBounds.removeFromTop(20) };
         if (mPlayerComponent.getPlayerMode() == PlayerMode::audio) {
@@ -122,19 +108,20 @@ void ThumbnailComp::paint(juce::Graphics & g)
 
         if (mPlayerComponent.getPlayerMode() == PlayerMode::audio) {
             text << "No audio file loaded.\n";
-            text << "Open the folder containing the audio files and the speaker setup used to record them.\n";
+            text << "Open the folder containing the audio files and the speaker setup used to record them (the "
+                    "\"multichannel_files\" folder).\n";
             text << "Click in the audio thumbnails to position the playhead.\n\n";
             text << "NOTES :\n";
-            text << "If a project file for the player has already been generated (with the save player project "
+            text << "If a project file for the player has already been generated (with the Save Player Project "
                     "button), it "
                     "will be loaded automatically. "
                     "Otherwise the player will try to assign direct outputs to the currently loaded speaker setup "
                     "direct outputs.\n"
                     "Please adjust this configuration to fit your needs.\n"
-                 << "Source numbers will correspond to audio file numbers.\n";
+                 << "Source numbers will correspond to the speaker numbers of the loaded speaker setup.\n";
         } else {
             text << "No ambisonic file loaded.\n";
-            text << "Open the folder containing the \"ambisonic_files\" folder.\n";
+            text << "Open the \"ambisonic_files\" folder.\n";
             text << "Click in the audio thumbnails to position the playhead.\n\n";
             text << "NOTES :\n";
             text << "The player will add a source for every direct out audio file of the \"ambisonic_files\" folder. "
@@ -163,23 +150,31 @@ void ThumbnailComp::paint(juce::Graphics & g)
 void ThumbnailComp::changeListenerCallback(juce::ChangeBroadcaster *)
 {
     // repaint thumbnail when it has changed
+    rebuildWaveformCache();
     repaint();
 }
 
 //==============================================================================
 void ThumbnailComp::updateCursorPosition()
 {
-    currentPositionMarker.setVisible(mTransportSources.size() > 0);
+    if (mTransportSources.size() == 0)
+        return;
 
-    auto r = getLocalBounds();
-    auto cursorHeight = getLocalBounds().getHeight();
+    const auto bounds = getLocalBounds();
+    if (bounds.getWidth() <= 0 || bounds.getHeight() <= 0)
+        return;
 
-    currentPositionMarker.setRectangle(
-        juce::Rectangle<float>((float)((mTransportSources[0]->getCurrentPosition() * r.getWidth())
-                                       / mTransportSources[0]->getLengthInSeconds()),
-                               0,
-                               1.5f,
-                               (float)cursorHeight));
+    auto * source = mTransportSources[0];
+    const auto length = source->getLengthInSeconds();
+
+    if (length <= 0.0)
+        return;
+
+    const auto position = juce::jlimit(0.0, length, source->getCurrentPosition());
+    const auto x = juce::jlimit(0, bounds.getWidth() - 1, juce::roundToInt(position / length * bounds.getWidth()));
+
+    mCurrentPositionMarker.setVisible(true);
+    mCurrentPositionMarker.setBounds(x, 0, 1, getHeight());
 }
 
 //==============================================================================
@@ -199,11 +194,52 @@ void ThumbnailComp::setThumbnails(int numThumbnails)
 }
 
 //==============================================================================
+void ThumbnailComp::rebuildWaveformCache()
+{
+    const int w = getWidth();
+    const int h = getHeight();
+
+    if (w <= 0 || h <= 0)
+        return;
+
+    mWaveformCache = juce::Image(juce::Image::ARGB, w, h, true);
+
+    juce::Graphics cacheGraphics(mWaveformCache);
+    cacheGraphics.fillAll(mLookAndFeel.getBackgroundColour());
+    cacheGraphics.setColour(mLookAndFeel.getLightColour());
+
+    auto area = getLocalBounds();
+    int totalRows = 0;
+    for (auto * thumbnail : mThumbnails)
+        totalRows += thumbnail->getNumChannels();
+    if (totalRows == 0)
+        return;
+
+    int rowsLeft = totalRows;
+
+    for (auto * thumbnail : mThumbnails) {
+        const auto length = thumbnail->getTotalLength();
+
+        if (length <= 0.0) {
+            rowsLeft -= thumbnail->getNumChannels();
+            continue;
+        }
+
+        for (int channel = 0; channel < thumbnail->getNumChannels(); ++channel) {
+            const int rowHeight = area.getHeight() / rowsLeft;
+            auto channelArea = area.removeFromTop(rowHeight);
+
+            thumbnail->drawChannel(cacheGraphics, channelArea, 0.0, length, channel, 1.0f);
+            --rowsLeft;
+        }
+    }
+}
+
+//==============================================================================
 void ThumbnailComp::timerCallback()
 {
     if (mTransportSources[0]->isPlaying()) {
         updateCursorPosition();
-        repaint();
         mPlayerComponent.setTimeCode(mTransportSources[0]->getCurrentPosition());
     }
     if (mTransportSources[0]->hasStreamFinished()) {
@@ -285,7 +321,7 @@ PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, Gr
             mThumbnails->setVisible(true);
             mAmbisonicThumbnails->setVisible(false);
             if (mCanReloadPlayer) {
-                AudioManager::getInstance().preparePlayer(mPlayerFilesFolder, mPlayerMode);
+                AudioManager::getInstance().preparePlayer(mPlayerFilesFolder, mPlayerMode, mPlayerSpeakerSetup);
                 loadPlayer(false);
             }
             // mShowAmbisonicControlsButton.setVisible(false);
@@ -300,7 +336,9 @@ PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, Gr
             mThumbnails->setVisible(false);
             mAmbisonicThumbnails->setVisible(true);
             if (mCanReloadAmbisonicPlayer) {
-                AudioManager::getInstance().preparePlayer(mPlayerAmbisonicFilesFolder, mPlayerMode);
+                AudioManager::getInstance().preparePlayer(mPlayerAmbisonicFilesFolder,
+                                                          mPlayerMode,
+                                                          mPlayerSpeakerSetup);
                 loadPlayer(false);
             }
             // mShowAmbisonicControlsButton.setVisible(true);
@@ -434,7 +472,7 @@ void PlayerComponent::handleOpenFiles()
 
     if (mPlayerMode == PlayerMode::audio) {
         if (validateAudioFilesAndSpeakerSetup(chosen)) {
-            if (AudioManager::getInstance().preparePlayer(chosen, mPlayerMode)) {
+            if (AudioManager::getInstance().preparePlayer(chosen, mPlayerMode, mPlayerSpeakerSetup)) {
                 mPlayerFilesFolder = chosen;
                 loadPlayer();
             } else {
@@ -443,7 +481,7 @@ void PlayerComponent::handleOpenFiles()
         }
     } else {
         if (validateAmbisonicFiles(chosen)) {
-            if (AudioManager::getInstance().preparePlayer(chosen, mPlayerMode)) {
+            if (AudioManager::getInstance().preparePlayer(chosen, mPlayerMode, mPlayerSpeakerSetup)) {
                 mPlayerAmbisonicFilesFolder = chosen;
                 loadPlayer(false);
             } else {
@@ -460,6 +498,9 @@ bool PlayerComponent::validateAudioFilesAndSpeakerSetup(juce::File const & folde
     juce::StringArray speakerList;
     juce::StringArray audioFileExtensions{ ".wav", ".aif", ".aiff" };
     juce::XmlElement xml("tmp");
+    juce::AudioFormatManager audioFormatManager{};
+    audioFormatManager.registerBasicFormats();
+    int numAudioChannels{};
 
     auto const displayError = [&](juce::String const & message) {
         juce::NativeMessageBox::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
@@ -475,6 +516,19 @@ bool PlayerComponent::validateAudioFilesAndSpeakerSetup(juce::File const & folde
         if (audioFileExtensions.contains(filenameThatWasFound.getFileExtension())) {
             audioFileList.add(filenameThatWasFound.getFileNameWithoutExtension().substring(
                 filenameThatWasFound.getFileNameWithoutExtension().lastIndexOfChar('-') + 1));
+
+            const auto extension = filenameThatWasFound.getFileExtension();
+            const bool isAudio = extension.equalsIgnoreCase(".wav") || extension.equalsIgnoreCase(".aif")
+                                 || extension.equalsIgnoreCase(".aiff");
+
+            if (!isAudio)
+                continue;
+
+            std::unique_ptr<juce::AudioFormatReader> reader(audioFormatManager.createReaderFor(filenameThatWasFound));
+            if (reader == nullptr)
+                continue;
+
+            numAudioChannels += static_cast<int>(reader->numChannels);
 
         } else if (filenameThatWasFound.getFileExtension() == ".xml" && !foundSpeakerSetup) {
             mPlayerSpeakerSetup
@@ -508,24 +562,35 @@ bool PlayerComponent::validateAudioFilesAndSpeakerSetup(juce::File const & folde
         }
     }
 
-    if (speakerList.size() != audioFileList.size()) {
-        displayError("Audio file list does not match Speaker Setup data.\n" + juce::String(audioFileList.size())
-                     + " audio files.\n" + juce::String(speakerList.size()) + " speakers.");
+    if (speakerList.size() != numAudioChannels) {
+        if (speakerList.size() != audioFileList.size()) {
+            // interleaved audio file
+            displayError("The number of audio channels does not match Speaker Setup data.\n"
+                         + juce::String(audioFileList.size()) + " audio channels.\n" + juce::String(speakerList.size())
+                         + " speakers.");
+        } else {
+            // mono files
+            displayError("Audio file list does not match Speaker Setup data.\n" + juce::String(audioFileList.size())
+                         + " audio files.\n" + juce::String(speakerList.size()) + " speakers.");
+        }
         return false;
-    }
-
-    // for (auto const elem : audioFileList) {
-    //    if (!speakerList.contains(elem)) {
-    //        displayError("Audio file list does not match Speaker Setup data.\nAudio file #" + elem
-    //                     + " not found in Speaker Setup file.");
-    //        return false;
-    //    }
-    //}
-
-    for (auto const & elem : speakerList) {
-        if (!audioFileList.contains(elem)) {
-            displayError("Audio file list does not match Speaker Setup data.\nMissing audio file #" + elem + ".");
-            return false;
+    } else {
+        if (speakerList.size() == audioFileList.size()) {
+            // mono files
+            for (auto const elem : audioFileList) {
+                if (!speakerList.contains(elem)) {
+                    displayError("Audio file list does not match Speaker Setup data.\nAudio file #" + elem
+                                 + " not found in Speaker Setup file.");
+                    return false;
+                }
+            }
+            for (auto const & elem : speakerList) {
+                if (!audioFileList.contains(elem)) {
+                    displayError("Audio file list does not match Speaker Setup data.\nMissing audio file #" + elem
+                                 + ".");
+                    return false;
+                }
+            }
         }
     }
 
@@ -538,6 +603,9 @@ bool PlayerComponent::validateAmbisonicFiles(juce::File const & folder)
     juce::StringArray ambisonicFileList;
     juce::StringArray ambisonicDirectsFileList;
     juce::StringArray ambisonicFileExtensions{ ".wav", ".aif", ".aiff" };
+    juce::AudioFormatManager audioFormatManager{};
+    audioFormatManager.registerBasicFormats();
+    int numAmbiChannels{};
 
     auto const displayError = [&](juce::String const & message) {
         juce::NativeMessageBox::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
@@ -562,6 +630,19 @@ bool PlayerComponent::validateAmbisonicFiles(juce::File const & folder)
             } else {
                 ambisonicFileList.add(filenameThatWasFound.getFileNameWithoutExtension().substring(
                     filenameThatWasFound.getFileNameWithoutExtension().lastIndexOfChar('-') + 1));
+                const auto extension = filenameThatWasFound.getFileExtension();
+                const bool isAudio = extension.equalsIgnoreCase(".wav") || extension.equalsIgnoreCase(".aif")
+                                     || extension.equalsIgnoreCase(".aiff");
+
+                if (!isAudio)
+                    continue;
+
+                std::unique_ptr<juce::AudioFormatReader> reader(
+                    audioFormatManager.createReaderFor(filenameThatWasFound));
+                if (reader == nullptr)
+                    continue;
+
+                numAmbiChannels += static_cast<int>(reader->numChannels);
             }
         }
     }
@@ -570,7 +651,16 @@ bool PlayerComponent::validateAmbisonicFiles(juce::File const & folder)
         displayError("No ambisonic file found.");
         return false;
     }
-    mNumAmbiFiles = ambisonicFileList.size();
+
+    auto ambisonicOrder{ static_cast<int>(std::sqrt(numAmbiChannels)) - 1 };
+    if ((ambisonicOrder + 1) * (ambisonicOrder + 1) != numAmbiChannels) {
+        displayError("This folder contains " + juce::String(numAmbiChannels)
+                     + " ambisonic files.\n"
+                       "The number of ambisonic files must be a perfect square.");
+        return false;
+    }
+
+    mNumAmbiChannels = numAmbiChannels;
     mNumAmbiDirectFiles = ambisonicDirectsFileList.size();
 
     return true;
@@ -588,7 +678,7 @@ void PlayerComponent::setAmbisonicDecoderReadyToProcess(int state)
         showCheckSign();
         break;
     case 1:
-        // still loading ambisonic order
+        jassertfalse;
         break;
     default:
         return;
@@ -653,7 +743,7 @@ void PlayerComponent::loadPlayer(bool handleNewProject)
         showSpinningWheel(true);
 
         mMainContentComponent.handleAmbisonicPlayerSourcesPositions(mPlayerAmbisonicFilesFolder);
-        mAmbisonicThumbnails->setThumbnails(mNumAmbiFiles + mNumAmbiDirectFiles);
+        mAmbisonicThumbnails->setThumbnails(mNumAmbiChannels + mNumAmbiDirectFiles);
 
         mSavePlayerProjectButton.setEnabled(true);
         mPlayButton.setEnabled(true);
@@ -667,8 +757,8 @@ void PlayerComponent::loadPlayer(bool handleNewProject)
         setTimeCode(0.0);
         mCanReloadAmbisonicPlayer = true;
 
-        auto ambisonicOrder{ static_cast<int>(std::sqrt(mNumAmbiFiles)) - 1 };
-        jassert((ambisonicOrder + 1) * (ambisonicOrder + 1) == mNumAmbiFiles);
+        auto ambisonicOrder{ static_cast<int>(std::sqrt(mNumAmbiChannels)) - 1 };
+        jassert((ambisonicOrder + 1) * (ambisonicOrder + 1) == mNumAmbiChannels);
         mAmbiOrderComboBox.setSelectedId(ambisonicOrder, juce::sendNotification);
 
         resized();
@@ -770,7 +860,6 @@ void PlayerComponent::buttonClicked(juce::Button * button)
         if (mPlayerMode == PlayerMode::audio) {
             mThumbnails->setSources();
         } else {
-            mIsAmbisonicDecoderReadyToProcess = false;
             mAmbisonicThumbnails->setSources();
         }
     } else if (button == &mSavePlayerProjectButton) {
@@ -835,6 +924,15 @@ void PlayerComponent::resized()
     mPlayButton.setBounds(controls);
 
     mAmbiOrderComboBox.setEnabled(mAmbisonicThumbnails.get()->getNumSources() > 0);
+
+    if (mThumbnails->getNumSources() > 0) {
+        mThumbnails->updateCursorPosition();
+        mThumbnails->rebuildWaveformCache();
+    }
+    if (mAmbisonicThumbnails->getNumSources() > 0) {
+        mAmbisonicThumbnails->updateCursorPosition();
+        mAmbisonicThumbnails->rebuildWaveformCache();
+    }
 }
 
 //==============================================================================
@@ -960,6 +1058,19 @@ void PlayerWindow::reloadPlayer()
 void PlayerWindow::setAmbisonicDecoderReadyToProcess(int state)
 {
     mPlayerComponent.setAmbisonicDecoderReadyToProcess(state);
+}
+
+//==============================================================================
+ThumbnailComp::PlayheadOverlay::PlayheadOverlay(GrisLookAndFeel & glaf) : mLookAndFeel(glaf)
+{
+    setInterceptsMouseClicks(false, false);
+}
+
+//==============================================================================
+void ThumbnailComp::PlayheadOverlay::paint(juce::Graphics & g)
+{
+    g.setColour(mLookAndFeel.getLightColour());
+    g.fillRect(getLocalBounds());
 }
 
 } // namespace gris

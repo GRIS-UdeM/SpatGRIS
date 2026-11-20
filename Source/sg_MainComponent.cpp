@@ -3565,7 +3565,7 @@ tl::optional<SpeakerSetup> MainContentComponent::playerExtractSpeakerSetup(juce:
 }
 
 //==============================================================================
-void MainContentComponent::initAndConfigureAmbiDecAlgorithm(int ambisonicFileCount, int directOutFileCount)
+void MainContentComponent::initAndConfigureAmbiDecAlgorithm(int ambisonicChannelCount, int directOutFileCount)
 {
     auto & ambiDecSpatAlgorithm{ mAudioProcessor->getAmbiDecSpatAlgorithm() };
     auto newAmbiDecSpatAlgorithm{ AmbiDecSpatAlgorithm::make(mData.speakerSetup,
@@ -3575,8 +3575,9 @@ void MainContentComponent::initAndConfigureAmbiDecAlgorithm(int ambisonicFileCou
                                                              mData.appData.audioSettings.bufferSize,
                                                              mData.appData.binauralSettings) };
     ambiDecSpatAlgorithm = std::move(newAmbiDecSpatAlgorithm);
-    static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())->configure(ambisonicFileCount, directOutFileCount);
-    AudioManager::getInstance().initAmbiDecInputBuffer(ambisonicFileCount,
+    static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())
+        ->configure(ambisonicChannelCount, directOutFileCount);
+    AudioManager::getInstance().initAmbiDecInputBuffer(ambisonicChannelCount,
                                                        mData.appData.audioSettings.bufferSize,
                                                        directOutFileCount);
     static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgorithm.get())->setCallback([this](int state) {
@@ -3702,9 +3703,11 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
 
     // Get ambisonic and direct out files count
     auto & ambFilesAudioManager{ AudioManager::getInstance().getAmbiAudioFiles() };
-    int ambisonicFileCount = 0;
+    int ambisonicChannelCount = 0;
     int directFileCount = 0;
+    juce::AudioFormatManager audioFormatManager{};
 
+    audioFormatManager.registerBasicFormats();
     for (const auto & file : ambFilesAudioManager) {
         const auto extension = file.getFileExtension();
         const bool isAudio = extension.equalsIgnoreCase(".wav") || extension.equalsIgnoreCase(".aif")
@@ -3713,10 +3716,14 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
         if (!isAudio)
             continue;
 
+        std::unique_ptr<juce::AudioFormatReader> reader(audioFormatManager.createReaderFor(file));
+        if (reader == nullptr)
+            continue;
+
         if (file.getFileNameWithoutExtension().contains("-direct-"))
             ++directFileCount;
         else
-            ++ambisonicFileCount;
+            ambisonicChannelCount += static_cast<int>(reader->numChannels);
     }
 
     // instead of numSourcesChanged, remove all sources and rebuild them from the current speaker setup
@@ -3833,7 +3840,7 @@ void MainContentComponent::handleAmbisonicPlayerSourcesPositions(juce::File & /*
     refreshSourceSlices();
 
     // AmbiDec algo
-    initAndConfigureAmbiDecAlgorithm(ambisonicFileCount, directFileCount);
+    initAndConfigureAmbiDecAlgorithm(ambisonicChannelCount, directFileCount);
 
     refreshAudioProcessor();
 }

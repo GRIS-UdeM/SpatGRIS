@@ -402,7 +402,7 @@ private:
     //==============================================================================
     // Player
     void handlePlayerPlayStop();
-    void initAndConfigureAmbiDecAlgorithm(int ambisonicFileCount, int directOutFileCount);
+    void initAndConfigureAmbiDecAlgorithm(int ambisonicChannelCount, int directOutFileCount);
     //==============================================================================
     // SpeakerView
     int getSpeakerViewPIDOnMacOS() const;
