@@ -150,6 +150,10 @@ class MainContentComponent final
     SpatGrisData mData{};
     tl::optional<SpeakerSetup> mCurrentSpeakerSetupBeforeEditing{};
 
+    //==============================================================================
+    // Message Box
+    juce::ScopedMessageBox mScopeMessageBox;
+
 public:
     //==============================================================================
     MainContentComponent(MainWindow & mainWindow,
@@ -321,7 +325,7 @@ public:
     void handlePlayerSourcesPositions(tl::optional<SpeakerSetup> & playerSpeakerSetup, juce::File & playerFilesFolder);
     void handleAmbisonicPlayerSourcesPositions(juce::File & playerAmbiconicFilesFolder);
     void handleNewProjectForPlayer();
-    bool savePlayerProject(juce::File & playerFilesFolder);
+    void savePlayerProject(juce::File & playerFilesFolder);
     void setPlayerMode(PlayerMode mode);
 
     // SpeakerView
@@ -395,6 +399,9 @@ private:
     void setBinauralReadyToProcess(int state);
 
     void audioDeviceConnectionLostCallback(int res);
+
+    void applySpatModeChange(SpatMode const spatMode);
+    void applySavePlayerProject(juce::File file);
     //==============================================================================
     // OSC
     void startOsc();
@@ -418,6 +425,11 @@ private:
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
     [[nodiscard]] bool makeSureSpeakerSetupIsSavedToDisk() noexcept;
     void setTitles() const;
+
+    // Message Box Callbacks
+    void keepSpeakerSetupChangesCallback(int result);
+    void ensureVbapIsDomeLikeCallback(int result);
+    void savePlayerProjectCallback(int result, juce::File file);
 
     void timerCallback() override;
     void paint(juce::Graphics & g) override;

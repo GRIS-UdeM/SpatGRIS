@@ -619,62 +619,47 @@ void MainContentComponent::handleSetUseDefaultBinauralProfile()
 void MainContentComponent::closeSpeakersConfigurationWindow()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
+    {
+        juce::ScopedReadLock const lock{ mLock };
 
-    auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastSpeakerSetup } }.getDocumentElement() };
-    jassert(savedElement);
-    if (!savedElement) {
-        return;
-    }
-
-    auto savedSpeakerSetup{ SpeakerSetup::fromXml(*savedElement) };
-    jassert(savedSpeakerSetup);
-    if (!savedSpeakerSetup) {
-        return;
-    }
-
-    auto const speakerSetupKeepChanges = [&]() {
-        auto const result{ juce::AlertWindow::showYesNoCancelBox(
-            juce::MessageBoxIconType::QuestionIcon,
-            "Modified Speaker Setup",
-            "The Speaker Setup has been modified. Do you want to save your changes ?",
-            "Yes",
-            "No",
-            "Cancel",
-            nullptr,
-            nullptr) };
-
-        // 0 = Cancel, 1 = Yes, 2 = No
-        if (result == 0) {
+        auto const savedElement{
+            juce::XmlDocument{ juce::File{ mData.appData.lastSpeakerSetup } }.getDocumentElement()
+        };
+        jassert(savedElement);
+        if (!savedElement) {
             return;
         }
-        mEditSpeakersWindow.reset();
 
-        // save to file if we clicked yes
-        if (result == 1) {
-            if (!saveSpeakerSetup(mData.appData.lastSpeakerSetup)) {
-                return;
-            }
+        auto savedSpeakerSetup{ SpeakerSetup::fromXml(*savedElement) };
+        jassert(savedSpeakerSetup);
+        if (!savedSpeakerSetup) {
+            return;
         }
-        // In all cases, load from file. If we clicked no, this will reset to the previous state.
-        loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
-        setSpatMode(mData.project.spatMode);
-        refreshSpeakers();
-    };
+    }
 
     if (!isSpeakerSetupModified()) {
         mEditSpeakersWindow.reset();
         return;
     } else {
-        speakerSetupKeepChanges();
+        mScopeMessageBox = juce::AlertWindow::showScopedAsync(
+            juce::MessageBoxOptions()
+                .withIconType(juce::MessageBoxIconType::QuestionIcon)
+                .withTitle("Modified Speaker Setup")
+                .withMessage("The Speaker Setup has been modified. Do you want to save your changes ?")
+                .withButton("Yes", 1)
+                .withButton("No", 2)
+                .withButton("Cancel", 0),
+            [this](int res) { keepSpeakerSetupChangesCallback(res); });
     }
 }
 
+//==============================================================================
 void MainContentComponent::saveAsEditedSpeakerSetup()
 {
     saveSpeakerSetup(tl::nullopt);
 }
 
+//==============================================================================
 void MainContentComponent::saveEditedSpeakerSetup()
 {
     handleSaveSpeakerSetup();
@@ -971,35 +956,28 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    auto const ensureVbapIsDomeLike = [&]() {
-        if (spatMode != SpatMode::mbap && !mData.speakerSetup.isDomeLike()) {
-            auto const result{ juce::AlertWindow::showOkCancelBox(
-                juce::AlertWindow::InfoIcon,
-                "Converting to DOME",
-                "A CUBE speaker setup will be converted to a DOME structure.\nThis "
-                "will not affect the original file.",
-                "Ok",
-                "Cancel",
-                this) };
-            if (!result) {
-                return false;
-            }
+    if (spatMode != SpatMode::mbap && !mData.speakerSetup.isDomeLike()) {
+        mScopeMessageBox = juce::AlertWindow::showScopedAsync(
+            juce::MessageBoxOptions()
+                .withIconType(juce::AlertWindow::InfoIcon)
+                .withTitle("Converting to DOME")
+                .withMessage("A CUBE speaker setup will be converted to a DOME structure.\nThis "
+                             "will not affect the original file.")
+                .withButton("Ok", 1)
+                .withButton("Cancel", 0),
+            [this](int res) { ensureVbapIsDomeLikeCallback(res); });
+    } else {
+        applySpatModeChange(spatMode);
+    }
+}
 
-            for (auto & node : mData.speakerSetup.speakers) {
-                auto & speaker{ *node.value };
-                if (speaker.isDirectOutOnly) {
-                    continue;
-                }
-                speaker.position = speaker.position.normalized();
-            }
-        }
-        return true;
-    };
+//==============================================================================
+void MainContentComponent::applySpatModeChange(SpatMode const spatMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     auto newSpatMode{ spatMode };
-
-    if (!ensureVbapIsDomeLike())
-        newSpatMode = SpatMode::mbap;
 
     // Speaker setup must be Dome or Cube, never Hybrid
     mData.speakerSetup.spatMode = newSpatMode == SpatMode::mbap ? SpatMode::mbap : SpatMode::vbap;
@@ -1011,12 +989,34 @@ void MainContentComponent::setSpatMode(SpatMode const spatMode)
     refreshSpeakers();
 }
 
+//==============================================================================
+void MainContentComponent::applySavePlayerProject(juce::File file)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto const content{ mData.project.toXml() };
+    auto const success{ content->writeTo(file) };
+    jassert(success);
+
+    if (success) {
+        mData.appData.lastProject = file.getFullPathName();
+    }
+
+    setTitles();
+    if (mPlayerWindow != nullptr) {
+        mPlayerWindow->makeSaveButtonBlink();
+    }
+}
+
+//==============================================================================
 void MainContentComponent::setMulticoreDSPState(const bool state)
 {
     mData.project.useMulticoreDSP = state;
     refreshSpatAlgorithm();
 }
 
+//==============================================================================
 void MainContentComponent::setMulticoreDSPPreset(int preset)
 {
     mData.project.multicoreDSPPreset = preset;
@@ -3165,6 +3165,59 @@ void MainContentComponent::setTitles() const
 }
 
 //==============================================================================
+void MainContentComponent::keepSpeakerSetupChangesCallback(int result)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    // 0 = Cancel, 1 = Yes, 2 = No
+    if (result == 0) {
+        return;
+    }
+    mEditSpeakersWindow.reset();
+
+    // save to file if we clicked yes
+    if (result == 1) {
+        if (!saveSpeakerSetup(mData.appData.lastSpeakerSetup)) {
+            return; // Cancelling the Save. Should we revert the changes?
+        }
+    }
+    // In all cases, load from file. If we clicked no, this will reset to the previous state.
+    loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges);
+    setSpatMode(mData.project.spatMode);
+    refreshSpeakers();
+}
+
+//==============================================================================
+void MainContentComponent::ensureVbapIsDomeLikeCallback(int result)
+{
+    if (result == 0) {
+        applySpatModeChange(SpatMode::mbap);
+        return;
+    }
+
+    for (auto & node : mData.speakerSetup.speakers) {
+        auto & speaker{ *node.value };
+        if (speaker.isDirectOutOnly) {
+            continue;
+        }
+        speaker.position = speaker.position.normalized();
+    }
+    applySpatModeChange(SpatMode::vbap);
+}
+
+//==============================================================================
+void MainContentComponent::savePlayerProjectCallback(int result, juce::File file)
+{
+    // 0 = Cancel, 1 = Overwrite
+    bool shouldOverwriteProjectFile{ result == 0 ? false : true };
+
+    if (shouldOverwriteProjectFile) {
+        applySavePlayerProject(file);
+    }
+}
+
+//==============================================================================
 void MainContentComponent::reassignSourcesPositions()
 {
     for (auto const & source : mData.project.sources) {
@@ -4047,7 +4100,7 @@ void MainContentComponent::resetSpeakerViewShouldGrabFocus()
 }
 
 //==============================================================================
-bool MainContentComponent::savePlayerProject(juce::File & playerFilesFolder)
+void MainContentComponent::savePlayerProject(juce::File & playerFilesFolder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -4058,41 +4111,23 @@ bool MainContentComponent::savePlayerProject(juce::File & playerFilesFolder)
     auto const playerProjectFile{ playerFilesFolder.getFullPathName() + juce::File::getSeparatorString()
                                   + playerProjectFileName };
     const juce::File file{ playerProjectFile };
-    bool shouldOverwriteProjectFile{ true };
 
     if (file.exists()) {
         auto msg{ playerMode == PlayerMode::audio
                       ? juce::String("The Player Project file already exists. Would you like to overwrite it ?")
                       : juce::String(
                             "The Ambisonic Player Project file already exists. Would you like to overwrite it ?") };
-        auto const result{ juce::AlertWindow::showOkCancelBox(juce::MessageBoxIconType::WarningIcon,
-                                                              "File exists",
-                                                              msg,
-                                                              "Overwrite",
-                                                              "Cancel",
-                                                              nullptr,
-                                                              nullptr) };
-
-        // 0 = Cancel, 1 = Overwrite
-        if (result == 0) {
-            shouldOverwriteProjectFile = false;
-        }
+        mScopeMessageBox
+            = juce::AlertWindow::showScopedAsync(juce::MessageBoxOptions()
+                                                     .withIconType(juce::AlertWindow::WarningIcon)
+                                                     .withTitle("File exists")
+                                                     .withMessage(msg)
+                                                     .withButton("Overwrite", 1)
+                                                     .withButton("Cancel", 0),
+                                                 [this, file](int res) { savePlayerProjectCallback(res, file); });
+    } else {
+        applySavePlayerProject(file);
     }
-
-    if (shouldOverwriteProjectFile) {
-        auto const content{ mData.project.toXml() };
-        auto const success{ content->writeTo(playerProjectFile) };
-        jassert(success);
-
-        if (success) {
-            mData.appData.lastProject = playerProjectFile;
-        }
-
-        setTitles();
-
-        return true;
-    }
-    return false;
 }
 
 //==============================================================================

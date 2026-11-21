@@ -112,6 +112,7 @@ public:
     void showSpinningWheel(bool showSpinningWheel);
     void showCheckSign();
     void setAmbisonicDecoderReadyToProcess(int state);
+    void makeSaveButtonBlink();
 
 private:
     //==============================================================================
@@ -208,6 +209,7 @@ public:
     void stopAudio();
     void reloadPlayer();
     void setAmbisonicDecoderReadyToProcess(int state);
+    void makeSaveButtonBlink();
 
 private:
     //==============================================================================

@@ -577,7 +577,7 @@ bool PlayerComponent::validateAudioFilesAndSpeakerSetup(juce::File const & folde
     } else {
         if (speakerList.size() == audioFileList.size()) {
             // mono files
-            for (auto const elem : audioFileList) {
+            for (auto const & elem : audioFileList) {
                 if (!speakerList.contains(elem)) {
                     displayError("Audio file list does not match Speaker Setup data.\nAudio file #" + elem
                                  + " not found in Speaker Setup file.");
@@ -683,6 +683,13 @@ void PlayerComponent::setAmbisonicDecoderReadyToProcess(int state)
     default:
         return;
     }
+}
+
+//==============================================================================
+void PlayerComponent::makeSaveButtonBlink()
+{
+    mMakeButtonBlink = true;
+    startTimer(400);
 }
 
 //==============================================================================
@@ -863,13 +870,8 @@ void PlayerComponent::buttonClicked(juce::Button * button)
             mAmbisonicThumbnails->setSources();
         }
     } else if (button == &mSavePlayerProjectButton) {
-        auto playerProjectSaved{ mPlayerMode == PlayerMode::audio
-                                     ? mMainContentComponent.savePlayerProject(mPlayerFilesFolder)
-                                     : mMainContentComponent.savePlayerProject(mPlayerAmbisonicFilesFolder) };
-        if (playerProjectSaved) {
-            mMakeButtonBlink = true;
-            startTimer(400);
-        }
+        mPlayerMode == PlayerMode::audio ? mMainContentComponent.savePlayerProject(mPlayerFilesFolder)
+                                         : mMainContentComponent.savePlayerProject(mPlayerAmbisonicFilesFolder);
     } else if (button == &mPlayButton) {
         playAudio();
     } else if (button == &mStopButton) {
@@ -1058,6 +1060,12 @@ void PlayerWindow::reloadPlayer()
 void PlayerWindow::setAmbisonicDecoderReadyToProcess(int state)
 {
     mPlayerComponent.setAmbisonicDecoderReadyToProcess(state);
+}
+
+//==============================================================================
+void PlayerWindow::makeSaveButtonBlink()
+{
+    mPlayerComponent.makeSaveButtonBlink();
 }
 
 //==============================================================================
