@@ -1746,8 +1746,8 @@ void MainContentComponent::audioParametersChanged()
                                                  .withIconType(juce::MessageBoxIconType::WarningIcon)
                                                  .withTitle("Audio Device Connection Lost")
                                                  .withMessage(msg)
-                                                 .withButton("Cancel")
-                                                 .withButton("Settings"),
+                                                 .withButton("Cancel", 1)
+                                                 .withButton("Settings", 0),
                                              [this](int res) { audioDeviceConnectionLostCallback(res); });
                 generalMuteButtonPressed();
             }
