@@ -495,6 +495,8 @@ bool AudioManager::preparePlayer(juce::File const & folder,
 
         const auto channelCount = probe->numChannels;
 
+        auto spkSetupOrdered{ playerSpeakerSetup->ordering };
+        spkSetupOrdered.sort(); // same speaker order used when recording
         if (channelCount > 1) {
             for (int channel = 0; channel < channelCount; ++channel) {
                 auto * channelReader = formatManager.createReaderFor(filenameThatWasFound);
@@ -513,7 +515,7 @@ bool AudioManager::preparePlayer(juce::File const & folder,
                     sourceIndex = static_cast<source_index_t>(channel + source_index_t::OFFSET);
                 } else {
                     jassert(channelCount == playerSpeakerSetup->speakers.size());
-                    sourceIndex = static_cast<source_index_t>(playerSpeakerSetup->ordering.getUnchecked(channel).get());
+                    sourceIndex = static_cast<source_index_t>(spkSetupOrdered.getUnchecked(channel).get());
                 }
                 transportSources.add(transport.release());
                 transportSourceIndexes.add(new source_index_t(sourceIndex));
