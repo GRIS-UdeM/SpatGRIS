@@ -3696,10 +3696,6 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
                 source.value->colour = mLookAndFeel.getSourceColor();
                 mSourceSliceComponents[source.key].setSourceColour(mLookAndFeel.getSourceColor());
             }
-
-            // reset source output UTILE ???
-            setSourceDirectOut(sourceIndex, tl::nullopt);
-            setSourceState(sourceIndex, SliceState::normal);
         }
 
         auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
