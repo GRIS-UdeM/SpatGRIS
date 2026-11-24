@@ -42,6 +42,8 @@ class AudioManager final : juce::AudioSourcePlayer
 {
     // 2^17 samples * 32 bits per sample == 0.5 mb buffer per channel
     static constexpr auto RECORDERS_BUFFER_SIZE_IN_SAMPLES = 131072;
+    // Read-ahead buffer of each player AudioTransportSource
+    static constexpr auto PLAYER_READ_AHEAD_SIZE_IN_SAMPLES = 32768;
     //==============================================================================
     /** Records audio for a single file, regardless of the number of channels. */
     struct FileRecorder {
@@ -54,6 +56,16 @@ class AudioManager final : juce::AudioSourcePlayer
         // A collection of pointers to the buffers that will get recorded on disk. Note that this is NOT null terminated
         // : all pointers are non-null and valid.
         juce::Array<float const *> dataToRecord{};
+    };
+
+    //==============================================================================
+    /** Routing of one player file (= one AudioTransportSource) to SpatGRIS sources. */
+    struct PlayerTrack {
+        // SpatGRIS source fed by each channel of the file
+        juce::Array<source_index_t> sourceIndexes{};
+        // Scratch buffer (numChannels x MAX_NUM_SAMPLES) the transport renders into before its channels are copied
+        // to their sources. Only allocated for multichannel files : mono files render directly into their source.
+        juce::AudioBuffer<float> scratchBuffer{};
     };
 
     //==============================================================================
@@ -109,19 +121,21 @@ private:
     juce::Array<juce::File> mAudioFiles; // for audio thumbnails
     juce::OwnedArray<juce::AudioFormatReaderSource> mReaderSources;
     juce::OwnedArray<juce::AudioTransportSource> mTransportSources{};
-    juce::OwnedArray<source_index_t> mTransportSourcesIndexes{};
+    juce::OwnedArray<PlayerTrack> mPlayerTracks{}; // one per transport source, same order
     juce::TimeSliceThread mPlayerThread{ "SpatGRIS player thread" };
     juce::AudioFormat * mAudioFormat{};
     bool mFormatsRegistered{};
+    double mTransportsSampleRate{}; // device sample rate the transports were attached for
     // -- ambisonics
     juce::AudioFormatManager mAmbiFormatManager{};
     juce::Array<juce::File> mAmbiAudioFiles; // for audio thumbnails
     juce::OwnedArray<juce::AudioFormatReaderSource> mAmbiReaderSources;
     juce::OwnedArray<juce::AudioTransportSource> mAmbiTransportSources{};
-    juce::OwnedArray<source_index_t> mAmbiTransportSourcesIndexes{};
+    juce::OwnedArray<PlayerTrack> mAmbiPlayerTracks{}; // one per transport source, same order
     juce::TimeSliceThread mAmbiPlayerThread{ "SpatGRIS ambisonic player thread" };
     juce::AudioFormat * mAmbiAudioFormat{};
     bool mAmbiFormatsRegistered{};
+    double mAmbiTransportsSampleRate{}; // device sample rate the transports were attached for
 
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
@@ -204,31 +218,14 @@ private:
                                           juce::String const & outputDevice,
                                           double requestedSampleRate,
                                           int requestedBufferSize);
+    static void attachTransportSource(juce::AudioTransportSource & transport,
+                                      juce::AudioFormatReaderSource * source,
+                                      double deviceSampleRate,
+                                      juce::TimeSliceThread & thread);
     //==============================================================================
     double mSampleRate{};
 
     JUCE_LEAK_DETECTOR(AudioManager)
 }; // class AudioManager
-
-//==============================================================================
-class MonoChannelReaderSource final : public juce::AudioFormatReaderSource
-{
-public:
-    MonoChannelReaderSource(juce::AudioFormatReader * reader, int channel);
-    SG_DELETE_COPY_AND_MOVE(MonoChannelReaderSource)
-
-    //==============================================================================
-    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
-    void releaseResources() override { juce::AudioFormatReaderSource::releaseResources(); }
-    void getNextAudioBlock(const juce::AudioSourceChannelInfo & info) override;
-
-    //==============================================================================
-private:
-    int mChannelIndex;
-    int mChannelCount;
-    std::vector<float *> mReaderDestinations;
-
-    JUCE_LEAK_DETECTOR(MonoChannelReaderSource)
-};
 
 } // namespace gris
