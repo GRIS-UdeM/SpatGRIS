@@ -114,7 +114,21 @@ private:
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
     juce::TimeSliceThread mAmbiRecordersThread{ "SpatGRIS ambisonic recording thread" };
     // Playing
-    std::atomic<bool> mIsPlaying{};
+    /** Player transport state, shared between the message thread and the audio thread.
+     *
+     * stopped   -> playing   : startPlaying() (message thread). The first rendered block is faded in.
+     * playing   -> fadingOut : stopPlaying() (message thread), which then waits for fadedOut.
+     * fadingOut -> fadedOut  : audio thread, after rendering one last block faded out to 0.
+     * fadedOut  -> stopped   : stopPlaying(), once the transports are stopped and moved back to where the fade
+     *                          ended.
+     */
+    enum class PlayerState { stopped, playing, fadingOut, fadedOut };
+    std::atomic<PlayerState> mPlayerState{ PlayerState::stopped };
+    std::atomic<juce::int64> mPlayerStopPosition{};
+    // Mode of the transports being played. Recorded at start, because config->playerMode changes as soon as the
+    // Player mode is switched, possibly before the previous mode has finished fading out.
+    std::atomic<PlayerMode> mPlayingMode{ PlayerMode::audio };
+    std::atomic<bool> mPlayerFadeInPending{};
     std::atomic<bool> mIsPlayerLoading{};
     // -- audio
     juce::AudioFormatManager mFormatManager{};
@@ -218,6 +232,7 @@ private:
                                           juce::String const & outputDevice,
                                           double requestedSampleRate,
                                           int requestedBufferSize);
+    [[nodiscard]] bool waitForPlayerState(PlayerState state) const;
     static void attachTransportSource(juce::AudioTransportSource & transport,
                                       juce::AudioFormatReaderSource * source,
                                       double deviceSampleRate,

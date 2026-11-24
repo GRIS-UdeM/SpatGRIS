@@ -83,10 +83,6 @@ void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputC
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
 
-    if (!mAudioProcessor || mIsPlayerLoading) {
-        return;
-    }
-
     // clear buffers
     mInputBuffer.silence();
     if (mStereoRouting) {
@@ -103,22 +99,51 @@ void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputC
         std::fill_n(data, numSamples, 0.0f);
     });
 
+    if (!mAudioProcessor || mIsPlayerLoading) {
+        return;
+    }
+
     juce::ScopedTryLock const lock{ mAudioProcessor->getLock() };
     if (!lock.isLocked()) {
         return;
     }
 
+    auto const playerState{ mPlayerState.load() };
+    auto const isFadedOut{ playerState == PlayerState::fadedOut };
+    if (isFadedOut) {
+        // The faded-out block went through the ambisonic decoder during the previous callback : it can now be
+        // turned off without cutting anything, and without it re-processing a stale input buffer.
+        mAudioProcessor->setShouldProcessAmbiDecAlgo(false);
+    }
+
     // if there is a player, copy audio file data to buffers, if not,
     // copy input data to buffers
-    if (isPlaying()) {
+    if (playerState != PlayerState::stopped) {
+        // Gain ramp of this block : from 0 on the first block after a start, to 0 on the last block before a stop.
+        // Once faded out, the transports are still pulled (silenced) so that AudioTransportSource::stop(), which
+        // waits for one more rendered block, returns quickly.
+        auto const gainStart{ isFadedOut || mPlayerFadeInPending.exchange(false) ? 0.0f : 1.0f };
+        auto const gainEnd{ playerState == PlayerState::playing ? 1.0f : 0.0f };
+        auto const applyRamp = [gainStart, gainEnd](float * data, int const numRampSamples) {
+            if (gainStart == 1.0f && gainEnd == 1.0f) {
+                return;
+            }
+            auto const increment{ (gainEnd - gainStart) / static_cast<float>(numRampSamples) };
+            auto gain{ gainStart };
+            for (int i{}; i < numRampSamples; ++i) {
+                data[i] *= gain;
+                gain += increment;
+            }
+        };
+
         // Renders every player file into its SpatGRIS source buffers. Each file has a single transport source
         // (whatever its number of channels), so an interleaved file is read and decoded only once.
         // All transport sources are started, stopped and positioned together (startPlaying(), stopPlaying(),
         // setPosition(), reloadPlayerAudioFiles()), so they stay in sync without re-seeking them here.
-        auto const renderPlayer = [numSamples](juce::OwnedArray<juce::AudioTransportSource> & transports,
-                                               juce::OwnedArray<PlayerTrack> & tracks,
-                                               SourceAudioBuffer & destination,
-                                               juce::Array<float *> * channelPtrs) {
+        auto const renderPlayer = [numSamples, &applyRamp](juce::OwnedArray<juce::AudioTransportSource> & transports,
+                                                           juce::OwnedArray<PlayerTrack> & tracks,
+                                                           SourceAudioBuffer & destination,
+                                                           juce::Array<float *> * channelPtrs) {
             jassert(transports.size() == tracks.size());
             auto const numTracks{ std::min(transports.size(), tracks.size()) };
             for (int i{}; i < numTracks; ++i) {
@@ -129,6 +154,7 @@ void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputC
                     // mono file: render directly into the source buffer
                     auto & buffer{ destination[track.sourceIndexes.getUnchecked(0)] };
                     transport.getNextAudioBlock(juce::AudioSourceChannelInfo{ buffer });
+                    applyRamp(buffer.getWritePointer(0), buffer.getNumSamples());
                     if (channelPtrs != nullptr) {
                         channelPtrs->add(buffer.getWritePointer(0));
                     }
@@ -143,6 +169,7 @@ void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputC
                 for (int channel{}; channel < track.sourceIndexes.size(); ++channel) {
                     auto * dest{ destination[track.sourceIndexes.getUnchecked(channel)].getWritePointer(0) };
                     std::copy_n(track.scratchBuffer.getReadPointer(channel), numSamples, dest);
+                    applyRamp(dest, numSamples);
                     if (channelPtrs != nullptr) {
                         channelPtrs->add(dest);
                     }
@@ -150,21 +177,35 @@ void AudioManager::audioDeviceIOCallbackWithContext(const float * const * inputC
             }
         };
 
-        if (mAudioProcessor->getAudioData().config->playerMode == PlayerMode::audio) {
+        auto const isAudioMode{ mPlayingMode.load() == PlayerMode::audio };
+        auto & transports{ isAudioMode ? mTransportSources : mAmbiTransportSources };
+        if (isAudioMode) {
             renderPlayer(mTransportSources, mPlayerTracks, mInputBuffer, nullptr);
         } else { // play ambisonic files
             auto const & ambiDecSpatAlgo = mAudioProcessor->getAmbiDecSpatAlgorithm();
-            if (ambiDecSpatAlgo != nullptr) {
-                mInputAmbiDecChannelPtrs.clearQuick();
-                renderPlayer(mAmbiTransportSources,
-                             mAmbiPlayerTracks,
-                             mInputAmbiDecSrcAudioBuffer,
-                             &mInputAmbiDecChannelPtrs);
+            mInputAmbiDecChannelPtrs.clearQuick();
+            renderPlayer(mAmbiTransportSources,
+                         mAmbiPlayerTracks,
+                         mInputAmbiDecSrcAudioBuffer,
+                         &mInputAmbiDecChannelPtrs);
+            if (ambiDecSpatAlgo != nullptr && !isFadedOut) {
                 mInputAmbiDecBuffer.setDataToReferTo(mInputAmbiDecChannelPtrs.getRawDataPointer(),
                                                      mInputAmbiDecChannelPtrs.size(),
                                                      numSamples);
                 static_cast<AmbiDecSpatAlgorithm *>(ambiDecSpatAlgo.get())->copyAmbPlayerBuffer(mInputAmbiDecBuffer);
+                // Turned on here so the decoder never runs before it has received a fresh block.
+                // It is turned off once the faded-out block has been decoded (fadedOut state).
+                mAudioProcessor->setShouldProcessAmbiDecAlgo(true);
             }
+        }
+
+        if (playerState == PlayerState::fadingOut) {
+            // The transports keep being pulled until they are actually stopped.
+            if (!transports.isEmpty()) {
+                mPlayerStopPosition = transports.getUnchecked(0)->getNextReadPosition();
+            }
+            auto expected{ PlayerState::fadingOut };
+            mPlayerState.compare_exchange_strong(expected, PlayerState::fadedOut);
         }
     } else {
         auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
@@ -348,26 +389,22 @@ void AudioManager::startPlaying()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (mAudioProcessor->getAudioData().config->playerMode == PlayerMode::audio) {
-        // Two loops to avoid clicks
-        for (auto transportSource : mTransportSources) {
-            transportSource->setGain(1.0f);
-        }
-        for (auto transportSource : mTransportSources) {
-            transportSource->start();
-        }
-    } else {
-        // Two loops to avoid clicks
-        for (auto transportSource : mAmbiTransportSources) {
-            transportSource->setGain(1.0f);
-        }
-        for (auto transportSource : mAmbiTransportSources) {
-            transportSource->start();
-        }
-        mAudioProcessor->setShouldProcessAmbiDecAlgo(true);
+    if (mPlayerState.load() != PlayerState::stopped) {
+        return;
     }
 
-    mIsPlaying = true;
+    auto const mode{ mAudioProcessor->getAudioData().config->playerMode };
+    mPlayingMode = mode;
+
+    // The audio thread doesn't pull the transports while stopped, so they all start in sync. The fade-in is applied
+    // by the audio callback. The ambisonic decoder is turned on by the audio callback with the first block.
+    for (auto transportSource : mode == PlayerMode::audio ? mTransportSources : mAmbiTransportSources) {
+        transportSource->setGain(1.0f);
+        transportSource->start();
+    }
+
+    mPlayerFadeInPending = true;
+    mPlayerState = PlayerState::playing;
 }
 
 //==============================================================================
@@ -375,32 +412,64 @@ void AudioManager::stopPlaying()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (mAudioProcessor->getAudioData().config->playerMode == PlayerMode::audio) {
-        // Two loops to avoid clicks
-        for (auto transportSource : mTransportSources) {
-            transportSource->setGain(0.001f);
-        }
-        for (auto transportSource : mTransportSources) {
-            transportSource->stop();
-        }
-    } else {
-        // Two loops to avoid clicks
-        for (auto transportSource : mAmbiTransportSources) {
-            transportSource->setGain(0.001f);
-        }
-        for (auto transportSource : mAmbiTransportSources) {
-            transportSource->stop();
-        }
-        mAudioProcessor->setShouldProcessAmbiDecAlgo(false);
+    auto expected{ PlayerState::playing };
+    if (!mPlayerState.compare_exchange_strong(expected, PlayerState::fadingOut)) {
+        return; // not playing
     }
 
-    mIsPlaying = false;
+    // Let the audio thread render one last block faded out to 0 (and decode it, in ambisonic mode).
+    auto const fadedOut{ waitForPlayerState(PlayerState::fadedOut) };
+
+    // Stop the transports of the mode that was playing : config->playerMode may already have been switched.
+    // The audio thread keeps pulling them (silenced) meanwhile, so each stop() returns within one block.
+    auto & transports{ mPlayingMode.load() == PlayerMode::audio ? mTransportSources : mAmbiTransportSources };
+    for (auto transportSource : transports) {
+        transportSource->stop();
+    }
+
+    // Move transports back to where playback audibly stopped.
+    if (fadedOut) {
+        auto const stopPosition{ mPlayerStopPosition.load() };
+        for (auto transportSource : transports) {
+            transportSource->setNextReadPosition(stopPosition);
+        }
+    }
+
+    mPlayerState = PlayerState::stopped;
+    // Normally already done by the audio thread in the fadedOut state. Needed if the audio device isn't running.
+    mAudioProcessor->setShouldProcessAmbiDecAlgo(false);
+}
+
+//==============================================================================
+bool AudioManager::waitForPlayerState(PlayerState const state) const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto * device{ mAudioDeviceManager.getCurrentAudioDevice() };
+    if (device == nullptr || !device->isPlaying()) {
+        return mPlayerState.load() == state;
+    }
+
+    // A few audio blocks, plus some margin for the scheduler.
+    auto const blockDurationMs{ 1000.0 * device->getCurrentBufferSizeSamples()
+                                / std::max(1.0, device->getCurrentSampleRate()) };
+    auto const timeoutMs{ 100 + juce::roundToInt(4.0 * blockDurationMs) };
+    auto const deadline{ juce::Time::getMillisecondCounter() + static_cast<juce::uint32>(timeoutMs) };
+
+    while (mPlayerState.load() != state) {
+        if (juce::Time::getMillisecondCounter() > deadline) {
+            jassertfalse; // the audio callback didn't run (device stopped, audio lock held, Player loading...)
+            return false;
+        }
+        juce::Thread::sleep(1);
+    }
+    return true;
 }
 
 //==============================================================================
 bool AudioManager::isPlaying() const
 {
-    return mIsPlaying;
+    return mPlayerState.load() == PlayerState::playing;
 }
 
 //==============================================================================
@@ -415,6 +484,8 @@ void AudioManager::setPlayerLoading(bool const playerIsLoading)
 void AudioManager::unloadPlayer()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
+    mPlayerState = PlayerState::stopped;
 
     mTransportSources.clear(true);
     mAmbiTransportSources.clear(true);
@@ -567,8 +638,7 @@ bool AudioManager::preparePlayer(juce::File const & folder,
                 if (mode == PlayerMode::ambisonic) {
                     track->sourceIndexes.add(static_cast<source_index_t>(channel + source_index_t::OFFSET));
                 } else {
-                    track->sourceIndexes.add(
-                        static_cast<source_index_t>(spkSetupOrdered.getUnchecked(channel).get()));
+                    track->sourceIndexes.add(static_cast<source_index_t>(spkSetupOrdered.getUnchecked(channel).get()));
                 }
             }
             track->scratchBuffer.setSize(channelCount, SourceAudioBuffer::MAX_NUM_SAMPLES);
@@ -965,8 +1035,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         }
         mAmbiRecorders.add(std::move(recordingInterleavedInfo));
 
-        for (int ch{ numAmbiChannels }, filePathIndex{ 1 }; ch < totalNumAmbiBufferChannels;
-             ++ch, ++filePathIndex) {
+        for (int ch{ numAmbiChannels }, filePathIndex{ 1 }; ch < totalNumAmbiBufferChannels; ++ch, ++filePathIndex) {
             auto const & directFilePath{ ambiFilePaths[filePathIndex] };
             juce::Array<float const *> dataToRecord{};
             dataToRecord.add(mOutputAmbiEncBuffer.getReadPointer(ch));
