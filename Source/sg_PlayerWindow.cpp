@@ -358,7 +358,7 @@ PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, Gr
     };
     addAndMakeVisible(mPlayerModeComboBox);
 
-    mAmbiOrderLabel.setText("Order", juce::dontSendNotification);
+    mAmbiOrderLabel.setText("Decoding Order", juce::dontSendNotification);
     addAndMakeVisible(mAmbiOrderLabel);
     mAmbiOrderLabel.setVisible(false);
     mAmbiOrderComboBox.setLookAndFeel(&mLookAndFeel);
@@ -908,7 +908,7 @@ void PlayerComponent::resized()
 
     mPlayerModeLabel.setBounds(playerModeArea.removeFromLeft(45));
     mPlayerModeComboBox.setBounds(playerModeArea.removeFromLeft(150));
-    mAmbiOrderLabel.setBounds(playerModeArea.removeFromLeft(45));
+    mAmbiOrderLabel.setBounds(playerModeArea.removeFromLeft(100));
     mAmbiOrderComboBox.setBounds(playerModeArea.removeFromLeft(50));
     mSpinningWheel.setBounds(mAmbiOrderComboBox.getBounds().getRight() + 4,
                              mAmbiOrderComboBox.getBounds().getY() + 4,
