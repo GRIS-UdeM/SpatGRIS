@@ -314,6 +314,10 @@ PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, Gr
                           : PlayerMode::ambisonic;
         stopAudio();
         if (mPlayerMode == PlayerMode::audio) {
+            if (mThumbnails->getNumSources() == 0) {
+                mPlayButton.setEnabled(false);
+                mStopButton.setEnabled(false);
+            }
             mMainContentComponent.setPlayerMode(PlayerMode::audio);
             mLoadFilesButton.setButtonText("Load audio files and Speaker setup folder");
             mSavePlayerProjectButton.setButtonText("Save Player Project");
@@ -329,6 +333,10 @@ PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, Gr
             mAmbiOrderComboBox.setVisible(false);
             showSpinningWheel(false);
         } else {
+            if (mAmbisonicThumbnails->getNumSources() == 0) {
+                mPlayButton.setEnabled(false);
+                mStopButton.setEnabled(false);
+            }
             mMainContentComponent.setPlayerMode(PlayerMode::ambisonic);
             mLoadFilesButton.setButtonText("Load ambisonic files folder");
             mSavePlayerProjectButton.setButtonText("Save Ambisonic Player Project");
