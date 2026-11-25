@@ -3420,6 +3420,10 @@ bool MainContentComponent::makeSureProjectIsSavedToDisk() noexcept
 
     auto const pressedButton{ alertWindow.runModalLoop() };
 
+    if (mPlayerWindow != nullptr) {
+        mPlayerWindow->toFront(true);
+    }
+
     if (pressedButton == BUTTON_CANCEL) {
         return false;
     }
