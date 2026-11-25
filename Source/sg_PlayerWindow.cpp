@@ -872,11 +872,6 @@ void PlayerComponent::buttonClicked(juce::Button * button)
 
     if (button == &mLoadFilesButton) {
         handleOpenFiles();
-        if (mPlayerMode == PlayerMode::audio) {
-            mThumbnails->setSources();
-        } else {
-            mAmbisonicThumbnails->setSources();
-        }
     } else if (button == &mSavePlayerProjectButton) {
         mPlayerMode == PlayerMode::audio ? mMainContentComponent.savePlayerProject(mPlayerFilesFolder)
                                          : mMainContentComponent.savePlayerProject(mPlayerAmbisonicFilesFolder);
