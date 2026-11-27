@@ -57,6 +57,7 @@ void TitledComponent::paint(juce::Graphics & g)
 void TitledComponent::setTitle(juce::String title)
 {
     mTitle = title;
+    repaint();
 }
 
 } // namespace gris

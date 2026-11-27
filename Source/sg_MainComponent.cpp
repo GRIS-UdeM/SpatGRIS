@@ -3153,8 +3153,9 @@ void MainContentComponent::setTitles() const
                                 + projectFileName };
     mMainWindow.DocumentWindow::setName(mainWindowTitle);
 
+    auto const speakerSetupFileName{ juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension() };
+    mSpeakersSection->setTitle(juce::String("Speakers - " + speakerSetupFileName));
     if (mEditSpeakersWindow != nullptr) {
-        auto const speakerSetupFileName{ juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension() };
         auto const windowName{ juce::String{ "Speaker Setup Edition - " }
                                + spatModeToString(mData.speakerSetup.spatMode) + juce::String(" - ")
                                + speakerSetupFileName };
