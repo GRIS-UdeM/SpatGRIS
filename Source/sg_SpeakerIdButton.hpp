@@ -22,6 +22,7 @@
 #include "Data/StrongTypes/sg_OutputPatch.hpp"
 #include "Data/sg_constants.hpp"
 #include "sg_SmallToggleButton.hpp"
+#include "tl/optional.hpp"
 
 namespace gris
 {
@@ -42,6 +43,10 @@ public:
         SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void speakerIdButtonClicked(SpeakerIdButton * button) = 0;
+        /** tl::nullopt means "reset to the default appearance". */
+        virtual void speakerIdButtonColorChanged(SpeakerIdButton * button, tl::optional<juce::Colour> color) = 0;
+        virtual void speakerIdButtonCopyColorToNextSpeaker(SpeakerIdButton * button, tl::optional<juce::Colour> color)
+            = 0;
     };
 
 private:
@@ -49,6 +54,8 @@ private:
     Listener & mListener;
     SmallGrisLookAndFeel & mLookAndFeel;
     SmallToggleButton mButton;
+    tl::optional<juce::Colour> mColour{};
+    bool mIsSelected{};
 
 public:
     //==============================================================================
@@ -57,6 +64,7 @@ public:
     SG_DELETE_COPY_AND_MOVE(SpeakerIdButton)
     //==============================================================================
     void setSelected(bool state);
+    void setColor(tl::optional<juce::Colour> const & color);
     //==============================================================================
     [[nodiscard]] int getMinWidth() const noexcept override { return SLICES_WIDTH; }
     [[nodiscard]] int getMinHeight() const noexcept override { return SLICES_ID_BUTTON_HEIGHT; }
@@ -64,6 +72,8 @@ public:
 
 private:
     //==============================================================================
+    void refreshAppearance();
+    void showColourEditor();
     void smallButtonClicked(SmallToggleButton * button, bool state, bool isLeftMouseButton) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerIdButton)

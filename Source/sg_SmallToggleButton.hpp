@@ -61,6 +61,7 @@ public:
     void setToggleState(bool state);
     void setButtonColor(int colorId, juce::Colour colour);
     void setLabelColour(int colorId, juce::Colour colour);
+    void setButtonTooltip(juce::String tooltip);
     //==============================================================================
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;

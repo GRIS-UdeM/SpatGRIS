@@ -86,6 +86,12 @@ void SmallToggleButton::setLabelColour(int const colorId, juce::Colour const col
 }
 
 //==============================================================================
+void SmallToggleButton::setButtonTooltip(juce::String tooltip)
+{
+    mButton.setTooltip(tooltip);
+}
+
+//==============================================================================
 int SmallToggleButton::getMinWidth() const noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;

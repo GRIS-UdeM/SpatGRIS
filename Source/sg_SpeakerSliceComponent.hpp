@@ -43,6 +43,9 @@ public:
         //==============================================================================
         virtual void setSelectedSpeakers(juce::Array<output_patch_t> selection) = 0;
         virtual void setSpeakerState(output_patch_t outputPatch, SliceState state) = 0;
+        virtual void setSpeakerColor(output_patch_t outputPatch, tl::optional<juce::Colour> colour) = 0;
+        [[nodiscard]] virtual tl::optional<output_patch_t> getNextSpeakerOutputPatch(output_patch_t outputPatch) const
+            = 0;
     };
 
 private:
@@ -62,9 +65,13 @@ public:
     SG_DELETE_COPY_AND_MOVE(SpeakerSliceComponent)
     //==============================================================================
     void setSelected(bool value);
+    void setSpeakerColour(tl::optional<juce::Colour> const & colour);
     //==============================================================================
     void speakerIdButtonClicked(SpeakerIdButton * button) override;
     void muteSoloButtonClicked(SliceState state) override;
+    //==============================================================================
+    void speakerIdButtonColorChanged(SpeakerIdButton * button, tl::optional<juce::Colour> color) override;
+    void speakerIdButtonCopyColorToNextSpeaker(SpeakerIdButton * button, tl::optional<juce::Colour> color) override;
 
 private:
     //==============================================================================

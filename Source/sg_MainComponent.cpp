@@ -2155,8 +2155,9 @@ void MainContentComponent::refreshSpeakerSlices()
             auto newSlice{
                 std::make_unique<SpeakerSliceComponent>(outputPatch, *this, mLookAndFeel, mSmallLookAndFeel)
             };
-            auto const & state{ mData.speakerSetup.speakers[outputPatch].state };
-            newSlice->setState(state, isAtLeastOneSpeakerSolo);
+            auto const & speaker{ mData.speakerSetup.speakers[outputPatch] };
+            newSlice->setState(speaker.state, isAtLeastOneSpeakerSolo);
+            newSlice->setSpeakerColour(speaker.colour);
             auto & addedSlice{ mSpeakerSliceComponents.add(outputPatch, std::move(newSlice)) };
             mSpeakersLayout->addSection(&addedSlice).withChildMinSize();
         }
@@ -2558,6 +2559,44 @@ void MainContentComponent::setSelectedSpeakers(juce::Array<output_patch_t> const
 }
 
 //==============================================================================
+void MainContentComponent::setSpeakerColor(output_patch_t const outputPatch, tl::optional<juce::Colour> const colour)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    {
+        juce::ScopedWriteLock const lock{ mLock };
+
+        if (!mData.speakerSetup.speakers.contains(outputPatch)) {
+            return;
+        }
+
+        mData.speakerSetup.speakers[outputPatch].colour = colour;
+        updateSpeakerSetupValueTree();
+
+        if (mSpeakerSliceComponents.contains(outputPatch)) {
+            mSpeakerSliceComponents[outputPatch].setSpeakerColour(colour);
+        }
+    }
+
+    refreshViewportConfig();
+}
+
+//==============================================================================
+tl::optional<output_patch_t> MainContentComponent::getNextSpeakerOutputPatch(output_patch_t const outputPatch) const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto const & ordering{ mData.speakerSetup.ordering };
+    auto const index{ ordering.indexOf(outputPatch) };
+    if (index < 0 || index + 1 >= ordering.size()) {
+        return tl::nullopt;
+    }
+
+    return ordering[index + 1];
+}
+
+//==============================================================================
 void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, SliceState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2798,21 +2837,30 @@ void MainContentComponent::updateSpeakerSetupValueTree()
     auto const mainGroup{ mData.speakerSetup.speakerSetupValueTree.getChild(0) };
     jassert(mainGroup.getType() == SPEAKER_GROUP);
 
+    auto const syncSpeakerVt = [this](juce::ValueTree speakerVt) {
+        if (!speakerVt.hasProperty(IO_STATE)) {
+            return;
+        }
+        const auto id{ output_patch_t(speakerVt[SPEAKER_PATCH_ID]) };
+        if (!mData.speakerSetup.speakers.contains(id)) {
+            return;
+        }
+        auto const & speaker{ mData.speakerSetup.speakers[id] };
+        speakerVt.setProperty(IO_STATE, sliceStateToString(speaker.state), nullptr);
+        if (speaker.colour) {
+            speakerVt.setProperty(SPEAKER_COLOUR, speaker.colour->toString(), nullptr);
+        } else {
+            speakerVt.removeProperty(SPEAKER_COLOUR, nullptr);
+        }
+    };
+
     for (auto child : mainGroup) {
         if (child.getType() == SPEAKER_GROUP) {
             for (auto subChild : child) {
-                if (subChild.hasProperty(IO_STATE)) {
-                    const auto id{ output_patch_t(subChild[SPEAKER_PATCH_ID]) };
-                    const auto ioState{ mData.speakerSetup.speakers[id].state };
-                    subChild.setProperty(IO_STATE, sliceStateToString(ioState), nullptr);
-                }
+                syncSpeakerVt(subChild);
             }
         } else if (child.getType() == SPEAKER) {
-            if (child.hasProperty(IO_STATE)) {
-                const auto id{ output_patch_t(child[SPEAKER_PATCH_ID]) };
-                const auto ioState{ mData.speakerSetup.speakers[id].state };
-                child.setProperty(IO_STATE, sliceStateToString(ioState), nullptr);
-            }
+            syncSpeakerVt(child);
         } else {
             jassertfalse;
             return;

@@ -1006,7 +1006,8 @@ void EditSpeakersWindow::valueTreePropertyChanged(juce::ValueTree & vt, const ju
 
                 vt.removeProperty(NEXT_SPEAKER_PATCH_ID, nullptr);
             }
-        } else if (property != SPEAKER_PATCH_ID && property != NEXT_SPEAKER_PATCH_ID && property != IO_STATE) {
+        } else if (property != SPEAKER_PATCH_ID && property != NEXT_SPEAKER_PATCH_ID && property != IO_STATE
+                   && property != SPEAKER_COLOUR) {
             // unhandled property
             jassertfalse;
         }

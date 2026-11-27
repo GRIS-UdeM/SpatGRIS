@@ -329,7 +329,8 @@ void SpeakerViewComponent::prepareSpeakersJson()
                 isSelected
                 isDirectOutOnly
                 alpha
-                (group center position (if speaker is in a group))
+                group center position ([0,0,0] if the speaker is not in a group)
+                (color [r,g,b,a] (only if the speaker has a custom color))
             */
 
             auto const & pos{ speaker.value.position.getCartesian() };
@@ -348,20 +349,31 @@ void SpeakerViewComponent::prepareSpeakersJson()
             mJsonSpeakers += speaker.value.isDirectOutOnly ? "1" : "0";
             mJsonSpeakers += ",";
             appendNumber(mJsonSpeakers, getAlpha());
-            // if the speaker is in a group, add its center's position.
 
+            // Always add the group center position (origin if the speaker is not in a group) so that
+            // the optional color always lands at the same index.
             // This will insert a default tl::nullopt if the key is not in
             // the map. In this case we can live with it.
             auto center_position = speaker_centers[speaker.key];
+            CartesianVector const center_cartesion_pos{ center_position ? center_position->getCartesian()
+                                                                        : CartesianVector{ 0.0f, 0.0f, 0.0f } };
+            mJsonSpeakers += ",[";
+            appendNumber(mJsonSpeakers, center_cartesion_pos.x);
+            mJsonSpeakers += ",";
+            appendNumber(mJsonSpeakers, center_cartesion_pos.y);
+            mJsonSpeakers += ",";
+            appendNumber(mJsonSpeakers, center_cartesion_pos.z);
+            mJsonSpeakers += "]";
 
-            if (center_position) {
-                auto const & center_cartesion_pos = center_position->getCartesian();
+            if (auto const & color{ speaker.value.colour }) {
                 mJsonSpeakers += ",[";
-                appendNumber(mJsonSpeakers, center_cartesion_pos.x);
+                appendNumber(mJsonSpeakers, color->getFloatRed());
                 mJsonSpeakers += ",";
-                appendNumber(mJsonSpeakers, center_cartesion_pos.y);
+                appendNumber(mJsonSpeakers, color->getFloatGreen());
                 mJsonSpeakers += ",";
-                appendNumber(mJsonSpeakers, center_cartesion_pos.z);
+                appendNumber(mJsonSpeakers, color->getFloatBlue());
+                mJsonSpeakers += ",";
+                appendNumber(mJsonSpeakers, color->getFloatAlpha());
                 mJsonSpeakers += "]";
             }
             mJsonSpeakers += "],";

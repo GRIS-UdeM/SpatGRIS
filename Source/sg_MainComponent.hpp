@@ -213,6 +213,8 @@ public:
     void setSourceState(source_index_t sourceIndex, SliceState state) override;
     void setSelectedSpeakers(juce::Array<output_patch_t> selection) override;
     void setSpeakerState(output_patch_t outputPatch, SliceState state) override;
+    void setSpeakerColor(output_patch_t outputPatch, tl::optional<juce::Colour> colour) override;
+    [[nodiscard]] tl::optional<output_patch_t> getNextSpeakerOutputPatch(output_patch_t outputPatch) const override;
     void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     void setShowTriplets(bool state);
     void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) override;

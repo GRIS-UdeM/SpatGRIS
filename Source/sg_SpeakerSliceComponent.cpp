@@ -30,6 +30,14 @@ void SpeakerSliceComponent::setSelected(bool const value)
 }
 
 //==============================================================================
+void SpeakerSliceComponent::setSpeakerColour(tl::optional<juce::Colour> const & colour)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mIdButton.setColor(colour);
+}
+
+//==============================================================================
 void SpeakerSliceComponent::speakerIdButtonClicked([[maybe_unused]] SpeakerIdButton * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -44,6 +52,32 @@ void SpeakerSliceComponent::muteSoloButtonClicked(SliceState const state)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mOwner.setSpeakerState(mOutputPatch, state);
+}
+
+//==============================================================================
+void SpeakerSliceComponent::speakerIdButtonColorChanged([[maybe_unused]] SpeakerIdButton * button,
+                                                        tl::optional<juce::Colour> const color)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(button == &mIdButton);
+
+    mOwner.setSpeakerColor(mOutputPatch, color);
+}
+
+//==============================================================================
+void SpeakerSliceComponent::speakerIdButtonCopyColorToNextSpeaker([[maybe_unused]] SpeakerIdButton * button,
+                                                                  tl::optional<juce::Colour> const color)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(button == &mIdButton);
+
+    auto const nextOutputPatch{ mOwner.getNextSpeakerOutputPatch(mOutputPatch) };
+    if (!nextOutputPatch) {
+        // Alt + right click on the last speaker
+        return;
+    }
+
+    mOwner.setSpeakerColor(*nextOutputPatch, color);
 }
 
 //==============================================================================

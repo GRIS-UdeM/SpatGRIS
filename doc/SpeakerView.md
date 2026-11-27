@@ -51,7 +51,23 @@ SpatGRIS communicates with SpeakerView using the following messages:
     false,
 
     // alpha
-    0.75
+    0.75,
+
+    // group center position (always present, [0, 0, 0] if the speaker is not in a group)
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+
+    // optional: custom speaker color [r, g, b, a] (0.0 to 1.0).
+    // Omitted when the speaker uses the default color.
+    [
+      1.0,
+      0.5,
+      0.0,
+      1.0
+    ]
   ],
   ...
 ]
