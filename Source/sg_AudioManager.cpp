@@ -663,8 +663,8 @@ bool AudioManager::preparePlayer(juce::File const & folder,
     }
 
     // check all audio files are the same length
-    for (auto source : transportSources) {
-        if (source->getTotalLength() != transportSources[0]->getTotalLength()) {
+    for (auto tpSource : transportSources) {
+        if (tpSource->getTotalLength() != transportSources[0]->getTotalLength()) {
             playerTracks.clear(true);
             transportSources.clear(true);
             readerSources.clear(true);
